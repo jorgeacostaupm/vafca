@@ -1,20 +1,12 @@
 import { filterMatrixByLabels, filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
-import type { MatrixShape } from "@/utils/matrixValue";
-import type { MatrixValueRange } from "@/utils/matrixFiltering";
-import type { NetworkViewType } from "@/types/networkVisualization";
-
-export type CanonicalMatrixData = {
-  data: number[][];
-  rowLabels: string[];
-  colLabels: string[];
-};
-
-export type AdaptedMatrixViewData = CanonicalMatrixData;
-
-export type AdaptedNodeLinkViewData = {
-  data: number[][];
-  labels: string[];
-};
+import type { MatrixShape } from "@/types/matrix";
+import type { MatrixValueRange } from "@/types/matrixView";
+import type {
+  AdaptedMatrixViewData,
+  AdaptedNodeLinkViewData,
+  CanonicalMatrixData,
+  NetworkViewType,
+} from "@/types/networkVisualization";
 
 export const buildCanonicalMatrixData = ({
   matrixData,

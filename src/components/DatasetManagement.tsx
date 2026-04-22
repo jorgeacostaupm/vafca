@@ -15,11 +15,16 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateCatalogItem, updateMetadata } from "@/store/slices/datasetSlice";
 import { setMatrixShape } from "@/store/slices/visualizationUiSlice";
 import {
+  patchNetworkControls,
+  setNetworkHideIsolatedNodes,
+} from "@/store/slices/networkVisualizationSlice";
+import {
   setCircularHierarchyCategoryOrder,
   setCircularHierarchyFields,
   setMatrixHierarchyCategoryOrder,
   setMatrixHierarchyFields,
 } from "@/store/slices/atlasSlice";
+import NetworkManagementControls from "@/components/network/NetworkManagementControls";
 import { getAllMatrices } from "@/utils/matrixStore";
 import { normalizeMatrixOrder } from "@/utils/matrixOrder";
 import AtlasUploader from "@/components/atlas/AtlasUploader";
@@ -167,6 +172,9 @@ function DatasetManagement() {
   const dispatch = useAppDispatch();
   const { data, status, error } = useAppSelector((state) => state.dataset);
   const matrixShape = useAppSelector((state) => state.visualizationUi.matrixShape);
+  const networkControls = useAppSelector(
+    (state) => state.networkVisualization.controls,
+  );
   const atlas = useAppSelector((state) => state.atlas);
   const atlasDefinition = useAtlasDefinition(
     data?.metadata.atlasId ?? data?.metadata.atlas,
@@ -403,6 +411,27 @@ function DatasetManagement() {
           />
         </Space>
       </Space>
+
+      <div>
+        <NetworkManagementControls
+          syncZoom={networkControls.syncZoom}
+          onToggleSyncZoom={(value) =>
+            dispatch(
+              patchNetworkControls({
+                syncZoom: value,
+              }),
+            )
+          }
+          hideIsolatedNodes={networkControls.hideIsolatedNodes}
+          onToggleHideIsolatedNodes={(value) =>
+            dispatch(
+              setNetworkHideIsolatedNodes({
+                value,
+              }),
+            )
+          }
+        />
+      </div>
 
       <div>
         <Typography.Text strong>Matrix summary</Typography.Text>

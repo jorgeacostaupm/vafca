@@ -2,19 +2,20 @@ import { createRef, type RefObject } from "react";
 import { Button, Space } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import { mutateNetworkViewType } from "@/store/slices/networkVisualizationSlice";
-import { buildMatrixPanelItem } from "@/components/network/panels/buildMatrixPanelItem";
-import { buildNodeLinkPanelItem } from "@/components/network/panels/buildNodeLinkPanelItem";
+import { buildNetworkPanelItem } from "@/components/network/panels/buildNetworkPanelItem";
 import {
   ViewTypeSelect,
   LoadingPanelBody,
 } from "@/components/network/panels/NetworkPanelCommon";
-import type { PanelItem } from "@/components/layout/PanelGridLayout";
-import type { ComputedView } from "@/components/network/networkSelectorTypes";
-import type { FilterContributor, ViewVisibility } from "@/components/network/networkFormatting";
-import type { AppDispatch, RootState } from "@/store/store";
-import type { NetworkViewDescriptor } from "@/types/networkVisualization";
-import type { StatRangeValue } from "@/types/matrixView";
-import type { markNetworkViewFormatting } from "@/store/slices/networkVisualizationSlice";
+import type { PanelItem } from "@/types/layout";
+import type {
+  ComputedView,
+  FilterContributor,
+  NetworkViewDescriptor,
+  ViewVisibility,
+} from "@/types/networkVisualization";
+import type { NetworkPanelCommonProps } from "@/types/networkPanels";
+import type { AppDispatch, RootState } from "@/types/store";
 
 const resolveViewTypeTitle = (type: "matrix" | "circular" | "classic") =>
   type === "matrix" ? "Matrix" : type === "circular" ? "Circular" : "Node-Link";
@@ -37,13 +38,12 @@ type BuildNetworkPanelItemsArgs = {
   labelTitles: Record<string, string>;
   labelAcronyms: Record<string, string>;
   nodeColors: Record<string, string>;
-  defaultStatRanges: Record<string, StatRangeValue>;
   visibilityByViewId: Record<string, ViewVisibility>;
   nodeFilterContributors: FilterContributor[];
   linkFilterContributors: FilterContributor[];
   zoomTargetsByType: (viewId: string) => string[];
   dispatch: AppDispatch;
-  markFormatting: typeof markNetworkViewFormatting;
+  markFormatting: NetworkPanelCommonProps["markFormatting"];
 };
 
 export const buildNetworkPanelItems = ({
@@ -57,7 +57,6 @@ export const buildNetworkPanelItems = ({
   labelTitles,
   labelAcronyms,
   nodeColors,
-  defaultStatRanges,
   visibilityByViewId,
   nodeFilterContributors,
   linkFilterContributors,
@@ -116,7 +115,6 @@ export const buildNetworkPanelItems = ({
       labelTitles,
       labelAcronyms,
       nodeColors,
-      defaultStatRanges,
       visibilityByViewId,
       nodeFilterContributors,
       linkFilterContributors,
@@ -125,10 +123,7 @@ export const buildNetworkPanelItems = ({
       markFormatting,
     };
 
-    const built =
-      view.type === "matrix"
-        ? buildMatrixPanelItem(common)
-        : buildNodeLinkPanelItem(common);
+    const built = buildNetworkPanelItem(common);
 
     return {
       ...built,

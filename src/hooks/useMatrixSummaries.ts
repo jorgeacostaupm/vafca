@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { getAllMatrixSummaries, type MatrixSummary } from "@/utils/matrixStore";
+import { getAllMatrixSummaries } from "@/utils/matrixStore";
+import type { MatrixSummary } from "@/types/matrixStore";
 
 type MatrixSummaryStatus = "idle" | "loading" | "ready" | "error";
 

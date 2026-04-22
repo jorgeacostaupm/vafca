@@ -1,6 +1,6 @@
 import { escapeHtml } from "@/utils/html";
 import { buildRoiTooltipLabel, SELECTED_STROKE } from "@/components/nodelink/nodelinkShared";
-import type { ClassicLink, ClassicNode } from "@/components/nodelink/classicRenderStrategies";
+import type { ClassicLink, ClassicNode } from "@/types/nodelink";
 
 export const applyClassicHoverSelectionStyles = (args: {
   linkSelection: any;

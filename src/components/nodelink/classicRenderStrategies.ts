@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { escapeHtml } from "@/utils/html";
+import type { ClassicLink, ClassicNode } from "@/types/nodelink";
 import {
   buildRoiTooltipLabel,
   LINK_COLOR,
@@ -8,21 +9,6 @@ import {
   SELECTED_STROKE,
 } from "@/components/nodelink/nodelinkShared";
 
-export type ClassicNode = {
-  id: number;
-  labelId?: string;
-  label: string;
-  x?: number;
-  y?: number;
-};
-
-export type ClassicLink = {
-  source: number | ClassicNode;
-  target: number | ClassicNode;
-  value: number;
-  rowId: string;
-  colId: string;
-};
 
 type RenderClassicElementsArgs = {
   root: d3.Selection<SVGGElement, unknown, null, undefined>;

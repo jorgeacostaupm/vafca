@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { escapeHtml } from "@/utils/html";
+import type { CircularLink, CircularNode } from "@/types/nodelink";
 import {
   buildRoiTooltipLabel,
   LINK_COLOR,
@@ -8,22 +9,6 @@ import {
   SELECTED_STROKE,
 } from "@/components/nodelink/nodelinkShared";
 
-export type CircularNode = {
-  id: number;
-  labelId?: string;
-  label: string;
-  angle: number;
-  x: number;
-  y: number;
-};
-
-export type CircularLink = {
-  source: number;
-  target: number;
-  value: number;
-  rowId: string;
-  colId: string;
-};
 
 type RenderCircularElementsArgs = {
   root: d3.Selection<SVGGElement, unknown, null, undefined>;

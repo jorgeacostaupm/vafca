@@ -1,5 +1,5 @@
 import { Button, Select, Spin, Typography } from "antd";
-import type { ViewTypeSelectProps } from "@/components/network/panels/types";
+import type { ViewTypeSelectProps } from "@/types/networkPanels";
 
 export const LoadingPanelBody = ({ text }: { text: string }) => (
   <div

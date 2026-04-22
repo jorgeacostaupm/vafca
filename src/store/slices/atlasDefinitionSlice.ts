@@ -1,9 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { AtlasSource } from "@/types/atlas";
+import type { AtlasDefinitionState, AtlasSource } from "@/types/atlas";
 
-export type AtlasDefinitionState = {
-  uploaded: AtlasSource | null;
-};
 
 const initialState: AtlasDefinitionState = {
   uploaded: null,

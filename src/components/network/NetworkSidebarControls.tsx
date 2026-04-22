@@ -25,8 +25,6 @@ type NetworkSidebarControlsProps = {
     bands: boolean;
   };
   showMatrixSelect: boolean;
-  syncZoom: boolean;
-  onToggleSyncZoom: (value: boolean) => void;
   onChange: {
     populations: (value?: string) => void;
     measure: (value?: string) => void;
@@ -40,7 +38,7 @@ type NetworkSidebarControlsProps = {
 export default function NetworkSidebarControls({
   viewType,
   onViewTypeChange,
-  ...props
+  ...selectorProps
 }: NetworkSidebarControlsProps) {
   return (
     <>
@@ -57,7 +55,7 @@ export default function NetworkSidebarControls({
           />
         </Form.Item>
       </Form>
-      <SelectorControls {...props} />
+      <SelectorControls {...selectorProps} />
     </>
   );
 }

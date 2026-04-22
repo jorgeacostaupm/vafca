@@ -1,8 +1,9 @@
 import type { RefObject } from "react";
+import type { MatrixValueRange } from "@/types/matrixView";
 
 export type NodeLinkValueFilters = {
   measure?: [number, number] | null;
-  stat?: [number, number] | Array<[number, number]> | null;
+  stat?: MatrixValueRange;
 };
 
 export type NodeLinkPanelCommonProps = {
@@ -41,4 +42,45 @@ export type NodeLinkInteractionProps = {
   onLinkLeave?: () => void;
   onNodeHover?: (id: string) => void;
   onNodeLeave?: () => void;
+};
+
+export type UndirectedLink = {
+  source: number;
+  target: number;
+  value: number;
+  rowId: string;
+  colId: string;
+};
+
+export type ClassicNode = {
+  id: number;
+  labelId?: string;
+  label: string;
+  x?: number;
+  y?: number;
+};
+
+export type ClassicLink = {
+  source: number | ClassicNode;
+  target: number | ClassicNode;
+  value: number;
+  rowId: string;
+  colId: string;
+};
+
+export type CircularNode = {
+  id: number;
+  labelId?: string;
+  label: string;
+  angle: number;
+  x: number;
+  y: number;
+};
+
+export type CircularLink = {
+  source: number;
+  target: number;
+  value: number;
+  rowId: string;
+  colId: string;
 };

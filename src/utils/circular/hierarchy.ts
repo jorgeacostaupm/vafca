@@ -1,6 +1,8 @@
 import * as d3 from "d3";
 import type { AtlasDefinition, AtlasRoi } from "@/types/atlas";
+import type { CircularHierarchyLayoutPoint } from "@/types/circular";
 import { normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
+
 
 type CircularHierarchyLayoutParams = {
   labelIds: string[];
@@ -8,14 +10,6 @@ type CircularHierarchyLayoutParams = {
   atlasDefinition: AtlasDefinition | null;
   hierarchyFields: string[];
   categoryOrder?: Record<string, string[]>;
-};
-
-export type CircularHierarchyLayoutPoint = {
-  labelId: string;
-  order: number;
-  angle: number;
-  x: number;
-  y: number;
 };
 
 type HierarchyDataNode = {

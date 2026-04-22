@@ -15,7 +15,7 @@ import {
   setAtlasLinkIds,
   toggleAtlasLinkId,
 } from "@/store/slices/visualizationUiSlice";
-import SelectedLinksAtlas from "@/components/matrix/SelectedLinksAtlas";
+import SelectedLinksAtlas from "@/components/selected-links/SelectedLinksAtlas";
 import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
 import { getMatrix } from "@/utils/matrixStore";
 import type { ConnectivityMatrix } from "@/types/matrix";

@@ -1,50 +1,16 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { MatrixShape } from "@/utils/matrixValue";
+import type { MatrixShape } from "@/types/matrix";
+import type {
+  AtlasPanelState,
+  HoveredCell,
+  SelectedLink,
+  VisualizationUiState,
+} from "@/types/visualizationUi";
 
-export type HoveredCell =
-  | {
-      rowId: string;
-      colId: string;
-    }
-  | null;
-
-export type SelectedLink = {
-  id: string;
-  rowId: string;
-  colId: string;
-  rowLabel: string;
-  colLabel: string;
-  sources: Array<{
-    compoundId: string;
-    matrixLabel: string;
-    value: number;
-  }>;
-};
-
-type VisualizationUiState = {
-  hoveredCell: HoveredCell;
-  hoveredNodeId: string | null;
-  selectedLinks: SelectedLink[];
-  atlasLinkIds: string[];
-  matrixShape: MatrixShape;
-  atlasPanel: AtlasPanelState;
-};
-
-export type AtlasPanelListLayoutMode = "columns" | "single";
-
-export type AtlasPanelState = {
-  query: string;
-  groupByFields: string[];
-  listLayoutMode: AtlasPanelListLayoutMode;
-  selectedFilters: Record<string, string>;
-  collapsedGroups: string[];
-  viewerHeight: number;
-};
 
 const initialAtlasPanelState: AtlasPanelState = {
   query: "",
   groupByFields: [],
-  listLayoutMode: "columns",
   selectedFilters: {},
   collapsedGroups: [],
   viewerHeight: 520,

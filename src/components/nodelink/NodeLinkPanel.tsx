@@ -19,16 +19,18 @@ import {
 import type {
   NodeLinkInteractionProps,
   NodeLinkPanelCommonProps,
-} from "@/components/nodelink/panelTypes";
+} from "@/types/nodelink";
 import {
   buildDegreeByLabelId,
   buildFilteredUndirectedLinks,
-  type UndirectedLink,
 } from "@/components/nodelink/graphModel";
+import type {
+  ClassicLink as Link,
+  ClassicNode as Node,
+  UndirectedLink,
+} from "@/types/nodelink";
 import {
   renderClassicElements,
-  type ClassicLink as Link,
-  type ClassicNode as Node,
 } from "@/components/nodelink/classicRenderStrategies";
 import {
   applyClassicHoverSelectionStyles,

@@ -1,19 +1,12 @@
-import { valuePassesRangeFilter, type MatrixValueRange } from "@/utils/matrixFiltering";
+import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
+import type { MatrixValueRange } from "@/types/matrixView";
 import type {
-  LogicalMode,
+  FilterContributor,
   MatrixNetworkViewSettings,
   NodeLinkNetworkViewSettings,
+  ViewVisibility,
 } from "@/types/networkVisualization";
 
-export type ViewVisibility = {
-  nodeIds: Set<string>;
-  linkIds: Set<string>;
-};
-
-export type FilterContributor = {
-  viewId: string;
-  mode: LogicalMode;
-};
 
 export const buildLinkKey = (a: string, b: string) =>
   a <= b ? `${a}::${b}` : `${b}::${a}`;

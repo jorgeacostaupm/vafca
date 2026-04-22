@@ -1,19 +1,12 @@
-import type { AtlasDefinition, AtlasMeshMode, AtlasRoi } from "@/types/atlas";
+import type {
+  AtlasDefinition,
+  AtlasMeshMode,
+  AtlasRoi,
+  AtlasValidationResult,
+} from "@/types/atlas";
 
 const UNKNOWN_GROUP = "__unknown__";
 
-type AtlasValidationSuccess = {
-  ok: true;
-  atlas: AtlasDefinition;
-  commonFields: string[];
-};
-
-type AtlasValidationError = {
-  ok: false;
-  error: string;
-};
-
-export type AtlasValidationResult = AtlasValidationSuccess | AtlasValidationError;
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);

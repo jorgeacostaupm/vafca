@@ -1,4 +1,5 @@
-export type MatrixShape = "full" | "upper" | "lower";
+import type { MatrixShape } from "@/types/matrix";
+
 
 export const resolveMatrixValue = (
   data: number[][],

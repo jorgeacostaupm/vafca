@@ -1,18 +1,5 @@
-export type MatrixOrderItem =
-  | string
-  | number
-  | {
-      id?: string
-      label?: string
-      name?: string
-      value?: string
-    }
+import type { MatrixOrderEntry, MatrixOrderItem } from "@/types/matrixOrder"
 
-export type MatrixOrderEntry = {
-  id: string
-  label: string
-  acronym?: string
-}
 
 const toSafeString = (value: unknown, fallback: string) => {
   if (typeof value === 'string' && value.trim().length > 0) return value

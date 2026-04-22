@@ -1,6 +1,6 @@
 import { escapeHtml } from "@/utils/html";
 import { buildRoiTooltipLabel, SELECTED_STROKE } from "@/components/nodelink/nodelinkShared";
-import type { CircularLink, CircularNode } from "@/components/circular/circularRenderStrategies";
+import type { CircularLink, CircularNode } from "@/types/nodelink";
 
 export const applyCircularHoverSelectionStyles = (args: {
   linkSelection: any;

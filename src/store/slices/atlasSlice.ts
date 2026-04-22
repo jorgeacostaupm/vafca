@@ -1,28 +1,14 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { MatrixOrderEntry } from "@/utils/matrixOrder";
+import type {
+  AtlasLabel,
+  AtlasState,
+  D3CategoricalPaletteKey,
+} from "@/types/atlas";
+import type { MatrixOrderEntry } from "@/types/matrixOrder";
 import {
   DEFAULT_D3_CATEGORICAL_PALETTE,
-  type D3CategoricalPaletteKey,
 } from "@/utils/atlas/coloring";
 
-export type AtlasLabel = {
-  id: string;
-  label: string;
-  acronym?: string;
-  enabled: boolean;
-};
-
-export type AtlasState = {
-  order: string[];
-  labelsById: Record<string, AtlasLabel>;
-  initialized: boolean;
-  colorFields: string[];
-  colorPalette: D3CategoricalPaletteKey;
-  circularHierarchyFields: string[];
-  circularHierarchyCategoryOrder: Record<string, string[]>;
-  matrixHierarchyFields: string[];
-  matrixHierarchyCategoryOrder: Record<string, string[]>;
-};
 
 const initialState: AtlasState = {
   order: [],

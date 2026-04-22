@@ -1,13 +1,6 @@
 import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
-import type { NodeLinkValueFilters } from "@/components/nodelink/panelTypes";
+import type { NodeLinkValueFilters, UndirectedLink } from "@/types/nodelink";
 
-export type UndirectedLink = {
-  source: number;
-  target: number;
-  value: number;
-  rowId: string;
-  colId: string;
-};
 
 export const buildFilteredUndirectedLinks = (args: {
   data: number[][];

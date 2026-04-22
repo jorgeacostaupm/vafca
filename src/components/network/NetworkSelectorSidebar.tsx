@@ -1,7 +1,7 @@
 import { Col } from "antd";
 import NetworkSidebarControls from "@/components/network/NetworkSidebarControls";
 import { patchNetworkControls } from "@/store/slices/networkVisualizationSlice";
-import type { AppDispatch } from "@/store/store";
+import type { AppDispatch } from "@/types/store";
 import type { NetworkSelectorControlsState } from "@/types/networkVisualization";
 
 type Option = { value: string; label: string };
@@ -59,14 +59,6 @@ export default function NetworkSelectorSidebar({
             bands: !controls.statId,
           }}
           showMatrixSelect={showMatrixSelect}
-          syncZoom={controls.syncZoom}
-          onToggleSyncZoom={(value) =>
-            dispatch(
-              patchNetworkControls({
-                syncZoom: value,
-              }),
-            )
-          }
           onChange={{
             populations: (value) =>
               dispatch(

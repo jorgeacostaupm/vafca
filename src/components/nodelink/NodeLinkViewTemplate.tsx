@@ -1,10 +1,10 @@
 import type { ComponentType } from "react";
 import { useNodeLinkPanelInteractions } from "@/components/nodelink/useNodeLinkPanelInteractions";
-import ViewPanelTemplate from "@/components/visualization/ViewPanelTemplate";
+import ViewPanelTemplate from "@/components/layout/ViewPanelTemplate";
 import type {
   NodeLinkInteractionProps,
   NodeLinkPanelCommonProps,
-} from "@/components/nodelink/panelTypes";
+} from "@/types/nodelink";
 
 type NodeLinkRendererBaseProps = Omit<
   NodeLinkPanelCommonProps,

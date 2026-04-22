@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import type { DatasetState } from "@/store/slices/datasetSlice";
-import type { AtlasState } from "@/store/slices/atlasSlice";
+import type { DatasetState } from "@/types/datasetState";
+import type { AtlasState } from "@/types/atlas";
 import type { AtlasDefinition } from "@/types/atlas";
-import type { MatrixSummary } from "@/utils/matrixStore";
+import type { MatrixSummary } from "@/types/matrixStore";
 import { buildLabelNameMap, normalizeMatrixOrder } from "@/utils/matrixOrder";
 import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
 import {
@@ -10,7 +10,6 @@ import {
   hasOnlyEnabledPopulations,
   isEnabled,
   normalizePopulationKey,
-  toLabel,
 } from "@/utils/matrixViewUtils";
 
 type Option = { value: string; label: string };
@@ -35,13 +34,6 @@ type UseMatrixFilterOptionsArgs = {
 
 const defaultLabelFormatter: LabelFormatter = ({ summary, dataset }) =>
   buildMatrixLabel(summary, dataset?.catalogs);
-
-export const nodeLinkLabelFormatter: LabelFormatter = ({ summary, dataset }) =>
-  `${toLabel(dataset?.catalogs.measures[summary.measureId]?.label)} · ${toLabel(
-    dataset?.catalogs.bands[summary.bandId]?.label,
-  )} · ${toLabel(dataset?.catalogs.stats[summary.statId]?.label)} · ${summary.populationIds
-    .map((id) => toLabel(dataset?.catalogs.populations[id]?.label))
-    .join("+")}`;
 
 export const useMatrixFilterOptions = ({
   dataset,

@@ -93,20 +93,11 @@
   box-shadow: var(--shadow-md);
 }
 
-.matrix-grid-wrapper {
-  height: 70vh;
-  width: 65vw;
-  background: var(--color-surface-2);
-  overflow: hidden;
-}
-
-.matrix-grid-item,
 .panel-grid-item {
   display: flex;
   flex-direction: column;
 }
 
-.matrix-card-handle,
 .panel-card-handle {
   cursor: move;
   font-weight: 600;

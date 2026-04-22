@@ -6,8 +6,8 @@ import {
   clearHoveredNode,
   removeSelectedLink,
   setHoveredCell,
-  type SelectedLink,
 } from "@/store/slices/visualizationUiSlice";
+import type { SelectedLink } from "@/types/visualizationUi";
 
 type UseMatrixHeatmapControllerArgs = {
   data: number[][];

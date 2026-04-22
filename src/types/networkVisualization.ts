@@ -1,4 +1,4 @@
-import type { StatRangeValue } from "@/types/matrixView";
+import type { MatrixValueRange, StatRangeValue } from "@/types/matrixView";
 
 export type NetworkViewType = "matrix" | "circular" | "classic";
 export type LogicalMode = "and" | "or";
@@ -8,6 +8,19 @@ export type ZoomSelection = {
   rows: string[];
   cols: string[];
 } | null;
+
+export type ZoomableViewSettings = {
+  statRange?: StatRangeValue;
+  zoomLabelSelection?: string[];
+  zoomHistory?: ZoomSelection[];
+  zoomIndex?: number;
+};
+
+export type ZoomState = {
+  history: ZoomSelection[];
+  index: number;
+  current: ZoomSelection;
+};
 
 export type SharedNetworkViewSettings = {
   labels?: string[];
@@ -60,6 +73,59 @@ export type NetworkSelectorControlsState = {
   bandId: string;
   selectedCompoundId: string;
   syncZoom: boolean;
+  hideIsolatedNodes: boolean;
+};
+
+export type ViewVisibility = {
+  nodeIds: Set<string>;
+  linkIds: Set<string>;
+};
+
+export type FilterContributor = {
+  viewId: string;
+  mode: LogicalMode;
+};
+
+export type CanonicalMatrixData = {
+  data: number[][];
+  rowLabels: string[];
+  colLabels: string[];
+};
+
+export type AdaptedMatrixViewData = CanonicalMatrixData;
+
+export type AdaptedNodeLinkViewData = {
+  data: number[][];
+  labels: string[];
+};
+
+export type ComputedView = {
+  view: NetworkViewDescriptor;
+  data: number[][];
+  rowLabels: string[];
+  colLabels: string[];
+  settings?: MatrixNetworkViewSettings | NodeLinkNetworkViewSettings;
+  zoomState: ZoomState;
+  availableLabels: string[];
+  selectedLabels: string[];
+  zoomLabelSelection: string[];
+  orderedZoomLabels: string[];
+  statFilter: MatrixValueRange;
+  measureRange: [number, number] | null;
+  hideIsolatedNodes: boolean;
+  brushEnabled: boolean;
+  geometricZoomEnabled: boolean;
+  linkWidthRange: [number, number];
+  useAsNodeFilter: boolean;
+  nodeFilterMode: LogicalMode;
+  useAsLinkFilter: boolean;
+  linkFilterMode: LogicalMode;
+  statSliderMin: number;
+  statSliderMax: number;
+  hasNegativeRange: boolean;
+  statRangeValue?:
+    | MatrixNetworkViewSettings["statRange"]
+    | NodeLinkNetworkViewSettings["statRange"];
 };
 
 export const isNodeLinkViewType = (

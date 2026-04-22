@@ -1,17 +1,10 @@
-import type { AtlasDefinition, AtlasRoi } from "@/types/atlas";
+import type {
+  AtlasDefinition,
+  AtlasRoi,
+  D3CategoricalPaletteKey,
+} from "@/types/atlas";
 import { normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
 
-export type D3CategoricalPaletteKey =
-  | "category10"
-  | "tableau10"
-  | "accent"
-  | "dark2"
-  | "paired"
-  | "pastel1"
-  | "pastel2"
-  | "set1"
-  | "set2"
-  | "set3";
 
 export const DEFAULT_D3_CATEGORICAL_PALETTE: D3CategoricalPaletteKey =
   "tableau10";

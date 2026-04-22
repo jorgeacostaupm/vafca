@@ -1,15 +1,6 @@
 import type { ConnectivityMatrix } from '@/types/matrix'
+import type { MatrixSummary, StoredMatrix } from '@/types/matrixStore'
 
-type StoredMatrix = ConnectivityMatrix & { compoundId: string }
-
-export type MatrixSummary = {
-  compoundId: string
-  bandId: string
-  measureId: string
-  statId: string
-  populationIds: string[]
-  size: number
-}
 
 const inMemoryMatrices = new Map<string, StoredMatrix>()
 

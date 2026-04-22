@@ -1,4 +1,4 @@
-import { Button, Form, Select, Space, Switch, Typography } from "antd";
+import { Button, Form, Select, Space, Typography } from "antd";
 
 type Option = { value: string; label: string };
 
@@ -21,8 +21,6 @@ type SelectorControlsProps = {
     bands: boolean;
   };
   showMatrixSelect: boolean;
-  syncZoom: boolean;
-  onToggleSyncZoom: (value: boolean) => void;
   onChange: {
     populations: (value?: string) => void;
     measure: (value?: string) => void;
@@ -42,8 +40,6 @@ export default function SelectorControls({
   selection,
   disabled,
   showMatrixSelect,
-  syncZoom,
-  onToggleSyncZoom,
   onChange,
   onAdd,
 }: SelectorControlsProps) {
@@ -54,10 +50,6 @@ export default function SelectorControls({
       </Typography.Text>
 
       <Form layout="vertical">
-        <Form.Item label="Coordinated zoom">
-          <Switch checked={syncZoom} onChange={onToggleSyncZoom} />
-        </Form.Item>
-
         <Form.Item label="Populations">
           <Select
             placeholder="Select populations..."

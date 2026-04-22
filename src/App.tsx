@@ -3,7 +3,7 @@ import { useEffect, useMemo } from "react";
 import { Card, Layout, Space, Tabs, Typography } from "antd";
 import DatasetManagement from "@/components/DatasetManagement";
 import NetworkVisualizationTab from "@/components/network/NetworkVisualizationTab";
-import SelectedLinksPanel from "@/components/matrix/SelectedLinksPanel";
+import SelectedLinksPanel from "@/components/selected-links/SelectedLinksPanel";
 import AtlasPanel from "@/components/AtlasPanel";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { buildAtlasState, setAtlasLabels } from "@/store/slices/atlasSlice";
@@ -79,26 +79,11 @@ function App() {
                   label: "Management",
                   children: <DatasetManagement />,
                 },
-                /*                 {
-                  key: "matrices",
-                  label: "Matrix Views",
-                  children: <MatrixSelector />,
-                }, */
                 {
                   key: "network",
                   label: "Network Visualization",
                   children: <NetworkVisualizationTab />,
                 },
-                /*                 {
-                  key: "circular",
-                  label: "Circular Views",
-                  children: <CircularSelector />,
-                },
-                {
-                  key: "classic",
-                  label: "Node-Link Views",
-                  children: <NodeLinkSelector />,
-                }, */
                 {
                   key: "atlas",
                   label: "Atlas",

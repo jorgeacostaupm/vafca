@@ -1,18 +1,15 @@
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { StatRangeValue } from "@/types/matrixView";
+import type {
+  ZoomableViewSettings,
+  ZoomSelection,
+  ZoomState,
+} from "@/types/networkVisualization";
 import { areZoomSelectionsEqual } from "@/utils/matrixViewUtils";
 
-export type ZoomSelection = { rows: string[]; cols: string[] } | null;
 
-export type ZoomableViewSettings = {
-  statRange?: StatRangeValue;
-  zoomLabelSelection?: string[];
-  zoomHistory?: ZoomSelection[];
-  zoomIndex?: number;
-};
-
-export const getZoomState = (settings?: ZoomableViewSettings) => {
+export const getZoomState = (settings?: ZoomableViewSettings): ZoomState => {
   const history = settings?.zoomHistory ?? [null];
   const index = Math.min(settings?.zoomIndex ?? 0, history.length - 1);
   return {

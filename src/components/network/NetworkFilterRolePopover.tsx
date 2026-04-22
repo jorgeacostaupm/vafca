@@ -7,17 +7,16 @@ import type {
 } from "@/types/networkVisualization";
 
 type NetworkFilterRolePopoverProps = {
-  statRangeValue?: MatrixNetworkViewSettings["statRange"] | NodeLinkNetworkViewSettings["statRange"];
+  statRangeValue?:
+    | MatrixNetworkViewSettings["statRange"]
+    | NodeLinkNetworkViewSettings["statRange"];
   hasNegativeRange: boolean;
   statSliderMin: number;
   statSliderMax: number;
-  measureRangeBounds?: [number, number];
-  measureRangeValue?: [number, number];
   onStatRangeChange: (
     value: [number, number],
     segment?: "negative" | "positive",
   ) => void;
-  onMeasureRangeChange: (value: [number, number]) => void;
   useAsNodeFilter: boolean;
   onUseAsNodeFilterChange: (checked: boolean) => void;
   nodeFilterMode: LogicalMode;
@@ -33,10 +32,7 @@ export default function NetworkFilterRolePopover({
   hasNegativeRange,
   statSliderMin,
   statSliderMax,
-  measureRangeBounds,
-  measureRangeValue,
   onStatRangeChange,
-  onMeasureRangeChange,
   useAsNodeFilter,
   onUseAsNodeFilterChange,
   nodeFilterMode,
@@ -48,8 +44,7 @@ export default function NetworkFilterRolePopover({
 }: NetworkFilterRolePopoverProps) {
   return (
     <Space direction="vertical" size={12} style={{ width: 280 }}>
-      <Divider style={{ margin: "8px 0" }} />
-      <Typography.Text strong>Statistic filter</Typography.Text>
+      <Typography.Text strong>Range filter</Typography.Text>
       {statRangeValue ? (
         hasNegativeRange ? (
           <>
@@ -114,36 +109,8 @@ export default function NetworkFilterRolePopover({
           </Form.Item>
         )
       ) : (
-        <Typography.Text type="secondary">
-          No statistic range available.
-        </Typography.Text>
+        <Typography.Text type="secondary">No range available.</Typography.Text>
       )}
-
-      <Typography.Text strong>Measure filter</Typography.Text>
-      {measureRangeBounds ? (
-        <Form.Item label="Range">
-          <DebouncedRangeSlider
-            range
-            min={measureRangeBounds[0]}
-            max={measureRangeBounds[1]}
-            step={0.001}
-            value={measureRangeValue ?? measureRangeBounds}
-            onChange={(value) => {
-              if (Array.isArray(value)) {
-                onMeasureRangeChange(value as [number, number]);
-              }
-            }}
-            tooltip={{ formatter: (value) => value?.toFixed(3) }}
-          />
-        </Form.Item>
-      ) : (
-        <Typography.Text type="secondary">
-          No measure range available.
-        </Typography.Text>
-      )}
-      <Typography.Text type="secondary">
-        Statistic and measure filters are combined.
-      </Typography.Text>
       <Divider style={{ margin: "8px 0" }} />
       <Form.Item label="Use as node filter" valuePropName="checked">
         <Switch

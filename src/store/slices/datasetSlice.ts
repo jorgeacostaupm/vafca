@@ -1,37 +1,14 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { ConnectivityDataset } from '@/types/datasets'
-import type { ConnectivityCatalogs } from '@/types/catalogs'
+import type {
+  DatasetMeta,
+  DatasetState,
+  MatrixStats,
+  UpdateCatalogPayload,
+  UpdateMetadataPayload,
+} from '@/types/datasetState'
 import { saveMatrices } from '@/utils/matrixStore'
 
-type MatrixStats = {
-  total: number
-  byStat: Record<string, number>
-  byMeasure: Record<string, number>
-  byMeasureStatPopulation: Record<string, Record<string, Record<string, number>>>
-  byMeasureStatPopulationSet: Record<string, Record<string, Record<string, number>>>
-}
-
-type DatasetMeta = {
-  metadata: ConnectivityDataset['metadata']
-  catalogs: ConnectivityDataset['catalogs']
-  matrixStats: MatrixStats
-}
-
-export type DatasetState = {
-  data: DatasetMeta | null
-  status: 'idle' | 'loading' | 'ready' | 'error'
-  error: string | null
-}
-
-type UpdateCatalogPayload = {
-  catalog: keyof ConnectivityCatalogs
-  id: string
-  changes: Partial<ConnectivityCatalogs[keyof ConnectivityCatalogs][string]>
-}
-
-type UpdateMetadataPayload = {
-  changes: Partial<ConnectivityDataset['metadata']>
-}
 
 const initialState: DatasetState = {
   data: null,

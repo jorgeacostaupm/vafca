@@ -7,16 +7,18 @@ import {
   collectVisibleGraph,
   toMatrixStatFilter,
   toNodeLinkStatFilter,
-  type FilterContributor,
-  type ViewVisibility,
 } from "@/components/network/networkFormatting";
 import { buildCanonicalMatrixData } from "@/components/network/networkViewAdapters";
 import type {
+  ComputedView,
+  FilterContributor,
   MatrixNetworkViewSettings,
   NetworkViewDescriptor,
   NodeLinkNetworkViewSettings,
+  ViewVisibility,
 } from "@/types/networkVisualization";
-import type { ComputedView } from "@/components/network/networkSelectorTypes";
+import type { MatrixShape } from "@/types/matrix";
+import type { StatRangeValue } from "@/types/matrixView";
 
 type UseComputedNetworkViewsArgs = {
   views: NetworkViewDescriptor[];
@@ -33,10 +35,22 @@ type UseComputedNetworkViewsArgs = {
   matrixOrderIds: string[];
   atlasOrderLength: number;
   activeLabelIds: string[];
-  matrixShape: import("@/utils/matrixValue").MatrixShape;
-  dataset: import("@/store/slices/datasetSlice").DatasetState["data"];
+  matrixShape: MatrixShape;
   defaultMeasureRanges: Record<string, [number, number]>;
-  defaultStatRanges: Record<string, import("@/types/matrixView").StatRangeValue>;
+};
+
+const buildRangeFallback = (
+  bounds?: [number, number],
+): StatRangeValue | undefined => {
+  if (!bounds) return undefined;
+  const [min, max] = bounds;
+  if (min < 0 && max > 0) {
+    return {
+      negative: [min, 0],
+      positive: [0, max],
+    };
+  }
+  return [min, max];
 };
 
 export const useComputedNetworkViews = ({
@@ -48,9 +62,7 @@ export const useComputedNetworkViews = ({
   atlasOrderLength,
   activeLabelIds,
   matrixShape,
-  dataset,
   defaultMeasureRanges,
-  defaultStatRanges,
 }: UseComputedNetworkViewsArgs) => {
   const computedByViewId = useMemo(() => {
     const map: Record<string, ComputedView> = {};
@@ -88,7 +100,11 @@ export const useComputedNetworkViews = ({
         view.type === "matrix"
           ? toMatrixStatFilter(settings?.statRange)
           : toNodeLinkStatFilter(settings?.statRange);
-      const measureRange = settings?.measureRange ?? null;
+      const measureBounds = defaultMeasureRanges[view.measureId];
+      const [statSliderMin, statSliderMax] = measureBounds ?? [-1, 1];
+      const hasNegativeRange = statSliderMin < 0 && statSliderMax > 0;
+      const rangeFallback = buildRangeFallback(measureBounds);
+      const statRangeValue = settings?.statRange ?? rangeFallback;
       const hideIsolatedNodes = settings?.hideIsolatedNodes ?? true;
 
       const canonical = buildCanonicalMatrixData({
@@ -99,12 +115,6 @@ export const useComputedNetworkViews = ({
         matrixShape,
         hideIsolatedNodes: false,
       });
-
-      const stat = dataset?.catalogs.stats[view.statId];
-      const statMin = Number.isFinite(stat?.min) ? (stat?.min as number) : -1;
-      const statMax = Number.isFinite(stat?.max) ? (stat?.max as number) : 1;
-      const [statSliderMin, statSliderMax] =
-        statMin <= statMax ? [statMin, statMax] : [statMax, statMin];
 
       map[view.id] = {
         view,
@@ -118,7 +128,7 @@ export const useComputedNetworkViews = ({
         zoomLabelSelection,
         orderedZoomLabels,
         statFilter,
-        measureRange,
+        measureRange: null,
         hideIsolatedNodes,
         brushEnabled: settings?.brushEnabled ?? false,
         geometricZoomEnabled: nodeLinkSettings?.geometricZoomEnabled ?? false,
@@ -130,11 +140,8 @@ export const useComputedNetworkViews = ({
         linkFilterMode: settings?.linkFilterMode ?? "or",
         statSliderMin,
         statSliderMax,
-        hasNegativeRange: statSliderMin < 0 && statSliderMax > 0,
-        measureRangeBounds: defaultMeasureRanges[view.measureId],
-        measureRangeValue:
-          settings?.measureRange ?? defaultMeasureRanges[view.measureId],
-        statRangeValue: settings?.statRange ?? defaultStatRanges[view.statId],
+        hasNegativeRange,
+        statRangeValue,
       };
     });
 
@@ -148,9 +155,7 @@ export const useComputedNetworkViews = ({
     atlasOrderLength,
     activeLabelIds,
     matrixShape,
-    dataset,
     defaultMeasureRanges,
-    defaultStatRanges,
   ]);
 
   const visibilityByViewId = useMemo(() => {
@@ -158,7 +163,7 @@ export const useComputedNetworkViews = ({
 
     Object.values(computedByViewId).forEach((computed) => {
       const valueFilters = {
-        measure: computed.measureRange,
+        measure: null,
         stat: computed.statFilter,
       };
 

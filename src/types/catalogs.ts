@@ -1,11 +1,5 @@
-export type MatrixOrderItem =
-  | string
-  | {
-      id?: string
-      label?: string
-      name?: string
-      value?: string
-    }
+import type { MatrixShape } from "@/types/matrix"
+import type { MatrixOrderItem } from "@/types/matrixOrder"
 
 export type ConnectivityMetadata = {
   atlas?: string
@@ -13,7 +7,7 @@ export type ConnectivityMetadata = {
   base?: string
   matrixOrder: MatrixOrderItem[]
   maxPopulations: number
-  matrixShape?: "full" | "upper" | "lower"
+  matrixShape?: MatrixShape
 }
 
 export type BandCatalogItem = {

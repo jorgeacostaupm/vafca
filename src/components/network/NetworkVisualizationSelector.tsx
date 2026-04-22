@@ -13,7 +13,6 @@ import {
 import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
 import {
   buildDefaultRanges,
-  buildDefaultStatRanges,
   buildMatrixLabel,
 } from "@/utils/matrixViewUtils";
 import PanelGridLayout from "@/components/layout/PanelGridLayout";
@@ -76,10 +75,6 @@ function NetworkVisualizationSelector() {
     () => buildDefaultRanges(dataset?.catalogs.measures),
     [dataset],
   );
-  const defaultStatRanges = useMemo(
-    () => buildDefaultStatRanges(dataset?.catalogs.stats),
-    [dataset],
-  );
 
   const nodeColors = useMemo(
     () =>
@@ -136,9 +131,7 @@ function NetworkVisualizationSelector() {
     atlasOrderLength: atlas.order.length,
     activeLabelIds,
     matrixShape,
-    dataset,
     defaultMeasureRanges,
-    defaultStatRanges,
   });
 
   const zoomTargetsByType = useCallback(
@@ -203,7 +196,6 @@ function NetworkVisualizationSelector() {
         labelTitles,
         labelAcronyms,
         nodeColors,
-        defaultStatRanges,
         visibilityByViewId,
         nodeFilterContributors,
         linkFilterContributors,
@@ -214,7 +206,6 @@ function NetworkVisualizationSelector() {
     [
       computedByViewId,
       dataset,
-      defaultStatRanges,
       dispatch,
       labelAcronyms,
       labelNames,

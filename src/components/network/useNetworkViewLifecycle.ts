@@ -6,9 +6,9 @@ import {
   patchNetworkControls,
   removeNetworkView,
 } from "@/store/slices/networkVisualizationSlice";
-import type { AppDispatch } from "@/store/store";
+import type { AppDispatch } from "@/types/store";
 import type { NetworkViewDescriptor } from "@/types/networkVisualization";
-import type { MatrixSummary } from "@/utils/matrixStore";
+import type { MatrixSummary } from "@/types/matrixStore";
 
 type UseNetworkViewLifecycleArgs = {
   dispatch: AppDispatch;

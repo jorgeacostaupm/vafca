@@ -1,3 +1,8 @@
+import type {
+  RasterFormat,
+  SvgExportOptions,
+} from "@/types/svgExport";
+
 const STYLE_PROPERTIES = [
   "fill",
   "fill-opacity",
@@ -28,16 +33,6 @@ const STYLE_PROPERTIES = [
 const SVG_NS = "http://www.w3.org/2000/svg";
 const XLINK_NS = "http://www.w3.org/1999/xlink";
 
-type RasterFormat = "png" | "jpeg";
-export type SvgExportFormat = "svg" | RasterFormat;
-
-type SvgExportOptions = {
-  fileName: string;
-  format: SvgExportFormat;
-  scale?: number;
-  background?: string;
-  quality?: number;
-};
 
 const sanitizeFileName = (value: string) => {
   const normalized = value.normalize("NFKD").replace(/[^\w.\- ]+/g, "");

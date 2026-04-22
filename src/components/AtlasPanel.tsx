@@ -36,10 +36,10 @@ import {
 import { setAtlasPanelState } from "@/store/slices/visualizationUiSlice";
 import {
   ALL_FILTER,
-  type GroupedRow,
   useAtlasPanelData,
   useAtlasScene,
 } from "./atlas/atlasPanelHooks";
+import type { GroupedRow } from "@/types/atlasPanel";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import {
   atlasSupports3d,
@@ -50,12 +50,11 @@ import {
 import {
   D3_CATEGORICAL_PALETTES,
   buildAtlasColorCategories,
-  type D3CategoricalPaletteKey,
 } from "@/utils/atlas/coloring";
+import type { D3CategoricalPaletteKey } from "@/types/atlas";
 
 const { Search } = Input;
 const VIEWER_MIN_HEIGHT = 420;
-type ListLayoutMode = "columns" | "single";
 type GroupRow = Extract<GroupedRow, { type: "group" }>;
 type RoiRow = Extract<GroupedRow, { type: "roi" }>;
 type RoiTreeNode = {
@@ -280,8 +279,6 @@ export default function AtlasPanel() {
       VIEWER_MIN_HEIGHT,
       atlasPanel.viewerHeight,
     );
-    const normalizedListLayoutMode: ListLayoutMode =
-      atlasPanel.listLayoutMode === "single" ? "single" : "columns";
     const groupByChanged = !areStringArraysEqual(
       nextGroupByFields,
       atlasPanel.groupByFields,
@@ -292,13 +289,10 @@ export default function AtlasPanel() {
     );
     const viewerHeightChanged =
       atlasPanel.viewerHeight !== normalizedViewerHeight;
-    const listLayoutChanged =
-      atlasPanel.listLayoutMode !== normalizedListLayoutMode;
     const shouldUpdate =
       groupByChanged ||
       filtersChanged ||
-      viewerHeightChanged ||
-      listLayoutChanged;
+      viewerHeightChanged;
     if (!shouldUpdate) return;
     dispatch(
       setAtlasPanelState({
@@ -306,12 +300,10 @@ export default function AtlasPanel() {
         selectedFilters: nextSelectedFilters,
         ...(groupByChanged || filtersChanged ? { collapsedGroups: [] } : {}),
         viewerHeight: normalizedViewerHeight,
-        listLayoutMode: normalizedListLayoutMode,
       }),
     );
   }, [
     atlasPanel.groupByFields,
-    atlasPanel.listLayoutMode,
     atlasPanel.selectedFilters,
     atlasPanel.viewerHeight,
     availableGroupFields,
@@ -410,7 +402,7 @@ export default function AtlasPanel() {
 
   const canUseColumns =
     atlasPanel.groupByFields.length > 0 && columnSections.length > 0;
-  const useColumns = atlasPanel.listLayoutMode === "columns" && canUseColumns;
+  const useColumns = canUseColumns;
 
   const colorCategories = useMemo(() => {
     const enabledIds = new Set(
@@ -858,23 +850,6 @@ export default function AtlasPanel() {
           />
         </Col>
       ))}
-      <Col xs={24} sm={12} md={8} className="atlas-panel__filter">
-        <Typography.Text type="secondary">List layout</Typography.Text>
-        <Select
-          value={useColumns ? "columns" : "single"}
-          options={[
-            { value: "columns", label: "Columns by first field" },
-            { value: "single", label: "Single column" },
-          ]}
-          onChange={(value) =>
-            dispatch(
-              setAtlasPanelState({ listLayoutMode: value as ListLayoutMode }),
-            )
-          }
-          style={{ width: "100%" }}
-          disabled={!canUseColumns}
-        />
-      </Col>
       <Col xs={24} sm={12} md={8} className="atlas-panel__filter">
         <Typography.Text type="secondary">Selection</Typography.Text>
         <Space wrap>

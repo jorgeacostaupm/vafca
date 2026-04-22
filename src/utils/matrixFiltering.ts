@@ -1,10 +1,7 @@
-import { resolveMatrixValue, type MatrixShape } from "@/utils/matrixValue";
+import { resolveMatrixValue } from "@/utils/matrixValue";
+import type { MatrixShape } from "@/types/matrix";
+import type { MatrixValueRange } from "@/types/matrixView";
 
-export type MatrixValueRange =
-  | [number, number]
-  | Array<[number, number]>
-  | null
-  | undefined;
 
 export const normalizeMatrixValueRanges = (range: MatrixValueRange) => {
   if (!range) return [] as Array<[number, number]>;

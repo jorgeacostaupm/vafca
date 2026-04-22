@@ -2,22 +2,12 @@ import { type RefObject, useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ConvexGeometry } from "three/examples/jsm/geometries/ConvexGeometry.js";
-import type { AtlasDefinition } from "@/types/atlas";
-import type { AtlasState } from "@/store/slices/atlasSlice";
+import type { GroupedRow } from "@/types/atlasPanel";
+import type { AtlasDefinition, AtlasState } from "@/types/atlas";
 import { UNKNOWN_GROUP, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
 
 export const ALL_FILTER = "__all__";
 
-export type GroupedRow =
-  | {
-      type: "group";
-      key: string;
-      level: number;
-      title: string;
-      groupKey: string;
-      count: number;
-    }
-  | { type: "roi"; key: string; id: string; level: number };
 
 type SelectOption = { value: string; label: string };
 

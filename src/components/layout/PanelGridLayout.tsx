@@ -1,29 +1,11 @@
-import { type ReactNode } from "react";
 import ReactGridLayout, {
   useContainerWidth,
   verticalCompactor,
-  type LayoutItem,
 } from "react-grid-layout";
 import { Button, Card, Space } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
+import type { PanelGridLayoutProps } from "@/types/layout";
 
-export type PanelItem = {
-  id: string;
-  title: string;
-  content: ReactNode;
-  actions?: ReactNode;
-};
-
-export type PanelGridLayoutProps = {
-  items: PanelItem[];
-  layout: LayoutItem[];
-  onRemove: (id: string) => void;
-  setLayout: (newLayout: LayoutItem[]) => void;
-  cols?: number;
-  rowHeight?: number;
-  margin?: [number, number];
-  dragHandleClass?: string;
-};
 
 const DEFAULT_COLS = 24;
 const DEFAULT_ROW_HEIGHT = 100;

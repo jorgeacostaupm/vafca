@@ -2,11 +2,11 @@ import { useMemo, type RefObject } from "react";
 import { useAppSelector } from "@/store/hooks";
 import MatrixHeatmap from "@/components/matrix/MatrixHeatmap";
 import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
-import type { MatrixShape } from "@/utils/matrixValue";
+import type { MatrixShape } from "@/types/matrix";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { buildAtlasRoiColorById } from "@/utils/atlas/coloring";
 import { useMatrixHeatmapController } from "@/components/matrix/useMatrixHeatmapController";
-import ViewPanelTemplate from "@/components/visualization/ViewPanelTemplate";
+import ViewPanelTemplate from "@/components/layout/ViewPanelTemplate";
 
 type MatrixHeatmapPanelProps = {
   data: number[][];

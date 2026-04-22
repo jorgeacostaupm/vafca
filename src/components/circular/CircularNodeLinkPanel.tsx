@@ -21,16 +21,18 @@ import {
 import type {
   NodeLinkInteractionProps,
   NodeLinkPanelCommonProps,
-} from "@/components/nodelink/panelTypes";
+} from "@/types/nodelink";
 import {
   buildDegreeByLabelId,
   buildFilteredUndirectedLinks,
-  type UndirectedLink,
 } from "@/components/nodelink/graphModel";
+import type {
+  CircularLink as Link,
+  CircularNode as Node,
+  UndirectedLink,
+} from "@/types/nodelink";
 import {
   renderCircularElements,
-  type CircularLink as Link,
-  type CircularNode as Node,
 } from "@/components/circular/circularRenderStrategies";
 import {
   applyCircularHoverSelectionStyles,

@@ -30,6 +30,7 @@ const initialControls: NetworkSelectorControlsState = {
   bandId: "",
   selectedCompoundId: "",
   syncZoom: false,
+  hideIsolatedNodes: true,
 };
 
 const initialState: NetworkVisualizationState = {
@@ -190,6 +191,15 @@ const networkVisualizationSlice = createSlice({
         statId: action.payload.statId,
         status: "formatting",
       };
+      if (action.payload.type === "matrix") {
+        state.matrixSettingsByViewId[id] = {
+          hideIsolatedNodes: state.controls.hideIsolatedNodes,
+        };
+      } else {
+        state.nodeLinkSettingsByViewId[id] = {
+          hideIsolatedNodes: state.controls.hideIsolatedNodes,
+        };
+      }
     },
     removeNetworkView(state, action: PayloadAction<{ viewId: string }>) {
       const { viewId } = action.payload;
@@ -282,6 +292,28 @@ const networkVisualizationSlice = createSlice({
         ...state.nodeLinkSettingsByViewId[viewId],
         ...patch,
       };
+    },
+    setNetworkHideIsolatedNodes(
+      state,
+      action: PayloadAction<{ value: boolean }>,
+    ) {
+      const { value } = action.payload;
+      state.controls.hideIsolatedNodes = value;
+      state.viewsOrder.forEach((viewId) => {
+        const descriptor = state.viewsById[viewId];
+        if (!descriptor) return;
+        if (descriptor.type === "matrix") {
+          state.matrixSettingsByViewId[viewId] = {
+            ...state.matrixSettingsByViewId[viewId],
+            hideIsolatedNodes: value,
+          };
+          return;
+        }
+        state.nodeLinkSettingsByViewId[viewId] = {
+          ...state.nodeLinkSettingsByViewId[viewId],
+          hideIsolatedNodes: value,
+        };
+      });
     },
     resetNetworkViewSettings(state, action: PayloadAction<{ viewId: string }>) {
       const { viewId } = action.payload;
@@ -408,6 +440,7 @@ export const {
   mutateNetworkViewType,
   patchNetworkMatrixSettings,
   patchNetworkNodeLinkSettings,
+  setNetworkHideIsolatedNodes,
   resetNetworkViewSettings,
   updateNetworkViewStatRange,
   applyNetworkZoom,
