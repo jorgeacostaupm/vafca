@@ -1,0 +1,727 @@
+{
+  "name": "AI-MIND AAL 90 ROIS",
+  "id": "aal-90",
+  "description": "Base AI-MIND AAL 90 ROIS atlas",
+  "rois": [
+    {
+      "name": "Right Middle temporal gyrus",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 85,
+      "label": "rMTG",
+      "acronym": "rMTG"
+    },
+    {
+      "name": "Right Inferior Temporal gyrus",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 89,
+      "label": "rITG",
+      "acronym": "rITG"
+    },
+    {
+      "name": "Right Superior Temporal gyrus",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 81,
+      "label": "rSTG",
+      "acronym": "rSTG"
+    },
+    {
+      "name": "Right Supramarginal gyrus",
+      "hemisphere": "right",
+      "lobule": "Parietal",
+      "id": 63,
+      "label": "rSMG",
+      "acronym": "rSMG"
+    },
+    {
+      "name": "Right Rolandic operculum",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 17,
+      "label": "rRO",
+      "acronym": "rRO"
+    },
+    {
+      "name": "Right Postcentral gyrus",
+      "hemisphere": "right",
+      "lobule": "Parietal",
+      "id": 57,
+      "label": "rPreG",
+      "acronym": "rPreG"
+    },
+    {
+      "name": "Right Temporal pole, Superior Temporal gyrus",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 83,
+      "label": "rTPsup",
+      "acronym": "rTPsup"
+    },
+    {
+      "name": "Right Heschl's gyrus",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 79,
+      "label": "rHeschl",
+      "acronym": "rHeschl"
+    },
+    {
+      "name": "Right Temporal pole, Middle temporal gyrus",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 87,
+      "label": "rTPmid",
+      "acronym": "rTPmid"
+    },
+    {
+      "name": "Right Precentral gyrus",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 1,
+      "label": "rPreCG",
+      "acronym": "rPreCG"
+    },
+    {
+      "name": "Right Inferior Frontal gyrus, Opercular",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 11,
+      "label": "rIFGor",
+      "acronym": "rIFGor"
+    },
+    {
+      "name": "Right Inferior Frontal gyrus, Triangular",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 13,
+      "label": "rIFGt",
+      "acronym": "rIFGt"
+    },
+    {
+      "name": "Right Angular gyrus",
+      "hemisphere": "right",
+      "lobule": "Parietal",
+      "id": 65,
+      "label": "rAng",
+      "acronym": "rAng"
+    },
+    {
+      "name": "Right Inferior Parietal gyrus",
+      "hemisphere": "right",
+      "lobule": "Parietal",
+      "id": 61,
+      "label": "rIPG",
+      "acronym": "rIPG"
+    },
+    {
+      "name": "Right Inferior Frontal gyrus, Orbital",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 15,
+      "label": "rIFGo",
+      "acronym": "rIFGo"
+    },
+    {
+      "name": "Right Middle Occipital lobe",
+      "hemisphere": "right",
+      "lobule": "Occipital",
+      "id": 51,
+      "label": "rMOccL",
+      "acronym": "rMOccL"
+    },
+    {
+      "name": "Right Middle Frontal gyrus",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 7,
+      "label": "rMFG",
+      "acronym": "rMFG"
+    },
+    {
+      "name": "Right Inferior Occipital lobe",
+      "hemisphere": "right",
+      "lobule": "Occipital",
+      "id": 53,
+      "label": "rIOccl",
+      "acronym": "rIOccl"
+    },
+    {
+      "name": "Right Superior Parietal gyrus",
+      "hemisphere": "right",
+      "lobule": "Parietal",
+      "id": 59,
+      "label": "rSPG",
+      "acronym": "rSPG"
+    },
+    {
+      "name": "Right Middle Frontal gyrus, Orbital",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 9,
+      "label": "rMFGo",
+      "acronym": "rMFGo"
+    },
+    {
+      "name": "Right Fusiform gyrus",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 55,
+      "label": "rFusiG",
+      "acronym": "rFusiG"
+    },
+    {
+      "name": "Right Insula",
+      "hemisphere": "right",
+      "lobule": "Insula and cigulate gyri",
+      "id": 29,
+      "label": "rInsula",
+      "acronym": "rInsula"
+    },
+    {
+      "name": "Right Lingual gyrus",
+      "hemisphere": "right",
+      "lobule": "Occipital",
+      "id": 47,
+      "label": "rLingual",
+      "acronym": "rLingual"
+    },
+    {
+      "name": "Right Hippocampus",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 37,
+      "label": "rHip",
+      "acronym": "rHip"
+    },
+    {
+      "name": "Right Superior Occipital lobe",
+      "hemisphere": "right",
+      "lobule": "Occipital",
+      "id": 49,
+      "label": "rSOccL",
+      "acronym": "rSOccL"
+    },
+    {
+      "name": "Right Parahippocampus",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 39,
+      "label": "rParahip",
+      "acronym": "rParahip"
+    },
+    {
+      "name": "Right Superior Frontal gyrus",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 3,
+      "label": "rSFG",
+      "acronym": "rSFG"
+    },
+    {
+      "name": "Right Putamen",
+      "hemisphere": "right",
+      "lobule": "Subcortical",
+      "id": 73,
+      "label": "rPut",
+      "acronym": "rPut"
+    },
+    {
+      "name": "Right Amygdala",
+      "hemisphere": "right",
+      "lobule": "Temporal",
+      "id": 41,
+      "label": "rAmyg",
+      "acronym": "rAmyg"
+    },
+    {
+      "name": "Right Superior Frontal gyrus, Orbital",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 5,
+      "label": "rSFo",
+      "acronym": "rSFo"
+    },
+    {
+      "name": "Right Calcarine fissure and surrounding cortex",
+      "hemisphere": "right",
+      "lobule": "Occipital",
+      "id": 43,
+      "label": "rCalc",
+      "acronym": "rCalc"
+    },
+    {
+      "name": "Right Precuneus",
+      "hemisphere": "right",
+      "lobule": "Parietal",
+      "id": 67,
+      "label": "rPrecu",
+      "acronym": "rPrecu"
+    },
+    {
+      "name": "Right Pallidum",
+      "hemisphere": "right",
+      "lobule": "Subcortical",
+      "id": 75,
+      "label": "rPall",
+      "acronym": "rPall"
+    },
+    {
+      "name": "Right Olfactory cortex",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 21,
+      "label": "rOlfC",
+      "acronym": "rOlfC"
+    },
+    {
+      "name": "Right Cuneus",
+      "hemisphere": "right",
+      "lobule": "Occipital",
+      "id": 45,
+      "label": "rCu",
+      "acronym": "rCu"
+    },
+    {
+      "name": "Right Thalamus",
+      "hemisphere": "right",
+      "lobule": "Subcortical",
+      "id": 77,
+      "label": "rThal",
+      "acronym": "rThal"
+    },
+    {
+      "name": "Right Caudate nucleus",
+      "hemisphere": "right",
+      "lobule": "Subcortical",
+      "id": 71,
+      "label": "rCauda",
+      "acronym": "rCauda"
+    },
+    {
+      "name": "Right Gyrus Rectus",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 27,
+      "label": "rRectus",
+      "acronym": "rRectus"
+    },
+    {
+      "name": "Right Superior Frontal gyrus, Medial",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 23,
+      "label": "rSFGm",
+      "acronym": "rSFGm"
+    },
+    {
+      "name": "Right Cingulate gyrus, Middle part",
+      "hemisphere": "right",
+      "lobule": "Insula and cigulate gyri",
+      "id": 33,
+      "label": "rMCC",
+      "acronym": "rMCC"
+    },
+    {
+      "name": "Right Supplementary Motor area",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 19,
+      "label": "rMotor",
+      "acronym": "rMotor"
+    },
+    {
+      "name": "Right Cingulate gyrus, Anterior part",
+      "hemisphere": "right",
+      "lobule": "Insula and cigulate gyri",
+      "id": 31,
+      "label": "rACC",
+      "acronym": "rACC"
+    },
+    {
+      "name": "Right Cingulate gyrus, Posterior part",
+      "hemisphere": "right",
+      "lobule": "Insula and cigulate gyri",
+      "id": 35,
+      "label": "rPCC",
+      "acronym": "rPCC"
+    },
+    {
+      "name": "Right Paracentral lobule",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 69,
+      "label": "rParaL",
+      "acronym": "rParaL"
+    },
+    {
+      "name": "Right Superior Frontal gyrus, Medial Orbital",
+      "hemisphere": "right",
+      "lobule": "Frontal",
+      "id": 25,
+      "label": "rSFGmo",
+      "acronym": "rSFGmo"
+    },
+    {
+      "name": "Left Calcarine fissure and surrounding cortex",
+      "hemisphere": "left",
+      "lobule": "Occipital",
+      "id": 42,
+      "label": "lCalc",
+      "acronym": "lCalc"
+    },
+    {
+      "name": "Left Cuneus",
+      "hemisphere": "left",
+      "lobule": "Occipital",
+      "id": 44,
+      "label": "lCu",
+      "acronym": "lCu"
+    },
+    {
+      "name": "Left Lingual gyrus",
+      "hemisphere": "left",
+      "lobule": "Occipital",
+      "id": 46,
+      "label": "lLingual",
+      "acronym": "lLingual"
+    },
+    {
+      "name": "Left Precuneus",
+      "hemisphere": "left",
+      "lobule": "Parietal",
+      "id": 66,
+      "label": "lPrecu",
+      "acronym": "lPrecu"
+    },
+    {
+      "name": "Left Cingulate gyrus, Posterior part",
+      "hemisphere": "left",
+      "lobule": "Insula and cigulate gyri",
+      "id": 34,
+      "label": "lPCC",
+      "acronym": "lPCC"
+    },
+    {
+      "name": "Left Supplementary Motor area",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 18,
+      "label": "lMotor",
+      "acronym": "lMotor"
+    },
+    {
+      "name": "Left Cingulate gyrus, Middle part",
+      "hemisphere": "left",
+      "lobule": "Insula and cigulate gyri",
+      "id": 32,
+      "label": "lMCC",
+      "acronym": "lMCC"
+    },
+    {
+      "name": "Left Superior Frontal gyrus, Medial",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 22,
+      "label": "lSFGm",
+      "acronym": "lSFGm"
+    },
+    {
+      "name": "Left Cingulate gyrus, Anterior part",
+      "hemisphere": "left",
+      "lobule": "Insula and cigulate gyri",
+      "id": 30,
+      "label": "lACC",
+      "acronym": "lACC"
+    },
+    {
+      "name": "Left Gyrus Rectus",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 26,
+      "label": "lRectus",
+      "acronym": "lRectus"
+    },
+    {
+      "name": "Left Superior Frontal gyrus, Medial Orbital",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 24,
+      "label": "lSFGmo",
+      "acronym": "lSFGmo"
+    },
+    {
+      "name": "Left Paracentral lobule",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 68,
+      "label": "lParaL",
+      "acronym": "lParaL"
+    },
+    {
+      "name": "Left Thalamus",
+      "hemisphere": "left",
+      "lobule": "Subcortical",
+      "id": 76,
+      "label": "lThal",
+      "acronym": "lThal"
+    },
+    {
+      "name": "Left Olfactory cortex",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 20,
+      "label": "lOlfC",
+      "acronym": "lOlfC"
+    },
+    {
+      "name": "Left Superior Occipital lobe",
+      "hemisphere": "left",
+      "lobule": "Occipital",
+      "id": 48,
+      "label": "lSOccL",
+      "acronym": "lSOccL"
+    },
+    {
+      "name": "Left Caudate nucleus",
+      "hemisphere": "left",
+      "lobule": "Subcortical",
+      "id": 70,
+      "label": "lCauda",
+      "acronym": "lCauda"
+    },
+    {
+      "name": "Left Superior Frontal gyrus",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 2,
+      "label": "lSFG",
+      "acronym": "lSFG"
+    },
+    {
+      "name": "Left Middle Occipital lobe",
+      "hemisphere": "left",
+      "lobule": "Occipital",
+      "id": 50,
+      "label": "lMOccL",
+      "acronym": "lMOccL"
+    },
+    {
+      "name": "Left Superior Parietal gyrus",
+      "hemisphere": "left",
+      "lobule": "Parietal",
+      "id": 58,
+      "label": "lSPG",
+      "acronym": "lSPG"
+    },
+    {
+      "name": "Left Superior Frontal gyrus, Orbital",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 4,
+      "label": "lSFo",
+      "acronym": "lSFo"
+    },
+    {
+      "name": "Left Pallidum",
+      "hemisphere": "left",
+      "lobule": "Subcortical",
+      "id": 74,
+      "label": "lPall",
+      "acronym": "lPall"
+    },
+    {
+      "name": "Left Putamen",
+      "hemisphere": "left",
+      "lobule": "Subcortical",
+      "id": 72,
+      "label": "lPut",
+      "acronym": "lPut"
+    },
+    {
+      "name": "Left Inferior Occipital lobe",
+      "hemisphere": "left",
+      "lobule": "Occipital",
+      "id": 52,
+      "label": "lIOccL",
+      "acronym": "lIOccL"
+    },
+    {
+      "name": "Left Hippocampus",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 36,
+      "label": "lHip",
+      "acronym": "lHip"
+    },
+    {
+      "name": "Left Parahippocampus",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 38,
+      "label": "lParahip",
+      "acronym": "lParahip"
+    },
+    {
+      "name": "Left Postcentral gyrus",
+      "hemisphere": "left",
+      "lobule": "Parietal",
+      "id": 56,
+      "label": "lPreG",
+      "acronym": "lPreG"
+    },
+    {
+      "name": "Left Amygdala",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 40,
+      "label": "lAmyg",
+      "acronym": "lAmyg"
+    },
+    {
+      "name": "Left Fusiform gyrus",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 54,
+      "label": "lFusiG",
+      "acronym": "lFusiG"
+    },
+    {
+      "name": "Left Precentral gyrus",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 0,
+      "label": "lPreCG",
+      "acronym": "lPreCG"
+    },
+    {
+      "name": "Left Inferior Frontal gyrus, Orbital",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 14,
+      "label": "lIFGo",
+      "acronym": "lIFGo"
+    },
+    {
+      "name": "Left Middle Frontal gyrus, Orbital",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 8,
+      "label": "lMFGo",
+      "acronym": "lMFGo"
+    },
+    {
+      "name": "Left Temporal pole, Middle temporal gyrus",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 86,
+      "label": "lTPmid",
+      "acronym": "lTPmid"
+    },
+    {
+      "name": "Left Temporal pole, Superior Temporal gyrus",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 82,
+      "label": "lTPsup",
+      "acronym": "lTPsup"
+    },
+    {
+      "name": "Left Middle Frontal gyrus",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 6,
+      "label": "lMFG",
+      "acronym": "lMFG"
+    },
+    {
+      "name": "Left Inferior Parietal gyrus",
+      "hemisphere": "left",
+      "lobule": "Parietal",
+      "id": 60,
+      "label": "lIPG",
+      "acronym": "lIPG"
+    },
+    {
+      "name": "Left Insula",
+      "hemisphere": "left",
+      "lobule": "Insula and cigulate gyri",
+      "id": 28,
+      "label": "lInsula",
+      "acronym": "lInsula"
+    },
+    {
+      "name": "Left Angular gyrus",
+      "hemisphere": "left",
+      "lobule": "Parietal",
+      "id": 64,
+      "label": "lAng",
+      "acronym": "lAng"
+    },
+    {
+      "name": "Left Inferior Temporal gyrus",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 88,
+      "label": "lITG",
+      "acronym": "lITG"
+    },
+    {
+      "name": "Left Inferior Frontal gyrus, Triangular",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 12,
+      "label": "lIFGt",
+      "acronym": "lIFGt"
+    },
+    {
+      "name": "Left Heschl's gyrus",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 78,
+      "label": "lHeschl",
+      "acronym": "lHeschl"
+    },
+    {
+      "name": "Left Rolandic operculum",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "id": 16,
+      "label": "lRO",
+      "acronym": "lRO"
+    },
+    {
+      "id": 10,
+      "name": "Left Inferior Frontal gyrus, Opercular",
+      "hemisphere": "left",
+      "lobule": "Frontal",
+      "label": "lIFGop",
+      "acronym": "lIFGop"
+    },
+    {
+      "name": "Left Middle temporal gyrus",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 84,
+      "label": "lMTG",
+      "acronym": "lMTG"
+    },
+    {
+      "name": "Left Superior Temporal gyrus",
+      "hemisphere": "left",
+      "lobule": "Temporal",
+      "id": 80,
+      "label": "lSTG",
+      "acronym": "lSTG"
+    },
+    {
+      "name": "Left Supramarginal gyrus",
+      "hemisphere": "left",
+      "lobule": "Parietal",
+      "id": 62,
+      "label": "lSMG",
+      "acronym": "lSMG"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "nodes": [
+    { "id": "n1", "label": "Node 1", "group": "A" },
+    { "id": "n2", "label": "Node 2", "group": "A" },
+    { "id": "n3", "label": "Node 3", "group": "B" },
+    { "id": "n4", "label": "Node 4", "group": "B" }
+  ],
+  "links": [
+    { "source": "n1", "target": "n2", "weight": 1 },
+    { "source": "n2", "target": "n3", "weight": 2 },
+    { "source": "n3", "target": "n4", "weight": 1 }
+  ],
+  "matrix": [
+    [0, 1, 0, 0],
+    [1, 0, 1, 0],
+    [0, 1, 0, 1],
+    [0, 0, 1, 0]
+  ],
+  "meta": {
+    "source": "demo",
+    "created": "2026-02-02"
+  }
+}

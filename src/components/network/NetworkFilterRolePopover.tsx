@@ -1,0 +1,184 @@
+import { Divider, Form, Select, Space, Switch, Typography } from "antd";
+import DebouncedRangeSlider from "@/components/common/DebouncedRangeSlider";
+import type { LogicalMode } from "@/types/networkVisualization";
+import type {
+  MatrixNetworkViewSettings,
+  NodeLinkNetworkViewSettings,
+} from "@/types/networkVisualization";
+
+type NetworkFilterRolePopoverProps = {
+  statRangeValue?: MatrixNetworkViewSettings["statRange"] | NodeLinkNetworkViewSettings["statRange"];
+  hasNegativeRange: boolean;
+  statSliderMin: number;
+  statSliderMax: number;
+  measureRangeBounds?: [number, number];
+  measureRangeValue?: [number, number];
+  onStatRangeChange: (
+    value: [number, number],
+    segment?: "negative" | "positive",
+  ) => void;
+  onMeasureRangeChange: (value: [number, number]) => void;
+  useAsNodeFilter: boolean;
+  onUseAsNodeFilterChange: (checked: boolean) => void;
+  nodeFilterMode: LogicalMode;
+  onNodeFilterModeChange: (value: LogicalMode) => void;
+  useAsLinkFilter: boolean;
+  onUseAsLinkFilterChange: (checked: boolean) => void;
+  linkFilterMode: LogicalMode;
+  onLinkFilterModeChange: (value: LogicalMode) => void;
+};
+
+export default function NetworkFilterRolePopover({
+  statRangeValue,
+  hasNegativeRange,
+  statSliderMin,
+  statSliderMax,
+  measureRangeBounds,
+  measureRangeValue,
+  onStatRangeChange,
+  onMeasureRangeChange,
+  useAsNodeFilter,
+  onUseAsNodeFilterChange,
+  nodeFilterMode,
+  onNodeFilterModeChange,
+  useAsLinkFilter,
+  onUseAsLinkFilterChange,
+  linkFilterMode,
+  onLinkFilterModeChange,
+}: NetworkFilterRolePopoverProps) {
+  return (
+    <Space direction="vertical" size={12} style={{ width: 280 }}>
+      <Divider style={{ margin: "8px 0" }} />
+      <Typography.Text strong>Statistic filter</Typography.Text>
+      {statRangeValue ? (
+        hasNegativeRange ? (
+          <>
+            <Form.Item label="Negative range">
+              <DebouncedRangeSlider
+                range
+                min={statSliderMin}
+                max={0}
+                step={0.001}
+                value={
+                  statRangeValue && !Array.isArray(statRangeValue)
+                    ? statRangeValue.negative
+                    : [statSliderMin, 0]
+                }
+                onChange={(value) => {
+                  if (Array.isArray(value)) {
+                    onStatRangeChange(value as [number, number], "negative");
+                  }
+                }}
+                tooltip={{ formatter: (value) => value?.toFixed(3) }}
+              />
+            </Form.Item>
+            <Form.Item label="Positive range">
+              <DebouncedRangeSlider
+                range
+                min={0}
+                max={Math.max(statSliderMax, 0)}
+                step={0.001}
+                value={
+                  statRangeValue && !Array.isArray(statRangeValue)
+                    ? statRangeValue.positive
+                    : [0, Math.max(statSliderMax, 0)]
+                }
+                onChange={(value) => {
+                  if (Array.isArray(value)) {
+                    onStatRangeChange(value as [number, number], "positive");
+                  }
+                }}
+                tooltip={{ formatter: (value) => value?.toFixed(3) }}
+              />
+            </Form.Item>
+          </>
+        ) : (
+          <Form.Item label="Range">
+            <DebouncedRangeSlider
+              range
+              min={statSliderMin}
+              max={Math.max(statSliderMax, 0)}
+              step={0.001}
+              value={
+                statRangeValue && Array.isArray(statRangeValue)
+                  ? statRangeValue
+                  : [statSliderMin, statSliderMax]
+              }
+              onChange={(value) => {
+                if (Array.isArray(value)) {
+                  onStatRangeChange(value as [number, number]);
+                }
+              }}
+              tooltip={{ formatter: (value) => value?.toFixed(3) }}
+            />
+          </Form.Item>
+        )
+      ) : (
+        <Typography.Text type="secondary">
+          No statistic range available.
+        </Typography.Text>
+      )}
+
+      <Typography.Text strong>Measure filter</Typography.Text>
+      {measureRangeBounds ? (
+        <Form.Item label="Range">
+          <DebouncedRangeSlider
+            range
+            min={measureRangeBounds[0]}
+            max={measureRangeBounds[1]}
+            step={0.001}
+            value={measureRangeValue ?? measureRangeBounds}
+            onChange={(value) => {
+              if (Array.isArray(value)) {
+                onMeasureRangeChange(value as [number, number]);
+              }
+            }}
+            tooltip={{ formatter: (value) => value?.toFixed(3) }}
+          />
+        </Form.Item>
+      ) : (
+        <Typography.Text type="secondary">
+          No measure range available.
+        </Typography.Text>
+      )}
+      <Typography.Text type="secondary">
+        Statistic and measure filters are combined.
+      </Typography.Text>
+      <Divider style={{ margin: "8px 0" }} />
+      <Form.Item label="Use as node filter" valuePropName="checked">
+        <Switch
+          checked={useAsNodeFilter}
+          onChange={(checked) => onUseAsNodeFilterChange(checked)}
+        />
+      </Form.Item>
+      <Form.Item label="Node mode">
+        <Select
+          value={nodeFilterMode}
+          disabled={!useAsNodeFilter}
+          onChange={(value) => onNodeFilterModeChange(value as LogicalMode)}
+          options={[
+            { value: "or", label: "OR (union)" },
+            { value: "and", label: "AND (intersection)" },
+          ]}
+        />
+      </Form.Item>
+      <Form.Item label="Use as link filter" valuePropName="checked">
+        <Switch
+          checked={useAsLinkFilter}
+          onChange={(checked) => onUseAsLinkFilterChange(checked)}
+        />
+      </Form.Item>
+      <Form.Item label="Link mode">
+        <Select
+          value={linkFilterMode}
+          disabled={!useAsLinkFilter}
+          onChange={(value) => onLinkFilterModeChange(value as LogicalMode)}
+          options={[
+            { value: "or", label: "OR (union)" },
+            { value: "and", label: "AND (intersection)" },
+          ]}
+        />
+      </Form.Item>
+    </Space>
+  );
+}
