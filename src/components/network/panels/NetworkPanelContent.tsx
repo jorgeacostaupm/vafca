@@ -1,10 +1,10 @@
-import MatrixHeatmapPanel from "@/components/matrix/MatrixHeatmapPanel";
-import CircularNodeLinkPanel from "@/components/circular/CircularNodeLinkPanel";
+import MatrixHeatmapPanel from "@/components/matrix/MatrixPanel";
+import Circulas from "@/components/circular/Circulas";
 import NodeLinkPanel from "@/components/nodelink/NodeLinkPanel";
 import {
   applyNetworkZoom,
   toggleNetworkZoomLabelSelection,
-} from "@/store/slices/networkVisualizationSlice";
+} from "@/store/slices/networkVisualization";
 import type { ReactNode } from "react";
 import type { ComputedView } from "@/types/networkVisualization";
 import type { NetworkPanelCommonProps } from "@/types/networkPanels";
@@ -136,7 +136,7 @@ export default function NetworkPanelContent({
   };
 
   if (view.type === "circular") {
-    return <CircularNodeLinkPanel {...commonNodeLinkProps} />;
+    return <Circulas {...commonNodeLinkProps} />;
   }
   return <NodeLinkPanel {...commonNodeLinkProps} />;
 }

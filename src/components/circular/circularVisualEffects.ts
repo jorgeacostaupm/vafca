@@ -1,12 +1,17 @@
+import type * as d3 from "d3";
 import { escapeHtml } from "@/utils/html";
 import { buildRoiTooltipLabel, SELECTED_STROKE } from "@/components/nodelink/nodelinkShared";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 
+type CircularLinkSelection = d3.Selection<SVGPathElement, CircularLink, SVGGElement, unknown>;
+type CircularNodeSelection = d3.Selection<SVGCircleElement, CircularNode, SVGGElement, unknown>;
+type CircularLabelSelection = d3.Selection<SVGTextElement, CircularNode, SVGGElement, unknown>;
+
 export const applyCircularHoverSelectionStyles = (args: {
-  linkSelection: any;
-  nodeSelection: any;
-  labelSelection: any;
-  widthScale: any;
+  linkSelection: CircularLinkSelection;
+  nodeSelection: CircularNodeSelection;
+  labelSelection: CircularLabelSelection;
+  widthScale: d3.ScaleLinear<number, number>;
   zoomLabelSet: Set<string> | null;
   nodeRadius: number;
   hoveredCell?: { rowId: string; colId: string } | null;
@@ -101,7 +106,7 @@ export const syncCircularProgrammaticTooltip = (args: {
   valueLabel?: string;
   width: number;
   height: number;
-  zoomTransform: { apply: (xy: [number, number]) => [number, number] };
+  zoomTransform: d3.ZoomTransform;
   positionTooltip: (x: number, y: number, wrapperRect: DOMRect) => void;
 }) => {
   const {

@@ -7,7 +7,7 @@ import {
   removeSelectedLink,
   setHoveredCell,
   setHoveredNode,
-} from "@/store/slices/visualizationUiSlice";
+} from "@/store/slices/visualizationUi";
 
 type UseNodeLinkPanelInteractionsArgs = {
   data: number[][];

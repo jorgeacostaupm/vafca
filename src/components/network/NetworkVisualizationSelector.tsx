@@ -4,12 +4,11 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import {
-  addNetworkLayoutItem,
-  addNetworkView,
+  addNetworkViewAndFormat,
   markNetworkViewFormatting,
   removeNetworkView,
   setNetworkLayout,
-} from "@/store/slices/networkVisualizationSlice";
+} from "@/store/slices/networkVisualization";
 import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
 import {
   buildDefaultRanges,
@@ -107,14 +106,9 @@ function NetworkVisualizationSelector() {
   );
 
   useNetworkViewLifecycle({
-    dispatch,
     matches,
     summariesStatus: status,
-    selectedCompoundId: networkState.controls.selectedCompoundId,
     summaries,
-    views,
-    loadingCompoundIds,
-    matrixByCompoundId,
   });
 
   const {
@@ -156,22 +150,13 @@ function NetworkVisualizationSelector() {
     );
     if (!summary) return;
 
-    const viewId = `${summary.compoundId}::${networkState.nextViewSeq}`;
-    dispatch(
-      addNetworkView({
+    void dispatch(
+      addNetworkViewAndFormat({
         type: networkState.controls.viewType,
         compoundId: summary.compoundId,
         label: buildMatrixLabel(summary, dataset?.catalogs),
         measureId: summary.measureId,
         statId: summary.statId,
-      }),
-    );
-    dispatch(
-      addNetworkLayoutItem({
-        viewId,
-        defaultW: 8,
-        defaultH: 5,
-        columns: 3,
       }),
     );
   }, [
@@ -180,7 +165,6 @@ function NetworkVisualizationSelector() {
     matches,
     networkState.controls.selectedCompoundId,
     networkState.controls.viewType,
-    networkState.nextViewSeq,
   ]);
 
   const panelItems = useMemo(

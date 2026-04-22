@@ -1,15 +1,14 @@
 import type { ReactNode, RefObject } from "react";
-import type { Dispatch } from "@reduxjs/toolkit";
 import type { ComputedView, FilterContributor, ViewVisibility } from "@/types/networkVisualization";
 import type { PanelItem } from "@/types/layout";
-import type { RootState } from "@/types/store";
+import type { AppDispatch, RootState } from "@/types/store";
 
 type MatrixRecord = Exclude<
   Awaited<ReturnType<typeof import("@/utils/matrixStore").getMatrix>>,
   undefined
 >;
 
-type MarkNetworkViewFormattingAction = typeof import("@/store/slices/networkVisualizationSlice").markNetworkViewFormatting;
+type MarkNetworkViewFormattingAction = typeof import("@/store/slices/networkVisualization").markNetworkViewFormatting;
 
 export type NetworkPanelCommonProps = {
   computed: ComputedView;
@@ -25,7 +24,7 @@ export type NetworkPanelCommonProps = {
   nodeFilterContributors: FilterContributor[];
   linkFilterContributors: FilterContributor[];
   zoomTargetsByType: (viewId: string) => string[];
-  dispatch: Dispatch;
+  dispatch: AppDispatch;
   markFormatting: MarkNetworkViewFormattingAction;
 };
 

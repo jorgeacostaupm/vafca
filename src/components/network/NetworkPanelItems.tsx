@@ -1,7 +1,7 @@
 import { createRef, type RefObject } from "react";
 import { Button, Space } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
-import { mutateNetworkViewType } from "@/store/slices/networkVisualizationSlice";
+import { mutateNetworkViewType } from "@/store/slices/networkVisualization";
 import { buildNetworkPanelItem } from "@/components/network/panels/buildNetworkPanelItem";
 import {
   ViewTypeSelect,

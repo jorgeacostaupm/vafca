@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
-import datasetReducer from '@/store/slices/datasetSlice'
-import visualizationUiReducer from '@/store/slices/visualizationUiSlice'
-import atlasDefinitionReducer from '@/store/slices/atlasDefinitionSlice'
-import atlasReducer from '@/store/slices/atlasSlice'
-import networkVisualizationReducer from '@/store/slices/networkVisualizationSlice'
+import datasetReducer from '@/store/slices/dataset'
+import visualizationUiReducer from '@/store/slices/visualizationUi'
+import atlasDefinitionReducer from '@/store/slices/atlasDefinition'
+import atlasReducer from '@/store/slices/atlas'
+import networkVisualizationReducer from '@/store/slices/networkVisualization'
+import matrixSummariesReducer from '@/store/slices/matrixSummaries'
+import matrixCacheReducer from '@/store/slices/matrixCache'
 
 export const store = configureStore({
   reducer: {
@@ -12,12 +14,14 @@ export const store = configureStore({
     atlas: atlasReducer,
     atlasDefinition: atlasDefinitionReducer,
     networkVisualization: networkVisualizationReducer,
+    matrixSummaries: matrixSummariesReducer,
+    matrixCache: matrixCacheReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         warnAfter: 128,
+        ignoredActionPaths: ['meta.arg.file'],
       },
     }),
 })
-

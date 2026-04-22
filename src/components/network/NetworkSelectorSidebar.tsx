@@ -1,6 +1,6 @@
 import { Col } from "antd";
 import NetworkSidebarControls from "@/components/network/NetworkSidebarControls";
-import { patchNetworkControls } from "@/store/slices/networkVisualizationSlice";
+import { patchNetworkControls } from "@/store/slices/networkVisualization";
 import type { AppDispatch } from "@/types/store";
 import type { NetworkSelectorControlsState } from "@/types/networkVisualization";
 

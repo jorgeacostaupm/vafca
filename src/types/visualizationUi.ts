@@ -33,6 +33,8 @@ export type VisualizationUiState = {
   hoveredNodeId: string | null;
   selectedLinks: SelectedLink[];
   atlasLinkIds: string[];
+  selectedLinksDownloadStatus: "idle" | "loading" | "ready" | "error";
+  selectedLinksDownloadError: string | null;
   matrixShape: MatrixShape;
   atlasPanel: AtlasPanelState;
 };

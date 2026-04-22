@@ -16,7 +16,7 @@ import {
   resetNetworkZoomLabelSelection,
   stepNetworkZoomHistory,
   updateNetworkViewStatRange,
-} from "@/store/slices/networkVisualizationSlice";
+} from "@/store/slices/networkVisualization";
 import type { ComputedView, SharedNetworkViewSettings } from "@/types/networkVisualization";
 import type { NetworkPanelCommonProps } from "@/types/networkPanels";
 

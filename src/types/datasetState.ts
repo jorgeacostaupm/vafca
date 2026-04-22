@@ -19,6 +19,8 @@ export type DatasetState = {
   data: DatasetMeta | null;
   status: "idle" | "loading" | "ready" | "error";
   error: string | null;
+  downloadStatus: "idle" | "loading" | "ready" | "error";
+  downloadError: string | null;
 };
 
 export type UpdateCatalogPayload = {

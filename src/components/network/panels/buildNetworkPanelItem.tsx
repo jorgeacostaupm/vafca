@@ -3,7 +3,7 @@ import { getLegendRange } from "@/utils/matrixViewUtils";
 import {
   patchNetworkMatrixSettings,
   patchNetworkNodeLinkSettings,
-} from "@/store/slices/networkVisualizationSlice";
+} from "@/store/slices/networkVisualization";
 import type { BuildPanelItem } from "@/types/networkPanels";
 import type { SharedNetworkViewSettings } from "@/types/networkVisualization";
 import { StatusContent } from "@/components/network/panels/NetworkPanelCommon";
@@ -40,19 +40,25 @@ export const buildNetworkPanelItem: BuildPanelItem = ({
   const isMatrixView = view.type === "matrix";
   const valueFilters = buildPanelValueFilters(computed);
   const viewTitle = resolveNetworkPanelViewTitle(view.type);
+  const skipCrossViewFiltering =
+    computed.useAsNodeFilter || computed.useAsLinkFilter;
 
-  const allowedNodeIds = resolveAllowedSet(
-    nodeFilterContributors,
-    view.id,
-    "nodeIds",
-    visibilityByViewId,
-  );
-  const allowedLinkIds = resolveAllowedSet(
-    linkFilterContributors,
-    view.id,
-    "linkIds",
-    visibilityByViewId,
-  );
+  const allowedNodeIds = skipCrossViewFiltering
+    ? null
+    : resolveAllowedSet(
+        nodeFilterContributors,
+        view.id,
+        "nodeIds",
+        visibilityByViewId,
+      );
+  const allowedLinkIds = skipCrossViewFiltering
+    ? null
+    : resolveAllowedSet(
+        linkFilterContributors,
+        view.id,
+        "linkIds",
+        visibilityByViewId,
+      );
 
   const adapted = buildAdaptedNetworkPanelData({
     viewType: view.type,
