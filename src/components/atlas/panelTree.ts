@@ -40,30 +40,3 @@ export const buildGroupTreeEntries = (rows: GroupedRow[]): GroupTreeEntry[] => {
 
   return roots;
 };
-
-const collectRoiIdsFromEntries = (entries: GroupTreeEntry[]): string[] => {
-  const ids: string[] = [];
-
-  entries.forEach((entry) => {
-    if (entry.type === "roiNode") {
-      ids.push(entry.row.id);
-      return;
-    }
-    ids.push(...collectRoiIdsFromEntries(entry.children));
-  });
-
-  return ids;
-};
-
-export const buildGroupRoiIdsByKey = (
-  entries: GroupTreeEntry[],
-  map: Record<string, string[]> = {},
-): Record<string, string[]> => {
-  entries.forEach((entry) => {
-    if (entry.type !== "groupNode") return;
-    map[entry.row.groupKey] = collectRoiIdsFromEntries(entry.children);
-    buildGroupRoiIdsByKey(entry.children, map);
-  });
-
-  return map;
-};

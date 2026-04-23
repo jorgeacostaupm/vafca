@@ -1,48 +1,36 @@
 import { Button, Form, Select, Space, Typography } from "antd";
+import { useNetworkSelectorModel } from "@/components/network/useNetworkSelectorModel";
+import type { NetworkViewType } from "@/types/networkVisualization";
 
-type Option = { value: string; label: string };
+export default function SelectorControls() {
+  const {
+    controls,
+    status,
+    error,
+    measures,
+    populations,
+    bands,
+    stats,
+    matrices,
+    showMatrixSelect,
+    disabled,
+    onViewTypeChange,
+    onPopulationChange,
+    onMeasureChange,
+    onStatChange,
+    onBandChange,
+    onMatrixChange,
+    onAddView,
+  } = useNetworkSelectorModel();
 
-type SelectorControlsProps = {
-  measures: Option[];
-  populations: Option[];
-  bands: Option[];
-  stats: Option[];
-  matrices: Option[];
-  selection: {
-    populationKey: string;
-    measureId: string;
-    statId: string;
-    bandId: string;
-    compoundId: string;
-  };
-  disabled: {
-    measures: boolean;
-    stats: boolean;
-    bands: boolean;
-  };
-  showMatrixSelect: boolean;
-  onChange: {
-    populations: (value?: string) => void;
-    measure: (value?: string) => void;
-    stat: (value?: string) => void;
-    band: (value?: string) => void;
-    matrix: (value?: string) => void;
-  };
-  onAdd: () => void;
-};
+  if (status === "loading") {
+    return <Typography.Text>Loading matrix list…</Typography.Text>;
+  }
 
-export default function SelectorControls({
-  measures,
-  populations,
-  bands,
-  stats,
-  matrices,
-  selection,
-  disabled,
-  showMatrixSelect,
-  onChange,
-  onAdd,
-}: SelectorControlsProps) {
+  if (status === "error") {
+    return <Typography.Text type="danger">Error: {error}</Typography.Text>;
+  }
+
   return (
     <Space direction="vertical" size={16} style={{ width: "100%" }}>
       <Typography.Text type="secondary">
@@ -50,11 +38,23 @@ export default function SelectorControls({
       </Typography.Text>
 
       <Form layout="vertical">
+        <Form.Item label="View type">
+          <Select
+            value={controls.viewType}
+            onChange={(value) => onViewTypeChange(value as NetworkViewType)}
+            options={[
+              { value: "matrix", label: "Matrix" },
+              { value: "circular", label: "Circular" },
+              { value: "classic", label: "Node-Link" },
+            ]}
+          />
+        </Form.Item>
+
         <Form.Item label="Populations">
           <Select
             placeholder="Select populations..."
-            value={selection.populationKey || undefined}
-            onChange={onChange.populations}
+            value={controls.populationKey || undefined}
+            onChange={onPopulationChange}
             allowClear
             options={populations}
           />
@@ -63,8 +63,8 @@ export default function SelectorControls({
         <Form.Item label="Measure">
           <Select
             placeholder="Select a measure..."
-            value={selection.measureId || undefined}
-            onChange={onChange.measure}
+            value={controls.measureId || undefined}
+            onChange={onMeasureChange}
             allowClear
             disabled={disabled.measures}
             options={measures}
@@ -74,8 +74,8 @@ export default function SelectorControls({
         <Form.Item label="Statistic">
           <Select
             placeholder="Select a statistic..."
-            value={selection.statId || undefined}
-            onChange={onChange.stat}
+            value={controls.statId || undefined}
+            onChange={onStatChange}
             allowClear
             disabled={disabled.stats}
             options={stats}
@@ -85,8 +85,8 @@ export default function SelectorControls({
         <Form.Item label="Band">
           <Select
             placeholder="Select a band..."
-            value={selection.bandId || undefined}
-            onChange={onChange.band}
+            value={controls.bandId || undefined}
+            onChange={onBandChange}
             allowClear
             disabled={disabled.bands}
             options={bands}
@@ -97,15 +97,19 @@ export default function SelectorControls({
           <Form.Item label="Matrix">
             <Select
               placeholder="Select a matrix..."
-              value={selection.compoundId || undefined}
-              onChange={onChange.matrix}
+              value={controls.selectedCompoundId || undefined}
+              onChange={onMatrixChange}
               allowClear
               options={matrices}
             />
           </Form.Item>
         )}
 
-        <Button type="primary" onClick={onAdd} disabled={!selection.compoundId}>
+        <Button
+          type="primary"
+          onClick={onAddView}
+          disabled={!controls.selectedCompoundId}
+        >
           Add view to layout
         </Button>
       </Form>

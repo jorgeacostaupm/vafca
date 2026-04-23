@@ -1,19 +1,17 @@
 import { useMemo, type RefObject } from "react";
-import { useAppSelector } from "@/store/hooks";
 import MatrixHeatmap from "@/components/matrix/Matrix";
 import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import type { MatrixShape } from "@/types/matrix";
-import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
-import { buildAtlasRoiColorById } from "@/utils/atlas/coloring";
 import { useMatrixHeatmapController } from "@/components/matrix/useMatrixController";
 import ViewPanelTemplate from "@/components/layout/ViewPanelTemplate";
+import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
+import { useAppSelector } from "@/store/hooks";
 
 type MatrixHeatmapPanelProps = {
   data: number[][];
   labels?: string[];
   rowLabels?: string[];
   colLabels?: string[];
-  labelNames?: Record<string, string>;
   compoundId: string;
   matrixLabel: string;
   svgRef?: RefObject<SVGSVGElement>;
@@ -39,7 +37,6 @@ export default function MatrixHeatmapPanel({
   labels,
   rowLabels,
   colLabels,
-  labelNames,
   compoundId,
   matrixLabel,
   svgRef,
@@ -53,11 +50,15 @@ export default function MatrixHeatmapPanel({
   onLabelToggle,
   onBrushZoom,
 }: MatrixHeatmapPanelProps) {
-  const dataset = useAppSelector((state) => state.dataset.data);
-  const atlas = useAppSelector((state) => state.atlas);
-  const atlasDefinition = useAtlasDefinition(
-    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
+  const configuredMatrixShape = useAppSelector(
+    (state) => state.visualizationUi.matrixShape,
   );
+  const {
+    labelNames,
+    labelTitles,
+    labelAcronyms,
+    nodeColors: labelColors,
+  } = useAtlasLabelPresentation();
   const {
     hoveredCell,
     selectedCells,
@@ -74,35 +75,6 @@ export default function MatrixHeatmapPanel({
     matrixLabel,
   });
 
-  const labelColors = useMemo(
-    () =>
-      buildAtlasRoiColorById({
-        atlasDefinition,
-        colorFields: atlas.colorFields,
-        colorPalette: atlas.colorPalette,
-      }),
-    [atlas.colorFields, atlas.colorPalette, atlasDefinition],
-  );
-  const labelTitles = useMemo(
-    () =>
-      atlas.order.reduce<Record<string, string>>((acc, id) => {
-        const meta = atlas.labelsById[id];
-        if (!meta) return acc;
-        acc[id] = meta.label ?? id;
-        return acc;
-      }, {}),
-    [atlas.order, atlas.labelsById],
-  );
-  const labelAcronyms = useMemo(
-    () =>
-      atlas.order.reduce<Record<string, string>>((acc, id) => {
-        const meta = atlas.labelsById[id];
-        if (!meta) return acc;
-        acc[id] = meta.acronym?.trim() ? meta.acronym : id;
-        return acc;
-      }, {}),
-    [atlas.order, atlas.labelsById],
-  );
   const valueLabel = useMemo(
     () => buildTooltipValueLabel(matrixLabel),
     [matrixLabel],
@@ -125,7 +97,7 @@ export default function MatrixHeatmapPanel({
           labelColors={labelColors}
           svgRef={svgRef}
           selectedZoomLabels={selectedZoomLabels}
-          matrixShape={matrixShape}
+          matrixShape={matrixShape ?? configuredMatrixShape}
           legendMin={legendMin}
           legendMax={legendMax}
           valueFilters={valueFilters}

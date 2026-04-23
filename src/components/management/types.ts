@@ -3,12 +3,6 @@ import type { ConnectivityCatalogs } from "@/types/catalogs";
 
 export type CatalogKey = keyof ConnectivityCatalogs;
 
-export type UpdateCatalogItemHandler = (
-  catalog: CatalogKey,
-  id: string,
-  changes: Record<string, unknown>,
-) => void;
-
 export type MoveDirection = "up" | "down";
 
 export type CategoryOrderMap = Record<string, string[]>;

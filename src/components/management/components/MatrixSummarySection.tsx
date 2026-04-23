@@ -1,27 +1,18 @@
 import { Space, Typography } from "antd";
-import type { ConnectivityCatalogs } from "@/types/catalogs";
-import type { MatrixStats } from "@/types/datasetState";
+import { useAppSelector } from "@/store/hooks";
 
-type MatrixSummarySectionProps = {
-  byMeasureStatPopulationSet: MatrixStats["byMeasureStatPopulationSet"];
-  measures: ConnectivityCatalogs["measures"];
-  stats: ConnectivityCatalogs["stats"];
-  populations: ConnectivityCatalogs["populations"];
-};
+function MatrixSummarySection() {
+  const data = useAppSelector((state) => state.dataset.data);
 
-function MatrixSummarySection({
-  byMeasureStatPopulationSet,
-  measures,
-  stats,
-  populations,
-}: MatrixSummarySectionProps) {
+  if (!data) return null;
+
   return (
     <div>
       <Typography.Text strong>Matrix summary</Typography.Text>
       <Space direction="vertical" size={4} style={{ width: "100%" }}>
-        {Object.entries(byMeasureStatPopulationSet).map(([measureId, statMap]) => (
+        {Object.entries(data.matrixStats.byMeasureStatPopulationSet).map(([measureId, statMap]) => (
           <Typography.Text key={measureId} type="secondary">
-            {(measures[measureId]?.label ?? measureId) + ": "}
+            {(data.catalogs.measures[measureId]?.label ?? measureId) + ": "}
             {Object.entries(statMap)
               .map(([statId, popMap]) => {
                 const total = Object.values(popMap).reduce(
@@ -32,12 +23,12 @@ function MatrixSummarySection({
                   .map(([populationKey, count]) => {
                     const label = populationKey
                       .split("+")
-                      .map((id) => populations[id]?.label ?? id)
+                      .map((id) => data.catalogs.populations[id]?.label ?? id)
                       .join("+");
                     return `${label} ${count}`;
                   })
                   .join(", ");
-                return `${stats[statId]?.label ?? statId} ${total} (${perPopulationSet})`;
+                return `${data.catalogs.stats[statId]?.label ?? statId} ${total} (${perPopulationSet})`;
               })
               .join(" · ")}
           </Typography.Text>

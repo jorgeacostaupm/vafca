@@ -1,6 +1,6 @@
 import "@/App.css";
 import { useEffect } from "react";
-import { Card, Layout, Space, Tabs, Typography } from "antd";
+import { Card, Layout, Space, Tabs } from "antd";
 import DatasetManagement from "@/components/management";
 import NetworkVisualizationTab from "@/components/network/NetworkVisualizationTab";
 import SelectedLinksPanel from "@/components/selected-links/SelectedLinksPanel";
@@ -24,12 +24,12 @@ function App() {
               destroyOnHidden={true}
               items={[
                 {
-                  key: "dataset",
+                  key: "mngmt",
                   label: "Management",
                   children: <DatasetManagement />,
                 },
                 {
-                  key: "network",
+                  key: "vis",
                   label: "Network Visualization",
                   children: <NetworkVisualizationTab />,
                 },

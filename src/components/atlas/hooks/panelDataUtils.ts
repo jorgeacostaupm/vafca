@@ -1,4 +1,4 @@
-import type { AtlasDefinition, AtlasState } from "@/types/atlas";
+import type { AtlasDefinition } from "@/types/atlas";
 import type { GroupedRow } from "@/types/atlasPanel";
 import {
   UNKNOWN_GROUP,
@@ -41,15 +41,11 @@ export const buildRoiFieldValuesById = (
 
 const matchesQuery = (
   id: string,
-  labelsById: AtlasState["labelsById"],
+  labelSearchTextById: Record<string, string>,
   normalizedQuery: string,
 ) => {
   if (!normalizedQuery) return true;
-  const label = labelsById[id]?.label ?? id;
-  return (
-    id.toLowerCase().includes(normalizedQuery) ||
-    label.toLowerCase().includes(normalizedQuery)
-  );
+  return (labelSearchTextById[id] ?? id.toLowerCase()).includes(normalizedQuery);
 };
 
 const matchesFilters = (
@@ -68,13 +64,13 @@ const matchesFilters = (
 
 export const filterIds = ({
   orderedIds,
-  labelsById,
+  labelSearchTextById,
   roiFieldValuesById,
   normalizedQuery,
   selectedFilters,
 }: {
   orderedIds: string[];
-  labelsById: AtlasState["labelsById"];
+  labelSearchTextById: Record<string, string>;
   roiFieldValuesById: Map<string, Record<string, string>>;
   normalizedQuery: string;
   selectedFilters: Record<string, string>;
@@ -84,7 +80,7 @@ export const filterIds = ({
   }
 
   return orderedIds.filter((id) => {
-    if (!matchesQuery(id, labelsById, normalizedQuery)) return false;
+    if (!matchesQuery(id, labelSearchTextById, normalizedQuery)) return false;
     return matchesFilters(id, roiFieldValuesById, selectedFilters);
   });
 };
@@ -92,14 +88,14 @@ export const filterIds = ({
 export const buildFieldOptionsByField = ({
   groupByFields,
   orderedIds,
-  labelsById,
+  labelSearchTextById,
   roiFieldValuesById,
   normalizedQuery,
   selectedFilters,
 }: {
   groupByFields: string[];
   orderedIds: string[];
-  labelsById: AtlasState["labelsById"];
+  labelSearchTextById: Record<string, string>;
   roiFieldValuesById: Map<string, Record<string, string>>;
   normalizedQuery: string;
   selectedFilters: Record<string, string>;
@@ -107,7 +103,7 @@ export const buildFieldOptionsByField = ({
   const entries = groupByFields.map((field) => {
     const values = new Set<string>();
     orderedIds.forEach((id) => {
-      if (!matchesQuery(id, labelsById, normalizedQuery)) return;
+      if (!matchesQuery(id, labelSearchTextById, normalizedQuery)) return;
       if (!matchesFilters(id, roiFieldValuesById, selectedFilters, field)) return;
       values.add(roiFieldValuesById.get(id)?.[field] ?? UNKNOWN_GROUP);
     });

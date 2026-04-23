@@ -1,6 +1,10 @@
+import { useCallback } from "react";
 import { Button, Col, Input, Row, Select, Space, Typography } from "antd";
 import { ALL_FILTER } from "./panelConstants";
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
+import { useAppDispatch } from "@/store/hooks";
+import { setAllLabels } from "@/store/slices/atlas";
+import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 
 const { Search } = Input;
 
@@ -12,10 +16,6 @@ type AtlasPanelFiltersProps = {
   totalCount: number;
   allEnabled: boolean;
   allDisabled: boolean;
-  onQueryChange: (query: string) => void;
-  onFilterChange: (field: string, value: string) => void;
-  onSelectAll: () => void;
-  onClearAll: () => void;
 };
 
 export function AtlasPanelFilters({
@@ -26,11 +26,31 @@ export function AtlasPanelFilters({
   totalCount,
   allEnabled,
   allDisabled,
-  onQueryChange,
-  onFilterChange,
-  onSelectAll,
-  onClearAll,
 }: AtlasPanelFiltersProps) {
+  const dispatch = useAppDispatch();
+
+  const handleQueryChange = useCallback(
+    (query: string) => {
+      dispatch(setAtlasPanelState({ query }));
+    },
+    [dispatch],
+  );
+
+  const handleFilterChange = useCallback(
+    (field: string, value: string) => {
+      dispatch(
+        setAtlasPanelState({
+          selectedFilters: {
+            ...selectedFilters,
+            [field]: value,
+          },
+          collapsedGroups: [],
+        }),
+      );
+    },
+    [dispatch, selectedFilters],
+  );
+
   return (
     <Row className="atlas-panel__filters" gutter={[12, 12]}>
       <Col xs={24} sm={12} md={8} className="atlas-panel__filter">
@@ -39,7 +59,7 @@ export function AtlasPanelFilters({
           allowClear
           placeholder="Search ROI label or id"
           value={query}
-          onChange={(event) => onQueryChange(event.target.value)}
+          onChange={(event) => handleQueryChange(event.target.value)}
         />
       </Col>
 
@@ -49,7 +69,7 @@ export function AtlasPanelFilters({
           <Select
             value={selectedFilters[field] ?? ALL_FILTER}
             options={fieldOptionsByField[field] ?? [{ value: ALL_FILTER, label: "All" }]}
-            onChange={(value) => onFilterChange(field, String(value))}
+            onChange={(value) => handleFilterChange(field, String(value))}
             style={{ width: "100%" }}
           />
         </Col>
@@ -58,10 +78,16 @@ export function AtlasPanelFilters({
       <Col xs={24} sm={12} md={8} className="atlas-panel__filter">
         <Typography.Text type="secondary">Selection</Typography.Text>
         <Space wrap>
-          <Button onClick={onSelectAll} disabled={allEnabled || totalCount === 0}>
+          <Button
+            onClick={() => dispatch(setAllLabels(true))}
+            disabled={allEnabled || totalCount === 0}
+          >
             Select All
           </Button>
-          <Button onClick={onClearAll} disabled={allDisabled || totalCount === 0}>
+          <Button
+            onClick={() => dispatch(setAllLabels(false))}
+            disabled={allDisabled || totalCount === 0}
+          >
             Clear All
           </Button>
         </Space>

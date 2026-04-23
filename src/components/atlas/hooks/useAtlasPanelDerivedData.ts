@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { AtlasDefinition, AtlasState } from "@/types/atlas";
+import type { AtlasDefinition, D3CategoricalPaletteKey } from "@/types/atlas";
 import type { AtlasPanelState } from "@/types/visualizationUi";
 import {
   D3_CATEGORICAL_PALETTES,
@@ -8,12 +8,14 @@ import {
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
 import type { GroupedRow } from "@/types/atlasPanel";
 import type { AtlasColorCategoryItem } from "../AtlasPanelControls";
-import { buildGroupRoiIdsByKey, buildGroupTreeEntries } from "../panelTree";
+import { buildGroupTreeEntries } from "../panelTree";
 
 const MIN_COLOR_PREVIEW_ITEMS = 7;
 
 type UseAtlasPanelDerivedDataArgs = {
-  atlas: AtlasState;
+  enabledIds: string[];
+  colorFields: string[];
+  colorPalette: D3CategoricalPaletteKey;
   atlasPanel: AtlasPanelState;
   atlasDefinition: AtlasDefinition | null;
   availableGroupFields: string[];
@@ -21,18 +23,15 @@ type UseAtlasPanelDerivedDataArgs = {
 };
 
 export const useAtlasPanelDerivedData = ({
-  atlas,
+  enabledIds,
+  colorFields,
+  colorPalette,
   atlasPanel,
   atlasDefinition,
   availableGroupFields,
   groupedRows,
 }: UseAtlasPanelDerivedDataArgs) => {
   const groupedEntries = useMemo(() => buildGroupTreeEntries(groupedRows), [groupedRows]);
-
-  const groupRoiIdsByKey = useMemo(
-    () => buildGroupRoiIdsByKey(groupedEntries),
-    [groupedEntries],
-  );
 
   const selectableGroupFields = useMemo(
     () =>
@@ -41,8 +40,8 @@ export const useAtlasPanelDerivedData = ({
   );
 
   const selectableColorFields = useMemo(
-    () => availableGroupFields.filter((field) => !atlas.colorFields.includes(field)),
-    [availableGroupFields, atlas.colorFields],
+    () => availableGroupFields.filter((field) => !colorFields.includes(field)),
+    [availableGroupFields, colorFields],
   );
 
   const columnSections = useMemo(() => {
@@ -56,17 +55,15 @@ export const useAtlasPanelDerivedData = ({
   const useColumns = atlasPanel.groupByFields.length > 0 && columnSections.length > 0;
 
   const colorCategories = useMemo<AtlasColorCategoryItem[]>(() => {
-    const enabledIds = new Set(
-      atlas.order.filter((id) => atlas.labelsById[id]?.enabled !== false),
-    );
+    const includedIds = new Set(enabledIds);
 
     return buildAtlasColorCategories({
       atlasDefinition,
-      colorFields: atlas.colorFields,
-      colorPalette: atlas.colorPalette,
-      includedIds: enabledIds,
+      colorFields,
+      colorPalette,
+      includedIds,
     }).map((entry) => {
-      const label = atlas.colorFields
+      const label = colorFields
         .map((field, index) => `${humanizeFieldName(field)}: ${entry.values[index]}`)
         .join(" · ");
 
@@ -79,16 +76,15 @@ export const useAtlasPanelDerivedData = ({
     });
   }, [
     atlasDefinition,
-    atlas.colorFields,
-    atlas.colorPalette,
-    atlas.order,
-    atlas.labelsById,
+    colorFields,
+    colorPalette,
+    enabledIds,
   ]);
 
   const colorPreviewItems = useMemo<AtlasColorCategoryItem[]>(() => {
     if (colorCategories.length >= MIN_COLOR_PREVIEW_ITEMS) return colorCategories;
 
-    const palette = D3_CATEGORICAL_PALETTES[atlas.colorPalette];
+    const palette = D3_CATEGORICAL_PALETTES[colorPalette];
     const padded = [...colorCategories];
     for (let index = colorCategories.length; index < MIN_COLOR_PREVIEW_ITEMS; index += 1) {
       padded.push({
@@ -99,11 +95,10 @@ export const useAtlasPanelDerivedData = ({
       });
     }
     return padded;
-  }, [atlas.colorPalette, colorCategories]);
+  }, [colorPalette, colorCategories]);
 
   return {
     groupedEntries,
-    groupRoiIdsByKey,
     selectableGroupFields,
     selectableColorFields,
     columnSections,

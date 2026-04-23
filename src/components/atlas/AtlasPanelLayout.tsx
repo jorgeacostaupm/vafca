@@ -1,43 +1,39 @@
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 import { Col, Row, Space } from "antd";
-import { AtlasPanelControls } from "./AtlasPanelControls";
-import { AtlasPanelFilters } from "./AtlasPanelFilters";
-import { AtlasPanelList } from "./AtlasPanelList";
-import { AtlasPanelViewer } from "./AtlasPanelViewer";
 
 type AtlasPanelLayoutProps = {
   has3d: boolean;
-  controlsProps: ComponentProps<typeof AtlasPanelControls>;
-  filtersProps: ComponentProps<typeof AtlasPanelFilters>;
-  listProps: ComponentProps<typeof AtlasPanelList>;
-  viewerProps: ComponentProps<typeof AtlasPanelViewer>;
+  controls: ReactNode;
+  filters: ReactNode;
+  list: ReactNode;
+  viewer: ReactNode;
 };
 
 export function AtlasPanelLayout({
   has3d,
-  controlsProps,
-  filtersProps,
-  listProps,
-  viewerProps,
+  controls,
+  filters,
+  list,
+  viewer,
 }: AtlasPanelLayoutProps) {
   if (has3d) {
     return (
       <Row className="atlas-panel" gutter={[24, 24]} align="top">
         <Col xs={24} lg={10}>
           <div className="atlas-panel__list">
-            <AtlasPanelControls {...controlsProps} />
+            {controls}
           </div>
         </Col>
 
         <Col xs={24} lg={14}>
-          <AtlasPanelViewer {...viewerProps} />
+          {viewer}
         </Col>
 
         <Col xs={24}>
           <div className="atlas-panel__list">
             <Space direction="vertical" size={12} style={{ width: "100%" }}>
-              <AtlasPanelFilters {...filtersProps} />
-              <AtlasPanelList {...listProps} />
+              {filters}
+              {list}
             </Space>
           </div>
         </Col>
@@ -49,11 +45,11 @@ export function AtlasPanelLayout({
     <Row className="atlas-panel" gutter={[24, 24]} align="top">
       <Col xs={24}>
         <div className="atlas-panel__list">
-          <AtlasPanelControls {...controlsProps} />
+          {controls}
 
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            <AtlasPanelFilters {...filtersProps} />
-            <AtlasPanelList {...listProps} />
+            {filters}
+            {list}
           </Space>
         </div>
       </Col>

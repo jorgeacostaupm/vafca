@@ -1,22 +1,22 @@
 import { Select, Space, Typography } from "antd";
 import type { MatrixShape } from "@/types/matrix";
 import { MATRIX_SHAPE_OPTIONS } from "@/components/management/constants";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setDatasetMatrixShape } from "@/store/slices/dataset";
+import { normalizeMatrixOrder } from "@/utils/matrixOrder";
 
-type DatasetSummaryHeaderProps = {
-  atlasLabel: string;
-  roiCount: number;
-  matrixCount: number;
-  matrixShape: MatrixShape;
-  onMatrixShapeChange: (value: MatrixShape) => void;
-};
+function DatasetSummaryHeader() {
+  const dispatch = useAppDispatch();
+  const data = useAppSelector((state) => state.dataset.data);
+  const matrixShape = useAppSelector(
+    (state) => state.visualizationUi.matrixShape,
+  );
 
-function DatasetSummaryHeader({
-  atlasLabel,
-  roiCount,
-  matrixCount,
-  matrixShape,
-  onMatrixShapeChange,
-}: DatasetSummaryHeaderProps) {
+  if (!data) return null;
+
+  const matrixOrder = normalizeMatrixOrder(data.metadata.matrixOrder);
+  const atlasLabel = data.metadata.atlasId ?? data.metadata.atlas ?? "Unknown";
+
   return (
     <Space wrap size={16}>
       <Space size={6}>
@@ -26,12 +26,12 @@ function DatasetSummaryHeader({
 
       <Space size={6}>
         <Typography.Text strong>ROI count:</Typography.Text>
-        <Typography.Text type="secondary">{roiCount}</Typography.Text>
+        <Typography.Text type="secondary">{matrixOrder.length}</Typography.Text>
       </Space>
 
       <Space size={6}>
         <Typography.Text strong>Matrices:</Typography.Text>
-        <Typography.Text type="secondary">{matrixCount}</Typography.Text>
+        <Typography.Text type="secondary">{data.matrixStats.total}</Typography.Text>
       </Space>
 
       <Space size={6}>
@@ -40,7 +40,9 @@ function DatasetSummaryHeader({
           size="small"
           value={matrixShape}
           options={MATRIX_SHAPE_OPTIONS}
-          onChange={(value) => onMatrixShapeChange(value as MatrixShape)}
+          onChange={(value) =>
+            void dispatch(setDatasetMatrixShape({ shape: value as MatrixShape }))
+          }
         />
       </Space>
     </Space>

@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Button, Select, Space, Typography } from "antd";
 import {
   ArrowDownOutlined,
@@ -7,6 +8,13 @@ import {
 import type { D3CategoricalPaletteKey } from "@/types/atlas";
 import { D3_CATEGORICAL_PALETTES } from "@/utils/atlas/coloring";
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  setAtlasColorFields,
+  setAtlasColorPalette,
+} from "@/store/slices/atlas";
+import { setAtlasPanelState } from "@/store/slices/visualizationUi";
+import { moveField } from "./panelFieldUtils";
 
 export type AtlasColorCategoryItem = {
   key: string;
@@ -25,13 +33,6 @@ type AtlasPanelControlsProps = {
   colorPalette: D3CategoricalPaletteKey;
   colorCategories: AtlasColorCategoryItem[];
   colorPreviewItems: AtlasColorCategoryItem[];
-  onMoveGroupField: (field: string, direction: "up" | "down") => void;
-  onRemoveGroupField: (field: string) => void;
-  onAddGroupField: (field: string) => void;
-  onMoveColorField: (field: string, direction: "up" | "down") => void;
-  onRemoveColorField: (field: string) => void;
-  onAddColorField: (field: string) => void;
-  onSetColorPalette: (value: D3CategoricalPaletteKey) => void;
 };
 
 export function AtlasPanelControls({
@@ -44,14 +45,73 @@ export function AtlasPanelControls({
   colorPalette,
   colorCategories,
   colorPreviewItems,
-  onMoveGroupField,
-  onRemoveGroupField,
-  onAddGroupField,
-  onMoveColorField,
-  onRemoveColorField,
-  onAddColorField,
-  onSetColorPalette,
 }: AtlasPanelControlsProps) {
+  const dispatch = useAppDispatch();
+  const selectedFilters = useAppSelector(
+    (state) => state.visualizationUi.atlasPanel.selectedFilters,
+  );
+
+  const handleMoveGroupField = useCallback(
+    (field: string, direction: "up" | "down") => {
+      dispatch(
+        setAtlasPanelState({
+          groupByFields: moveField(groupByFields, field, direction),
+          collapsedGroups: [],
+        }),
+      );
+    },
+    [dispatch, groupByFields],
+  );
+
+  const handleRemoveGroupField = useCallback(
+    (field: string) => {
+      const nextSelectedFilters = { ...selectedFilters };
+      delete nextSelectedFilters[field];
+
+      dispatch(
+        setAtlasPanelState({
+          groupByFields: groupByFields.filter((value) => value !== field),
+          selectedFilters: nextSelectedFilters,
+          collapsedGroups: [],
+        }),
+      );
+    },
+    [dispatch, groupByFields, selectedFilters],
+  );
+
+  const handleAddGroupField = useCallback(
+    (field: string) => {
+      dispatch(
+        setAtlasPanelState({
+          groupByFields: [...groupByFields, field],
+          collapsedGroups: [],
+        }),
+      );
+    },
+    [dispatch, groupByFields],
+  );
+
+  const handleMoveColorField = useCallback(
+    (field: string, direction: "up" | "down") => {
+      dispatch(setAtlasColorFields(moveField(colorFields, field, direction)));
+    },
+    [colorFields, dispatch],
+  );
+
+  const handleRemoveColorField = useCallback(
+    (field: string) => {
+      dispatch(setAtlasColorFields(colorFields.filter((value) => value !== field)));
+    },
+    [colorFields, dispatch],
+  );
+
+  const handleAddColorField = useCallback(
+    (field: string) => {
+      dispatch(setAtlasColorFields([...colorFields, field]));
+    },
+    [colorFields, dispatch],
+  );
+
   return (
     <Space direction="vertical" size={16} style={{ width: "100%" }}>
       <Space
@@ -79,14 +139,14 @@ export function AtlasPanelControls({
                 <Button
                   size="small"
                   icon={<ArrowUpOutlined />}
-                  onClick={() => onMoveGroupField(field, "up")}
+                  onClick={() => handleMoveGroupField(field, "up")}
                   disabled={index === 0}
                   aria-label={`Move ${humanizeFieldName(field)} up`}
                 />
                 <Button
                   size="small"
                   icon={<ArrowDownOutlined />}
-                  onClick={() => onMoveGroupField(field, "down")}
+                  onClick={() => handleMoveGroupField(field, "down")}
                   disabled={index === groupByFields.length - 1}
                   aria-label={`Move ${humanizeFieldName(field)} down`}
                 />
@@ -94,7 +154,7 @@ export function AtlasPanelControls({
                   size="small"
                   danger
                   icon={<DeleteOutlined />}
-                  onClick={() => onRemoveGroupField(field)}
+                  onClick={() => handleRemoveGroupField(field)}
                   aria-label={`Remove ${humanizeFieldName(field)}`}
                 />
               </Space>
@@ -109,7 +169,7 @@ export function AtlasPanelControls({
             value: field,
             label: humanizeFieldName(field),
           }))}
-          onChange={(value) => onAddGroupField(String(value))}
+          onChange={(value) => handleAddGroupField(String(value))}
           value={undefined}
         />
       </Space>
@@ -125,14 +185,14 @@ export function AtlasPanelControls({
                 <Button
                   size="small"
                   icon={<ArrowUpOutlined />}
-                  onClick={() => onMoveColorField(field, "up")}
+                  onClick={() => handleMoveColorField(field, "up")}
                   disabled={index === 0}
                   aria-label={`Move ${humanizeFieldName(field)} up`}
                 />
                 <Button
                   size="small"
                   icon={<ArrowDownOutlined />}
-                  onClick={() => onMoveColorField(field, "down")}
+                  onClick={() => handleMoveColorField(field, "down")}
                   disabled={index === colorFields.length - 1}
                   aria-label={`Move ${humanizeFieldName(field)} down`}
                 />
@@ -140,7 +200,7 @@ export function AtlasPanelControls({
                   size="small"
                   danger
                   icon={<DeleteOutlined />}
-                  onClick={() => onRemoveColorField(field)}
+                  onClick={() => handleRemoveColorField(field)}
                   aria-label={`Remove ${humanizeFieldName(field)}`}
                 />
               </Space>
@@ -155,7 +215,7 @@ export function AtlasPanelControls({
             value: field,
             label: humanizeFieldName(field),
           }))}
-          onChange={(value) => onAddColorField(String(value))}
+          onChange={(value) => handleAddColorField(String(value))}
           value={undefined}
         />
 
@@ -197,7 +257,9 @@ export function AtlasPanelControls({
               <Select
                 value={colorPalette}
                 style={{ width: "100%" }}
-                onChange={(value) => onSetColorPalette(value as D3CategoricalPaletteKey)}
+                onChange={(value) =>
+                  dispatch(setAtlasColorPalette(value as D3CategoricalPaletteKey))
+                }
                 options={Object.keys(D3_CATEGORICAL_PALETTES).map((key) => ({
                   value: key,
                   label: `D3 ${key}`,

@@ -1,18 +1,21 @@
 import type { ComponentType } from "react";
 import { useNodeLinkPanelInteractions } from "@/components/nodelink/useNodeLinkPanelInteractions";
 import ViewPanelTemplate from "@/components/layout/ViewPanelTemplate";
+import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import type {
   NodeLinkInteractionProps,
   NodeLinkPanelCommonProps,
+  NodeLinkPresentationProps,
 } from "@/types/nodelink";
 
 type NodeLinkRendererBaseProps = Omit<
   NodeLinkPanelCommonProps,
   "compoundId"
-> & {
-  width: number;
-  height: number;
-};
+> &
+  NodeLinkPresentationProps & {
+    width: number;
+    height: number;
+  };
 
 type NodeLinkViewTemplateProps<TExtra extends object> = NodeLinkPanelCommonProps & {
   Renderer: ComponentType<NodeLinkRendererBaseProps & NodeLinkInteractionProps & TExtra>;
@@ -24,10 +27,6 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
   rendererProps,
   data,
   labels,
-  labelNames,
-  labelTitles,
-  labelAcronyms,
-  nodeColors,
   compoundId,
   matrixLabel,
   svgRef,
@@ -41,6 +40,8 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
   onLabelToggle,
   onBrushZoom,
 }: NodeLinkViewTemplateProps<TExtra>) {
+  const { labelNames, labelTitles, labelAcronyms, nodeColors } =
+    useAtlasLabelPresentation();
   const {
     resolvedLabels,
     selectedLinkIds,

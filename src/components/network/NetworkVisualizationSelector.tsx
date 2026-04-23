@@ -1,26 +1,17 @@
-import { useCallback, useMemo } from "react";
-import { Col, Row, Typography } from "antd";
+import { useMemo } from "react";
+import { Col, Row } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
-import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import {
-  addNetworkViewAndFormat,
-  markNetworkViewFormatting,
   removeNetworkView,
   setNetworkLayout,
 } from "@/store/slices/networkVisualization";
-import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
-import {
-  buildDefaultRanges,
-  buildMatrixLabel,
-} from "@/utils/matrixViewUtils";
+import { buildDefaultRanges } from "@/utils/matrixViewUtils";
 import PanelGridLayout from "@/components/layout/PanelGridLayout";
-import { buildAtlasRoiColorById } from "@/utils/atlas/coloring";
 import { useNetworkMatrixCache } from "@/components/network/useNetworkMatrixCache";
-import { useNetworkViewLifecycle } from "@/components/network/useNetworkViewLifecycle";
 import { useComputedNetworkViews } from "@/components/network/useComputedNetworkViews";
 import { buildNetworkPanelItems } from "@/components/network/NetworkPanelItems";
 import NetworkSelectorSidebar from "@/components/network/NetworkSelectorSidebar";
+import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import type { NetworkViewDescriptor } from "@/types/networkVisualization";
 
 function NetworkVisualizationSelector() {
@@ -31,13 +22,6 @@ function NetworkVisualizationSelector() {
     (state) => state.visualizationUi.matrixShape,
   );
   const networkState = useAppSelector((state) => state.networkVisualization);
-
-  const atlasDefinition = useAtlasDefinition(
-    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
-  );
-  const { summaries, status, error } = useMatrixSummaries(
-    dataset?.matrixStats.total,
-  );
 
   const views = useMemo(
     () =>
@@ -50,66 +34,12 @@ function NetworkVisualizationSelector() {
   const { matrixByCompoundId, loadingCompoundIds } =
     useNetworkMatrixCache(views);
 
-  const {
-    matrixOrderIds,
-    labelNames,
-    activeLabelIds,
-    populationOptions,
-    measures,
-    statOptions,
-    bandOptions,
-    matches,
-    matrixOptions,
-  } = useMatrixFilterOptions({
-    dataset,
-    atlas,
-    summaries,
-    populationKey: networkState.controls.populationKey,
-    measureId: networkState.controls.measureId,
-    statId: networkState.controls.statId,
-    bandId: networkState.controls.bandId,
-  });
+  const { matrixOrderIds, activeLabelIds } = useAtlasLabelPresentation();
 
   const defaultMeasureRanges = useMemo(
     () => buildDefaultRanges(dataset?.catalogs.measures),
     [dataset],
   );
-
-  const nodeColors = useMemo(
-    () =>
-      buildAtlasRoiColorById({
-        atlasDefinition,
-        colorFields: atlas.colorFields,
-        colorPalette: atlas.colorPalette,
-      }),
-    [atlas.colorFields, atlas.colorPalette, atlasDefinition],
-  );
-  const labelTitles = useMemo(
-    () =>
-      atlas.order.reduce<Record<string, string>>((acc, id) => {
-        const meta = atlas.labelsById[id];
-        if (!meta) return acc;
-        acc[id] = meta.label ?? id;
-        return acc;
-      }, {}),
-    [atlas.order, atlas.labelsById],
-  );
-  const labelAcronyms = useMemo(
-    () =>
-      atlas.order.reduce<Record<string, string>>((acc, id) => {
-        const meta = atlas.labelsById[id];
-        if (!meta) return acc;
-        acc[id] = meta.acronym?.trim() ? meta.acronym : id;
-        return acc;
-      }, {}),
-    [atlas.order, atlas.labelsById],
-  );
-
-  useNetworkViewLifecycle({
-    matches,
-    summariesStatus: status,
-    summaries,
-  });
 
   const {
     computedByViewId,
@@ -128,45 +58,6 @@ function NetworkVisualizationSelector() {
     defaultMeasureRanges,
   });
 
-  const zoomTargetsByType = useCallback(
-    (viewId: string) => {
-      if (!networkState.controls.syncZoom) return [viewId];
-      const trigger = networkState.viewsById[viewId];
-      if (!trigger) return [viewId];
-      const isMatrix = trigger.type === "matrix";
-      return views
-        .filter((view) =>
-          isMatrix ? view.type === "matrix" : view.type !== "matrix",
-        )
-        .map((view) => view.id);
-    },
-    [networkState.controls.syncZoom, networkState.viewsById, views],
-  );
-
-  const handleAddView = useCallback(() => {
-    if (!networkState.controls.selectedCompoundId) return;
-    const summary = matches.find(
-      (item) => item.compoundId === networkState.controls.selectedCompoundId,
-    );
-    if (!summary) return;
-
-    void dispatch(
-      addNetworkViewAndFormat({
-        type: networkState.controls.viewType,
-        compoundId: summary.compoundId,
-        label: buildMatrixLabel(summary, dataset?.catalogs),
-        measureId: summary.measureId,
-        statId: summary.statId,
-      }),
-    );
-  }, [
-    dataset,
-    dispatch,
-    matches,
-    networkState.controls.selectedCompoundId,
-    networkState.controls.viewType,
-  ]);
-
   const panelItems = useMemo(
     () =>
       buildNetworkPanelItems({
@@ -175,58 +66,25 @@ function NetworkVisualizationSelector() {
         loadingCompoundIds,
         computedByViewId,
         dataset,
-        matrixShape,
-        labelNames,
-        labelTitles,
-        labelAcronyms,
-        nodeColors,
         visibilityByViewId,
         nodeFilterContributors,
         linkFilterContributors,
-        zoomTargetsByType,
-        dispatch,
-        markFormatting: markNetworkViewFormatting,
       }),
     [
       computedByViewId,
       dataset,
-      dispatch,
-      labelAcronyms,
-      labelNames,
-      labelTitles,
       linkFilterContributors,
       loadingCompoundIds,
       matrixByCompoundId,
-      matrixShape,
-      nodeColors,
       nodeFilterContributors,
       views,
       visibilityByViewId,
-      zoomTargetsByType,
     ],
   );
 
-  if (status === "loading") {
-    return <Typography.Text>Loading matrix list…</Typography.Text>;
-  }
-
-  if (status === "error") {
-    return <Typography.Text type="danger">Error: {error}</Typography.Text>;
-  }
-
   return (
     <Row gutter={[16, 16]}>
-      <NetworkSelectorSidebar
-        dispatch={dispatch}
-        controls={networkState.controls}
-        measures={measures}
-        populations={populationOptions}
-        bands={bandOptions}
-        stats={statOptions}
-        matrices={matrixOptions}
-        showMatrixSelect={matches.length > 1}
-        onAdd={handleAddView}
-      />
+      <NetworkSelectorSidebar />
 
       <Col xs={24} lg={20}>
         <PanelGridLayout

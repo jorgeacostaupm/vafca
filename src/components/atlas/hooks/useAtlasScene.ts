@@ -2,7 +2,9 @@ import { type RefObject, useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ConvexGeometry } from "three/examples/jsm/geometries/ConvexGeometry.js";
-import type { AtlasDefinition, AtlasState } from "@/types/atlas";
+import { useAppDispatch } from "@/store/hooks";
+import { setLabelEnabled } from "@/store/slices/atlas";
+import type { AtlasDefinition } from "@/types/atlas";
 
 const buildRoiColor = (index: number) => {
   const hue = (index * 0.61803398875) % 1;
@@ -11,20 +13,22 @@ const buildRoiColor = (index: number) => {
 
 type UseAtlasSceneArgs = {
   atlasDefinition: AtlasDefinition | null;
-  atlas: AtlasState;
+  enabledById: Record<string, boolean>;
+  displayLabelsById: Record<string, string>;
   containerRef: RefObject<HTMLDivElement | null>;
-  onToggle: (id: string, enabled: boolean) => void;
   enable3d: boolean;
 };
 
 export const useAtlasScene = ({
   atlasDefinition,
-  atlas,
+  enabledById,
+  displayLabelsById,
   containerRef,
-  onToggle,
   enable3d,
 }: UseAtlasSceneArgs) => {
-  const atlasRef = useRef(atlas);
+  const dispatch = useAppDispatch();
+  const enabledByIdRef = useRef(enabledById);
+  const displayLabelsByIdRef = useRef(displayLabelsById);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -33,8 +37,12 @@ export const useAtlasScene = ({
   const roiObjectsRef = useRef<Map<string, THREE.Mesh>>(new Map());
 
   useEffect(() => {
-    atlasRef.current = atlas;
-  }, [atlas]);
+    enabledByIdRef.current = enabledById;
+  }, [enabledById]);
+
+  useEffect(() => {
+    displayLabelsByIdRef.current = displayLabelsById;
+  }, [displayLabelsById]);
 
   const applyCameraPose = useCallback((x: number, y: number, z: number) => {
     const camera = cameraRef.current;
@@ -90,7 +98,7 @@ export const useAtlasScene = ({
     scene.add(ambient, keyLight, fillLight);
 
     const roiObjects = new Map<string, THREE.Mesh>();
-    const currentLabels = atlasRef.current.labelsById;
+    const currentEnabledById = enabledByIdRef.current;
     atlasDefinition.rois.forEach((roi, index) => {
       const rawPoints = Array.isArray(roi.mesh_points) ? roi.mesh_points : [];
       const points = rawPoints
@@ -123,7 +131,7 @@ export const useAtlasScene = ({
         baseColor: baseColor.clone(),
         baseOpacity: material.opacity,
       };
-      mesh.visible = currentLabels[String(roi.id)]?.enabled !== false;
+      mesh.visible = currentEnabledById[String(roi.id)] !== false;
       roiObjects.set(String(roi.id), mesh);
       group.add(mesh);
     });
@@ -178,7 +186,7 @@ export const useAtlasScene = ({
 
     const objects = Array.from(roiObjects.values());
     const isRoiEnabled = (roiId?: string) =>
-      roiId ? atlasRef.current.labelsById[roiId]?.enabled !== false : false;
+      roiId ? enabledByIdRef.current[roiId] !== false : false;
 
     const pickEnabledHit = (hits: THREE.Intersection[]) => {
       for (const hit of hits) {
@@ -202,12 +210,11 @@ export const useAtlasScene = ({
       const roiId = hit.userData?.roiId as string | undefined;
       if (!roiId) return;
 
-      const current = atlasRef.current.labelsById[roiId];
-      const enabled = current?.enabled !== false;
+      const enabled = enabledByIdRef.current[roiId] !== false;
       if (!enabled) return;
 
       hit.visible = false;
-      onToggle(roiId, false);
+      dispatch(setLabelEnabled({ id: roiId, enabled: false }));
       hideTooltip();
     };
 
@@ -230,11 +237,7 @@ export const useAtlasScene = ({
         return;
       }
 
-      const labelMeta = atlasRef.current.labelsById[roiId];
-      const label = labelMeta?.label ?? roiId;
-      const acronym = labelMeta?.acronym;
-      const tooltipText =
-        acronym && acronym !== label ? `${label} (${acronym})` : label;
+      const tooltipText = displayLabelsByIdRef.current[roiId] ?? roiId;
 
       if (hoveredId !== roiId || tooltip.textContent !== tooltipText) {
         tooltip.textContent = tooltipText;
@@ -301,7 +304,7 @@ export const useAtlasScene = ({
       controlsRef.current = null;
       roiObjectsRef.current = new Map();
     };
-  }, [atlasDefinition, containerRef, onToggle, enable3d]);
+  }, [atlasDefinition, containerRef, dispatch, enable3d]);
 
   useEffect(() => {
     const roiObjects = roiObjectsRef.current;
@@ -310,9 +313,9 @@ export const useAtlasScene = ({
     for (const [id, mesh] of roiObjects) {
       // THREE meshes are imperative scene objects, not React state.
       // eslint-disable-next-line react-hooks/immutability
-      mesh.visible = atlas.labelsById[id]?.enabled !== false;
+      mesh.visible = enabledById[id] !== false;
     }
-  }, [atlas.labelsById]);
+  }, [enabledById]);
 
   return { applyCameraPose };
 };

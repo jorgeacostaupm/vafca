@@ -9,10 +9,6 @@ export type NodeLinkValueFilters = {
 export type NodeLinkPanelCommonProps = {
   data: number[][];
   labels?: string[];
-  labelNames?: Record<string, string>;
-  labelTitles?: Record<string, string>;
-  labelAcronyms?: Record<string, string>;
-  nodeColors?: Record<string, string>;
   compoundId: string;
   matrixLabel: string;
   svgRef?: RefObject<SVGSVGElement>;
@@ -25,6 +21,13 @@ export type NodeLinkPanelCommonProps = {
   diverging?: boolean;
   onLabelToggle?: (label: string) => void;
   onBrushZoom?: (payload: { labels: string[] }) => void;
+};
+
+export type NodeLinkPresentationProps = {
+  labelNames: Record<string, string>;
+  labelTitles: Record<string, string>;
+  labelAcronyms: Record<string, string>;
+  nodeColors: Record<string, string>;
 };
 
 export type NodeLinkInteractionProps = {

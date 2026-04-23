@@ -13,10 +13,13 @@ import NetworkFilterRolePopover from "@/components/network/NetworkFilterRolePopo
 import {
   applyNetworkZoom,
   patchNetworkNodeLinkSettings,
+  patchNetworkMatrixSettings,
   resetNetworkZoomLabelSelection,
   stepNetworkZoomHistory,
   updateNetworkViewStatRange,
 } from "@/store/slices/networkVisualization";
+import { useAppDispatch } from "@/store/hooks";
+import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
 import type { ComputedView, SharedNetworkViewSettings } from "@/types/networkVisualization";
 import type { NetworkPanelCommonProps } from "@/types/networkPanels";
 
@@ -30,9 +33,6 @@ type NetworkPanelActionsProps = {
   isMatrixView: boolean;
   viewTitle: string;
   svgRef: NetworkPanelCommonProps["svgRef"];
-  zoomTargetsByType: NetworkPanelCommonProps["zoomTargetsByType"];
-  dispatch: NetworkPanelCommonProps["dispatch"];
-  patchSharedSettings: (patch: SharedPanelSettingsPatch) => void;
 };
 
 export default function NetworkPanelActions({
@@ -41,14 +41,31 @@ export default function NetworkPanelActions({
   isMatrixView,
   viewTitle,
   svgRef,
-  zoomTargetsByType,
-  dispatch,
-  patchSharedSettings,
 }: NetworkPanelActionsProps) {
+  const dispatch = useAppDispatch();
+  const zoomTargetsByType = useNetworkZoomTargets();
   const canZoomBack = computed.zoomState.index > 0;
   const canZoomForward =
     computed.zoomState.index < computed.zoomState.history.length - 1;
   const canZoomByLabels = computed.orderedZoomLabels.length > 0;
+  const patchSharedSettings = (patch: SharedPanelSettingsPatch) => {
+    if (isMatrixView) {
+      dispatch(
+        patchNetworkMatrixSettings({
+          viewId: view.id,
+          patch,
+        }),
+      );
+      return;
+    }
+
+    dispatch(
+      patchNetworkNodeLinkSettings({
+        viewId: view.id,
+        patch,
+      }),
+    );
+  };
 
   const filterContent = (
     <NetworkFilterRolePopover

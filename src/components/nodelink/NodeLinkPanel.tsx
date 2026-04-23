@@ -6,6 +6,7 @@ import type {
   ClassicNode,
   NodeLinkInteractionProps,
   NodeLinkPanelCommonProps,
+  NodeLinkPresentationProps,
 } from "@/types/nodelink";
 
 type NodeLinkPanelProps = NodeLinkPanelCommonProps;
@@ -17,6 +18,7 @@ export default function NodeLinkPanel({
 }
 
 type NodeLinkProps = Omit<NodeLinkPanelCommonProps, "compoundId"> &
+  NodeLinkPresentationProps &
   NodeLinkInteractionProps & {
     width: number;
     height: number;

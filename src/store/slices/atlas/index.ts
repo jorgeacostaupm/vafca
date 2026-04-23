@@ -15,7 +15,11 @@ export {
 export {
   selectAtlasColorFields,
   selectAtlasColorPalette,
+  selectAtlasDisplayLabelsById,
+  selectAtlasEnabledById,
+  selectAtlasEnabledIds,
   selectAtlasLabelsById,
+  selectAtlasLabelSearchTextById,
   selectAtlasOrder,
   selectAtlasState,
 } from './atlasSelectors'

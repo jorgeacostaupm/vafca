@@ -1,17 +1,17 @@
 import { Card, Divider, Input, InputNumber, Space, Switch, Typography } from "antd";
-import type { ConnectivityCatalogs } from "@/types/catalogs";
-import type { UpdateCatalogItemHandler } from "@/components/management/types";
+import { useAppSelector } from "@/store/hooks";
 import {
   isEnabled,
   normalizeNumber,
 } from "@/components/management/utils/catalogValues";
+import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 
-type StatCatalogSectionProps = {
-  stats: ConnectivityCatalogs["stats"];
-  onUpdateItem: UpdateCatalogItemHandler;
-};
+function StatCatalogSection() {
+  const updateItem = useCatalogItemUpdater();
+  const stats = useAppSelector(
+    (state) => state.dataset.data?.catalogs.stats ?? {},
+  );
 
-function StatCatalogSection({ stats, onUpdateItem }: StatCatalogSectionProps) {
   return (
     <>
       <Divider style={{ margin: "8px 0" }} />
@@ -29,7 +29,7 @@ function StatCatalogSection({ stats, onUpdateItem }: StatCatalogSectionProps) {
                     value={stat.label ?? ""}
                     style={{ width: 160 }}
                     onChange={(event) =>
-                      onUpdateItem("stats", stat.id, {
+                      updateItem("stats", stat.id, {
                         label: event.target.value,
                       })
                     }
@@ -37,7 +37,7 @@ function StatCatalogSection({ stats, onUpdateItem }: StatCatalogSectionProps) {
                   <Switch
                     checked={isEnabled(stat)}
                     onChange={(checked) =>
-                      onUpdateItem("stats", stat.id, {
+                      updateItem("stats", stat.id, {
                         enabled: checked,
                       })
                     }
@@ -46,7 +46,7 @@ function StatCatalogSection({ stats, onUpdateItem }: StatCatalogSectionProps) {
                     <Switch
                       checked={stat.useDataRange === true}
                       onChange={(checked) =>
-                        onUpdateItem("stats", stat.id, {
+                        updateItem("stats", stat.id, {
                           useDataRange: checked,
                         })
                       }
@@ -58,7 +58,7 @@ function StatCatalogSection({ stats, onUpdateItem }: StatCatalogSectionProps) {
                     placeholder="Min"
                     value={stat.min ?? null}
                     onChange={(value) =>
-                      onUpdateItem("stats", stat.id, {
+                      updateItem("stats", stat.id, {
                         min: normalizeNumber(value),
                       })
                     }
@@ -68,7 +68,7 @@ function StatCatalogSection({ stats, onUpdateItem }: StatCatalogSectionProps) {
                     placeholder="Max"
                     value={stat.max ?? null}
                     onChange={(value) =>
-                      onUpdateItem("stats", stat.id, {
+                      updateItem("stats", stat.id, {
                         max: normalizeNumber(value),
                       })
                     }
@@ -81,7 +81,7 @@ function StatCatalogSection({ stats, onUpdateItem }: StatCatalogSectionProps) {
                   placeholder="Description"
                   value={stat.description ?? ""}
                   onChange={(event) =>
-                    onUpdateItem("stats", stat.id, {
+                    updateItem("stats", stat.id, {
                       description: event.target.value,
                     })
                   }

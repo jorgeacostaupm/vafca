@@ -1,31 +1,21 @@
 import type { ReactNode, RefObject } from "react";
 import type { ComputedView, FilterContributor, ViewVisibility } from "@/types/networkVisualization";
 import type { PanelItem } from "@/types/layout";
-import type { AppDispatch, RootState } from "@/types/store";
+import type { RootState } from "@/types/store";
 
 type MatrixRecord = Exclude<
   Awaited<ReturnType<typeof import("@/utils/matrixStore").getMatrix>>,
   undefined
 >;
 
-type MarkNetworkViewFormattingAction = typeof import("@/store/slices/networkVisualization").markNetworkViewFormatting;
-
 export type NetworkPanelCommonProps = {
   computed: ComputedView;
   svgRef: RefObject<SVGSVGElement>;
   matrixRecord: MatrixRecord;
   dataset: RootState["dataset"]["data"];
-  matrixShape: RootState["visualizationUi"]["matrixShape"];
-  labelNames: Record<string, string>;
-  labelTitles: Record<string, string>;
-  labelAcronyms: Record<string, string>;
-  nodeColors: Record<string, string>;
   visibilityByViewId: Record<string, ViewVisibility>;
   nodeFilterContributors: FilterContributor[];
   linkFilterContributors: FilterContributor[];
-  zoomTargetsByType: (viewId: string) => string[];
-  dispatch: AppDispatch;
-  markFormatting: MarkNetworkViewFormattingAction;
 };
 
 export type BuildPanelItem = (props: NetworkPanelCommonProps) => PanelItem;

@@ -1,14 +1,14 @@
 import { Card, Divider, Input, Space, Switch, Typography } from "antd";
-import type { ConnectivityCatalogs } from "@/types/catalogs";
-import type { UpdateCatalogItemHandler } from "@/components/management/types";
+import { useAppSelector } from "@/store/hooks";
 import { isEnabled } from "@/components/management/utils/catalogValues";
+import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 
-type BandCatalogSectionProps = {
-  bands: ConnectivityCatalogs["bands"];
-  onUpdateItem: UpdateCatalogItemHandler;
-};
+function BandCatalogSection() {
+  const updateItem = useCatalogItemUpdater();
+  const bands = useAppSelector(
+    (state) => state.dataset.data?.catalogs.bands ?? {},
+  );
 
-function BandCatalogSection({ bands, onUpdateItem }: BandCatalogSectionProps) {
   return (
     <>
       <Divider style={{ margin: "8px 0" }} />
@@ -26,7 +26,7 @@ function BandCatalogSection({ bands, onUpdateItem }: BandCatalogSectionProps) {
                     value={band.label ?? ""}
                     style={{ width: 160 }}
                     onChange={(event) =>
-                      onUpdateItem("bands", band.id, {
+                      updateItem("bands", band.id, {
                         label: event.target.value,
                       })
                     }
@@ -34,13 +34,13 @@ function BandCatalogSection({ bands, onUpdateItem }: BandCatalogSectionProps) {
                   <Switch
                     checked={isEnabled(band)}
                     onChange={(checked) =>
-                      onUpdateItem("bands", band.id, {
+                      updateItem("bands", band.id, {
                         enabled: checked,
                       })
                     }
                   />
                   <Typography.Text type="secondary">
-                    Frequency range: {band.min}–{band.max} Hz
+                    Frequency range: {band.min}-{band.max} Hz
                   </Typography.Text>
                   <Typography.Text type="secondary">ID: {band.id}</Typography.Text>
                 </Space>
@@ -50,7 +50,7 @@ function BandCatalogSection({ bands, onUpdateItem }: BandCatalogSectionProps) {
                   placeholder="Description"
                   value={band.description ?? ""}
                   onChange={(event) =>
-                    onUpdateItem("bands", band.id, {
+                    updateItem("bands", band.id, {
                       description: event.target.value,
                     })
                   }

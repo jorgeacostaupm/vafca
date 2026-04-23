@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { AtlasDefinition, AtlasState } from "@/types/atlas";
+import type { AtlasDefinition } from "@/types/atlas";
 import {
   buildFieldOptionsByField,
   buildGroupedRows,
@@ -18,19 +18,23 @@ export const toggleSetValue = (values: Set<string>, value: string) => {
 };
 
 export const useAtlasPanelData = ({
-  atlas,
+  orderedIds,
+  labelSearchTextById,
   atlasDefinition,
   query,
   groupByFields,
   selectedFilters,
   collapsedGroups,
+  enabledCount,
 }: {
-  atlas: AtlasState;
+  orderedIds: string[];
+  labelSearchTextById: Record<string, string>;
   atlasDefinition: AtlasDefinition | null;
   query: string;
   groupByFields: string[];
   selectedFilters: Record<string, string>;
   collapsedGroups: Set<string>;
+  enabledCount: number;
 }) => {
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -43,16 +47,16 @@ export const useAtlasPanelData = ({
     () =>
       buildFieldOptionsByField({
         groupByFields,
-        orderedIds: atlas.order,
-        labelsById: atlas.labelsById,
+        orderedIds,
+        labelSearchTextById,
         roiFieldValuesById,
         normalizedQuery,
         selectedFilters,
       }),
     [
       groupByFields,
-      atlas.order,
-      atlas.labelsById,
+      orderedIds,
+      labelSearchTextById,
       roiFieldValuesById,
       normalizedQuery,
       selectedFilters,
@@ -62,15 +66,15 @@ export const useAtlasPanelData = ({
   const filteredIds = useMemo(
     () =>
       filterIds({
-        orderedIds: atlas.order,
-        labelsById: atlas.labelsById,
+        orderedIds,
+        labelSearchTextById,
         roiFieldValuesById,
         normalizedQuery,
         selectedFilters,
       }),
     [
-      atlas.order,
-      atlas.labelsById,
+      orderedIds,
+      labelSearchTextById,
       roiFieldValuesById,
       normalizedQuery,
       selectedFilters,
@@ -88,12 +92,7 @@ export const useAtlasPanelData = ({
     [filteredIds, groupByFields, roiFieldValuesById, collapsedGroups],
   );
 
-  const totalCount = atlas.order.length;
-  const enabledCount = useMemo(
-    () =>
-      atlas.order.filter((id) => atlas.labelsById[id]?.enabled !== false).length,
-    [atlas.order, atlas.labelsById],
-  );
+  const totalCount = orderedIds.length;
   const allEnabled = totalCount > 0 && enabledCount === totalCount;
   const allDisabled = totalCount > 0 && enabledCount === 0;
 

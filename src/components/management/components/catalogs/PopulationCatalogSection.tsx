@@ -1,17 +1,14 @@
 import { Card, Input, Space, Switch, Typography } from "antd";
-import type { ConnectivityCatalogs } from "@/types/catalogs";
-import type { UpdateCatalogItemHandler } from "@/components/management/types";
+import { useAppSelector } from "@/store/hooks";
 import { isEnabled } from "@/components/management/utils/catalogValues";
+import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 
-type PopulationCatalogSectionProps = {
-  populations: ConnectivityCatalogs["populations"];
-  onUpdateItem: UpdateCatalogItemHandler;
-};
+function PopulationCatalogSection() {
+  const updateItem = useCatalogItemUpdater();
+  const populations = useAppSelector(
+    (state) => state.dataset.data?.catalogs.populations ?? {},
+  );
 
-function PopulationCatalogSection({
-  populations,
-  onUpdateItem,
-}: PopulationCatalogSectionProps) {
   return (
     <div>
       <Typography.Text strong>Populations</Typography.Text>
@@ -26,7 +23,7 @@ function PopulationCatalogSection({
                   value={population.label ?? ""}
                   style={{ width: 160 }}
                   onChange={(event) =>
-                    onUpdateItem("populations", population.id, {
+                    updateItem("populations", population.id, {
                       label: event.target.value,
                     })
                   }
@@ -34,7 +31,7 @@ function PopulationCatalogSection({
                 <Switch
                   checked={isEnabled(population)}
                   onChange={(checked) =>
-                    onUpdateItem("populations", population.id, {
+                    updateItem("populations", population.id, {
                       enabled: checked,
                     })
                   }
@@ -47,7 +44,7 @@ function PopulationCatalogSection({
                 placeholder="Description"
                 value={population.description ?? ""}
                 onChange={(event) =>
-                  onUpdateItem("populations", population.id, {
+                  updateItem("populations", population.id, {
                     description: event.target.value,
                   })
                 }

@@ -1,20 +1,17 @@
 import { Card, Divider, Input, InputNumber, Space, Switch, Typography } from "antd";
-import type { ConnectivityCatalogs } from "@/types/catalogs";
-import type { UpdateCatalogItemHandler } from "@/components/management/types";
+import { useAppSelector } from "@/store/hooks";
 import {
   isEnabled,
   normalizeNumber,
 } from "@/components/management/utils/catalogValues";
+import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 
-type MeasureCatalogSectionProps = {
-  measures: ConnectivityCatalogs["measures"];
-  onUpdateItem: UpdateCatalogItemHandler;
-};
+function MeasureCatalogSection() {
+  const updateItem = useCatalogItemUpdater();
+  const measures = useAppSelector(
+    (state) => state.dataset.data?.catalogs.measures ?? {},
+  );
 
-function MeasureCatalogSection({
-  measures,
-  onUpdateItem,
-}: MeasureCatalogSectionProps) {
   return (
     <>
       <Divider style={{ margin: "8px 0" }} />
@@ -32,7 +29,7 @@ function MeasureCatalogSection({
                     value={measure.label ?? ""}
                     style={{ width: 160 }}
                     onChange={(event) =>
-                      onUpdateItem("measures", measure.id, {
+                      updateItem("measures", measure.id, {
                         label: event.target.value,
                       })
                     }
@@ -40,7 +37,7 @@ function MeasureCatalogSection({
                   <Switch
                     checked={isEnabled(measure)}
                     onChange={(checked) =>
-                      onUpdateItem("measures", measure.id, {
+                      updateItem("measures", measure.id, {
                         enabled: checked,
                       })
                     }
@@ -50,7 +47,7 @@ function MeasureCatalogSection({
                     placeholder="Min"
                     value={measure.min ?? null}
                     onChange={(value) =>
-                      onUpdateItem("measures", measure.id, {
+                      updateItem("measures", measure.id, {
                         min: normalizeNumber(value),
                       })
                     }
@@ -60,7 +57,7 @@ function MeasureCatalogSection({
                     placeholder="Max"
                     value={measure.max ?? null}
                     onChange={(value) =>
-                      onUpdateItem("measures", measure.id, {
+                      updateItem("measures", measure.id, {
                         max: normalizeNumber(value),
                       })
                     }
@@ -73,7 +70,7 @@ function MeasureCatalogSection({
                   placeholder="Description"
                   value={measure.description ?? ""}
                   onChange={(event) =>
-                    onUpdateItem("measures", measure.id, {
+                    updateItem("measures", measure.id, {
                       description: event.target.value,
                     })
                   }

@@ -5,6 +5,8 @@ import {
   applyNetworkZoom,
   toggleNetworkZoomLabelSelection,
 } from "@/store/slices/networkVisualization";
+import { useAppDispatch } from "@/store/hooks";
+import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
 import type { ReactNode } from "react";
 import type { ComputedView } from "@/types/networkVisualization";
 import type { NetworkPanelCommonProps } from "@/types/networkPanels";
@@ -16,19 +18,12 @@ type NetworkPanelContentProps = {
   adapted: ReturnType<typeof buildAdaptedNetworkPanelData>;
   isMatrixView: boolean;
   statusContent: ReactNode;
-  matrixShape: NetworkPanelCommonProps["matrixShape"];
   matrixLegendRange?: { min: number | undefined; max: number | undefined };
-  labelNames: NetworkPanelCommonProps["labelNames"];
-  labelTitles: NetworkPanelCommonProps["labelTitles"];
-  labelAcronyms: NetworkPanelCommonProps["labelAcronyms"];
-  nodeColors: NetworkPanelCommonProps["nodeColors"];
   svgRef: NetworkPanelCommonProps["svgRef"];
   valueFilters: {
     measure: null;
     stat: ComputedView["statFilter"];
   };
-  dispatch: NetworkPanelCommonProps["dispatch"];
-  zoomTargetsByType: NetworkPanelCommonProps["zoomTargetsByType"];
 };
 
 export default function NetworkPanelContent({
@@ -37,17 +32,13 @@ export default function NetworkPanelContent({
   adapted,
   isMatrixView,
   statusContent,
-  matrixShape,
   matrixLegendRange,
-  labelNames,
-  labelTitles,
-  labelAcronyms,
-  nodeColors,
   svgRef,
   valueFilters,
-  dispatch,
-  zoomTargetsByType,
 }: NetworkPanelContentProps) {
+  const dispatch = useAppDispatch();
+  const zoomTargetsByType = useNetworkZoomTargets();
+
   const handleLabelToggle = (label: string) => {
     dispatch(
       toggleNetworkZoomLabelSelection({
@@ -71,9 +62,7 @@ export default function NetworkPanelContent({
         colLabels={adapted.payload.colLabels}
         compoundId={view.compoundId}
         matrixLabel={view.label}
-        labelNames={labelNames}
         svgRef={svgRef}
-        matrixShape={matrixShape}
         legendMin={matrixLegendRange?.min}
         legendMax={matrixLegendRange?.max}
         valueFilters={valueFilters}
@@ -106,10 +95,6 @@ export default function NetworkPanelContent({
   const commonNodeLinkProps = {
     data: adapted.payload.data,
     labels: adapted.payload.labels,
-    labelNames,
-    labelTitles,
-    labelAcronyms,
-    nodeColors,
     compoundId: view.compoundId,
     matrixLabel: view.label,
     svgRef,

@@ -1,37 +1,98 @@
-import type { PointerEventHandler, RefObject } from "react";
+import { useCallback, useMemo, useRef, type PointerEvent } from "react";
+import { shallowEqual } from "react-redux";
 import { Button, Space, Typography } from "antd";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
+import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
+import { setAtlasPanelState } from "@/store/slices/visualizationUi";
+import {
+  selectAtlasDisplayLabelsById,
+  selectAtlasEnabledById,
+} from "@/store/slices/atlas";
+import { useAtlasScene } from "./atlasPanelHooks";
+import { VIEWER_MIN_HEIGHT } from "./panelConstants";
 
-type AtlasPanelViewerProps = {
-  containerRef: RefObject<HTMLDivElement | null>;
-  viewerHeight: number;
-  onResizePointerDown: PointerEventHandler<HTMLButtonElement>;
-  onResizePointerMove: PointerEventHandler<HTMLButtonElement>;
-  onResizePointerEnd: PointerEventHandler<HTMLButtonElement>;
-  onApplyCameraPose: (x: number, y: number, z: number) => void;
-};
+export function AtlasPanelViewer() {
+  const dispatch = useAppDispatch();
+  const dataset = useAppSelector((state) => state.dataset.data);
+  const uploadedAtlasSource = useAppSelector((state) => state.atlasDefinition.uploaded);
+  const viewerHeight = useAppSelector(
+    (state) => state.visualizationUi.atlasPanel.viewerHeight,
+  );
+  const enabledById = useAppSelector(selectAtlasEnabledById, shallowEqual);
+  const displayLabelsById = useAppSelector(
+    selectAtlasDisplayLabelsById,
+    shallowEqual,
+  );
 
-export function AtlasPanelViewer({
-  containerRef,
-  viewerHeight,
-  onResizePointerDown,
-  onResizePointerMove,
-  onResizePointerEnd,
-  onApplyCameraPose,
-}: AtlasPanelViewerProps) {
+  const resizeStateRef = useRef<{ startY: number; startHeight: number } | null>(
+    null,
+  );
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const atlasDefinition = useAtlasDefinition(
+    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
+  );
+
+  const enable3d = useMemo(
+    () => atlasSupports3d(atlasDefinition, uploadedAtlasSource?.meshMode),
+    [atlasDefinition, uploadedAtlasSource?.meshMode],
+  );
+
+  const { applyCameraPose } = useAtlasScene({
+    atlasDefinition,
+    enabledById,
+    displayLabelsById,
+    containerRef,
+    enable3d,
+  });
+
+  const handleResizePointerDown = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      resizeStateRef.current = {
+        startY: event.clientY,
+        startHeight: viewerHeight,
+      };
+    },
+    [viewerHeight],
+  );
+
+  const handleResizePointerMove = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      const resizeState = resizeStateRef.current;
+      if (!resizeState) return;
+      const delta = event.clientY - resizeState.startY;
+      const nextHeight = Math.max(VIEWER_MIN_HEIGHT, resizeState.startHeight + delta);
+      dispatch(setAtlasPanelState({ viewerHeight: nextHeight }));
+    },
+    [dispatch],
+  );
+
+  const handleResizePointerEnd = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      if (!resizeStateRef.current) return;
+      resizeStateRef.current = null;
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    },
+    [],
+  );
+
   return (
     <div className="atlas-panel__viewer">
       <div className="atlas-panel__viewer-header">
         <Space size={8}>
-          <Button size="small" onClick={() => onApplyCameraPose(0, 1, 0)}>
+          <Button size="small" onClick={() => applyCameraPose(0, 1, 0)}>
             Front
           </Button>
-          <Button size="small" onClick={() => onApplyCameraPose(1, 0, 0)}>
+          <Button size="small" onClick={() => applyCameraPose(1, 0, 0)}>
             Right
           </Button>
-          <Button size="small" onClick={() => onApplyCameraPose(0, 0, 1)}>
+          <Button size="small" onClick={() => applyCameraPose(0, 0, 1)}>
             Top
           </Button>
-          <Button size="small" onClick={() => onApplyCameraPose(-1, 0, 0)}>
+          <Button size="small" onClick={() => applyCameraPose(-1, 0, 0)}>
             Left
           </Button>
         </Space>
@@ -50,10 +111,10 @@ export function AtlasPanelViewer({
         type="button"
         className="atlas-panel__viewer-resizer"
         aria-label="Resize atlas viewer"
-        onPointerDown={onResizePointerDown}
-        onPointerMove={onResizePointerMove}
-        onPointerUp={onResizePointerEnd}
-        onPointerCancel={onResizePointerEnd}
+        onPointerDown={handleResizePointerDown}
+        onPointerMove={handleResizePointerMove}
+        onPointerUp={handleResizePointerEnd}
+        onPointerCancel={handleResizePointerEnd}
       />
     </div>
   );

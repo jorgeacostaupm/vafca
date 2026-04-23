@@ -1,45 +1,43 @@
 import { Divider } from "antd";
-import type { AtlasState } from "@/types/atlas";
-import type { CircularHierarchyLayoutPoint } from "@/types/circular";
-import type { CategoryOrderEditor, CategoryOrderMap } from "@/components/management/types";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  setCircularHierarchyCategoryOrder,
+  setCircularHierarchyFields,
+  setMatrixHierarchyCategoryOrder,
+  setMatrixHierarchyFields,
+} from "@/store/slices/atlas";
+import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
+import { useManagementHierarchy } from "@/components/management/hooks/useManagementHierarchy";
 import { moveField, reverseValues } from "@/components/management/utils/hierarchyOrder";
 import HierarchySection from "@/components/management/components/HierarchySection";
 import CircularHierarchyPreview from "@/components/management/components/CircularHierarchyPreview";
 import MatrixHierarchyPreview from "@/components/management/components/MatrixHierarchyPreview";
 
-type DatasetHierarchyManagementProps = {
-  atlas: AtlasState;
-  activeRoiCount: number;
-  previewRadius: number;
-  circularPreviewLayout: CircularHierarchyLayoutPoint[];
-  matrixPreviewIds: string[];
-  previewNodeColors: Record<string, string>;
-  selectableCircularHierarchyFields: string[];
-  selectableMatrixHierarchyFields: string[];
-  circularCategoryOrderEditors: CategoryOrderEditor[];
-  matrixCategoryOrderEditors: CategoryOrderEditor[];
-  onSetCircularHierarchyFields: (fields: string[]) => void;
-  onSetMatrixHierarchyFields: (fields: string[]) => void;
-  onSetCircularCategoryOrder: (order: CategoryOrderMap) => void;
-  onSetMatrixCategoryOrder: (order: CategoryOrderMap) => void;
-};
+function DatasetHierarchyManagement() {
+  const dispatch = useAppDispatch();
+  const dataset = useAppSelector((state) => state.dataset.data);
+  const atlas = useAppSelector((state) => state.atlas);
 
-function DatasetHierarchyManagement({
-  atlas,
-  activeRoiCount,
-  previewRadius,
-  circularPreviewLayout,
-  matrixPreviewIds,
-  previewNodeColors,
-  selectableCircularHierarchyFields,
-  selectableMatrixHierarchyFields,
-  circularCategoryOrderEditors,
-  matrixCategoryOrderEditors,
-  onSetCircularHierarchyFields,
-  onSetMatrixHierarchyFields,
-  onSetCircularCategoryOrder,
-  onSetMatrixCategoryOrder,
-}: DatasetHierarchyManagementProps) {
+  const atlasDefinition = useAtlasDefinition(
+    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
+  );
+  const {
+    activeRoiIds,
+    previewRadius,
+    circularPreviewLayout,
+    matrixPreviewIds,
+    previewNodeColors,
+    selectableCircularHierarchyFields,
+    selectableMatrixHierarchyFields,
+    circularCategoryOrderEditors,
+    matrixCategoryOrderEditors,
+  } = useManagementHierarchy({
+    atlas,
+    atlasDefinition,
+  });
+
+  if (!dataset) return null;
+
   return (
     <>
       <Divider style={{ margin: "8px 0" }} />
@@ -54,27 +52,37 @@ function DatasetHierarchyManagement({
         categoryOrderEditors={circularCategoryOrderEditors}
         categoryOrder={atlas.circularHierarchyCategoryOrder}
         onMoveField={(field, direction) =>
-          onSetCircularHierarchyFields(
-            moveField(atlas.circularHierarchyFields, field, direction),
+          dispatch(
+            setCircularHierarchyFields(
+              moveField(atlas.circularHierarchyFields, field, direction),
+            ),
           )
         }
         onRemoveField={(field) =>
-          onSetCircularHierarchyFields(
-            atlas.circularHierarchyFields.filter((value) => value !== field),
+          dispatch(
+            setCircularHierarchyFields(
+              atlas.circularHierarchyFields.filter((value) => value !== field),
+            ),
           )
         }
         onAddField={(field) =>
-          onSetCircularHierarchyFields([...atlas.circularHierarchyFields, field])
+          dispatch(
+            setCircularHierarchyFields([...atlas.circularHierarchyFields, field]),
+          )
         }
         onReverseFieldOrder={() =>
-          onSetCircularHierarchyFields(reverseValues(atlas.circularHierarchyFields))
+          dispatch(
+            setCircularHierarchyFields(reverseValues(atlas.circularHierarchyFields)),
+          )
         }
-        onUpdateCategoryOrder={onSetCircularCategoryOrder}
+        onUpdateCategoryOrder={(next) =>
+          dispatch(setCircularHierarchyCategoryOrder(next))
+        }
         resolveParentField={(index) => atlas.circularHierarchyFields[index] ?? ""}
         preview={
           <CircularHierarchyPreview
             layout={circularPreviewLayout}
-            activeRoiCount={activeRoiCount}
+            activeRoiCount={activeRoiIds.length}
             previewRadius={previewRadius}
             nodeColors={previewNodeColors}
           />
@@ -93,27 +101,33 @@ function DatasetHierarchyManagement({
         categoryOrderEditors={matrixCategoryOrderEditors}
         categoryOrder={atlas.matrixHierarchyCategoryOrder}
         onMoveField={(field, direction) =>
-          onSetMatrixHierarchyFields(
-            moveField(atlas.matrixHierarchyFields, field, direction),
+          dispatch(
+            setMatrixHierarchyFields(
+              moveField(atlas.matrixHierarchyFields, field, direction),
+            ),
           )
         }
         onRemoveField={(field) =>
-          onSetMatrixHierarchyFields(
-            atlas.matrixHierarchyFields.filter((value) => value !== field),
+          dispatch(
+            setMatrixHierarchyFields(
+              atlas.matrixHierarchyFields.filter((value) => value !== field),
+            ),
           )
         }
         onAddField={(field) =>
-          onSetMatrixHierarchyFields([...atlas.matrixHierarchyFields, field])
+          dispatch(setMatrixHierarchyFields([...atlas.matrixHierarchyFields, field]))
         }
         onReverseFieldOrder={() =>
-          onSetMatrixHierarchyFields(reverseValues(atlas.matrixHierarchyFields))
+          dispatch(setMatrixHierarchyFields(reverseValues(atlas.matrixHierarchyFields)))
         }
-        onUpdateCategoryOrder={onSetMatrixCategoryOrder}
+        onUpdateCategoryOrder={(next) =>
+          dispatch(setMatrixHierarchyCategoryOrder(next))
+        }
         resolveParentField={(index) => atlas.matrixHierarchyFields[index] ?? ""}
         preview={
           <MatrixHierarchyPreview
             matrixPreviewIds={matrixPreviewIds}
-            activeRoiCount={activeRoiCount}
+            activeRoiCount={activeRoiIds.length}
             nodeColors={previewNodeColors}
           />
         }

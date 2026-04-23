@@ -1,5 +1,12 @@
 import { Button, Select, Spin, Typography } from "antd";
+import { ReloadOutlined } from "@ant-design/icons";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  markNetworkViewFormatting,
+  mutateNetworkViewType,
+} from "@/store/slices/networkVisualization";
 import type { ViewTypeSelectProps } from "@/types/networkPanels";
+import type { NetworkViewType } from "@/types/networkVisualization";
 
 export const LoadingPanelBody = ({ text }: { text: string }) => (
   <div
@@ -38,6 +45,26 @@ export const StatusContent = ({
   return <LoadingPanelBody text="Formatting view…" />;
 };
 
+export const NetworkPanelStatusContent = ({
+  viewId,
+  status,
+  error,
+}: {
+  viewId: string;
+  status: "formatting" | "ready" | "error";
+  error?: string;
+}) => {
+  const dispatch = useAppDispatch();
+
+  return (
+    <StatusContent
+      status={status}
+      error={error}
+      onRetry={() => dispatch(markNetworkViewFormatting({ viewId }))}
+    />
+  );
+};
+
 export const ViewTypeSelect = ({ value, onChange }: ViewTypeSelectProps) => (
   <Select
     size="small"
@@ -54,3 +81,41 @@ export const ViewTypeSelect = ({ value, onChange }: ViewTypeSelectProps) => (
     ]}
   />
 );
+
+export const NetworkViewTypeControl = ({
+  viewId,
+  value,
+}: {
+  viewId: string;
+  value: NetworkViewType;
+}) => {
+  const dispatch = useAppDispatch();
+
+  return (
+    <ViewTypeSelect
+      value={value}
+      onChange={(nextType) =>
+        dispatch(
+          mutateNetworkViewType({
+            viewId,
+            nextType,
+          }),
+        )
+      }
+    />
+  );
+};
+
+export const NetworkPanelReloadButton = ({ viewId }: { viewId: string }) => {
+  const dispatch = useAppDispatch();
+
+  return (
+    <Button
+      size="small"
+      type="text"
+      aria-label="Reload view"
+      icon={<ReloadOutlined />}
+      onClick={() => dispatch(markNetworkViewFormatting({ viewId }))}
+    />
+  );
+};

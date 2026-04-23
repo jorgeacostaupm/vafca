@@ -1,68 +1,86 @@
-import { Fragment, type Key } from "react";
-import { Button, Collapse, List, Space, Switch, Typography } from "antd";
-import type { AtlasState } from "@/types/atlas";
+import { memo, useCallback, useMemo, type Key } from "react";
+import { Button, Collapse, List, Space, Typography } from "antd";
 import type { GroupTreeEntry, RoiTreeNode } from "./panelTypes";
+import { AtlasRoiListItem } from "./AtlasRoiListItem";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setLabelsEnabled } from "@/store/slices/atlas";
+import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 
 type AtlasGroupedListProps = {
   entries: GroupTreeEntry[];
-  collapsedGroups: Set<string>;
-  labelsById: AtlasState["labelsById"];
   level?: number;
-  onToggleLabel: (id: string, enabled: boolean) => void;
-  onUpdateCollapsedGroups: (groupKeys: string[], activeKeys: Key | Key[]) => void;
-  onSetGroupEnabled: (groupKey: string, enabled: boolean) => void;
 };
 
 const EMPTY_TEXT = "No labels found for current filters.";
 
-const renderRoiRow = (
-  row: RoiTreeNode,
-  labelsById: AtlasState["labelsById"],
-  onToggleLabel: (id: string, enabled: boolean) => void,
-) => {
-  const id = row.row.id;
-  const labelMeta = labelsById[id];
-  const label = labelMeta?.label ?? id;
-  const acronym = labelMeta?.acronym;
-  const displayLabel = acronym && acronym !== label ? `${label} (${acronym})` : label;
-  const enabled = labelsById[id]?.enabled !== false;
+const renderRoiRow = (row: RoiTreeNode) => (
+  <AtlasRoiListItem id={row.row.id} />
+);
 
-  return (
-    <List.Item
-      actions={[
-        <Switch
-          key={`toggle-${id}`}
-          checked={enabled}
-          onChange={(checked) => onToggleLabel(id, checked)}
-          aria-label={`Toggle ${displayLabel}`}
-        />,
-      ]}
-    >
-      <List.Item.Meta title={displayLabel} />
-    </List.Item>
+const getRoiRowKey = (row: RoiTreeNode) => row.row.key;
+
+const collectRoiIds = (entries: GroupTreeEntry[]): string[] =>
+  entries.flatMap((entry) =>
+    entry.type === "roiNode" ? [entry.row.id] : collectRoiIds(entry.children),
   );
-};
 
-export function AtlasGroupedList({
+export const AtlasGroupedList = memo(function AtlasGroupedList({
   entries,
-  collapsedGroups,
-  labelsById,
   level = 0,
-  onToggleLabel,
-  onUpdateCollapsedGroups,
-  onSetGroupEnabled,
 }: AtlasGroupedListProps) {
+  const dispatch = useAppDispatch();
+  const collapsedGroupIds = useAppSelector(
+    (state) => state.visualizationUi.atlasPanel.collapsedGroups,
+  );
+  const collapsedGroups = useMemo(
+    () => new Set(collapsedGroupIds),
+    [collapsedGroupIds],
+  );
+
+  const handleCollapseChange = useCallback(
+    (groupKeys: string[], activeKeys: Key | Key[]) => {
+      const expanded = new Set(
+        (Array.isArray(activeKeys) ? activeKeys : [activeKeys])
+          .filter((key): key is Key => key !== undefined && key !== null)
+          .map((key) => String(key)),
+      );
+
+      const nextCollapsed = new Set(collapsedGroups);
+      groupKeys.forEach((key) => {
+        if (expanded.has(key)) {
+          nextCollapsed.delete(key);
+        } else {
+          nextCollapsed.add(key);
+        }
+      });
+
+      dispatch(setAtlasPanelState({ collapsedGroups: Array.from(nextCollapsed) }));
+    },
+    [collapsedGroups, dispatch],
+  );
+
+  const handleSetGroupEnabled = useCallback(
+    (entriesToUpdate: GroupTreeEntry[], enabled: boolean) => {
+      const ids = collectRoiIds(entriesToUpdate);
+      if (ids.length === 0) return;
+      dispatch(setLabelsEnabled({ ids, enabled }));
+    },
+    [dispatch],
+  );
+
   if (entries.length === 0) {
     return (
       <List
         dataSource={[]}
-        renderItem={(row) => renderRoiRow(row, labelsById, onToggleLabel)}
+        renderItem={renderRoiRow}
         locale={{ emptyText: EMPTY_TEXT }}
       />
     );
   }
 
-  const roiRows = entries.flatMap((entry) => (entry.type === "roiNode" ? [entry] : []));
+  const roiRows = entries.flatMap((entry) =>
+    entry.type === "roiNode" ? [entry] : [],
+  );
   const groupNodes = entries.flatMap((entry) =>
     entry.type === "groupNode" ? [entry] : [],
   );
@@ -71,7 +89,8 @@ export function AtlasGroupedList({
     return (
       <List
         dataSource={roiRows}
-        renderItem={(row) => renderRoiRow(row, labelsById, onToggleLabel)}
+        rowKey={getRoiRowKey}
+        renderItem={renderRoiRow}
         locale={{ emptyText: EMPTY_TEXT }}
       />
     );
@@ -84,7 +103,8 @@ export function AtlasGroupedList({
     return (
       <List
         dataSource={roiRows}
-        renderItem={(row) => renderRoiRow(row, labelsById, onToggleLabel)}
+        rowKey={getRoiRowKey}
+        renderItem={renderRoiRow}
         locale={{ emptyText: EMPTY_TEXT }}
       />
     );
@@ -96,14 +116,16 @@ export function AtlasGroupedList({
       className="atlas-panel__group-collapse"
       style={level > 0 ? { marginInlineStart: 10 } : undefined}
       activeKey={activeKeys}
-      onChange={(nextKeys) => onUpdateCollapsedGroups(groupKeys, nextKeys)}
+      onChange={(nextKeys) => handleCollapseChange(groupKeys, nextKeys)}
       items={groupNodes.map((group) => ({
         key: group.row.groupKey,
         label: (
           <div className="atlas-panel__group-header">
             <Space size={6}>
               <Typography.Text>{group.row.title}</Typography.Text>
-              <Typography.Text type="secondary">({group.row.count})</Typography.Text>
+              <Typography.Text type="secondary">
+                ({group.row.count})
+              </Typography.Text>
             </Space>
             <Space size={4}>
               <Button
@@ -112,7 +134,7 @@ export function AtlasGroupedList({
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  onSetGroupEnabled(group.row.groupKey, true);
+                  handleSetGroupEnabled(group.children, true);
                 }}
               >
                 Select all
@@ -123,7 +145,7 @@ export function AtlasGroupedList({
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  onSetGroupEnabled(group.row.groupKey, false);
+                  handleSetGroupEnabled(group.children, false);
                 }}
               >
                 Clear all
@@ -132,19 +154,9 @@ export function AtlasGroupedList({
           </div>
         ),
         children: (
-          <Fragment>
-            <AtlasGroupedList
-              entries={group.children}
-              level={level + 1}
-              collapsedGroups={collapsedGroups}
-              labelsById={labelsById}
-              onToggleLabel={onToggleLabel}
-              onUpdateCollapsedGroups={onUpdateCollapsedGroups}
-              onSetGroupEnabled={onSetGroupEnabled}
-            />
-          </Fragment>
+          <AtlasGroupedList entries={group.children} level={level + 1} />
         ),
       }))}
     />
   );
-}
+});

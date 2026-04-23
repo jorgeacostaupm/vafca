@@ -1,9 +1,8 @@
 import { useEffect } from "react";
-import type { AtlasState } from "@/types/atlas";
 import type { AtlasPanelState } from "@/types/visualizationUi";
-import type { AppDispatch } from "@/types/store";
 import { setAtlasColorFields } from "@/store/slices/atlas";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
+import { useAppDispatch } from "@/store/hooks";
 import { getDefaultGroupByFields } from "@/utils/atlas/atlasDefinition";
 import {
   areStringArraysEqual,
@@ -13,26 +12,26 @@ import {
 import { VIEWER_MIN_HEIGHT } from "../panelConstants";
 
 type UseAtlasPanelNormalizationArgs = {
-  dispatch: AppDispatch;
-  atlas: AtlasState;
+  colorFields: string[];
   atlasPanel: AtlasPanelState;
   availableGroupFields: string[];
 };
 
 export const useAtlasPanelNormalization = ({
-  dispatch,
-  atlas,
+  colorFields,
   atlasPanel,
   availableGroupFields,
 }: UseAtlasPanelNormalizationArgs) => {
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
-    const validColorFields = atlas.colorFields.filter((field) =>
+    const validColorFields = colorFields.filter((field) =>
       availableGroupFields.includes(field),
     );
-    if (validColorFields.length !== atlas.colorFields.length) {
+    if (validColorFields.length !== colorFields.length) {
       dispatch(setAtlasColorFields(validColorFields));
     }
-  }, [availableGroupFields, atlas.colorFields, dispatch]);
+  }, [availableGroupFields, colorFields, dispatch]);
 
   useEffect(() => {
     const defaults = getDefaultGroupByFields(availableGroupFields);
