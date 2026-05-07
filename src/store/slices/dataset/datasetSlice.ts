@@ -4,7 +4,11 @@ import type {
   UpdateCatalogPayload,
   UpdateMetadataPayload,
 } from '@/types/datasetState'
-import { downloadCurrentDataset, loadTestDataset } from './datasetThunks'
+import {
+  downloadCurrentDataset,
+  loadTestDataset,
+  uploadMatricesIntoDataset,
+} from './datasetThunks'
 import { initialDatasetState } from './datasetTypes'
 
 const datasetSlice = createSlice({
@@ -17,6 +21,9 @@ const datasetSlice = createSlice({
       state.error = null
       state.downloadStatus = 'idle'
       state.downloadError = null
+      state.matrixUploadStatus = 'idle'
+      state.matrixUploadError = null
+      state.lastMatrixUpload = null
     },
     clearDataset(state) {
       state.data = null
@@ -24,6 +31,9 @@ const datasetSlice = createSlice({
       state.error = null
       state.downloadStatus = 'idle'
       state.downloadError = null
+      state.matrixUploadStatus = 'idle'
+      state.matrixUploadError = null
+      state.lastMatrixUpload = null
     },
     updateCatalogItem(state, action: PayloadAction<UpdateCatalogPayload>) {
       if (!state.data) return
@@ -48,6 +58,9 @@ const datasetSlice = createSlice({
         state.error = null
         state.downloadStatus = 'idle'
         state.downloadError = null
+        state.matrixUploadStatus = 'idle'
+        state.matrixUploadError = null
+        state.lastMatrixUpload = null
       })
       .addCase(loadTestDataset.fulfilled, (state, action) => {
         state.status = 'ready'
@@ -71,6 +84,35 @@ const datasetSlice = createSlice({
         state.downloadStatus = 'error'
         state.downloadError =
           action.payload ?? action.error.message ?? 'Failed to export dataset.'
+      })
+      .addCase(uploadMatricesIntoDataset.pending, (state) => {
+        state.matrixUploadStatus = 'loading'
+        state.matrixUploadError = null
+      })
+      .addCase(uploadMatricesIntoDataset.fulfilled, (state, action) => {
+        if (!state.data) return
+        state.data.matrixStats = action.payload.matrixStats
+        if (action.payload.matrixOrder) {
+          state.data.metadata = {
+            ...state.data.metadata,
+            atlas: undefined,
+            atlasId: undefined,
+            matrixOrder: action.payload.matrixOrder,
+          }
+        }
+        state.matrixUploadStatus = 'ready'
+        state.matrixUploadError = null
+        state.lastMatrixUpload = {
+          files: action.payload.files,
+          validMatrices: action.payload.validMatrices,
+          invalidMatrices: action.payload.invalidMatrices,
+          errors: action.payload.errors,
+        }
+      })
+      .addCase(uploadMatricesIntoDataset.rejected, (state, action) => {
+        state.matrixUploadStatus = 'error'
+        state.matrixUploadError =
+          action.payload ?? action.error.message ?? 'Failed to upload matrices.'
       })
   },
 })

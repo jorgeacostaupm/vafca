@@ -1,5 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { clearDataset, loadTestDataset } from '@/store/slices/dataset'
+import {
+  clearDataset,
+  loadTestDataset,
+  uploadMatricesIntoDataset,
+} from '@/store/slices/dataset'
 import { fetchMatricesByCompoundIds } from './matrixCacheThunks'
 import { initialMatrixCacheState } from './matrixCacheTypes'
 
@@ -21,6 +25,11 @@ const matrixCacheSlice = createSlice({
         state.errorByCompoundId = {}
       })
       .addCase(clearDataset, (state) => {
+        state.byCompoundId = {}
+        state.loadingByCompoundId = {}
+        state.errorByCompoundId = {}
+      })
+      .addCase(uploadMatricesIntoDataset.fulfilled, (state) => {
         state.byCompoundId = {}
         state.loadingByCompoundId = {}
         state.errorByCompoundId = {}

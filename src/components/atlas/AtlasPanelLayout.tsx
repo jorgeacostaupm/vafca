@@ -3,6 +3,7 @@ import { Col, Row, Space } from "antd";
 
 type AtlasPanelLayoutProps = {
   has3d: boolean;
+  toolbar: ReactNode;
   controls: ReactNode;
   filters: ReactNode;
   list: ReactNode;
@@ -11,6 +12,7 @@ type AtlasPanelLayoutProps = {
 
 export function AtlasPanelLayout({
   has3d,
+  toolbar,
   controls,
   filters,
   list,
@@ -19,6 +21,8 @@ export function AtlasPanelLayout({
   if (has3d) {
     return (
       <Row className="atlas-panel" gutter={[24, 24]} align="top">
+        <Col xs={24}>{toolbar}</Col>
+
         <Col xs={24} lg={10}>
           <div className="atlas-panel__list">
             {controls}
@@ -43,6 +47,8 @@ export function AtlasPanelLayout({
 
   return (
     <Row className="atlas-panel" gutter={[24, 24]} align="top">
+      <Col xs={24}>{toolbar}</Col>
+
       <Col xs={24}>
         <div className="atlas-panel__list">
           {controls}

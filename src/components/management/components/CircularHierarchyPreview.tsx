@@ -7,6 +7,7 @@ type CircularHierarchyPreviewProps = {
   activeRoiCount: number;
   previewRadius: number;
   nodeColors: Record<string, string>;
+  displayWidth?: number;
 };
 
 function CircularHierarchyPreview({
@@ -14,11 +15,12 @@ function CircularHierarchyPreview({
   activeRoiCount,
   previewRadius,
   nodeColors,
+  displayWidth = PREVIEW_SIZE,
 }: CircularHierarchyPreviewProps) {
   return (
     <div
       style={{
-        width: PREVIEW_SIZE,
+        width: displayWidth,
         maxWidth: "100%",
         border: "1px solid var(--color-border)",
         background: "var(--color-surface-2)",
@@ -26,8 +28,25 @@ function CircularHierarchyPreview({
         padding: 8,
       }}
     >
-      <Typography.Text type="secondary">Circular preview</Typography.Text>
-      <svg width={PREVIEW_SIZE} height={PREVIEW_SIZE} style={{ display: "block" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12,
+          alignItems: "center",
+        }}
+      >
+        <Typography.Text type="secondary">Circular preview</Typography.Text>
+        <Typography.Text type="secondary">
+          Showing {layout.length} / {activeRoiCount} ROIs
+        </Typography.Text>
+      </div>
+      <svg
+        width="100%"
+        height={displayWidth}
+        viewBox={`0 0 ${PREVIEW_SIZE} ${PREVIEW_SIZE}`}
+        style={{ display: "block" }}
+      >
         <circle
           cx={PREVIEW_SIZE / 2}
           cy={PREVIEW_SIZE / 2}
@@ -48,9 +67,6 @@ function CircularHierarchyPreview({
           </circle>
         ))}
       </svg>
-      <Typography.Text type="secondary">
-        Showing {layout.length} / {activeRoiCount} ROIs
-      </Typography.Text>
     </div>
   );
 }

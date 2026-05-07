@@ -22,18 +22,26 @@ export const buildLabelState = ({
 
   const combinedBaseSelection = orderedLabels
     ? labels
-      ? intersectLabels(orderedLabels, globalLabelSelection, labels)
+      ? intersectLabels(globalLabelSelection ?? orderedLabels, labels, undefined)
       : globalLabelSelection
     : undefined;
 
   const rowLabelSelection =
     orderedLabels && (combinedBaseSelection || zoomSelection?.rows)
-      ? intersectLabels(orderedLabels, combinedBaseSelection, zoomSelection?.rows)
+      ? intersectLabels(
+          combinedBaseSelection ?? orderedLabels,
+          zoomSelection?.rows,
+          undefined,
+        )
       : undefined;
 
   const colLabelSelection =
     orderedLabels && (combinedBaseSelection || zoomSelection?.cols)
-      ? intersectLabels(orderedLabels, combinedBaseSelection, zoomSelection?.cols)
+      ? intersectLabels(
+          combinedBaseSelection ?? orderedLabels,
+          zoomSelection?.cols,
+          undefined,
+        )
       : undefined;
 
   const availableLabels = orderedLabels

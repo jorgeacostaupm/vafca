@@ -35,6 +35,9 @@ function NetworkVisualizationSelector() {
     useNetworkMatrixCache(views);
 
   const { matrixOrderIds, activeLabelIds } = useAtlasLabelPresentation();
+  const { activeLabelIds: matrixActiveLabelIds } = useAtlasLabelPresentation({
+    useMatrixHierarchyOrder: true,
+  });
 
   const defaultMeasureRanges = useMemo(
     () => buildDefaultRanges(dataset?.catalogs.measures),
@@ -54,6 +57,7 @@ function NetworkVisualizationSelector() {
     matrixOrderIds,
     atlasOrderLength: atlas.order.length,
     activeLabelIds,
+    matrixActiveLabelIds,
     matrixShape,
     defaultMeasureRanges,
   });

@@ -41,14 +41,17 @@ export const filterMatrixByLabels = (
     return { data: [], rowLabels: [], colLabels: [] };
   }
 
-  const rowSet = new Set(allowedRowLabels ?? labels);
-  const colSet = new Set(allowedColLabels ?? labels);
-  const rowIndices = labels
-    .map((label, idx) => ({ label, idx }))
-    .filter((item) => rowSet.has(item.label));
-  const colIndices = labels
-    .map((label, idx) => ({ label, idx }))
-    .filter((item) => colSet.has(item.label));
+  const indexByLabel = new Map(labels.map((label, idx) => [label, idx] as const));
+  const toOrderedIndices = (selectedLabels: string[]) =>
+    selectedLabels
+      .map((label) => {
+        const idx = indexByLabel.get(label);
+        return typeof idx === "number" ? { label, idx } : null;
+      })
+      .filter((item): item is { label: string; idx: number } => item !== null);
+
+  const rowIndices = toOrderedIndices(allowedRowLabels ?? labels);
+  const colIndices = toOrderedIndices(allowedColLabels ?? labels);
 
   if (rowIndices.length === 0 || colIndices.length === 0) {
     return { data: [], rowLabels: [], colLabels: [] };

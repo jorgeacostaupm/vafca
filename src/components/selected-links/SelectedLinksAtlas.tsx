@@ -17,7 +17,6 @@ const buildHighlightColor = (base: THREE.Color) =>
 
 export default function SelectedLinksAtlas() {
   const dataset = useAppSelector((state) => state.dataset.data);
-  const uploadedAtlasSource = useAppSelector((state) => state.atlasDefinition.uploaded);
   const selectedLinks = useAppSelector((state) => state.visualizationUi.selectedLinks);
   const atlasLinkIds = useAppSelector((state) => state.visualizationUi.atlasLinkIds);
   const atlasDefinition = useAtlasDefinition(
@@ -50,7 +49,7 @@ export default function SelectedLinksAtlas() {
   }, [activeLinks]);
 
   const hasLinkFocus = highlightedRoiIds.size > 0;
-  const has3d = atlasSupports3d(atlasDefinition, uploadedAtlasSource?.meshMode);
+  const has3d = atlasSupports3d(atlasDefinition);
   const statusLabel = hasLinkFocus
     ? `Showing ${activeLinks.length} link${activeLinks.length === 1 ? "" : "s"} · ${highlightedRoiIds.size} ROI${highlightedRoiIds.size === 1 ? "" : "s"}`
     : "Select links to highlight them in the atlas";
@@ -215,6 +214,8 @@ export default function SelectedLinksAtlas() {
     const roiObjects = roiObjectsRef.current;
     if (roiObjects.size === 0) return;
     for (const [id, mesh] of roiObjects) {
+      // THREE meshes are imperative scene objects, not React state.
+      // eslint-disable-next-line react-hooks/immutability
       mesh.visible = true;
       const material = mesh.material as THREE.MeshStandardMaterial | undefined;
       if (!material) continue;

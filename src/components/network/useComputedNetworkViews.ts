@@ -35,6 +35,7 @@ type UseComputedNetworkViewsArgs = {
   matrixOrderIds: string[];
   atlasOrderLength: number;
   activeLabelIds: string[];
+  matrixActiveLabelIds: string[];
   matrixShape: MatrixShape;
   defaultMeasureRanges: Record<string, [number, number]>;
 };
@@ -61,6 +62,7 @@ export const useComputedNetworkViews = ({
   matrixOrderIds,
   atlasOrderLength,
   activeLabelIds,
+  matrixActiveLabelIds,
   matrixShape,
   defaultMeasureRanges,
 }: UseComputedNetworkViewsArgs) => {
@@ -79,6 +81,8 @@ export const useComputedNetworkViews = ({
         view.type === "matrix" ? undefined : nodeLinkSettingsByViewId[view.id];
       const zoomState = getZoomState(settings);
       const zoomSelection = zoomState.current;
+      const viewActiveLabelIds =
+        view.type === "matrix" ? matrixActiveLabelIds : activeLabelIds;
       const {
         labels,
         rowLabelSelection,
@@ -90,7 +94,7 @@ export const useComputedNetworkViews = ({
       } = buildLabelState({
         matrixOrderIds,
         atlasOrderLength,
-        activeLabelIds,
+        activeLabelIds: viewActiveLabelIds,
         labels: settings?.labels,
         zoomLabelSelection: settings?.zoomLabelSelection,
         zoomSelection,
@@ -154,6 +158,7 @@ export const useComputedNetworkViews = ({
     matrixOrderIds,
     atlasOrderLength,
     activeLabelIds,
+    matrixActiveLabelIds,
     matrixShape,
     defaultMeasureRanges,
   ]);

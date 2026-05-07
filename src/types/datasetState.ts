@@ -15,12 +15,28 @@ export type DatasetMeta = {
   matrixStats: MatrixStats;
 };
 
+export type MatrixUploadError = {
+  source: string;
+  matrixId?: string;
+  message: string;
+};
+
+export type MatrixUploadResult = {
+  files: number;
+  validMatrices: number;
+  invalidMatrices: number;
+  errors: MatrixUploadError[];
+};
+
 export type DatasetState = {
   data: DatasetMeta | null;
   status: "idle" | "loading" | "ready" | "error";
   error: string | null;
   downloadStatus: "idle" | "loading" | "ready" | "error";
   downloadError: string | null;
+  matrixUploadStatus: "idle" | "loading" | "ready" | "error";
+  matrixUploadError: string | null;
+  lastMatrixUpload: MatrixUploadResult | null;
 };
 
 export type UpdateCatalogPayload = {

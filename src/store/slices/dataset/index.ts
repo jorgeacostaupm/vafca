@@ -5,7 +5,11 @@ export {
   updateCatalogItem,
   updateMetadata,
 } from './datasetSlice'
-export { downloadCurrentDataset, loadTestDataset } from './datasetThunks'
+export {
+  downloadCurrentDataset,
+  loadTestDataset,
+  uploadMatricesIntoDataset,
+} from './datasetThunks'
 export {
   initializeDatasetAndDerivedState,
   setDatasetMatrixShape,

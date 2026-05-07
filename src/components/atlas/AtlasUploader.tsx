@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Alert, Button, Radio, Space, Typography, Upload, message } from "antd";
+import { useMemo } from "react";
+import { Alert, Button, Radio, Space, Typography, Upload } from "antd";
 import type { UploadProps } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -9,68 +9,59 @@ import {
   uploadAtlasDefinitionAndSync,
 } from "@/store/slices/atlasDefinition";
 import type { AtlasMeshMode } from "@/types/atlas";
-import {
-  atlasSupports3d,
-  countRoisWithoutValidMeshPoints,
-  humanizeFieldName,
-} from "@/utils/atlas/atlasDefinition";
 
 const { Dragger } = Upload;
 
+type AtlasMeshModeControlProps = {
+  meshMode: AtlasMeshMode;
+  onMeshModeChange: (meshMode: AtlasMeshMode) => void;
+};
+
+export function AtlasMeshModeControl({
+  meshMode,
+  onMeshModeChange,
+}: AtlasMeshModeControlProps) {
+  return (
+    <Radio.Group
+      value={meshMode}
+      onChange={(event) =>
+        onMeshModeChange(event.target.value as AtlasMeshMode)
+      }
+      optionType="button"
+      buttonStyle="solid"
+      options={[
+        { label: "Atlas with mesh points", value: "with_mesh_points" },
+        { label: "Atlas without mesh points", value: "without_mesh_points" },
+      ]}
+    />
+  );
+}
+
+type AtlasUploaderProps = {
+  onDefaultsDetected?: (fields: string[]) => void;
+};
+
 export default function AtlasUploader({
   onDefaultsDetected,
-}: {
-  onDefaultsDetected?: (fields: string[]) => void;
-}) {
+}: AtlasUploaderProps) {
   const dispatch = useAppDispatch();
   const uploaded = useAppSelector((state) => state.atlasDefinition.uploaded);
   const uploadStatus = useAppSelector(selectUploadedAtlasStatus);
   const uploadError = useAppSelector(selectUploadedAtlasError);
-  const [meshMode, setMeshMode] = useState<AtlasMeshMode>("with_mesh_points");
 
   const uploadedSummary = useMemo(() => {
     if (!uploaded) return null;
-    return `${uploaded.fileName} · ${uploaded.atlas.rois.length} ROIs · ${
-      uploaded.meshMode === "with_mesh_points" ? "with mesh points" : "without mesh points"
-    }`;
+    return `${uploaded.fileName} · ${uploaded.atlas.rois.length} ROIs`;
   }, [uploaded]);
-  const uploadedSupportsMeshPoints = useMemo(
-    () => atlasSupports3d(uploaded?.atlas ?? null, "with_mesh_points"),
-    [uploaded?.atlas],
-  );
-  const uploadedMissingMeshRois = useMemo(
-    () => countRoisWithoutValidMeshPoints(uploaded?.atlas ?? null),
-    [uploaded?.atlas],
-  );
 
   const beforeUpload: UploadProps["beforeUpload"] = async (file) => {
     try {
       const result = await dispatch(
-        uploadAtlasDefinitionAndSync({ file, meshMode }),
+        uploadAtlasDefinitionAndSync({ file }),
       ).unwrap();
       onDefaultsDetected?.(result.defaultGroupFields);
-      const humanFields =
-        result.commonFields.length > 0
-          ? result.commonFields.map(humanizeFieldName).join(", ")
-          : "no common scalar fields";
-
-      if (!result.supportsMeshPoints) {
-        message.warning(
-          `Atlas loaded: ${result.fileName}. ${result.missingMeshCount} ROIs have no valid mesh points, so it will be used without mesh points.`,
-        );
-      } else {
-        message.success(
-          `Atlas loaded: ${result.fileName}. Common fields: ${humanFields}.`,
-        );
-      }
-    } catch (caught) {
-      const nextError =
-        typeof caught === "string"
-          ? caught
-          : caught instanceof Error
-          ? caught.message
-          : "An unknown error occurred while loading the atlas.";
-      message.error(nextError);
+    } catch {
+      // The global notification listener reports upload errors.
     }
 
     return Upload.LIST_IGNORE;
@@ -78,28 +69,8 @@ export default function AtlasUploader({
 
   return (
     <Space direction="vertical" size={12} style={{ width: "100%" }}>
-      <Typography.Text strong>Atlas loader</Typography.Text>
-
-      {!uploaded || uploadedSupportsMeshPoints ? (
-        <Radio.Group
-          value={meshMode}
-          onChange={(event) => setMeshMode(event.target.value as AtlasMeshMode)}
-          optionType="button"
-          buttonStyle="solid"
-          options={[
-            { label: "Atlas with mesh points", value: "with_mesh_points" },
-            { label: "Atlas without mesh points", value: "without_mesh_points" },
-          ]}
-        />
-      ) : (
-        <Alert
-          type="warning"
-          showIcon
-          message={`This atlas has ${uploadedMissingMeshRois} ROIs without valid mesh points. Mesh points cannot be enabled.`}
-        />
-      )}
-
       <Dragger
+        className="atlas-uploader__dropzone"
         accept=".json,application/json"
         showUploadList={false}
         multiple={false}
@@ -108,7 +79,8 @@ export default function AtlasUploader({
       >
         <p className="ant-upload-text">Drag and drop a JSON atlas file here</p>
         <p className="ant-upload-hint">
-          The parser validates structure, ROI ids and checks whether all ROIs include valid mesh points.
+          The parser validates structure and ROI ids. ROI mesh_points are used
+          by the atlas viewer when they are present and valid.
         </p>
       </Dragger>
 
@@ -119,7 +91,6 @@ export default function AtlasUploader({
             size="small"
             onClick={() => {
               void dispatch(clearUploadedAtlasAndSync());
-              message.success("Uploaded atlas cleared. Using default atlas source.");
             }}
           >
             Clear uploaded atlas
@@ -127,7 +98,9 @@ export default function AtlasUploader({
         </Space>
       ) : null}
 
-      {uploadError ? <Alert type="error" showIcon message={uploadError} /> : null}
+      {uploadError ? (
+        <Alert type="error" showIcon message={uploadError} />
+      ) : null}
     </Space>
   );
 }

@@ -8,3 +8,10 @@ export type GroupedRow =
       count: number;
     }
   | { type: "roi"; key: string; id: string; level: number };
+
+export type AtlasColorCategoryItem = {
+  key: string;
+  label: string;
+  count: number;
+  color: string;
+};

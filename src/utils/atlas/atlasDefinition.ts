@@ -78,26 +78,11 @@ export const atlasSupports3d = (
   if (!atlas?.rois?.length) return false;
   if (meshMode === "without_mesh_points") return false;
 
-  return atlas.rois.every(hasValidMeshPoints);
-};
-
-const validateMeshPoints = (roi: AtlasRoi, index: number) => {
-  if (!Array.isArray(roi.mesh_points)) {
-    return `ROI ${index + 1} (id: ${String(roi.id)}) no contiene mesh_points válidos.`;
-  }
-  if (roi.mesh_points.length < 4) {
-    return `ROI ${index + 1} (id: ${String(roi.id)}) debe tener al menos 4 mesh_points.`;
-  }
-  const firstInvalid = roi.mesh_points.findIndex((point) => !isValidPoint(point));
-  if (firstInvalid >= 0) {
-    return `ROI ${index + 1} (id: ${String(roi.id)}) tiene un mesh_point inválido en posición ${firstInvalid + 1}.`;
-  }
-  return null;
+  return atlas.rois.some(hasValidMeshPoints);
 };
 
 export const validateAtlasDefinition = (
   value: unknown,
-  meshMode: AtlasMeshMode,
 ): AtlasValidationResult => {
   if (!isObject(value)) {
     return { ok: false, error: "El archivo no contiene un objeto JSON válido." };
@@ -146,13 +131,6 @@ export const validateAtlasDefinition = (
     seen.add(roiIdKey);
 
     const roi: AtlasRoi = { ...roiRaw } as AtlasRoi;
-
-    if (meshMode === "with_mesh_points") {
-      const meshError = validateMeshPoints(roi, index);
-      if (meshError) {
-        return { ok: false, error: meshError };
-      }
-    }
 
     rois.push(roi);
   }

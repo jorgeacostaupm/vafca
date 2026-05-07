@@ -4,6 +4,8 @@ import {
 } from "react";
 import NodeLinkViewTemplate from "@/components/nodelink/NodeLinkViewTemplate";
 import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
+import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
+import { useAppSelector } from "@/store/hooks";
 import type { CircularNode as Node } from "@/types/nodelink";
 import { buildCircularGraphData } from "@/components/circular/circularGraphModel";
 import { useCircularProgrammaticTooltip } from "@/components/circular/useCircularProgrammaticTooltip";
@@ -18,18 +20,26 @@ const SELECTED_COLOR = "#d64545";
 
 export default function Circulas({
   diverging,
-  atlasDefinition = null,
-  circularHierarchyFields = [],
-  circularHierarchyCategoryOrder = {},
+  atlasDefinition,
+  circularHierarchyFields,
+  circularHierarchyCategoryOrder,
   ...props
 }: CircularNodeLinkPanelProps) {
+  const dataset = useAppSelector((state) => state.dataset.data);
+  const atlas = useAppSelector((state) => state.atlas);
+  const currentAtlasDefinition = useAtlasDefinition(
+    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
+  );
+
   return (
     <NodeLinkViewTemplate
       Renderer={CircularNodeLink}
       rendererProps={{
-        atlasDefinition,
-        circularHierarchyFields,
-        circularHierarchyCategoryOrder,
+        atlasDefinition: atlasDefinition ?? currentAtlasDefinition,
+        circularHierarchyFields:
+          circularHierarchyFields ?? atlas.circularHierarchyFields,
+        circularHierarchyCategoryOrder:
+          circularHierarchyCategoryOrder ?? atlas.circularHierarchyCategoryOrder,
       }}
       diverging={diverging ?? false}
       {...props}

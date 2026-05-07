@@ -1,14 +1,13 @@
-import { Button, Space, Typography, message } from "antd";
+import { Button, Space, Typography } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   downloadCurrentDataset,
 } from "@/store/slices/dataset";
 import NetworkManagementControls from "@/components/network/NetworkManagementControls";
-import AtlasUploader from "@/components/atlas/AtlasUploader";
 import DatasetSummaryHeader from "@/components/management/components/DatasetSummaryHeader";
 import MatrixSummarySection from "@/components/management/components/MatrixSummarySection";
-import DatasetHierarchyManagement from "@/components/management/components/DatasetHierarchyManagement";
 import CatalogManagementSections from "@/components/management/components/catalogs/CatalogManagementSections";
+import MatrixUploader from "@/components/management/components/MatrixUploader";
 
 function DatasetManagement() {
   const dispatch = useAppDispatch();
@@ -29,26 +28,11 @@ function DatasetManagement() {
   }
 
   const handleDownload = () => {
-    void dispatch(downloadCurrentDataset())
-      .unwrap()
-      .then(({ fileName }) => {
-        message.success(`Dataset downloaded: ${fileName}`);
-      })
-      .catch((caught) => {
-        const nextError =
-          typeof caught === "string"
-            ? caught
-            : caught instanceof Error
-              ? caught.message
-              : "Failed to export dataset.";
-        message.error(nextError);
-      });
+    void dispatch(downloadCurrentDataset());
   };
 
   return (
     <Space direction="vertical" size={16} style={{ width: "100%" }}>
-      <AtlasUploader />
-
       <DatasetSummaryHeader />
 
       <div>
@@ -57,6 +41,8 @@ function DatasetManagement() {
 
       <MatrixSummarySection />
 
+      <MatrixUploader />
+
       <Button
         size="small"
         onClick={handleDownload}
@@ -64,8 +50,6 @@ function DatasetManagement() {
       >
         Download dataset as JSON
       </Button>
-
-      <DatasetHierarchyManagement />
 
       <CatalogManagementSections />
     </Space>

@@ -1,4 +1,4 @@
-import { Space, message } from "antd";
+import { Space } from "antd";
 import { useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -82,32 +82,7 @@ export default function SelectedLinksPanel() {
 
   const handleDownloadLinks = useCallback(
     (mode: DownloadMode) => {
-      void dispatch(downloadSelectedLinks({ mode, selectedMatrixIds }))
-        .unwrap()
-        .then((result) => {
-          const partialWarning =
-            result.failedLayerIds.length > 0
-              ? ` ${result.failedLayerIds.length} layer${
-                  result.failedLayerIds.length === 1 ? "" : "s"
-                } had missing values.`
-              : "";
-          message.success(
-            `Downloaded ${result.linksCount} link${
-              result.linksCount === 1 ? "" : "s"
-            } with ${result.layersCount} layer${
-              result.layersCount === 1 ? "" : "s"
-            }.${partialWarning}`,
-          );
-        })
-        .catch((caught) => {
-          const nextError =
-            typeof caught === "string"
-              ? caught
-              : caught instanceof Error
-                ? caught.message
-                : "Failed to download selected links.";
-          message.warning(nextError);
-        });
+      void dispatch(downloadSelectedLinks({ mode, selectedMatrixIds }));
     },
     [dispatch, selectedMatrixIds],
   );

@@ -8,4 +8,7 @@ export const initialDatasetState: DatasetSliceState = {
   error: null,
   downloadStatus: 'idle',
   downloadError: null,
+  matrixUploadStatus: 'idle',
+  matrixUploadError: null,
+  lastMatrixUpload: null,
 }

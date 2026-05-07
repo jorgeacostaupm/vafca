@@ -1,0 +1,43 @@
+import CircularHierarchyPreview from "@/components/management/components/CircularHierarchyPreview";
+import MatrixHierarchyPreview from "@/components/management/components/MatrixHierarchyPreview";
+import {
+  CIRCULAR_PREVIEW_WIDTH,
+  MATRIX_PREVIEW_HEIGHT,
+  MATRIX_PREVIEW_WIDTH,
+} from "./hierarchySettingsConfig";
+import type {
+  HierarchySettingsMode,
+  HierarchySettingsModel,
+} from "./hierarchySettingsTypes";
+
+type HierarchySettingsPreviewProps = {
+  mode: HierarchySettingsMode;
+  hierarchy: HierarchySettingsModel;
+};
+
+export default function HierarchySettingsPreview({
+  mode,
+  hierarchy,
+}: HierarchySettingsPreviewProps) {
+  if (mode === "circular") {
+    return (
+      <CircularHierarchyPreview
+        layout={hierarchy.circularPreviewLayout}
+        activeRoiCount={hierarchy.activeRoiIds.length}
+        previewRadius={hierarchy.previewRadius}
+        nodeColors={hierarchy.previewNodeColors}
+        displayWidth={CIRCULAR_PREVIEW_WIDTH}
+      />
+    );
+  }
+
+  return (
+    <MatrixHierarchyPreview
+      matrixPreviewIds={hierarchy.matrixPreviewIds}
+      activeRoiCount={hierarchy.activeRoiIds.length}
+      nodeColors={hierarchy.previewNodeColors}
+      displayWidth={MATRIX_PREVIEW_WIDTH}
+      displayHeight={MATRIX_PREVIEW_HEIGHT}
+    />
+  );
+}

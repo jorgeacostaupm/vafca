@@ -6,6 +6,8 @@ export type MatrixOrderItem =
       label?: string;
       name?: string;
       value?: string;
+      acronym?: string;
+      [key: string]: unknown;
     };
 
 export type MatrixOrderEntry = {

@@ -1,14 +1,21 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type { AtlasDefinition } from '@/types/atlas'
+import type { InitialDataConfig } from '@/config/initialData'
 import type { MatrixShape } from '@/types/matrix'
 import type { MatrixOrderEntry } from '@/types/matrixOrder'
 import type { RootState } from '@/types/store'
 import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlas'
-import { loadDefaultAtlasDefinition } from '@/store/slices/atlasDefinition'
+import {
+  clearUploadedAtlas,
+  loadDefaultAtlasDefinition,
+  setUploadedAtlas,
+} from '@/store/slices/atlasDefinition'
 import { setMatrixShape } from '@/store/slices/visualizationUi'
+import { buildMatrixDerivedAtlasSource } from '@/utils/atlas/matrixDerivedAtlas'
+import { clearMatrices } from '@/utils/matrixStore'
 import { normalizeMatrixOrder } from '@/utils/matrixOrder'
 import { loadTestDataset } from './datasetThunks'
-import { updateMetadata } from './datasetSlice'
+import { clearDataset, updateMetadata } from './datasetSlice'
 
 const buildAtlasOrder = (
   matrixOrder: MatrixOrderEntry[],
@@ -37,6 +44,15 @@ const resolveAtlasDefinition = (state: RootState, atlasId?: string) => {
   return state.atlasDefinition.defaultById[atlasId] ?? null
 }
 
+const buildAtlasOrderFromDefinition = (
+  atlasDefinition: AtlasDefinition,
+): MatrixOrderEntry[] =>
+  atlasDefinition.rois.map((roi) => ({
+    id: String(roi.id),
+    label: roi.name ?? roi.label ?? String(roi.id),
+    acronym: roi.label ?? roi.name ?? String(roi.id),
+  }))
+
 export const syncDatasetDerivedState = createAsyncThunk<
   void,
   void,
@@ -62,27 +78,62 @@ export const syncDatasetDerivedState = createAsyncThunk<
 
 export const initializeDatasetAndDerivedState = createAsyncThunk<
   void,
-  void,
+  InitialDataConfig,
   { state: RootState }
->('dataset/initializeDatasetAndDerivedState', async (_, { dispatch, getState }) => {
-  await dispatch(loadTestDataset())
+>(
+  'dataset/initializeDatasetAndDerivedState',
+  async (config, { dispatch, getState }) => {
+    if (config.loadTestDataset) {
+      await dispatch(loadTestDataset())
+    } else {
+      dispatch(clearDataset())
+      await clearMatrices()
+    }
 
-  const state = getState()
-  const data = state.dataset.data
-  if (!data) return
+    let loadedTestAtlas: AtlasDefinition | null = null
+    if (config.loadTestAtlas) {
+      try {
+        const result = await dispatch(loadDefaultAtlasDefinition()).unwrap()
+        loadedTestAtlas = result.atlas
+        if (loadedTestAtlas) {
+          dispatch(
+            setUploadedAtlas({
+              atlas: loadedTestAtlas,
+              fileName: 'atlas_3d_no_mesh_points.json',
+            }),
+          )
+        }
+      } catch {
+        loadedTestAtlas = null
+      }
+    } else {
+      dispatch(clearUploadedAtlas())
+    }
 
-  const atlasId = data.metadata.atlasId ?? data.metadata.atlas
-  const hasUploadedAtlas = Boolean(state.atlasDefinition.uploaded?.atlas)
-  const atlasStatus = atlasId
-    ? (state.atlasDefinition.defaultStatusById[atlasId] ?? 'idle')
-    : 'idle'
+    const state = getState()
+    const data = state.dataset.data
 
-  if (!hasUploadedAtlas && atlasId && atlasStatus === 'idle') {
-    await dispatch(loadDefaultAtlasDefinition({ atlasId }))
-  }
+    if (data) {
+      if (!config.loadTestAtlas) {
+        const atlasSource = buildMatrixDerivedAtlasSource(data.metadata.matrixOrder)
+        if (atlasSource) {
+          dispatch(setUploadedAtlas(atlasSource))
+        }
+      }
+      await dispatch(syncDatasetDerivedState())
+      return
+    }
 
-  await dispatch(syncDatasetDerivedState())
-})
+    if (loadedTestAtlas) {
+      dispatch(
+        setAtlasLabels(buildAtlasState(buildAtlasOrderFromDefinition(loadedTestAtlas))),
+      )
+      return
+    }
+
+    dispatch(setAtlasLabels(buildAtlasState([])))
+  },
+)
 
 export const setDatasetMatrixShape = createAsyncThunk<
   void,

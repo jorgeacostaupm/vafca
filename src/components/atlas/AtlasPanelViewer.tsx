@@ -3,7 +3,6 @@ import { shallowEqual } from "react-redux";
 import { Button, Space, Typography } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
-import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 import {
   selectAtlasDisplayLabelsById,
@@ -12,10 +11,13 @@ import {
 import { useAtlasScene } from "./atlasPanelHooks";
 import { VIEWER_MIN_HEIGHT } from "./panelConstants";
 
-export function AtlasPanelViewer() {
+type AtlasPanelViewerProps = {
+  enableMeshPoints: boolean;
+};
+
+export function AtlasPanelViewer({ enableMeshPoints }: AtlasPanelViewerProps) {
   const dispatch = useAppDispatch();
   const dataset = useAppSelector((state) => state.dataset.data);
-  const uploadedAtlasSource = useAppSelector((state) => state.atlasDefinition.uploaded);
   const viewerHeight = useAppSelector(
     (state) => state.visualizationUi.atlasPanel.viewerHeight,
   );
@@ -35,8 +37,8 @@ export function AtlasPanelViewer() {
   );
 
   const enable3d = useMemo(
-    () => atlasSupports3d(atlasDefinition, uploadedAtlasSource?.meshMode),
-    [atlasDefinition, uploadedAtlasSource?.meshMode],
+    () => enableMeshPoints && Boolean(atlasDefinition?.rois?.length),
+    [atlasDefinition, enableMeshPoints],
   );
 
   const { applyCameraPose } = useAtlasScene({

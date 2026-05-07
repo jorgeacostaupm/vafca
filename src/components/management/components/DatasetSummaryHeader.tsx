@@ -3,7 +3,6 @@ import type { MatrixShape } from "@/types/matrix";
 import { MATRIX_SHAPE_OPTIONS } from "@/components/management/constants";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setDatasetMatrixShape } from "@/store/slices/dataset";
-import { normalizeMatrixOrder } from "@/utils/matrixOrder";
 
 function DatasetSummaryHeader() {
   const dispatch = useAppDispatch();
@@ -14,21 +13,8 @@ function DatasetSummaryHeader() {
 
   if (!data) return null;
 
-  const matrixOrder = normalizeMatrixOrder(data.metadata.matrixOrder);
-  const atlasLabel = data.metadata.atlasId ?? data.metadata.atlas ?? "Unknown";
-
   return (
     <Space wrap size={16}>
-      <Space size={6}>
-        <Typography.Text strong>Atlas:</Typography.Text>
-        <Typography.Text type="secondary">{atlasLabel}</Typography.Text>
-      </Space>
-
-      <Space size={6}>
-        <Typography.Text strong>ROI count:</Typography.Text>
-        <Typography.Text type="secondary">{matrixOrder.length}</Typography.Text>
-      </Space>
-
       <Space size={6}>
         <Typography.Text strong>Matrices:</Typography.Text>
         <Typography.Text type="secondary">{data.matrixStats.total}</Typography.Text>

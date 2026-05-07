@@ -18,7 +18,6 @@ export type AtlasDefinition = {
 export type AtlasSource = {
   atlas: AtlasDefinition;
   fileName: string;
-  meshMode: AtlasMeshMode;
 };
 
 export type D3CategoricalPaletteKey =

@@ -6,6 +6,8 @@ import {
 } from './atlasDefinitionThunks'
 import { initialAtlasDefinitionState } from './atlasDefinitionTypes'
 
+const DEFAULT_ATLAS_STATUS_ID = '__default_atlas__'
+
 const atlasDefinitionSlice = createSlice({
   name: 'atlasDefinition',
   initialState: initialAtlasDefinitionState,
@@ -24,18 +26,26 @@ const atlasDefinitionSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(loadDefaultAtlasDefinition.pending, (state, action) => {
-        const { atlasId } = action.meta.arg
+        const atlasId = action.meta.arg?.atlasId ?? DEFAULT_ATLAS_STATUS_ID
         state.defaultStatusById[atlasId] = 'loading'
         state.defaultErrorById[atlasId] = null
       })
       .addCase(loadDefaultAtlasDefinition.fulfilled, (state, action) => {
-        const { atlasId, atlas } = action.payload
+        const { atlasId, requestedAtlasId, atlas } = action.payload
         state.defaultById[atlasId] = atlas
         state.defaultStatusById[atlasId] = 'ready'
         state.defaultErrorById[atlasId] = null
+        if (requestedAtlasId && requestedAtlasId !== atlasId) {
+          state.defaultById[requestedAtlasId] = atlas
+          state.defaultStatusById[requestedAtlasId] = 'ready'
+          state.defaultErrorById[requestedAtlasId] = null
+        }
       })
       .addCase(loadDefaultAtlasDefinition.rejected, (state, action) => {
-        const { atlasId } = action.payload ?? action.meta.arg
+        const atlasId =
+          action.payload?.atlasId ??
+          action.meta.arg?.atlasId ??
+          DEFAULT_ATLAS_STATUS_ID
         const error =
           action.payload?.error ?? action.error.message ?? 'Failed to load atlas.'
         state.defaultById[atlasId] = null
@@ -47,11 +57,10 @@ const atlasDefinitionSlice = createSlice({
         state.uploadError = null
       })
       .addCase(uploadAtlasDefinitionFromFile.fulfilled, (state, action) => {
-        const { atlas, fileName, meshMode } = action.payload
+        const { atlas, fileName } = action.payload
         state.uploaded = {
           atlas,
           fileName,
-          meshMode,
         }
         state.uploadStatus = 'ready'
         state.uploadError = null

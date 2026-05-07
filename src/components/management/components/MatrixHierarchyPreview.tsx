@@ -9,17 +9,21 @@ type MatrixHierarchyPreviewProps = {
   matrixPreviewIds: string[];
   activeRoiCount: number;
   nodeColors: Record<string, string>;
+  displayWidth?: number;
+  displayHeight?: number;
 };
 
 function MatrixHierarchyPreview({
   matrixPreviewIds,
   activeRoiCount,
   nodeColors,
+  displayWidth = PREVIEW_SIZE,
+  displayHeight = MATRIX_PREVIEW_HEIGHT,
 }: MatrixHierarchyPreviewProps) {
   return (
     <div
       style={{
-        width: PREVIEW_SIZE,
+        width: displayWidth,
         maxWidth: "100%",
         border: "1px solid var(--color-border)",
         background: "var(--color-surface-2)",
@@ -27,8 +31,26 @@ function MatrixHierarchyPreview({
         padding: 8,
       }}
     >
-      <Typography.Text type="secondary">Matrix X-axis preview</Typography.Text>
-      <svg width={PREVIEW_SIZE} height={MATRIX_PREVIEW_HEIGHT} style={{ display: "block" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12,
+          alignItems: "center",
+        }}
+      >
+        <Typography.Text type="secondary">Matrix X-axis preview</Typography.Text>
+        <Typography.Text type="secondary">
+          Showing {matrixPreviewIds.length} / {activeRoiCount} ROIs
+        </Typography.Text>
+      </div>
+      <svg
+        width="100%"
+        height={displayHeight}
+        viewBox={`0 0 ${PREVIEW_SIZE} ${MATRIX_PREVIEW_HEIGHT}`}
+        preserveAspectRatio="none"
+        style={{ display: "block" }}
+      >
         <line
           x1={PREVIEW_PADDING}
           x2={PREVIEW_SIZE - PREVIEW_PADDING}
@@ -62,9 +84,6 @@ function MatrixHierarchyPreview({
           );
         })}
       </svg>
-      <Typography.Text type="secondary">
-        Showing {matrixPreviewIds.length} / {activeRoiCount} ROIs
-      </Typography.Text>
     </div>
   );
 }

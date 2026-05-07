@@ -1,13 +1,31 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import type { AtlasMeshMode } from '@/types/atlas'
 import type { RootState } from '@/types/store'
 import { syncDatasetDerivedState } from '@/store/slices/dataset'
-import { clearUploadedAtlas } from './atlasDefinitionSlice'
+import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlas'
+import { buildMatrixDerivedAtlasSource } from '@/utils/atlas/matrixDerivedAtlas'
+import { checkAtlasMatrixCompatibility } from '@/utils/atlasCompatibility'
+import { normalizeMatrixOrder } from '@/utils/matrixOrder'
+import { clearUploadedAtlas, setUploadedAtlas } from './atlasDefinitionSlice'
 import {
   loadDefaultAtlasDefinition,
   uploadAtlasDefinitionFromFile,
+  type UploadAtlasError,
   type UploadAtlasPayload,
 } from './atlasDefinitionThunks'
+
+const getUploadAtlasErrorMessage = (error: unknown) => {
+  if (typeof error === 'string') return error
+  if (error instanceof Error) return error.message
+  if (
+    error &&
+    typeof error === 'object' &&
+    'error' in error &&
+    typeof (error as UploadAtlasError).error === 'string'
+  ) {
+    return (error as UploadAtlasError).error
+  }
+  return 'Failed to upload atlas.'
+}
 
 export const ensureDefaultAtlasDefinitionLoaded = createAsyncThunk<
   void,
@@ -29,21 +47,35 @@ export const ensureDefaultAtlasDefinitionLoaded = createAsyncThunk<
 
 export const uploadAtlasDefinitionAndSync = createAsyncThunk<
   UploadAtlasPayload,
-  { file: File; meshMode: AtlasMeshMode },
+  { file: File },
   { state: RootState; rejectValue: string }
 >(
   'atlasDefinition/uploadAtlasDefinitionAndSync',
-  async ({ file, meshMode }, { dispatch, rejectWithValue }) => {
+  async ({ file }, { dispatch, getState, rejectWithValue }) => {
     try {
       const result = await dispatch(
-        uploadAtlasDefinitionFromFile({ file, meshMode }),
+        uploadAtlasDefinitionFromFile({ file }),
       ).unwrap()
+
+      const matrixOrder = getState().dataset.data?.metadata.matrixOrder ?? []
+      const compatibility = checkAtlasMatrixCompatibility(matrixOrder, result.atlas)
+      if (!compatibility.compatible) {
+        const matrixDerivedAtlas = buildMatrixDerivedAtlasSource(matrixOrder)
+        if (matrixDerivedAtlas) {
+          dispatch(setUploadedAtlas(matrixDerivedAtlas))
+          dispatch(setAtlasLabels(buildAtlasState(normalizeMatrixOrder(matrixOrder))))
+        }
+        await dispatch(syncDatasetDerivedState())
+        return {
+          ...result,
+          compatibilityWarning: `${result.fileName} is not compatible with the loaded matrices. ${compatibility.reason} Using the matrix-derived atlas instead.`,
+        }
+      }
+
       await dispatch(syncDatasetDerivedState())
       return result
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : 'Failed to upload atlas.',
-      )
+      return rejectWithValue(getUploadAtlasErrorMessage(error))
     }
   },
 )

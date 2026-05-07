@@ -20,6 +20,18 @@ export const saveMatrices = async (matrices: ConnectivityMatrix[]) => {
   }
 }
 
+export const clearMatrices = async () => {
+  inMemoryMatrices.clear()
+}
+
+export const upsertMatrices = async (matrices: ConnectivityMatrix[]) => {
+  for (const matrix of matrices) {
+    const compoundId = createCompoundId(matrix)
+    const record: StoredMatrix = { ...matrix, compoundId }
+    inMemoryMatrices.set(compoundId, record)
+  }
+}
+
 export const getMatrix = async (compoundId: string): Promise<StoredMatrix | undefined> => {
   return inMemoryMatrices.get(compoundId)
 }
@@ -36,5 +48,12 @@ export const getAllMatrixSummaries = async (): Promise<MatrixSummary[]> => {
 }
 
 export const getAllMatrices = async (): Promise<ConnectivityMatrix[]> => {
-  return Array.from(inMemoryMatrices.values()).map(({ compoundId, ...matrix }) => matrix)
+  return Array.from(inMemoryMatrices.values()).map((record) => ({
+    id: record.id,
+    bandId: record.bandId,
+    measureId: record.measureId,
+    statId: record.statId,
+    populationIds: record.populationIds,
+    data: record.data,
+  }))
 }

@@ -1,8 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import type { AtlasDefinition, AtlasMeshMode } from '@/types/atlas'
+import type { AtlasDefinition } from '@/types/atlas'
 import {
-  atlasSupports3d,
-  countRoisWithoutValidMeshPoints,
   getDefaultGroupByFields,
   validateAtlasDefinition,
 } from '@/utils/atlas/atlasDefinition'
@@ -12,14 +10,14 @@ export type AtlasDefinitionLoadError = {
   error: string
 }
 
+const DEFAULT_ATLAS_STATUS_ID = '__default_atlas__'
+
 export type UploadAtlasPayload = {
   atlas: AtlasDefinition
   fileName: string
-  meshMode: AtlasMeshMode
-  supportsMeshPoints: boolean
-  missingMeshCount: number
   commonFields: string[]
   defaultGroupFields: string[]
+  compatibilityWarning?: string
 }
 
 export type UploadAtlasError = {
@@ -27,32 +25,37 @@ export type UploadAtlasError = {
 }
 
 export const loadDefaultAtlasDefinition = createAsyncThunk<
-  { atlasId: string; atlas: AtlasDefinition | null },
-  { atlasId: string },
+  {
+    atlasId: string
+    requestedAtlasId?: string
+    atlas: AtlasDefinition | null
+  },
+  { atlasId?: string } | void,
   { rejectValue: AtlasDefinitionLoadError }
 >(
   'atlasDefinition/loadDefaultAtlasDefinition',
-  async ({ atlasId }, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
+    const requestedAtlasId = payload?.atlasId
+    const statusAtlasId = requestedAtlasId ?? DEFAULT_ATLAS_STATUS_ID
+
     try {
       const response = await fetch(
         `${import.meta.env.BASE_URL}data/atlas_3d_no_mesh_points.json`,
       )
       if (!response.ok) {
         return rejectWithValue({
-          atlasId,
+          atlasId: statusAtlasId,
           error: `HTTP ${response.status}`,
         })
       }
 
       const atlasJson = (await response.json()) as AtlasDefinition
-      if (atlasJson?.id && atlasJson.id !== atlasId) {
-        return { atlasId, atlas: null }
-      }
+      const atlasId = atlasJson.id ?? statusAtlasId
 
-      return { atlasId, atlas: atlasJson }
+      return { atlasId, requestedAtlasId, atlas: atlasJson }
     } catch (error) {
       return rejectWithValue({
-        atlasId,
+        atlasId: statusAtlasId,
         error: error instanceof Error ? error.message : 'Failed to load atlas.',
       })
     }
@@ -61,11 +64,11 @@ export const loadDefaultAtlasDefinition = createAsyncThunk<
 
 export const uploadAtlasDefinitionFromFile = createAsyncThunk<
   UploadAtlasPayload,
-  { file: File; meshMode: AtlasMeshMode },
+  { file: File },
   { rejectValue: UploadAtlasError }
 >(
   'atlasDefinition/uploadAtlasDefinitionFromFile',
-  async ({ file, meshMode }, { rejectWithValue }) => {
+  async ({ file }, { rejectWithValue }) => {
     try {
       const raw = await file.text()
       let parsed: unknown
@@ -75,22 +78,14 @@ export const uploadAtlasDefinitionFromFile = createAsyncThunk<
         return rejectWithValue({ error: 'The file is not valid JSON.' })
       }
 
-      const result = validateAtlasDefinition(parsed, 'without_mesh_points')
+      const result = validateAtlasDefinition(parsed)
       if (!result.ok) {
         return rejectWithValue({ error: result.error })
       }
 
-      const supportsMeshPoints = atlasSupports3d(result.atlas, 'with_mesh_points')
-      const nextMeshMode: AtlasMeshMode = supportsMeshPoints
-        ? meshMode
-        : 'without_mesh_points'
-
       return {
         atlas: result.atlas,
         fileName: file.name,
-        meshMode: nextMeshMode,
-        supportsMeshPoints,
-        missingMeshCount: countRoisWithoutValidMeshPoints(result.atlas),
         commonFields: result.commonFields,
         defaultGroupFields: getDefaultGroupByFields(result.commonFields),
       }
