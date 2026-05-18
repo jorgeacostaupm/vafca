@@ -1,4 +1,5 @@
 import type { ConnectivityCatalogs } from "@/types/catalogs";
+import type { ConnectivityDataState } from "@/types/connectivityBundle";
 import type { ConnectivityDataset } from "@/types/datasets";
 
 export type MatrixStats = {
@@ -13,6 +14,7 @@ export type DatasetMeta = {
   metadata: ConnectivityDataset["metadata"];
   catalogs: ConnectivityDataset["catalogs"];
   matrixStats: MatrixStats;
+  connectivity?: ConnectivityDataState;
 };
 
 export type MatrixUploadError = {
@@ -26,6 +28,7 @@ export type MatrixUploadResult = {
   validMatrices: number;
   invalidMatrices: number;
   errors: MatrixUploadError[];
+  warnings?: MatrixUploadError[];
 };
 
 export type DatasetState = {
@@ -37,6 +40,8 @@ export type DatasetState = {
   matrixUploadStatus: "idle" | "loading" | "ready" | "error";
   matrixUploadError: string | null;
   lastMatrixUpload: MatrixUploadResult | null;
+  derivedCalculationStatus: "idle" | "loading" | "ready" | "error";
+  derivedCalculationError: string | null;
 };
 
 export type UpdateCatalogPayload = {

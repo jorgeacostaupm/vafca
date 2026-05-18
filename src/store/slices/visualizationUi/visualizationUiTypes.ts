@@ -17,6 +17,7 @@ export const initialVisualizationUiState: VisualizationUiSliceState = {
   atlasLinkIds: [],
   selectedLinksDownloadStatus: 'idle',
   selectedLinksDownloadError: null,
-  matrixShape: 'full',
+  uiRangeMode: 'logical_default',
+  includeDiagonalInRanges: false,
   atlasPanel: initialAtlasPanelState,
 }

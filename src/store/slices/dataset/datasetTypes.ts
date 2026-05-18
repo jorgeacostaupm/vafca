@@ -11,4 +11,6 @@ export const initialDatasetState: DatasetSliceState = {
   matrixUploadStatus: 'idle',
   matrixUploadError: null,
   lastMatrixUpload: null,
+  derivedCalculationStatus: 'idle',
+  derivedCalculationError: null,
 }

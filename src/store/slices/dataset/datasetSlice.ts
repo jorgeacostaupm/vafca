@@ -1,15 +1,127 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import type { MatrixRecord } from '@/types/connectivityBundle'
 import type {
   DatasetMeta,
   UpdateCatalogPayload,
   UpdateMetadataPayload,
 } from '@/types/datasetState'
+import { buildMatrixStats } from '@/utils/matrixStats'
+import { materializeMatrixData } from '@/utils/connectivityMatrix'
 import {
+  computeAggregatedMatrixFromVisualizationGroups,
+  computeDerivedMatrices,
   downloadCurrentDataset,
   loadTestDataset,
   uploadMatricesIntoDataset,
 } from './datasetThunks'
 import { initialDatasetState } from './datasetTypes'
+
+const DERIVED_STAT_CATALOG = {
+  zscore: {
+    id: 'zscore',
+    label: 'z-score',
+    scaleType: 'diverging',
+    center: 0,
+    rangeMode: 'observed_symmetric',
+    useDataRange: true,
+  },
+  difference: {
+    id: 'difference',
+    label: 'Difference',
+    min: -1,
+    max: 1,
+    scaleType: 'diverging',
+    center: 0,
+    rangeMode: 'observed_symmetric',
+    useDataRange: true,
+  },
+  cohens_d: {
+    id: 'cohens_d',
+    label: "Cohen's d",
+    scaleType: 'diverging',
+    center: 0,
+    rangeMode: 'observed_symmetric',
+    useDataRange: true,
+  },
+  z_value: {
+    id: 'z_value',
+    label: 'Z value',
+    scaleType: 'diverging',
+    center: 0,
+    rangeMode: 'observed_symmetric',
+    useDataRange: true,
+  },
+  t_value: {
+    id: 't_value',
+    label: 't value',
+    scaleType: 'diverging',
+    center: 0,
+    rangeMode: 'observed_symmetric',
+    useDataRange: true,
+  },
+  p_value: {
+    id: 'p_value',
+    label: 'p-value',
+    min: 0,
+    max: 1,
+    scaleType: 'sequential',
+    center: null,
+    rangeMode: 'fixed',
+  },
+  mean: {
+    id: 'mean',
+    label: 'Mean',
+    scaleType: 'sequential',
+    center: null,
+    rangeMode: 'observed',
+    useDataRange: true,
+  },
+} as const
+
+const toConnectivityMatrix = (matrix: MatrixRecord) => ({
+  id: matrix.id,
+  bandId: matrix.context.bandId ?? 'none',
+  measureId: matrix.context.measureId,
+  statId: matrix.stat.id,
+  populationIds:
+    matrix.source.level === 'comparison'
+      ? [
+          ...(matrix.source.left.populationIds ?? []),
+          ...(matrix.source.right.populationIds ?? []),
+        ]
+      : 'populationIds' in matrix.source
+        ? matrix.source.populationIds
+        : [],
+  data: materializeMatrixData(matrix),
+  dataStats: matrix.dataStats,
+})
+
+const addDerivedStatsToCatalogs = (data: DatasetMeta, matrices: MatrixRecord[]) => {
+  matrices.forEach((matrix) => {
+    const stat = DERIVED_STAT_CATALOG[matrix.stat.id as keyof typeof DERIVED_STAT_CATALOG]
+    if (!stat) return
+    data.catalogs.stats[stat.id] = {
+      ...stat,
+      enabled: true,
+    }
+    if (data.connectivity) {
+      data.connectivity.catalogs.stats[stat.id] = {
+        id: stat.id,
+        label: stat.label,
+        category: 'derived',
+        scaleType: stat.scaleType,
+        center: stat.center,
+        rangeMode: stat.rangeMode,
+        expectedRange:
+          stat.id === 'p_value'
+            ? [0, 1]
+            : stat.id === 'difference'
+              ? [-1, 1]
+              : undefined,
+      }
+    }
+  })
+}
 
 const datasetSlice = createSlice({
   name: 'dataset',
@@ -24,6 +136,8 @@ const datasetSlice = createSlice({
       state.matrixUploadStatus = 'idle'
       state.matrixUploadError = null
       state.lastMatrixUpload = null
+      state.derivedCalculationStatus = 'idle'
+      state.derivedCalculationError = null
     },
     clearDataset(state) {
       state.data = null
@@ -34,6 +148,8 @@ const datasetSlice = createSlice({
       state.matrixUploadStatus = 'idle'
       state.matrixUploadError = null
       state.lastMatrixUpload = null
+      state.derivedCalculationStatus = 'idle'
+      state.derivedCalculationError = null
     },
     updateCatalogItem(state, action: PayloadAction<UpdateCatalogPayload>) {
       if (!state.data) return
@@ -50,6 +166,18 @@ const datasetSlice = createSlice({
       if (!state.data) return
       state.data.metadata = { ...state.data.metadata, ...action.payload.changes }
     },
+    addDerivedMatrices(state, action: PayloadAction<MatrixRecord[]>) {
+      if (!state.data?.connectivity || action.payload.length === 0) return
+      const connectivity = state.data.connectivity
+      action.payload.forEach((matrix) => {
+        connectivity.matrices.push(matrix)
+        connectivity.matrixIndex[matrix.id] = matrix
+      })
+      addDerivedStatsToCatalogs(state.data, action.payload)
+      state.data.matrixStats = buildMatrixStats(
+        connectivity.matrices.map(toConnectivityMatrix),
+      )
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -61,6 +189,8 @@ const datasetSlice = createSlice({
         state.matrixUploadStatus = 'idle'
         state.matrixUploadError = null
         state.lastMatrixUpload = null
+        state.derivedCalculationStatus = 'idle'
+        state.derivedCalculationError = null
       })
       .addCase(loadTestDataset.fulfilled, (state, action) => {
         state.status = 'ready'
@@ -88,15 +218,14 @@ const datasetSlice = createSlice({
       .addCase(uploadMatricesIntoDataset.pending, (state) => {
         state.matrixUploadStatus = 'loading'
         state.matrixUploadError = null
+        state.lastMatrixUpload = null
       })
       .addCase(uploadMatricesIntoDataset.fulfilled, (state, action) => {
-        if (!state.data) return
+        state.data = action.payload.datasetMeta
         state.data.matrixStats = action.payload.matrixStats
         if (action.payload.matrixOrder) {
           state.data.metadata = {
             ...state.data.metadata,
-            atlas: undefined,
-            atlasId: undefined,
             matrixOrder: action.payload.matrixOrder,
           }
         }
@@ -107,17 +236,72 @@ const datasetSlice = createSlice({
           validMatrices: action.payload.validMatrices,
           invalidMatrices: action.payload.invalidMatrices,
           errors: action.payload.errors,
+          warnings: action.payload.warnings,
         }
       })
       .addCase(uploadMatricesIntoDataset.rejected, (state, action) => {
         state.matrixUploadStatus = 'error'
         state.matrixUploadError =
           action.payload ?? action.error.message ?? 'Failed to upload matrices.'
+        state.lastMatrixUpload = null
+      })
+      .addCase(computeDerivedMatrices.pending, (state) => {
+        state.derivedCalculationStatus = 'loading'
+        state.derivedCalculationError = null
+      })
+      .addCase(computeDerivedMatrices.fulfilled, (state, action) => {
+        state.derivedCalculationStatus = 'ready'
+        state.derivedCalculationError = null
+        if (!state.data?.connectivity || action.payload.matrices.length === 0) return
+        const connectivity = state.data.connectivity
+        action.payload.matrices.forEach((matrix) => {
+          connectivity.matrices.push(matrix)
+          connectivity.matrixIndex[matrix.id] = matrix
+        })
+        addDerivedStatsToCatalogs(state.data, action.payload.matrices)
+        state.data.matrixStats = buildMatrixStats(
+          connectivity.matrices.map(toConnectivityMatrix),
+        )
+      })
+      .addCase(computeDerivedMatrices.rejected, (state, action) => {
+        state.derivedCalculationStatus = 'error'
+        state.derivedCalculationError =
+          action.payload ?? action.error.message ?? 'Failed to compute derived matrices.'
+      })
+      .addCase(computeAggregatedMatrixFromVisualizationGroups.pending, (state) => {
+        state.derivedCalculationStatus = 'loading'
+        state.derivedCalculationError = null
+      })
+      .addCase(computeAggregatedMatrixFromVisualizationGroups.fulfilled, (state, action) => {
+        state.derivedCalculationStatus = 'ready'
+        state.derivedCalculationError = null
+        const matrices = action.payload.matrices
+        if (!state.data?.connectivity || matrices.length === 0) return
+        const connectivity = state.data.connectivity
+        matrices.forEach((matrix) => {
+          connectivity.matrices.push(matrix)
+          connectivity.matrixIndex[matrix.id] = matrix
+        })
+        addDerivedStatsToCatalogs(state.data, matrices)
+        state.data.matrixStats = buildMatrixStats(
+          connectivity.matrices.map(toConnectivityMatrix),
+        )
+      })
+      .addCase(computeAggregatedMatrixFromVisualizationGroups.rejected, (state, action) => {
+        state.derivedCalculationStatus = 'error'
+        state.derivedCalculationError =
+          action.payload ?? action.error.message ?? 'Failed to compute aggregated matrix.'
       })
   },
 })
 
-export const { setDataset, clearDataset, updateCatalogItem, updateMetadata } =
+export const {
+  addDerivedMatrices,
+  setDataset,
+  clearDataset,
+  updateCatalogItem,
+  updateMetadata,
+} =
   datasetSlice.actions
 
 export default datasetSlice.reducer

@@ -1,6 +1,5 @@
 import { resolveMatrixValue } from "@/utils/matrixValue";
 import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
-import type { MatrixShape } from "@/types/matrix";
 import type { MatrixValueRange } from "@/types/matrixView";
 import type {
   HeatmapCellDatum,
@@ -39,15 +38,12 @@ export const resolveHeatmapAxisLabels = (args: {
   return { resolvedRowLabels, resolvedColLabels };
 };
 
-export const buildNormalizedMatrix = (
-  data: number[][],
-  matrixShape: MatrixShape,
-): number[][] => {
+export const buildNormalizedMatrix = (data: number[][]): number[][] => {
   const rows = data.length;
   return Array.from({ length: rows }, (_, row) => {
     const cols = data[row]?.length ?? 0;
     return Array.from({ length: cols }, (_, col) =>
-      resolveMatrixValue(data, row, col, matrixShape),
+      resolveMatrixValue(data, row, col),
     );
   });
 };

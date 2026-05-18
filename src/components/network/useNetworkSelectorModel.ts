@@ -7,7 +7,7 @@ import {
 import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
 import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
 import { useNetworkViewLifecycle } from "@/components/network/useNetworkViewLifecycle";
-import { buildMatrixLabel } from "@/utils/matrixViewUtils";
+import { buildMatrixLabel, normalizePopulationKey } from "@/utils/matrixViewUtils";
 import type { NetworkViewType } from "@/types/networkVisualization";
 
 export const useNetworkSelectorModel = () => {
@@ -23,7 +23,8 @@ export const useNetworkSelectorModel = () => {
     statOptions,
     bandOptions,
     matches,
-    matrixOptions,
+    allMatrixOptions,
+    selectableMatrixSummaries,
   } = useMatrixFilterOptions({
     dataset,
     atlas,
@@ -95,15 +96,36 @@ export const useNetworkSelectorModel = () => {
 
   const handleMatrixChange = useCallback(
     (value?: string) => {
-      dispatch(patchNetworkControls({ selectedCompoundId: value ?? "" }));
+      if (!value) {
+        dispatch(patchNetworkControls({ selectedCompoundId: "" }));
+        return;
+      }
+
+      const summary = selectableMatrixSummaries.find(
+        (item) => item.compoundId === value,
+      );
+      if (!summary) {
+        dispatch(patchNetworkControls({ selectedCompoundId: "" }));
+        return;
+      }
+
+      dispatch(
+        patchNetworkControls({
+          populationKey: normalizePopulationKey(summary.populationIds),
+          measureId: summary.measureId,
+          statId: summary.statId,
+          bandId: summary.bandId,
+          selectedCompoundId: summary.compoundId,
+        }),
+      );
     },
-    [dispatch],
+    [dispatch, selectableMatrixSummaries],
   );
 
   const handleAddView = useCallback(() => {
     if (!controls.selectedCompoundId) return;
 
-    const summary = matches.find(
+    const summary = selectableMatrixSummaries.find(
       (item) => item.compoundId === controls.selectedCompoundId,
     );
     if (!summary) return;
@@ -117,7 +139,13 @@ export const useNetworkSelectorModel = () => {
         statId: summary.statId,
       }),
     );
-  }, [controls.selectedCompoundId, controls.viewType, dataset, dispatch, matches]);
+  }, [
+    controls.selectedCompoundId,
+    controls.viewType,
+    dataset,
+    dispatch,
+    selectableMatrixSummaries,
+  ]);
 
   return {
     controls,
@@ -127,8 +155,7 @@ export const useNetworkSelectorModel = () => {
     populations: populationOptions,
     bands: bandOptions,
     stats: statOptions,
-    matrices: matrixOptions,
-    showMatrixSelect: matches.length > 1,
+    matrices: allMatrixOptions,
     disabled: {
       measures: !controls.populationKey,
       stats: !controls.measureId,

@@ -3,7 +3,7 @@ import type {
   AtlasRoi,
   D3CategoricalPaletteKey,
 } from "@/types/atlas";
-import { normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
+import { getRoiFieldValue, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
 
 
 export const DEFAULT_D3_CATEGORICAL_PALETTE: D3CategoricalPaletteKey =
@@ -134,9 +134,9 @@ type AtlasColorCategory = {
 };
 
 const buildCategoryValues = (roi: AtlasRoi, colorFields: string[]) =>
-  colorFields.map((field) => normalizeRoiFieldValue(roi[field]));
+  colorFields.map((field) => normalizeRoiFieldValue(getRoiFieldValue(roi, field)));
 
-const buildCategoryKey = (values: string[]) => values.join("||");
+export const buildAtlasColorCategoryKey = (values: string[]) => values.join("||");
 
 export const buildAtlasColorCategories = ({
   atlasDefinition,
@@ -159,7 +159,7 @@ export const buildAtlasColorCategories = ({
     if (includedIds && !includedIds.has(id)) return;
 
     const values = buildCategoryValues(roi, colorFields);
-    const key = buildCategoryKey(values);
+    const key = buildAtlasColorCategoryKey(values);
     const current = categories.get(key);
     if (current) {
       current.count += 1;
@@ -195,6 +195,7 @@ export const buildAtlasRoiColorById = ({
   if (colorFields.length === 0) {
     return atlasDefinition.rois.reduce<Record<string, string>>((acc, roi) => {
       acc[String(roi.id)] = fallbackColor;
+      acc[String(roi.atlasId)] = fallbackColor;
       return acc;
     }, {});
   }
@@ -208,9 +209,12 @@ export const buildAtlasRoiColorById = ({
 
   return atlasDefinition.rois.reduce<Record<string, string>>((acc, roi) => {
     const id = String(roi.id);
-    const key = buildCategoryKey(buildCategoryValues(roi, colorFields));
+    const key = buildAtlasColorCategoryKey(buildCategoryValues(roi, colorFields));
     const color = colorByCategory.get(key);
-    if (color) acc[id] = color;
+    if (color) {
+      acc[id] = color;
+      acc[String(roi.atlasId)] = color;
+    }
     return acc;
   }, {});
 };

@@ -1,5 +1,4 @@
 import type { RefObject } from "react";
-import type { MatrixShape } from "@/types/matrix";
 import type { MatrixValueRange } from "@/types/matrixView";
 
 export type HeatmapProps = {
@@ -18,9 +17,9 @@ export type HeatmapProps = {
   brushEnabled?: boolean;
   showAllLabels?: boolean;
   selectedZoomLabels?: string[];
-  matrixShape?: MatrixShape;
   legendMin?: number;
   legendMax?: number;
+  invertColorScale?: boolean;
   valueFilters?: {
     measure?: [number, number] | null;
     stat?: MatrixValueRange;

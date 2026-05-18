@@ -2,7 +2,7 @@ import type { MatrixMargin } from "@/components/matrix/components/matrixTypes";
 
 export const BASE_MARGIN: MatrixMargin = {
   top: 54,
-  right: 54,
+  right: 72,
   bottom: 10,
   left: 54,
 };

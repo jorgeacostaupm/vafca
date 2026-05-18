@@ -126,13 +126,16 @@ export const useAtlasScene = ({
         side: THREE.DoubleSide,
       });
       const mesh = new THREE.Mesh(geometry, material);
+      const internalId = String(roi.id);
+      const atlasId = String(roi.atlasId);
+      const sceneRoiId = internalId in currentEnabledById ? internalId : atlasId;
       mesh.userData = {
-        roiId: String(roi.id),
+        roiId: sceneRoiId,
         baseColor: baseColor.clone(),
         baseOpacity: material.opacity,
       };
-      mesh.visible = currentEnabledById[String(roi.id)] !== false;
-      roiObjects.set(String(roi.id), mesh);
+      mesh.visible = currentEnabledById[sceneRoiId] !== false;
+      roiObjects.set(sceneRoiId, mesh);
       group.add(mesh);
     });
 

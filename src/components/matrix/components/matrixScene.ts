@@ -22,6 +22,7 @@ type RenderHeatmapSceneArgs = {
   layout: HeatmapLayout;
   data: number[][];
   legendRange: HeatmapLegendRange;
+  invertColorScale?: boolean;
   title?: string;
   valueLabel: string;
   resolvedRowLabels?: string[];
@@ -82,6 +83,7 @@ export const renderHeatmapScene = ({
   layout,
   data,
   legendRange,
+  invertColorScale = false,
   title,
   valueLabel,
   resolvedRowLabels,
@@ -103,7 +105,7 @@ export const renderHeatmapScene = ({
   const rows = data.length;
   const cols = rows > 0 ? (data[0]?.length ?? 0) : 0;
 
-  const colorResolver = createHeatmapColorResolver(legendRange);
+  const colorResolver = createHeatmapColorResolver(legendRange, invertColorScale);
 
   const root = svg
     .append("g")
@@ -170,6 +172,7 @@ export const renderHeatmapScene = ({
     size: layout.size,
     legendRange,
     colorResolver,
+    invertColorScale,
   });
 
   if (brushEnabled) {

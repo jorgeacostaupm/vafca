@@ -2,7 +2,11 @@ export { default } from './networkVisualizationSlice'
 export {
   addNetworkLayoutItem,
   addNetworkView,
+  applyAggregatedNetworkEdgeFilter,
+  applyNetworkEdgeFilter,
   applyNetworkZoom,
+  clearAggregatedNetworkEdgeFilter,
+  clearNetworkEdgeFilter,
   clearNetworkViews,
   mutateNetworkViewTypeLocally,
   patchNetworkControls,

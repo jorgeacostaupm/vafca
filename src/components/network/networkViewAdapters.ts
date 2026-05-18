@@ -1,5 +1,4 @@
 import { filterMatrixByLabels, filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
-import type { MatrixShape } from "@/types/matrix";
 import type { MatrixValueRange } from "@/types/matrixView";
 import type {
   AdaptedMatrixViewData,
@@ -13,7 +12,6 @@ export const buildCanonicalMatrixData = ({
   labels,
   rowLabelSelection,
   colLabelSelection,
-  matrixShape,
   hideIsolatedNodes,
   valueFilters,
 }: {
@@ -21,7 +19,6 @@ export const buildCanonicalMatrixData = ({
   labels?: string[];
   rowLabelSelection?: string[];
   colLabelSelection?: string[];
-  matrixShape: MatrixShape;
   hideIsolatedNodes: boolean;
   valueFilters?: {
     measure?: [number, number] | null;
@@ -37,7 +34,6 @@ export const buildCanonicalMatrixData = ({
     labels,
     rowLabelSelection,
     colLabelSelection,
-    matrixShape,
   );
 
   if (!hideIsolatedNodes) {

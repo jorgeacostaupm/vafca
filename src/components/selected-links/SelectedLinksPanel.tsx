@@ -32,9 +32,6 @@ export default function SelectedLinksPanel() {
   const atlasLinkIds = useAppSelector(
     (state) => state.visualizationUi.atlasLinkIds,
   );
-  const matrixShape = useAppSelector(
-    (state) => state.visualizationUi.matrixShape,
-  );
   const downloadStatus = useAppSelector(
     (state) => state.visualizationUi.selectedLinksDownloadStatus,
   );
@@ -76,9 +73,8 @@ export default function SelectedLinksPanel() {
       selectedMatrixIds,
       matrixCache,
       atlasIndex,
-      matrixShape,
     });
-  }, [links, selectedMatrixIds, matrixCache, atlasIndex, matrixShape]);
+  }, [links, selectedMatrixIds, matrixCache, atlasIndex]);
 
   const handleDownloadLinks = useCallback(
     (mode: DownloadMode) => {

@@ -1,7 +1,6 @@
 import "@/App.css";
 import { useEffect } from "react";
-import { Card, Layout, Space, Tabs } from "antd";
-import DatasetManagement from "@/components/management";
+import { Layout, Tabs } from "antd";
 import NetworkVisualizationTab from "@/components/network/NetworkVisualizationTab";
 import SelectedLinksPanel from "@/components/selected-links/SelectedLinksPanel";
 import AtlasPanel from "@/components/atlas";
@@ -21,35 +20,27 @@ function App() {
     <Layout className="app-shell">
       <UserNotificationHost />
       <Layout.Content className="app-content">
-        <Space direction="vertical" size={24} style={{ width: "100%" }}>
-          <Card variant="outlined">
-            <Tabs
-              destroyOnHidden={true}
-              items={[
-                {
-                  key: "mngmt",
-                  label: "Management",
-                  children: <DatasetManagement />,
-                },
-                {
-                  key: "vis",
-                  label: "Network Visualization",
-                  children: <NetworkVisualizationTab />,
-                },
-                {
-                  key: "atlas",
-                  label: "Atlas",
-                  children: <AtlasPanel />,
-                },
-                {
-                  key: "links",
-                  label: "Selected Links",
-                  children: <SelectedLinksPanel />,
-                },
-              ]}
-            />
-          </Card>
-        </Space>
+        <Tabs
+          className="app-tabs"
+          destroyOnHidden={true}
+          items={[
+            {
+              key: "vis",
+              label: "Network Visualization",
+              children: <NetworkVisualizationTab />,
+            },
+            {
+              key: "atlas",
+              label: "Atlas",
+              children: <AtlasPanel />,
+            },
+            {
+              key: "links",
+              label: "Selected Links",
+              children: <SelectedLinksPanel />,
+            },
+          ]}
+        />
       </Layout.Content>
     </Layout>
   );

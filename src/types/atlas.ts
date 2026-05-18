@@ -1,17 +1,33 @@
 export type AtlasMeshMode = "with_mesh_points" | "without_mesh_points";
 
+export type AtlasTagValue = string | number | boolean | null;
+
+export type AtlasRoiCoords = {
+  x: number;
+  y: number;
+  z: number;
+  space?: string;
+};
+
 export type AtlasRoi = {
-  id: string | number;
-  label?: string;
-  name?: string;
+  index: number;
+  id: string;
+  atlasId: string | number;
+  name: string;
+  label: string;
+  tags: Record<string, AtlasTagValue>;
+  coords?: AtlasRoiCoords | null;
+  metadata?: Record<string, unknown>;
   mesh_points?: number[][];
-  [key: string]: unknown;
 };
 
 export type AtlasDefinition = {
   id: string;
-  name?: string;
+  name: string;
   description?: string;
+  version?: string;
+  space?: string;
+  coordinateSystem?: string;
   rois: AtlasRoi[];
 };
 

@@ -36,7 +36,6 @@ function PopulationCatalogSection() {
                     })
                   }
                 />
-                <Typography.Text type="secondary">ID: {population.id}</Typography.Text>
               </Space>
 
               <Input.TextArea

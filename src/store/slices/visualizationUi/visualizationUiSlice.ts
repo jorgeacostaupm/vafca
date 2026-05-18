@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { MatrixShape } from '@/types/matrix'
+import type { UiRangeMode } from '@/types/connectivityBundle'
 import type {
   AtlasPanelState,
   HoveredCell,
@@ -59,8 +59,11 @@ const visualizationUiSlice = createSlice({
     clearAtlasLinkIds(state) {
       state.atlasLinkIds = []
     },
-    setMatrixShape(state, action: PayloadAction<MatrixShape>) {
-      state.matrixShape = action.payload
+    setUiRangeMode(state, action: PayloadAction<UiRangeMode>) {
+      state.uiRangeMode = action.payload
+    },
+    setIncludeDiagonalInRanges(state, action: PayloadAction<boolean>) {
+      state.includeDiagonalInRanges = action.payload
     },
     setAtlasPanelState(state, action: PayloadAction<Partial<AtlasPanelState>>) {
       state.atlasPanel = { ...state.atlasPanel, ...action.payload }
@@ -95,7 +98,8 @@ export const {
   setAtlasLinkIds,
   toggleAtlasLinkId,
   clearAtlasLinkIds,
-  setMatrixShape,
+  setUiRangeMode,
+  setIncludeDiagonalInRanges,
   setAtlasPanelState,
 } = visualizationUiSlice.actions
 

@@ -2,6 +2,7 @@ import type { ReactNode, RefObject } from "react";
 import type { ComputedView, FilterContributor, ViewVisibility } from "@/types/networkVisualization";
 import type { PanelItem } from "@/types/layout";
 import type { RootState } from "@/types/store";
+import type { ResolvedUiRange } from "@/utils/matrixUiRange";
 
 type MatrixRecord = Exclude<
   Awaited<ReturnType<typeof import("@/utils/matrixStore").getMatrix>>,
@@ -16,6 +17,9 @@ export type NetworkPanelCommonProps = {
   visibilityByViewId: Record<string, ViewVisibility>;
   nodeFilterContributors: FilterContributor[];
   linkFilterContributors: FilterContributor[];
+  runtimeAllowedLinkIds: Set<string> | null;
+  runtimeAggregatedAllowedLinkIds: Set<string> | null;
+  matrixLegendRange?: ResolvedUiRange;
 };
 
 export type BuildPanelItem = (props: NetworkPanelCommonProps) => PanelItem;

@@ -62,7 +62,6 @@ function MeasureCatalogSection() {
                       })
                     }
                   />
-                  <Typography.Text type="secondary">ID: {measure.id}</Typography.Text>
                 </Space>
 
                 <Input.TextArea

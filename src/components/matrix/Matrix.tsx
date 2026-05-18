@@ -40,9 +40,9 @@ function MatrixHeatmap({
   brushEnabled = false,
   showAllLabels = false,
   selectedZoomLabels,
-  matrixShape = "full",
   legendMin,
   legendMax,
+  invertColorScale = false,
   valueFilters,
   hoveredCell,
   selectedCells,
@@ -134,8 +134,8 @@ function MatrixHeatmap({
   }, [onCellHover, onCellLeave, onCellSelect, onBrushZoom, onLabelToggle]);
 
   const normalized = useMemo(
-    () => buildNormalizedMatrix(data, matrixShape),
-    [data, matrixShape],
+    () => buildNormalizedMatrix(data),
+    [data],
   );
 
   const filtered = useMemo(
@@ -199,6 +199,7 @@ function MatrixHeatmap({
       layout,
       data: filtered,
       legendRange,
+      invertColorScale,
       title,
       valueLabel,
       resolvedRowLabels,
@@ -232,6 +233,7 @@ function MatrixHeatmap({
     filtered,
     layout,
     legendRange,
+    invertColorScale,
     title,
     valueLabel,
     resolvedRowLabels,
@@ -243,7 +245,7 @@ function MatrixHeatmap({
     selectedZoomLabels,
     brushEnabled,
     showAllLabels,
-    matrixShape,
+    svgRef,
   ]);
 
   useEffect(() => {

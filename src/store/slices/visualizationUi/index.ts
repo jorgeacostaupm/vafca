@@ -10,7 +10,8 @@ export {
   setAtlasPanelState,
   setHoveredCell,
   setHoveredNode,
-  setMatrixShape,
+  setIncludeDiagonalInRanges,
+  setUiRangeMode,
   toggleAtlasLinkId,
 } from './visualizationUiSlice'
 export {
@@ -18,10 +19,11 @@ export {
   selectAtlasPanelState,
   selectHoveredCell,
   selectHoveredNodeId,
-  selectMatrixShape,
+  selectIncludeDiagonalInRanges,
   selectSelectedLinksDownloadError,
   selectSelectedLinksDownloadStatus,
   selectSelectedLinks,
+  selectUiRangeMode,
   selectVisualizationUiState,
 } from './visualizationUiSelectors'
 export { downloadSelectedLinks } from './visualizationUiThunks'

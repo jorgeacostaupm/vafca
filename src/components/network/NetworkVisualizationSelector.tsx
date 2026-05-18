@@ -1,25 +1,26 @@
 import { useMemo } from "react";
-import { Col, Row } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   removeNetworkView,
   setNetworkLayout,
 } from "@/store/slices/networkVisualization";
-import { buildDefaultRanges } from "@/utils/matrixViewUtils";
 import PanelGridLayout from "@/components/layout/PanelGridLayout";
 import { useNetworkMatrixCache } from "@/components/network/useNetworkMatrixCache";
 import { useComputedNetworkViews } from "@/components/network/useComputedNetworkViews";
 import { buildNetworkPanelItems } from "@/components/network/NetworkPanelItems";
-import NetworkSelectorSidebar from "@/components/network/NetworkSelectorSidebar";
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
+import { buildRuntimeMaskLinkSet } from "@/components/network/networkFormatting";
 import type { NetworkViewDescriptor } from "@/types/networkVisualization";
 
 function NetworkVisualizationSelector() {
   const dispatch = useAppDispatch();
   const dataset = useAppSelector((state) => state.dataset.data);
   const atlas = useAppSelector((state) => state.atlas);
-  const matrixShape = useAppSelector(
-    (state) => state.visualizationUi.matrixShape,
+  const uiRangeMode = useAppSelector(
+    (state) => state.visualizationUi.uiRangeMode,
+  );
+  const includeDiagonalInRanges = useAppSelector(
+    (state) => state.visualizationUi.includeDiagonalInRanges,
   );
   const networkState = useAppSelector((state) => state.networkVisualization);
 
@@ -39,11 +40,6 @@ function NetworkVisualizationSelector() {
     useMatrixHierarchyOrder: true,
   });
 
-  const defaultMeasureRanges = useMemo(
-    () => buildDefaultRanges(dataset?.catalogs.measures),
-    [dataset],
-  );
-
   const {
     computedByViewId,
     visibilityByViewId,
@@ -58,9 +54,36 @@ function NetworkVisualizationSelector() {
     atlasOrderLength: atlas.order.length,
     activeLabelIds,
     matrixActiveLabelIds,
-    matrixShape,
-    defaultMeasureRanges,
+    circularHierarchyCategoryOrder: atlas.circularHierarchyCategoryOrder,
+    matrixHierarchyCategoryOrder: atlas.matrixHierarchyCategoryOrder,
+    dataset,
+    uiRangeMode,
+    includeDiagonalInRanges,
   });
+
+  const runtimeAllowedLinkIds = useMemo(
+    () =>
+      buildRuntimeMaskLinkSet(
+        networkState.activeEdgeMask,
+        matrixOrderIds.length > 0 ? matrixOrderIds : activeLabelIds,
+      ),
+    [activeLabelIds, matrixOrderIds, networkState.activeEdgeMask],
+  );
+  const runtimeAggregatedAllowedLinkIds = useMemo(
+    () =>
+      buildRuntimeMaskLinkSet(
+        networkState.activeAggregatedEdgeMask,
+        networkState.activeAggregatedEdgeMask
+          ? Object.values(dataset?.connectivity?.matrixIndex ?? {}).find(
+              (matrix) =>
+                matrix.kind === "reduced" &&
+                matrix.geometry.roiOrder?.length ===
+                  networkState.activeAggregatedEdgeMask?.values.length,
+            )?.geometry.roiOrder ?? []
+          : [],
+      ),
+    [dataset?.connectivity?.matrixIndex, networkState.activeAggregatedEdgeMask],
+  );
 
   const panelItems = useMemo(
     () =>
@@ -73,6 +96,8 @@ function NetworkVisualizationSelector() {
         visibilityByViewId,
         nodeFilterContributors,
         linkFilterContributors,
+        runtimeAllowedLinkIds,
+        runtimeAggregatedAllowedLinkIds,
       }),
     [
       computedByViewId,
@@ -81,36 +106,32 @@ function NetworkVisualizationSelector() {
       loadingCompoundIds,
       matrixByCompoundId,
       nodeFilterContributors,
+      runtimeAllowedLinkIds,
+      runtimeAggregatedAllowedLinkIds,
       views,
       visibilityByViewId,
     ],
   );
 
   return (
-    <Row gutter={[16, 16]}>
-      <NetworkSelectorSidebar />
-
-      <Col xs={24} lg={20}>
-        <PanelGridLayout
-          items={panelItems}
-          layout={networkState.layout}
-          onRemove={(viewId) => dispatch(removeNetworkView({ viewId }))}
-          setLayout={(nextLayout) =>
-            dispatch(
-              setNetworkLayout(
-                nextLayout.map(({ i, x, y, w, h }) => ({
-                  i,
-                  x,
-                  y,
-                  w,
-                  h,
-                })),
-              ),
-            )
-          }
-        />
-      </Col>
-    </Row>
+    <PanelGridLayout
+      items={panelItems}
+      layout={networkState.layout}
+      onRemove={(viewId) => dispatch(removeNetworkView({ viewId }))}
+      setLayout={(nextLayout) =>
+        dispatch(
+          setNetworkLayout(
+            nextLayout.map(({ i, x, y, w, h }) => ({
+              i,
+              x,
+              y,
+              w,
+              h,
+            })),
+          ),
+        )
+      }
+    />
   );
 }
 

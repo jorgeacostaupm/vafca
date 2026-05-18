@@ -1,23 +1,23 @@
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Form, Space, Switch, Typography } from "antd";
+import NetworkRangeControls from "@/components/network/NetworkRangeControls";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   patchNetworkControls,
+  selectNetworkControls,
   setNetworkHideIsolatedNodes,
 } from "@/store/slices/networkVisualization";
 
-export default function NetworkManagementControls() {
+export default function NetworkGeneralSettingsTab() {
   const dispatch = useAppDispatch();
-  const networkControls = useAppSelector(
-    (state) => state.networkVisualization.controls,
-  );
+  const networkControls = useAppSelector(selectNetworkControls);
 
   return (
-    <Space
-      direction="vertical"
-      size={8}
-      style={{ width: "100%", marginBottom: 8 }}
-    >
-      <Typography.Text strong>Management</Typography.Text>
+    <Space direction="vertical" size={20} style={{ width: "100%" }}>
+      <Space direction="vertical" size={8} style={{ width: "100%" }}>
+        <Typography.Text strong>Range</Typography.Text>
+        <NetworkRangeControls />
+      </Space>
+
       <Form layout="vertical" style={{ marginBottom: 0 }}>
         <Form.Item label="Coordinated zoom">
           <Switch

@@ -1,6 +1,7 @@
 import { createRef, type RefObject } from "react";
 import { Space } from "antd";
 import { buildNetworkPanelItem } from "@/components/network/panels/buildNetworkPanelItem";
+import { buildComparableMatrixLegendRanges } from "@/components/network/panels/matrixLegendRanges";
 import {
   LoadingPanelBody,
   NetworkPanelReloadButton,
@@ -34,6 +35,8 @@ type BuildNetworkPanelItemsArgs = {
   visibilityByViewId: Record<string, ViewVisibility>;
   nodeFilterContributors: FilterContributor[];
   linkFilterContributors: FilterContributor[];
+  runtimeAllowedLinkIds: Set<string> | null;
+  runtimeAggregatedAllowedLinkIds: Set<string> | null;
 };
 
 export const buildNetworkPanelItems = ({
@@ -45,8 +48,17 @@ export const buildNetworkPanelItems = ({
   visibilityByViewId,
   nodeFilterContributors,
   linkFilterContributors,
-}: BuildNetworkPanelItemsArgs): PanelItem[] =>
-  views.map((view) => {
+  runtimeAllowedLinkIds,
+  runtimeAggregatedAllowedLinkIds,
+}: BuildNetworkPanelItemsArgs): PanelItem[] => {
+  const matrixLegendRangesByViewId = buildComparableMatrixLegendRanges({
+    views,
+    matrixByCompoundId,
+    computedByViewId,
+    dataset,
+  });
+
+  return views.map((view) => {
     const svgRef = createRef<SVGSVGElement>() as RefObject<SVGSVGElement>;
     const matrixRecord = matrixByCompoundId[view.compoundId];
     const isLoadingMatrix =
@@ -77,6 +89,9 @@ export const buildNetworkPanelItems = ({
       visibilityByViewId,
       nodeFilterContributors,
       linkFilterContributors,
+      runtimeAllowedLinkIds,
+      runtimeAggregatedAllowedLinkIds,
+      matrixLegendRange: matrixLegendRangesByViewId[view.id],
     };
 
     const built = buildNetworkPanelItem(common);
@@ -91,3 +106,4 @@ export const buildNetworkPanelItems = ({
       ),
     };
   });
+};

@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Alert, Checkbox, Space, Typography, Upload } from "antd";
+import { Alert, Space, Spin, Typography, Upload } from "antd";
 import type { UploadProps } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { uploadMatricesIntoDataset } from "@/store/slices/dataset";
@@ -11,7 +10,6 @@ const MAX_VISIBLE_ERRORS = 5;
 
 function MatrixUploader() {
   const dispatch = useAppDispatch();
-  const [resetAtlas, setResetAtlas] = useState(false);
   const { matrixUploadStatus, matrixUploadError, lastMatrixUpload } =
     useAppSelector((state) => state.dataset);
 
@@ -21,7 +19,7 @@ function MatrixUploader() {
     }
 
     try {
-      await dispatch(uploadMatricesIntoDataset({ files: fileList, resetAtlas })).unwrap();
+      await dispatch(uploadMatricesIntoDataset({ files: [file] })).unwrap();
       await dispatch(loadMatrixSummaries());
     } catch {
       // The notification listener and local alert expose upload failures.
@@ -32,43 +30,53 @@ function MatrixUploader() {
 
   const hasValidationErrors =
     lastMatrixUpload !== null && lastMatrixUpload.errors.length > 0;
+  const hasWarnings =
+    lastMatrixUpload !== null && (lastMatrixUpload.warnings?.length ?? 0) > 0;
+  const isValidating = matrixUploadStatus === "loading";
 
   return (
     <Space direction="vertical" size={12} style={{ width: "100%" }}>
-      <Checkbox
-        checked={resetAtlas}
-        onChange={(event) => setResetAtlas(event.target.checked)}
-      >
-        Reset loaded atlas and infer a minimal atlas from uploaded matrices
-      </Checkbox>
-
       <Dragger
         className="matrix-uploader__dropzone"
         accept=".json,application/json"
         showUploadList={false}
-        multiple
+        multiple={false}
         beforeUpload={beforeUpload}
-        disabled={matrixUploadStatus === "loading"}
+        disabled={isValidating}
       >
-        <p className="ant-upload-text">Drag and drop matrix JSON files here</p>
+        <p className="ant-upload-text">Drag and drop one fc-connectivity-v1.0 JSON bundle here</p>
         <p className="ant-upload-hint">
-          Valid matrices are loaded into the current dataset. Invalid entries
-          are skipped and reported.
+          The bundle is loaded atomically and validated against the current
+          fc-connectivity-v1.0 format.
         </p>
       </Dragger>
 
-      {lastMatrixUpload ? (
+      {isValidating ? (
+        <Alert
+          type="info"
+          showIcon
+          icon={<Spin size="small" />}
+          message="Validating data"
+          description="Checking matrix dimensions and empty values."
+        />
+      ) : null}
+
+      {!isValidating && lastMatrixUpload ? (
         <Alert
           type={hasValidationErrors ? "warning" : "success"}
           showIcon
-          message={`${lastMatrixUpload.validMatrices} valid matrix${
-            lastMatrixUpload.validMatrices === 1 ? "" : "es"
-          } loaded`}
+          message={
+            hasValidationErrors
+              ? "Data loaded with validation errors"
+              : "Data loaded successfully"
+          }
           description={
             hasValidationErrors ? (
               <Space direction="vertical" size={4}>
                 <Typography.Text>
-                  {lastMatrixUpload.invalidMatrices} validation error
+                  {lastMatrixUpload.validMatrices} valid{" "}
+                  {lastMatrixUpload.validMatrices === 1 ? "matrix" : "matrices"} and{" "}
+                  {lastMatrixUpload.invalidMatrices} error
                   {lastMatrixUpload.invalidMatrices === 1 ? "" : "s"} found.
                 </Typography.Text>
                 {lastMatrixUpload.errors
@@ -81,17 +89,33 @@ function MatrixUploader() {
                     </Typography.Text>
                   ))}
               </Space>
+            ) : hasWarnings ? (
+              <Space direction="vertical" size={4}>
+                <Typography.Text>File loaded with warnings.</Typography.Text>
+                {lastMatrixUpload.warnings
+                  ?.slice(0, MAX_VISIBLE_ERRORS)
+                  .map((warning, index) => (
+                    <Typography.Text key={`${warning.source}-${index}`} type="secondary">
+                      {warning.source}: {warning.message}
+                    </Typography.Text>
+                  ))}
+              </Space>
             ) : (
-              `${lastMatrixUpload.files} file${
-                lastMatrixUpload.files === 1 ? "" : "s"
-              } processed without validation errors.`
+              `${lastMatrixUpload.validMatrices} ${
+                lastMatrixUpload.validMatrices === 1 ? "matrix" : "matrices"
+              } validated and loaded without errors.`
             )
           }
         />
       ) : null}
 
-      {matrixUploadError ? (
-        <Alert type="error" showIcon message={matrixUploadError} />
+      {!isValidating && matrixUploadError ? (
+        <Alert
+          type="error"
+          showIcon
+          message="Data could not be loaded"
+          description={matrixUploadError}
+        />
       ) : null}
     </Space>
   );

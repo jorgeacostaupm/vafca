@@ -6,6 +6,7 @@ export type PanelItem = {
   title: string;
   content: ReactNode;
   actions?: ReactNode;
+  className?: string;
 };
 
 export type PanelGridLayoutProps = {

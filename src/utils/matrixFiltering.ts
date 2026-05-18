@@ -1,5 +1,4 @@
 import { resolveMatrixValue } from "@/utils/matrixValue";
-import type { MatrixShape } from "@/types/matrix";
 import type { MatrixValueRange } from "@/types/matrixView";
 
 
@@ -27,7 +26,6 @@ export const filterMatrixByLabels = (
   labels: string[] | undefined,
   allowedRowLabels: string[] | undefined,
   allowedColLabels: string[] | undefined,
-  shape: MatrixShape = "full",
 ) => {
   if (!labels || (!allowedRowLabels && !allowedColLabels)) {
     return labels
@@ -61,7 +59,7 @@ export const filterMatrixByLabels = (
   const filteredColLabels = colIndices.map((item) => item.label);
   const filteredData = rowIndices.map((row) =>
     colIndices.map((col) =>
-      resolveMatrixValue(data, row.idx, col.idx, shape),
+      resolveMatrixValue(data, row.idx, col.idx),
     ),
   );
 

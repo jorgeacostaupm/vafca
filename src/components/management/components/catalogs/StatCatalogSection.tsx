@@ -1,9 +1,6 @@
-import { Card, Divider, Input, InputNumber, Space, Switch, Typography } from "antd";
+import { Card, Divider, Input, Space, Switch, Typography } from "antd";
 import { useAppSelector } from "@/store/hooks";
-import {
-  isEnabled,
-  normalizeNumber,
-} from "@/components/management/utils/catalogValues";
+import { isEnabled } from "@/components/management/utils/catalogValues";
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 
 function StatCatalogSection() {
@@ -42,38 +39,6 @@ function StatCatalogSection() {
                       })
                     }
                   />
-                  <Space size={4}>
-                    <Switch
-                      checked={stat.useDataRange === true}
-                      onChange={(checked) =>
-                        updateItem("stats", stat.id, {
-                          useDataRange: checked,
-                        })
-                      }
-                    />
-                    <Typography.Text type="secondary">Use data range</Typography.Text>
-                  </Space>
-                  <InputNumber
-                    size="small"
-                    placeholder="Min"
-                    value={stat.min ?? null}
-                    onChange={(value) =>
-                      updateItem("stats", stat.id, {
-                        min: normalizeNumber(value),
-                      })
-                    }
-                  />
-                  <InputNumber
-                    size="small"
-                    placeholder="Max"
-                    value={stat.max ?? null}
-                    onChange={(value) =>
-                      updateItem("stats", stat.id, {
-                        max: normalizeNumber(value),
-                      })
-                    }
-                  />
-                  <Typography.Text type="secondary">ID: {stat.id}</Typography.Text>
                 </Space>
 
                 <Input.TextArea

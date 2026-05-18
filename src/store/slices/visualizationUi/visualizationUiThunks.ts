@@ -24,10 +24,10 @@ export const downloadSelectedLinks = createAsyncThunk<
   { mode: DownloadMode; selectedMatrixIds: string[] },
   { state: RootState; rejectValue: string }
 >(
-  'visualizationUi/downloadSelectedLinks',
+    'visualizationUi/downloadSelectedLinks',
   async ({ mode, selectedMatrixIds }, { dispatch, getState, rejectWithValue }) => {
     const state = getState()
-    const { selectedLinks, atlasLinkIds, matrixShape } = state.visualizationUi
+    const { selectedLinks, atlasLinkIds } = state.visualizationUi
 
     const selectedIdSet = new Set(atlasLinkIds)
     const linksToDownload =
@@ -74,11 +74,9 @@ export const downloadSelectedLinks = createAsyncThunk<
       layerIds,
       matrixCache,
       atlasIndex,
-      matrixShape,
     )
     const payload = buildExportPayload(
       mode,
-      matrixShape,
       layerIds,
       resolveLayerLabelById,
       exportLinks,

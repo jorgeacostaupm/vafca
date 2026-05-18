@@ -12,30 +12,30 @@ export const getHierarchySettingsConfig = ({
   atlas,
   hierarchy,
 }: HierarchySettingsConfigArgs): HierarchySettingsConfig => {
+  const base = {
+    mode,
+    configurationLabel: "Category order",
+    description:
+      "Fields come from Palette. Configure category order for this view.",
+    addFieldPlaceholder: "Add tag field in Palette",
+    emptyHierarchyMessage:
+      "No palette fields selected. Add color fields in Palette first.",
+    hierarchyFields: atlas.colorFields,
+    selectableFields: [],
+  };
+
   if (mode === "circular") {
     return {
-      mode,
-      configurationLabel: "Circular configuration",
-      description: "Order atlas fields to define how circular nodes are grouped.",
-      addFieldPlaceholder: "Add hierarchy field",
-      emptyHierarchyMessage:
-        "No hierarchy fields selected. Circular layout uses a uniform order.",
-      hierarchyFields: atlas.circularHierarchyFields,
-      selectableFields: hierarchy.selectableCircularHierarchyFields,
+      ...base,
+      configurationLabel: "Circular order",
       categoryOrderEditors: hierarchy.circularCategoryOrderEditors,
       categoryOrder: atlas.circularHierarchyCategoryOrder,
     };
   }
 
   return {
-    mode,
-    configurationLabel: "Matrix configuration",
-    description: "Configure matrix label order using the same hierarchy logic.",
-    addFieldPlaceholder: "Add matrix hierarchy field",
-    emptyHierarchyMessage:
-      "No hierarchy fields selected. Matrix order uses the default node order.",
-    hierarchyFields: atlas.matrixHierarchyFields,
-    selectableFields: hierarchy.selectableMatrixHierarchyFields,
+    ...base,
+    configurationLabel: "Matrix order",
     categoryOrderEditors: hierarchy.matrixCategoryOrderEditors,
     categoryOrder: atlas.matrixHierarchyCategoryOrder,
   };

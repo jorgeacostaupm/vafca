@@ -6,10 +6,29 @@ import type {
   NodeLinkNetworkViewSettings,
   ViewVisibility,
 } from "@/types/networkVisualization";
+import type { RuntimeEdgeMask } from "@/types/edgeFilter";
 
 
 export const buildLinkKey = (a: string, b: string) =>
   a <= b ? `${a}::${b}` : `${b}::${a}`;
+
+export const buildRuntimeMaskLinkSet = (
+  mask: RuntimeEdgeMask | null,
+  labelIds: string[],
+) => {
+  if (!mask) return null;
+  const allowed = new Set<string>();
+  mask.values.forEach((row, rowIndex) => {
+    row.forEach((selected, colIndex) => {
+      if (!selected) return;
+      const rowId = labelIds[rowIndex];
+      const colId = labelIds[colIndex];
+      if (!rowId || !colId || rowId === colId) return;
+      allowed.add(buildLinkKey(rowId, colId));
+    });
+  });
+  return allowed;
+};
 
 export const collectVisibleGraph = ({
   data,
@@ -111,64 +130,30 @@ export const applyLinkMask = ({
     }),
   );
 
-const combineUnion = (sets: Set<string>[]) => {
-  const union = new Set<string>();
-  sets.forEach((set) => {
-    set.forEach((value) => union.add(value));
-  });
-  return union;
-};
-
-const combineIntersection = (sets: Set<string>[]) => {
-  if (sets.length === 0) return null;
-  const [first, ...rest] = sets;
-  const intersection = new Set(first);
-  rest.forEach((set) => {
-    Array.from(intersection).forEach((value) => {
-      if (!set.has(value)) {
-        intersection.delete(value);
-      }
-    });
-  });
-  return intersection;
-};
-
 export const resolveAllowedSet = (
   contributors: FilterContributor[],
   targetViewId: string,
   kind: "nodeIds" | "linkIds",
   visibilityByViewId: Record<string, ViewVisibility>,
 ) => {
-  const effectiveSources = contributors.filter(
+  const source = contributors.find(
     (source) =>
       source.viewId !== targetViewId && source.viewId in visibilityByViewId,
   );
-  if (effectiveSources.length === 0) return null;
+  return source ? new Set(visibilityByViewId[source.viewId][kind]) : null;
+};
 
-  const orSets = effectiveSources
-    .filter((source) => source.mode === "or")
-    .map((source) => visibilityByViewId[source.viewId][kind]);
-  const andSets = effectiveSources
-    .filter((source) => source.mode === "and")
-    .map((source) => visibilityByViewId[source.viewId][kind]);
-
-  if (orSets.length > 0 && andSets.length === 0) {
-    return combineUnion(orSets);
-  }
-  if (andSets.length > 0 && orSets.length === 0) {
-    return combineIntersection(andSets);
-  }
-
-  const orUnion = combineUnion(orSets);
-  const andIntersection = combineIntersection(andSets);
-  if (!andIntersection) return orUnion;
-
-  Array.from(orUnion).forEach((value) => {
-    if (!andIntersection.has(value)) {
-      orUnion.delete(value);
-    }
+export const intersectAllowedSets = (
+  first: Set<string> | null,
+  second: Set<string> | null,
+) => {
+  if (!first) return second;
+  if (!second) return first;
+  const next = new Set<string>();
+  first.forEach((value) => {
+    if (second.has(value)) next.add(value);
   });
-  return orUnion;
+  return next;
 };
 
 export const pickSharedSettings = (
@@ -185,9 +170,7 @@ export const pickSharedSettings = (
     zoomHistory: source.zoomHistory,
     zoomIndex: source.zoomIndex,
     useAsNodeFilter: source.useAsNodeFilter,
-    nodeFilterMode: source.nodeFilterMode,
     useAsLinkFilter: source.useAsLinkFilter,
-    linkFilterMode: source.linkFilterMode,
   };
 };
 

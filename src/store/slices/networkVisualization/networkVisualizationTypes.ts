@@ -5,6 +5,7 @@ import type {
   NetworkViewDescriptor,
   NodeLinkNetworkViewSettings,
 } from '@/types/networkVisualization'
+import type { MatrixFilterDefinition, RuntimeEdgeMask } from '@/types/edgeFilter'
 
 export type NetworkVisualizationState = {
   controls: NetworkSelectorControlsState
@@ -13,6 +14,10 @@ export type NetworkVisualizationState = {
   layout: NetworkPanelLayoutItem[]
   matrixSettingsByViewId: Record<string, MatrixNetworkViewSettings>
   nodeLinkSettingsByViewId: Record<string, NodeLinkNetworkViewSettings>
+  activeNetworkFilter: MatrixFilterDefinition | null
+  activeEdgeMask: RuntimeEdgeMask | null
+  activeAggregatedNetworkFilter: MatrixFilterDefinition | null
+  activeAggregatedEdgeMask: RuntimeEdgeMask | null
   nextViewSeq: number
 }
 
@@ -45,5 +50,9 @@ export const initialNetworkVisualizationState: NetworkVisualizationState = {
   layout: [],
   matrixSettingsByViewId: {},
   nodeLinkSettingsByViewId: {},
+  activeNetworkFilter: null,
+  activeEdgeMask: null,
+  activeAggregatedNetworkFilter: null,
+  activeAggregatedEdgeMask: null,
   nextViewSeq: 1,
 }

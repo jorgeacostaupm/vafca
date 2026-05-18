@@ -2,7 +2,11 @@ import { useMemo } from "react";
 import { useAppSelector } from "@/store/hooks";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
-import { buildAtlasRoiColorById } from "@/utils/atlas/coloring";
+import {
+  buildAtlasColorCategories,
+  buildAtlasColorCategoryKey,
+  buildAtlasRoiColorById,
+} from "@/utils/atlas/coloring";
 import { buildLabelNameMap, normalizeMatrixOrder } from "@/utils/matrixOrder";
 
 type UseAtlasLabelPresentationArgs = {
@@ -30,39 +34,64 @@ export const useAtlasLabelPresentation = ({
   );
 
   const labelNames = useMemo(
-    () =>
-      atlas.order.length === 0
-        ? buildLabelNameMap(matrixOrderEntries)
-        : atlas.order.reduce<Record<string, string>>((acc, id) => {
+    () => {
+      const base =
+        atlas.order.length === 0
+          ? buildLabelNameMap(matrixOrderEntries)
+          : atlas.order.reduce<Record<string, string>>((acc, id) => {
             const label = atlas.labelsById[id];
             const acronym = label?.acronym?.trim();
             const name = label?.label?.trim();
             acc[id] = acronym ?? name ?? id;
             return acc;
-          }, {}),
-    [atlas.labelsById, atlas.order, matrixOrderEntries],
+          }, {});
+
+      dataset?.connectivity?.matrices.forEach((matrix) => {
+        matrix.reduction?.groups.forEach((group) => {
+          base[group.id] = group.label;
+        });
+      });
+      return base;
+    },
+    [atlas.labelsById, atlas.order, dataset?.connectivity?.matrices, matrixOrderEntries],
   );
 
   const labelTitles = useMemo(
     () =>
-      atlas.order.reduce<Record<string, string>>((acc, id) => {
+      {
+      const base = atlas.order.reduce<Record<string, string>>((acc, id) => {
         const meta = atlas.labelsById[id];
         if (!meta) return acc;
         acc[id] = meta.label ?? id;
         return acc;
-      }, {}),
-    [atlas.labelsById, atlas.order],
+      }, {});
+      dataset?.connectivity?.matrices.forEach((matrix) => {
+        matrix.reduction?.groups.forEach((group) => {
+          base[group.id] = group.label;
+        });
+      });
+      return base;
+    },
+    [atlas.labelsById, atlas.order, dataset?.connectivity?.matrices],
   );
 
   const labelAcronyms = useMemo(
     () =>
-      atlas.order.reduce<Record<string, string>>((acc, id) => {
+      {
+      const base = atlas.order.reduce<Record<string, string>>((acc, id) => {
         const meta = atlas.labelsById[id];
         if (!meta) return acc;
         acc[id] = meta.acronym?.trim() ? meta.acronym : id;
         return acc;
-      }, {}),
-    [atlas.labelsById, atlas.order],
+      }, {});
+      dataset?.connectivity?.matrices.forEach((matrix) => {
+        matrix.reduction?.groups.forEach((group) => {
+          base[group.id] = group.label;
+        });
+      });
+      return base;
+    },
+    [atlas.labelsById, atlas.order, dataset?.connectivity?.matrices],
   );
 
   const activeLabelIds = useMemo(() => {
@@ -71,13 +100,13 @@ export const useAtlasLabelPresentation = ({
     const baseIds = atlas.order.filter((id) => atlas.labelsById[id]?.enabled !== false);
     if (!useMatrixHierarchyOrder) return baseIds;
     if (!atlasDefinition?.rois?.length) return baseIds;
-    if (atlas.matrixHierarchyFields.length === 0) return baseIds;
+    if (atlas.colorFields.length === 0) return baseIds;
 
     const hierarchyLayout = buildCircularHierarchyLayout({
       labelIds: baseIds,
       radius: 1,
       atlasDefinition,
-      hierarchyFields: atlas.matrixHierarchyFields,
+      hierarchyFields: atlas.colorFields,
       categoryOrder: atlas.matrixHierarchyCategoryOrder,
     });
 
@@ -88,22 +117,48 @@ export const useAtlasLabelPresentation = ({
       .map((item) => item.labelId);
   }, [
     atlas.labelsById,
-    atlas.matrixHierarchyCategoryOrder,
-    atlas.matrixHierarchyFields,
+    atlas.colorFields,
     atlas.order,
+    atlas.matrixHierarchyCategoryOrder,
     atlasDefinition,
     matrixOrderIds,
     useMatrixHierarchyOrder,
   ]);
 
   const nodeColors = useMemo(
-    () =>
-      buildAtlasRoiColorById({
+    () => {
+      const baseColors = buildAtlasRoiColorById({
         atlasDefinition,
         colorFields: atlas.colorFields,
         colorPalette: atlas.colorPalette,
-      }),
-    [atlas.colorFields, atlas.colorPalette, atlasDefinition],
+      });
+      if (atlas.colorFields.length === 0) return baseColors;
+
+      const categories = buildAtlasColorCategories({
+        atlasDefinition,
+        colorFields: atlas.colorFields,
+        colorPalette: atlas.colorPalette,
+      });
+      const colorByCategory = new Map(
+        categories.map((category) => [category.key, category.color]),
+      );
+
+      dataset?.connectivity?.matrices.forEach((matrix) => {
+        matrix.reduction?.groups.forEach((group) => {
+          const values = atlas.colorFields.map((field) => group.criteria[field] ?? "Unknown");
+          const color = colorByCategory.get(buildAtlasColorCategoryKey(values));
+          if (color) baseColors[group.id] = color;
+        });
+      });
+
+      return baseColors;
+    },
+    [
+      atlas.colorFields,
+      atlas.colorPalette,
+      atlasDefinition,
+      dataset?.connectivity?.matrices,
+    ],
   );
 
   return {

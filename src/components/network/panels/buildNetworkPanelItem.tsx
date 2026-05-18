@@ -1,5 +1,7 @@
-import { resolveAllowedSet } from "@/components/network/networkFormatting";
-import { getLegendRange } from "@/utils/matrixViewUtils";
+import {
+  intersectAllowedSets,
+  resolveAllowedSet,
+} from "@/components/network/networkFormatting";
 import type { BuildPanelItem } from "@/types/networkPanels";
 import { NetworkPanelStatusContent } from "@/components/network/panels/NetworkPanelCommon";
 import NetworkPanelActions from "@/components/network/panels/NetworkPanelActions";
@@ -18,13 +20,18 @@ export const buildNetworkPanelItem: BuildPanelItem = ({
   visibilityByViewId,
   nodeFilterContributors,
   linkFilterContributors,
+  runtimeAllowedLinkIds,
+  runtimeAggregatedAllowedLinkIds,
+  matrixLegendRange,
 }) => {
   const view = computed.view;
   const isMatrixView = view.type === "matrix";
   const valueFilters = buildPanelValueFilters(computed);
   const viewTitle = resolveNetworkPanelViewTitle(view.type);
+  const sourceMatrix = dataset?.connectivity?.matrixIndex[matrixRecord.id];
+  const isReducedMatrix = sourceMatrix?.kind === "reduced";
   const skipCrossViewFiltering =
-    computed.useAsNodeFilter || computed.useAsLinkFilter;
+    isReducedMatrix || computed.useAsNodeFilter || computed.useAsLinkFilter;
 
   const allowedNodeIds = skipCrossViewFiltering
     ? null
@@ -34,7 +41,7 @@ export const buildNetworkPanelItem: BuildPanelItem = ({
         "nodeIds",
         visibilityByViewId,
       );
-  const allowedLinkIds = skipCrossViewFiltering
+  const crossViewAllowedLinkIds = skipCrossViewFiltering
     ? null
     : resolveAllowedSet(
         linkFilterContributors,
@@ -42,6 +49,10 @@ export const buildNetworkPanelItem: BuildPanelItem = ({
         "linkIds",
         visibilityByViewId,
       );
+  const allowedLinkIds = intersectAllowedSets(
+    crossViewAllowedLinkIds,
+    isReducedMatrix ? runtimeAggregatedAllowedLinkIds : runtimeAllowedLinkIds,
+  );
 
   const adapted = buildAdaptedNetworkPanelData({
     viewType: view.type,
@@ -59,18 +70,12 @@ export const buildNetworkPanelItem: BuildPanelItem = ({
     />
   );
 
-  const matrixLegendRange = isMatrixView
-    ? getLegendRange(
-        matrixRecord.data,
-        view.measureId,
-        view.statId,
-        dataset?.catalogs,
-      )
-    : undefined;
-
   return {
     id: view.id,
     title: `${viewTitle} · ${view.label}`,
+    className: computed.isRangeFilterSource
+      ? "network-panel-card--range-filter-source"
+      : undefined,
     actions: (
       <NetworkPanelActions
         view={view}

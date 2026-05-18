@@ -1,14 +1,22 @@
 {
-  "name": "AI-MIND AAL 90 ROIS",
+  "name": "AI-MIND AAL 90 ROIs",
   "id": "aal-90",
   "description": "Base AI-MIND AAL 90 ROIS atlas",
   "rois": [
     {
+      "index": 0,
+      "id": "aal90_085",
+      "atlasId": 85,
       "name": "Right Middle temporal gyrus",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 85,
       "label": "rMTG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.3505944468599985,
@@ -22055,15 +22063,22 @@
           -0.17887744580409548,
           -0.020169389403063953
         ]
-      ],
-      "acronym": "rMTG"
+      ]
     },
     {
+      "index": 1,
+      "id": "aal90_089",
+      "atlasId": 89,
       "name": "Right Inferior Temporal gyrus",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 89,
       "label": "rITG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.3505944468599985,
@@ -39850,15 +39865,22 @@
           0.12112255419590456,
           -0.31016938940306393
         ]
-      ],
-      "acronym": "rITG"
+      ]
     },
     {
+      "index": 2,
+      "id": "aal90_081",
+      "atlasId": 81,
       "name": "Right Superior Temporal gyrus",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 81,
       "label": "rSTG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.3505944468599985,
@@ -55565,15 +55587,22 @@
           -0.0688774458040955,
           -0.030169389403063962
         ]
-      ],
-      "acronym": "rSTG"
+      ]
     },
     {
+      "index": 3,
+      "id": "aal90_063",
+      "atlasId": 63,
       "name": "Right Supramarginal gyrus",
-      "hemisphere": "right",
-      "lobule": "Parietal",
-      "id": 63,
       "label": "rSMG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.3405944468599985,
@@ -65445,15 +65474,22 @@
           -0.11887744580409548,
           0.129830610596936
         ]
-      ],
-      "acronym": "rSMG"
+      ]
     },
     {
+      "index": 4,
+      "id": "aal90_017",
+      "atlasId": 17,
       "name": "Right Rolandic operculum",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 17,
       "label": "rRO",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.3405944468599985,
@@ -72110,15 +72146,22 @@
           -0.00887744580409544,
           0.009830610596936074
         ]
-      ],
-      "acronym": "rRO"
+      ]
     },
     {
+      "index": 5,
+      "id": "aal90_057",
+      "atlasId": 57,
       "name": "Right Postcentral gyrus",
-      "hemisphere": "right",
-      "lobule": "Parietal",
-      "id": 57,
       "label": "rPreG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.3405944468599985,
@@ -91235,15 +91278,22 @@
           -0.08887744580409546,
           0.31983061059693607
         ]
-      ],
-      "acronym": "rPreG"
+      ]
     },
     {
+      "index": 6,
+      "id": "aal90_083",
+      "atlasId": 83,
       "name": "Right Temporal pole, Superior Temporal gyrus",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 83,
       "label": "rTPsup",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.3405944468599985,
@@ -97935,15 +97985,22 @@
           0.1611225541959045,
           -0.26016938940306394
         ]
-      ],
-      "acronym": "rTPsup"
+      ]
     },
     {
+      "index": 7,
+      "id": "aal90_079",
+      "atlasId": 79,
       "name": "Right Heschl's gyrus",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 79,
       "label": "rHeschl",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.33059444685999856,
@@ -99190,15 +99247,22 @@
           -0.048877445804095476,
           -0.010169389403063944
         ]
-      ],
-      "acronym": "rHeschl"
+      ]
     },
     {
+      "index": 8,
+      "id": "aal90_087",
+      "atlasId": 87,
       "name": "Right Temporal pole, Middle temporal gyrus",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 87,
       "label": "rTPmid",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.33059444685999856,
@@ -105135,15 +105199,22 @@
           0.15112255419590448,
           -0.2801693894030639
         ]
-      ],
-      "acronym": "rTPmid"
+      ]
     },
     {
+      "index": 9,
+      "id": "aal90_001",
+      "atlasId": 1,
       "name": "Right Precentral gyrus",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 1,
       "label": "rPreCG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.33059444685999856,
@@ -122050,15 +122121,22 @@
           -0.00887744580409544,
           0.30983061059693606
         ]
-      ],
-      "acronym": "rPreCG"
+      ]
     },
     {
+      "index": 10,
+      "id": "aal90_011",
+      "atlasId": 11,
       "name": "Right Inferior Frontal gyrus, Opercular",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 11,
       "label": "rIFGor",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.32059444685999855,
@@ -129055,15 +129133,22 @@
           0.1611225541959045,
           0.05983061059693606
         ]
-      ],
-      "acronym": "rIFGor"
+      ]
     },
     {
+      "index": 11,
+      "id": "aal90_013",
+      "atlasId": 13,
       "name": "Right Inferior Frontal gyrus, Triangular",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 13,
       "label": "rIFGt",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.32059444685999855,
@@ -139820,15 +139905,22 @@
           0.22112255419590454,
           0.049830610596936054
         ]
-      ],
-      "acronym": "rIFGt"
+      ]
     },
     {
+      "index": 12,
+      "id": "aal90_065",
+      "atlasId": 65,
       "name": "Right Angular gyrus",
-      "hemisphere": "right",
-      "lobule": "Parietal",
-      "id": 65,
       "label": "rAng",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.31059444685999854,
@@ -148590,15 +148682,22 @@
           -0.21887744580409546,
           0.13983061059693602
         ]
-      ],
-      "acronym": "rAng"
+      ]
     },
     {
+      "index": 13,
+      "id": "aal90_061",
+      "atlasId": 61,
       "name": "Right Inferior Parietal gyrus",
-      "hemisphere": "right",
-      "lobule": "Parietal",
-      "id": 61,
       "label": "rIPG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.30059444685999853,
@@ -155325,15 +155424,22 @@
           -0.14887744580409545,
           0.16983061059693605
         ]
-      ],
-      "acronym": "rIPG"
+      ]
     },
     {
+      "index": 14,
+      "id": "aal90_015",
+      "atlasId": 15,
       "name": "Right Inferior Frontal gyrus, Orbital",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 15,
       "label": "rIFGo",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.30059444685999853,
@@ -163870,15 +163976,22 @@
           0.1611225541959045,
           -0.21016938940306396
         ]
-      ],
-      "acronym": "rIFGo"
+      ]
     },
     {
+      "index": 15,
+      "id": "aal90_051",
+      "atlasId": 51,
       "name": "Right Middle Occipital lobe",
-      "hemisphere": "right",
-      "lobule": "Occipital",
-      "id": 51,
       "label": "rMOccL",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.28059444685999857,
@@ -174370,15 +174483,22 @@
           -0.34887744580409547,
           -0.06016938940306393
         ]
-      ],
-      "acronym": "rMOccL"
+      ]
     },
     {
+      "index": 16,
+      "id": "aal90_007",
+      "atlasId": 7,
       "name": "Right Middle Frontal gyrus",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 7,
       "label": "rMFG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.28059444685999857,
@@ -199900,15 +200020,22 @@
           0.4011225541959045,
           0.049830610596936054
         ]
-      ],
-      "acronym": "rMFG"
+      ]
     },
     {
+      "index": 17,
+      "id": "aal90_053",
+      "atlasId": 53,
       "name": "Right Inferior Occipital lobe",
-      "hemisphere": "right",
-      "lobule": "Occipital",
-      "id": 53,
       "label": "rIOccl",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.27059444685999856,
@@ -204855,15 +204982,22 @@
           -0.37887744580409544,
           -0.12016938940306393
         ]
-      ],
-      "acronym": "rIOccl"
+      ]
     },
     {
+      "index": 18,
+      "id": "aal90_059",
+      "atlasId": 59,
       "name": "Right Superior Parietal gyrus",
-      "hemisphere": "right",
-      "lobule": "Parietal",
-      "id": 59,
       "label": "rSPG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.27059444685999856,
@@ -215975,15 +216109,22 @@
           -0.2588774458040955,
           0.239830610596936
         ]
-      ],
-      "acronym": "rSPG"
+      ]
     },
     {
+      "index": 19,
+      "id": "aal90_009",
+      "atlasId": 9,
       "name": "Right Middle Frontal gyrus, Orbital",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 9,
       "label": "rMFGo",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.26059444685999855,
@@ -221060,15 +221201,22 @@
           0.3811225541959046,
           -0.18016938940306393
         ]
-      ],
-      "acronym": "rMFGo"
+      ]
     },
     {
+      "index": 20,
+      "id": "aal90_055",
+      "atlasId": 55,
       "name": "Right Fusiform gyrus",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 55,
       "label": "rFusiG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.25059444685999854,
@@ -233660,15 +233808,22 @@
           0.14112255419590447,
           -0.31016938940306393
         ]
-      ],
-      "acronym": "rFusiG"
+      ]
     },
     {
+      "index": 21,
+      "id": "aal90_029",
+      "atlasId": 29,
       "name": "Right Insula",
-      "hemisphere": "right",
-      "lobule": "Insula and cigulate gyri",
-      "id": 29,
       "label": "rInsula",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Insula and cigulate gyri",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.24059444685999853,
@@ -242520,15 +242675,22 @@
           0.20112255419590452,
           -0.14016938940306395
         ]
-      ],
-      "acronym": "rInsula"
+      ]
     },
     {
+      "index": 22,
+      "id": "aal90_047",
+      "atlasId": 47,
       "name": "Right Lingual gyrus",
-      "hemisphere": "right",
-      "lobule": "Occipital",
-      "id": 47,
       "label": "rLingual",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.21059444685999854,
@@ -254030,15 +254192,22 @@
           -0.2488774458040955,
           -0.050169389403063924
         ]
-      ],
-      "acronym": "rLingual"
+      ]
     },
     {
+      "index": 23,
+      "id": "aal90_037",
+      "atlasId": 37,
       "name": "Right Hippocampus",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 37,
       "label": "rHip",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.20059444685999855,
@@ -258770,15 +258939,22 @@
           -0.08887744580409546,
           -0.04016938940306397
         ]
-      ],
-      "acronym": "rHip"
+      ]
     },
     {
+      "index": 24,
+      "id": "aal90_049",
+      "atlasId": 49,
       "name": "Right Superior Occipital lobe",
-      "hemisphere": "right",
-      "lobule": "Occipital",
-      "id": 49,
       "label": "rSOccL",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.18059444685999854,
@@ -265845,15 +266021,22 @@
           -0.39887744580409545,
           0.009830610596936074
         ]
-      ],
-      "acronym": "rSOccL"
+      ]
     },
     {
+      "index": 25,
+      "id": "aal90_039",
+      "atlasId": 39,
       "name": "Right Parahippocampus",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 39,
       "label": "rParahip",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.18059444685999854,
@@ -271515,15 +271698,22 @@
           0.08112255419590453,
           -0.19016938940306394
         ]
-      ],
-      "acronym": "rParahip"
+      ]
     },
     {
+      "index": 26,
+      "id": "aal90_003",
+      "atlasId": 3,
       "name": "Right Superior Frontal gyrus",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 3,
       "label": "rSFG",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.18059444685999854,
@@ -291805,15 +291995,22 @@
           0.4311225541959045,
           -0.10016938940306397
         ]
-      ],
-      "acronym": "rSFG"
+      ]
     },
     {
+      "index": 27,
+      "id": "aal90_073",
+      "atlasId": 73,
       "name": "Right Putamen",
-      "hemisphere": "right",
-      "lobule": "Subcortical",
-      "id": 73,
       "label": "rPut",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Subcortical",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.17059444685999853,
@@ -297135,15 +297332,22 @@
           0.14112255419590447,
           -0.12016938940306393
         ]
-      ],
-      "acronym": "rPut"
+      ]
     },
     {
+      "index": 28,
+      "id": "aal90_041",
+      "atlasId": 41,
       "name": "Right Amygdala",
-      "hemisphere": "right",
-      "lobule": "Temporal",
-      "id": 41,
       "label": "rAmyg",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.17059444685999853,
@@ -298385,15 +298589,22 @@
           0.10112255419590455,
           -0.17016938940306392
         ]
-      ],
-      "acronym": "rAmyg"
+      ]
     },
     {
+      "index": 29,
+      "id": "aal90_005",
+      "atlasId": 5,
       "name": "Right Superior Frontal gyrus, Orbital",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 5,
       "label": "rSFo",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.16059444685999852,
@@ -303380,15 +303591,22 @@
           0.39112255419590447,
           -0.20016938940306395
         ]
-      ],
-      "acronym": "rSFo"
+      ]
     },
     {
+      "index": 30,
+      "id": "aal90_043",
+      "atlasId": 43,
       "name": "Right Calcarine fissure and surrounding cortex",
-      "hemisphere": "right",
-      "lobule": "Occipital",
-      "id": 43,
       "label": "rCalc",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.15059444685999857,
@@ -312695,15 +312913,22 @@
           -0.20887744580409545,
           -0.020169389403063953
         ]
-      ],
-      "acronym": "rCalc"
+      ]
     },
     {
+      "index": 31,
+      "id": "aal90_067",
+      "atlasId": 67,
       "name": "Right Precuneus",
-      "hemisphere": "right",
-      "lobule": "Parietal",
-      "id": 67,
       "label": "rPrecu",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.14059444685999856,
@@ -329030,15 +329255,22 @@
           -0.15887744580409546,
           0.259830610596936
         ]
-      ],
-      "acronym": "rPrecu"
+      ]
     },
     {
+      "index": 32,
+      "id": "aal90_075",
+      "atlasId": 75,
       "name": "Right Pallidum",
-      "hemisphere": "right",
-      "lobule": "Subcortical",
-      "id": 75,
       "label": "rPall",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Subcortical",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.14059444685999856,
@@ -330440,15 +330672,22 @@
           0.11112255419590455,
           -0.10016938940306397
         ]
-      ],
-      "acronym": "rPall"
+      ]
     },
     {
+      "index": 33,
+      "id": "aal90_021",
+      "atlasId": 21,
       "name": "Right Olfactory cortex",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 21,
       "label": "rOlfC",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.14059444685999856,
@@ -331895,15 +332134,22 @@
           0.21112255419590453,
           -0.10016938940306397
         ]
-      ],
-      "acronym": "rOlfC"
+      ]
     },
     {
+      "index": 34,
+      "id": "aal90_045",
+      "atlasId": 45,
       "name": "Right Cuneus",
-      "hemisphere": "right",
-      "lobule": "Occipital",
-      "id": 45,
       "label": "rCu",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.12059444685999854,
@@ -339025,15 +339271,22 @@
           -0.22887744580409547,
           0.009830610596936074
         ]
-      ],
-      "acronym": "rCu"
+      ]
     },
     {
+      "index": 35,
+      "id": "aal90_077",
+      "atlasId": 77,
       "name": "Right Thalamus",
-      "hemisphere": "right",
-      "lobule": "Subcortical",
-      "id": 77,
       "label": "rThal",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Subcortical",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.11059444685999853,
@@ -344320,15 +344573,22 @@
           0.021122554195904475,
           -0.06016938940306393
         ]
-      ],
-      "acronym": "rThal"
+      ]
     },
     {
+      "index": 36,
+      "id": "aal90_071",
+      "atlasId": 71,
       "name": "Right Caudate nucleus",
-      "hemisphere": "right",
-      "lobule": "Subcortical",
-      "id": 71,
       "label": "rCauda",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Subcortical",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.10059444685999852,
@@ -349300,15 +349560,22 @@
           0.13112255419590457,
           -0.11016938940306392
         ]
-      ],
-      "acronym": "rCauda"
+      ]
     },
     {
+      "index": 37,
+      "id": "aal90_027",
+      "atlasId": 27,
       "name": "Right Gyrus Rectus",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 27,
       "label": "rRectus",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.10059444685999852,
@@ -353035,15 +353302,22 @@
           0.19112255419590451,
           -0.17016938940306392
         ]
-      ],
-      "acronym": "rRectus"
+      ]
     },
     {
+      "index": 38,
+      "id": "aal90_023",
+      "atlasId": 23,
       "name": "Right Superior Frontal gyrus, Medial",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 23,
       "label": "rSFGm",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.09059444685999857,
@@ -363715,15 +363989,22 @@
           0.4211225541959045,
           -0.030169389403063962
         ]
-      ],
-      "acronym": "rSFGm"
+      ]
     },
     {
+      "index": 39,
+      "id": "aal90_033",
+      "atlasId": 33,
       "name": "Right Cingulate gyrus, Middle part",
-      "hemisphere": "right",
-      "lobule": "Insula and cigulate gyri",
-      "id": 33,
       "label": "rMCC",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Insula and cigulate gyri",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.08059444685999856,
@@ -374740,15 +375021,22 @@
           0.06112255419590451,
           0.05983061059693606
         ]
-      ],
-      "acronym": "rMCC"
+      ]
     },
     {
+      "index": 40,
+      "id": "aal90_019",
+      "atlasId": 19,
       "name": "Right Supplementary Motor area",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 19,
       "label": "rMotor",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.08059444685999856,
@@ -386605,15 +386893,22 @@
           0.07112255419590452,
           0.15983061059693604
         ]
-      ],
-      "acronym": "rMotor"
+      ]
     },
     {
+      "index": 41,
+      "id": "aal90_031",
+      "atlasId": 31,
       "name": "Right Cingulate gyrus, Anterior part",
-      "hemisphere": "right",
-      "lobule": "Insula and cigulate gyri",
-      "id": 31,
       "label": "rACC",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Insula and cigulate gyri",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.08059444685999856,
@@ -393180,15 +393475,22 @@
           0.25112255419590457,
           -0.11016938940306392
         ]
-      ],
-      "acronym": "rACC"
+      ]
     },
     {
+      "index": 42,
+      "id": "aal90_035",
+      "atlasId": 35,
       "name": "Right Cingulate gyrus, Posterior part",
-      "hemisphere": "right",
-      "lobule": "Insula and cigulate gyri",
-      "id": 35,
       "label": "rPCC",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Insula and cigulate gyri",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.07059444685999855,
@@ -394865,15 +395167,22 @@
           -0.11887744580409548,
           -0.00016938940306393535
         ]
-      ],
-      "acronym": "rPCC"
+      ]
     },
     {
+      "index": 43,
+      "id": "aal90_069",
+      "atlasId": 69,
       "name": "Right Paracentral lobule",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 69,
       "label": "rParaL",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.07059444685999855,
@@ -399055,15 +399364,22 @@
           -0.048877445804095476,
           0.259830610596936
         ]
-      ],
-      "acronym": "rParaL"
+      ]
     },
     {
+      "index": 44,
+      "id": "aal90_025",
+      "atlasId": 25,
       "name": "Right Superior Frontal gyrus, Medial Orbital",
-      "hemisphere": "right",
-      "lobule": "Frontal",
-      "id": 25,
       "label": "rSFGmo",
+      "tags": {
+        "hemisphere": "right",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.07059444685999855,
@@ -403345,15 +403661,22 @@
           0.34112255419590454,
           -0.15016938940306396
         ]
-      ],
-      "acronym": "rSFGmo"
+      ]
     },
     {
+      "index": 45,
+      "id": "aal90_042",
+      "atlasId": 42,
       "name": "Left Calcarine fissure and surrounding cortex",
-      "hemisphere": "left",
-      "lobule": "Occipital",
-      "id": 42,
       "label": "lCalc",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.02059444685999856,
@@ -414645,15 +414968,22 @@
           -0.1988774458040955,
           -0.04016938940306397
         ]
-      ],
-      "acronym": "lCalc"
+      ]
     },
     {
+      "index": 46,
+      "id": "aal90_044",
+      "atlasId": 44,
       "name": "Left Cuneus",
-      "hemisphere": "left",
-      "lobule": "Occipital",
-      "id": 44,
       "label": "lCu",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.010594446859998552,
@@ -422285,15 +422615,22 @@
           -0.1988774458040955,
           0.039830610596936045
         ]
-      ],
-      "acronym": "lCu"
+      ]
     },
     {
+      "index": 47,
+      "id": "aal90_046",
+      "atlasId": 46,
       "name": "Left Lingual gyrus",
-      "hemisphere": "left",
-      "lobule": "Occipital",
-      "id": 46,
       "label": "lLingual",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.0005944468599985431,
@@ -432770,15 +433107,22 @@
           -0.34887744580409547,
           -0.17016938940306392
         ]
-      ],
-      "acronym": "lLingual"
+      ]
     },
     {
+      "index": 48,
+      "id": "aal90_066",
+      "atlasId": 66,
       "name": "Left Precuneus",
-      "hemisphere": "left",
-      "lobule": "Parietal",
-      "id": 66,
       "label": "lPrecu",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.0005944468599985431,
@@ -450420,15 +450764,22 @@
           -0.1888774458040955,
           -0.050169389403063924
         ]
-      ],
-      "acronym": "lPrecu"
+      ]
     },
     {
+      "index": 49,
+      "id": "aal90_034",
+      "atlasId": 34,
       "name": "Left Cingulate gyrus, Posterior part",
-      "hemisphere": "left",
-      "lobule": "Insula and cigulate gyri",
-      "id": 34,
       "label": "lPCC",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Insula and cigulate gyri",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.0005944468599985431,
@@ -452745,15 +453096,22 @@
           -0.1388774458040955,
           -0.050169389403063924
         ]
-      ],
-      "acronym": "lPCC"
+      ]
     },
     {
+      "index": 50,
+      "id": "aal90_018",
+      "atlasId": 18,
       "name": "Left Supplementary Motor area",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 18,
       "label": "lMotor",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.0005944468599985431,
@@ -463490,15 +463848,22 @@
           0.08112255419590453,
           0.239830610596936
         ]
-      ],
-      "acronym": "lMotor"
+      ]
     },
     {
+      "index": 51,
+      "id": "aal90_032",
+      "atlasId": 32,
       "name": "Left Cingulate gyrus, Middle part",
-      "hemisphere": "left",
-      "lobule": "Insula and cigulate gyri",
-      "id": 32,
       "label": "lMCC",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Insula and cigulate gyri",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.0005944468599985431,
@@ -473205,15 +473570,22 @@
           -0.058877445804095485,
           0.129830610596936
         ]
-      ],
-      "acronym": "lMCC"
+      ]
     },
     {
+      "index": 52,
+      "id": "aal90_022",
+      "atlasId": 22,
       "name": "Left Superior Frontal gyrus, Medial",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 22,
       "label": "lSFGm",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.0005944468599985431,
@@ -488175,15 +488547,22 @@
           0.4211225541959045,
           -0.09016938940306396
         ]
-      ],
-      "acronym": "lSFGm"
+      ]
     },
     {
+      "index": 53,
+      "id": "aal90_030",
+      "atlasId": 30,
       "name": "Left Cingulate gyrus, Anterior part",
-      "hemisphere": "left",
-      "lobule": "Insula and cigulate gyri",
-      "id": 30,
       "label": "lACC",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Insula and cigulate gyri",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.0005944468599985431,
@@ -495185,15 +495564,22 @@
           0.3211225541959045,
           -0.09016938940306396
         ]
-      ],
-      "acronym": "lACC"
+      ]
     },
     {
+      "index": 54,
+      "id": "aal90_026",
+      "atlasId": 26,
       "name": "Left Gyrus Rectus",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 26,
       "label": "lRectus",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.0005944468599985431,
@@ -499455,15 +499841,22 @@
           0.14112255419590447,
           -0.16016938940306397
         ]
-      ],
-      "acronym": "lRectus"
+      ]
     },
     {
+      "index": 55,
+      "id": "aal90_024",
+      "atlasId": 24,
       "name": "Left Superior Frontal gyrus, Medial Orbital",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 24,
       "label": "lSFGmo",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           -0.0005944468599985431,
@@ -503060,15 +503453,22 @@
           0.4311225541959045,
           -0.10016938940306397
         ]
-      ],
-      "acronym": "lSFGmo"
+      ]
     },
     {
+      "index": 56,
+      "id": "aal90_068",
+      "atlasId": 68,
       "name": "Left Paracentral lobule",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 68,
       "label": "lParaL",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.009405553140001466,
@@ -509815,15 +510215,22 @@
           0.031122554195904484,
           0.239830610596936
         ]
-      ],
-      "acronym": "lParaL"
+      ]
     },
     {
+      "index": 57,
+      "id": "aal90_076",
+      "atlasId": 76,
       "name": "Left Thalamus",
-      "hemisphere": "left",
-      "lobule": "Subcortical",
-      "id": 76,
       "label": "lThal",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Subcortical",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.009405553140001466,
@@ -515325,15 +515732,22 @@
           -0.00887744580409544,
           -0.06016938940306393
         ]
-      ],
-      "acronym": "lThal"
+      ]
     },
     {
+      "index": 58,
+      "id": "aal90_020",
+      "atlasId": 20,
       "name": "Left Olfactory cortex",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 20,
       "label": "lOlfC",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.009405553140001466,
@@ -516735,15 +517149,22 @@
           0.11112255419590455,
           -0.17016938940306392
         ]
-      ],
-      "acronym": "lOlfC"
+      ]
     },
     {
+      "index": 59,
+      "id": "aal90_048",
+      "atlasId": 48,
       "name": "Left Superior Occipital lobe",
-      "hemisphere": "left",
-      "lobule": "Occipital",
-      "id": 48,
       "label": "lSOccL",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.019405553140001475,
@@ -523575,15 +523996,22 @@
           -0.38887744580409545,
           0.039830610596936045
         ]
-      ],
-      "acronym": "lSOccL"
+      ]
     },
     {
+      "index": 60,
+      "id": "aal90_070",
+      "atlasId": 70,
       "name": "Left Caudate nucleus",
-      "hemisphere": "left",
-      "lobule": "Subcortical",
-      "id": 70,
       "label": "lCauda",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Subcortical",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.019405553140001475,
@@ -528395,15 +528823,22 @@
           0.1611225541959045,
           -0.010169389403063944
         ]
-      ],
-      "acronym": "lCauda"
+      ]
     },
     {
+      "index": 61,
+      "id": "aal90_002",
+      "atlasId": 2,
       "name": "Left Superior Frontal gyrus",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 2,
       "label": "lSFG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.029405553140001428,
@@ -546400,15 +546835,22 @@
           0.3811225541959046,
           -0.09016938940306396
         ]
-      ],
-      "acronym": "lSFG"
+      ]
     },
     {
+      "index": 62,
+      "id": "aal90_050",
+      "atlasId": 50,
       "name": "Left Middle Occipital lobe",
-      "hemisphere": "left",
-      "lobule": "Occipital",
-      "id": 50,
       "label": "lMOccL",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.03940555314000144,
@@ -562760,15 +563202,22 @@
           -0.26887744580409545,
           -0.10016938940306397
         ]
-      ],
-      "acronym": "lMOccL"
+      ]
     },
     {
+      "index": 63,
+      "id": "aal90_058",
+      "atlasId": 58,
       "name": "Left Superior Parietal gyrus",
-      "hemisphere": "left",
-      "lobule": "Parietal",
-      "id": 58,
       "label": "lSPG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.03940555314000144,
@@ -573095,15 +573544,22 @@
           -0.1288774458040955,
           0.18983061059693607
         ]
-      ],
-      "acronym": "lSPG"
+      ]
     },
     {
+      "index": 64,
+      "id": "aal90_004",
+      "atlasId": 4,
       "name": "Left Superior Frontal gyrus, Orbital",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 4,
       "label": "lSFo",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.03940555314000144,
@@ -577920,15 +578376,22 @@
           0.3811225541959046,
           -0.10016938940306397
         ]
-      ],
-      "acronym": "lSFo"
+      ]
     },
     {
+      "index": 65,
+      "id": "aal90_074",
+      "atlasId": 74,
       "name": "Left Pallidum",
-      "hemisphere": "left",
-      "lobule": "Subcortical",
-      "id": 74,
       "label": "lPall",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Subcortical",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.049405553140001446,
@@ -579395,15 +579858,22 @@
           0.0511225541959045,
           -0.10016938940306397
         ]
-      ],
-      "acronym": "lPall"
+      ]
     },
     {
+      "index": 66,
+      "id": "aal90_072",
+      "atlasId": 72,
       "name": "Left Putamen",
-      "hemisphere": "left",
-      "lobule": "Subcortical",
-      "id": 72,
       "label": "lPut",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Subcortical",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.049405553140001446,
@@ -584450,15 +584920,22 @@
           0.0011225541959045682,
           -0.12016938940306393
         ]
-      ],
-      "acronym": "lPut"
+      ]
     },
     {
+      "index": 67,
+      "id": "aal90_052",
+      "atlasId": 52,
       "name": "Left Inferior Occipital lobe",
-      "hemisphere": "left",
-      "lobule": "Occipital",
-      "id": 52,
       "label": "lIOccL",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Occipital",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.059405553140001455,
@@ -589165,15 +589642,22 @@
           -0.23887744580409548,
           -0.16016938940306397
         ]
-      ],
-      "acronym": "lIOccL"
+      ]
     },
     {
+      "index": 68,
+      "id": "aal90_036",
+      "atlasId": 36,
       "name": "Left Hippocampus",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 36,
       "label": "lHip",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.059405553140001455,
@@ -593835,15 +594319,22 @@
           -0.03887744580409547,
           -0.15016938940306396
         ]
-      ],
-      "acronym": "lHip"
+      ]
     },
     {
+      "index": 69,
+      "id": "aal90_038",
+      "atlasId": 38,
       "name": "Left Parahippocampus",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 38,
       "label": "lParahip",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.059405553140001455,
@@ -598735,15 +599226,22 @@
           -0.11887744580409548,
           -0.13016938940306394
         ]
-      ],
-      "acronym": "lParahip"
+      ]
     },
     {
+      "index": 70,
+      "id": "aal90_056",
+      "atlasId": 56,
       "name": "Left Postcentral gyrus",
-      "hemisphere": "left",
-      "lobule": "Parietal",
-      "id": 56,
       "label": "lPreG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.06940555314000146,
@@ -618205,15 +618703,22 @@
           0.06112255419590451,
           0.009830610596936074
         ]
-      ],
-      "acronym": "lPreG"
+      ]
     },
     {
+      "index": 71,
+      "id": "aal90_040",
+      "atlasId": 40,
       "name": "Left Amygdala",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 40,
       "label": "lAmyg",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.06940555314000146,
@@ -619315,15 +619820,22 @@
           0.10112255419590455,
           -0.18016938940306393
         ]
-      ],
-      "acronym": "lAmyg"
+      ]
     },
     {
+      "index": 72,
+      "id": "aal90_054",
+      "atlasId": 54,
       "name": "Left Fusiform gyrus",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 54,
       "label": "lFusiG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.07940555314000147,
@@ -630875,15 +631387,22 @@
           -0.1988774458040955,
           -0.19016938940306394
         ]
-      ],
-      "acronym": "lFusiG"
+      ]
     },
     {
+      "index": 73,
+      "id": "aal90_000",
+      "atlasId": 0,
       "name": "Left Precentral gyrus",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 0,
       "label": "lPreCG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.07940555314000147,
@@ -648515,15 +649034,22 @@
           0.12112255419590456,
           0.07983061059693608
         ]
-      ],
-      "acronym": "lPreCG"
+      ]
     },
     {
+      "index": 74,
+      "id": "aal90_014",
+      "atlasId": 14,
       "name": "Left Inferior Frontal gyrus, Orbital",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 14,
       "label": "lIFGo",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.07940555314000147,
@@ -656975,15 +657501,22 @@
           0.2911225541959045,
           -0.11016938940306392
         ]
-      ],
-      "acronym": "lIFGo"
+      ]
     },
     {
+      "index": 75,
+      "id": "aal90_008",
+      "atlasId": 8,
       "name": "Left Middle Frontal gyrus, Orbital",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 8,
       "label": "lMFGo",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.07940555314000147,
@@ -661425,15 +661958,22 @@
           0.33112255419590453,
           -0.10016938940306397
         ]
-      ],
-      "acronym": "lMFGo"
+      ]
     },
     {
+      "index": 76,
+      "id": "aal90_086",
+      "atlasId": 86,
       "name": "Left Temporal pole, Middle temporal gyrus",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 86,
       "label": "lTPmid",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.08940555314000148,
@@ -665210,15 +665750,22 @@
           0.11112255419590455,
           -0.21016938940306396
         ]
-      ],
-      "acronym": "lTPmid"
+      ]
     },
     {
+      "index": 77,
+      "id": "aal90_082",
+      "atlasId": 82,
       "name": "Left Temporal pole, Superior Temporal gyrus",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 82,
       "label": "lTPsup",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.09940555314000149,
@@ -671645,15 +672192,22 @@
           0.12112255419590456,
           -0.10016938940306397
         ]
-      ],
-      "acronym": "lTPsup"
+      ]
     },
     {
+      "index": 78,
+      "id": "aal90_006",
+      "atlasId": 6,
       "name": "Left Middle Frontal gyrus",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 6,
       "label": "lMFG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.09940555314000149,
@@ -695970,15 +696524,22 @@
           0.21112255419590453,
           0.07983061059693608
         ]
-      ],
-      "acronym": "lMFG"
+      ]
     },
     {
+      "index": 79,
+      "id": "aal90_060",
+      "atlasId": 60,
       "name": "Left Inferior Parietal gyrus",
-      "hemisphere": "left",
-      "lobule": "Parietal",
-      "id": 60,
       "label": "lIPG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.11940555314000151,
@@ -708215,15 +708776,22 @@
           -0.01887744580409545,
           0.13983061059693602
         ]
-      ],
-      "acronym": "lIPG"
+      ]
     },
     {
+      "index": 80,
+      "id": "aal90_028",
+      "atlasId": 28,
       "name": "Left Insula",
-      "hemisphere": "left",
-      "lobule": "Insula and cigulate gyri",
-      "id": 28,
       "label": "lInsula",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Insula and cigulate gyri",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.1294055531400014,
@@ -717515,15 +718083,22 @@
           0.10112255419590455,
           -0.07016938940306394
         ]
-      ],
-      "acronym": "lInsula"
+      ]
     },
     {
+      "index": 81,
+      "id": "aal90_064",
+      "atlasId": 64,
       "name": "Left Angular gyrus",
-      "hemisphere": "left",
-      "lobule": "Parietal",
-      "id": 64,
       "label": "lAng",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.13940555314000141,
@@ -723390,15 +723965,22 @@
           -0.20887744580409545,
           0.049830610596936054
         ]
-      ],
-      "acronym": "lAng"
+      ]
     },
     {
+      "index": 82,
+      "id": "aal90_088",
+      "atlasId": 88,
       "name": "Left Inferior Temporal gyrus",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 88,
       "label": "lITG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.13940555314000141,
@@ -739400,15 +739982,22 @@
           -0.058877445804095485,
           -0.18016938940306393
         ]
-      ],
-      "acronym": "lITG"
+      ]
     },
     {
+      "index": 83,
+      "id": "aal90_012",
+      "atlasId": 12,
       "name": "Left Inferior Frontal gyrus, Triangular",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 12,
       "label": "lIFGt",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.15940555314000143,
@@ -752055,15 +752644,22 @@
           0.21112255419590453,
           -0.020169389403063953
         ]
-      ],
-      "acronym": "lIFGt"
+      ]
     },
     {
+      "index": 84,
+      "id": "aal90_078",
+      "atlasId": 78,
       "name": "Left Heschl's gyrus",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 78,
       "label": "lHeschl",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.16940555314000144,
@@ -753190,15 +753786,22 @@
           0.04112255419590449,
           -0.050169389403063924
         ]
-      ],
-      "acronym": "lHeschl"
+      ]
     },
     {
+      "index": 85,
+      "id": "aal90_016",
+      "atlasId": 16,
       "name": "Left Rolandic operculum",
-      "hemisphere": "left",
-      "lobule": "Frontal",
-      "id": 16,
       "label": "lRO",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.16940555314000144,
@@ -758150,15 +758753,22 @@
           0.08112255419590453,
           -0.04016938940306397
         ]
-      ],
-      "acronym": "lRO"
+      ]
     },
     {
-      "id": 10,
+      "index": 86,
+      "id": "aal90_010",
+      "atlasId": 10,
       "name": "Left Inferior Frontal gyrus, Opercular",
-      "hemisphere": "left",
-      "lobule": "Frontal",
       "label": "lIFGop",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Frontal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.16940555314000144,
@@ -763350,15 +763960,22 @@
           0.14112255419590447,
           -0.020169389403063953
         ]
-      ],
-      "acronym": "lIFGop"
+      ]
     },
     {
+      "index": 87,
+      "id": "aal90_084",
+      "atlasId": 84,
       "name": "Left Middle temporal gyrus",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 84,
       "label": "lMTG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.18940555314000146,
@@ -788070,15 +788687,22 @@
           -0.048877445804095476,
           -0.09016938940306396
         ]
-      ],
-      "acronym": "lMTG"
+      ]
     },
     {
+      "index": 88,
+      "id": "aal90_080",
+      "atlasId": 80,
       "name": "Left Superior Temporal gyrus",
-      "hemisphere": "left",
-      "lobule": "Temporal",
-      "id": 80,
       "label": "lSTG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Temporal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.18940555314000146,
@@ -799560,15 +800184,22 @@
           0.021122554195904475,
           -0.08016938940306395
         ]
-      ],
-      "acronym": "lSTG"
+      ]
     },
     {
+      "index": 89,
+      "id": "aal90_062",
+      "atlasId": 62,
       "name": "Left Supramarginal gyrus",
-      "hemisphere": "left",
-      "lobule": "Parietal",
-      "id": 62,
       "label": "lSMG",
+      "tags": {
+        "hemisphere": "left",
+        "lobule": "Parietal",
+        "network": null,
+        "structureType": "cortical"
+      },
+      "coords": null,
+      "metadata": {},
       "mesh_points": [
         [
           0.21940555314000149,
@@ -805850,8 +806481,10 @@
           -0.01887744580409545,
           0.05983061059693606
         ]
-      ],
-      "acronym": "lSMG"
+      ]
     }
-  ]
+  ],
+  "version": "1.0.0",
+  "space": "MNI",
+  "coordinateSystem": "MNI152"
 }

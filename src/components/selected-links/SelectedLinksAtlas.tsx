@@ -139,14 +139,17 @@ export default function SelectedLinksAtlas() {
         new THREE.Vector3(),
       );
       center.divideScalar(points.length);
+      const roiIds = [String(roi.id), String(roi.atlasId)];
       mesh.userData = {
         roiId: String(roi.id),
         baseColor: baseColor.clone(),
         highlightColor: highlightColor.clone(),
         baseOpacity: material.opacity,
       };
-      roiObjects.set(String(roi.id), mesh);
-      roiCenters.set(String(roi.id), center);
+      roiIds.forEach((id) => {
+        roiObjects.set(id, mesh);
+        roiCenters.set(id, center);
+      });
       group.add(mesh);
     });
 
@@ -181,7 +184,7 @@ export default function SelectedLinksAtlas() {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       controls.dispose();
       renderer.dispose();
-      for (const mesh of roiObjects.values()) {
+      for (const mesh of new Set(roiObjects.values())) {
         mesh.geometry.dispose();
         if (Array.isArray(mesh.material)) {
           for (const material of mesh.material) {

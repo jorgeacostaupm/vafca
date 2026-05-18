@@ -1,4 +1,3 @@
-import type { MatrixShape } from "@/types/matrix";
 import type { ConnectivityMatrix } from "@/types/matrix";
 import type { SelectedLink } from "@/types/visualizationUi";
 
@@ -27,7 +26,6 @@ export type BuildLinkValuesParams = {
   layerIds: string[];
   matrixCache: MatrixCache;
   atlasIndex: Map<string, number>;
-  matrixShape: MatrixShape;
 };
 
 export type BuildRowsParams = {
@@ -35,7 +33,6 @@ export type BuildRowsParams = {
   selectedMatrixIds: string[];
   matrixCache: MatrixCache;
   atlasIndex: Map<string, number>;
-  matrixShape: MatrixShape;
 };
 
 export type ExportedLink = {
@@ -50,7 +47,6 @@ export type ExportedLink = {
 export type SelectedLinksExportPayload = {
   exportedAt: string;
   mode: DownloadMode;
-  matrixShape: MatrixShape;
   linksCount: number;
   layersCount: number;
   layers: Array<{
@@ -59,4 +55,3 @@ export type SelectedLinksExportPayload = {
   }>;
   links: ExportedLink[];
 };
-

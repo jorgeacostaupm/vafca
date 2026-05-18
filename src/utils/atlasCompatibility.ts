@@ -16,6 +16,18 @@ const findMissingIds = (sourceIds: string[], targetIds: string[]) => {
   return sourceIds.filter((id) => !targetSet.has(id));
 };
 
+const findAtlasRoisMissingFromMatrix = (
+  atlas: AtlasDefinition | null | undefined,
+  matrixIds: string[],
+) => {
+  const matrixSet = new Set(matrixIds);
+  return (
+    atlas?.rois
+      .filter((roi) => !matrixSet.has(String(roi.id)) && !matrixSet.has(String(roi.atlasId)))
+      .map((roi) => String(roi.id)) ?? []
+  );
+};
+
 const summarizeMissingIds = (missingIds: string[], sourceName: string) => {
   const shownIds = missingIds.slice(0, 5).join(", ");
   const suffix = missingIds.length > 5 ? ` and ${missingIds.length - 5} more` : "";
@@ -28,6 +40,10 @@ export const checkAtlasMatrixCompatibility = (
 ): AtlasCompatibilityResult => {
   const matrixIds = normalizeMatrixOrder(matrixOrder).map((entry) => entry.id);
   const atlasIds = atlas?.rois.map((roi) => String(roi.id)) ?? [];
+  const atlasCompatibleIds = atlas?.rois.flatMap((roi) => [
+    String(roi.id),
+    String(roi.atlasId),
+  ]) ?? [];
 
   if (matrixIds.length === 0 || atlasIds.length === 0) {
     return {
@@ -46,7 +62,7 @@ export const checkAtlasMatrixCompatibility = (
     };
   }
 
-  const missingFromAtlas = findMissingIds(matrixIds, atlasIds);
+  const missingFromAtlas = findMissingIds(matrixIds, atlasCompatibleIds);
   if (missingFromAtlas.length > 0) {
     return {
       compatible: false,
@@ -56,7 +72,7 @@ export const checkAtlasMatrixCompatibility = (
     };
   }
 
-  const missingFromMatrix = findMissingIds(atlasIds, matrixIds);
+  const missingFromMatrix = findAtlasRoisMissingFromMatrix(atlas, matrixIds);
   if (missingFromMatrix.length > 0) {
     return {
       compatible: false,

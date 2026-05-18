@@ -11,6 +11,10 @@ export type AtlasDefinitionLoadError = {
 }
 
 const DEFAULT_ATLAS_STATUS_ID = '__default_atlas__'
+const DEFAULT_ATLAS_DEFINITION_PATH = 'data/atlas_3d_no_mesh_points.json'
+
+const buildPublicDataUrl = (path: string) =>
+  `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
 
 export type UploadAtlasPayload = {
   atlas: AtlasDefinition
@@ -30,7 +34,7 @@ export const loadDefaultAtlasDefinition = createAsyncThunk<
     requestedAtlasId?: string
     atlas: AtlasDefinition | null
   },
-  { atlasId?: string } | void,
+  { atlasId?: string; path?: string } | void,
   { rejectValue: AtlasDefinitionLoadError }
 >(
   'atlasDefinition/loadDefaultAtlasDefinition',
@@ -40,7 +44,7 @@ export const loadDefaultAtlasDefinition = createAsyncThunk<
 
     try {
       const response = await fetch(
-        `${import.meta.env.BASE_URL}data/atlas_3d_no_mesh_points.json`,
+        buildPublicDataUrl(payload?.path ?? DEFAULT_ATLAS_DEFINITION_PATH),
       )
       if (!response.ok) {
         return rejectWithValue({
@@ -49,7 +53,15 @@ export const loadDefaultAtlasDefinition = createAsyncThunk<
         })
       }
 
-      const atlasJson = (await response.json()) as AtlasDefinition
+      const result = validateAtlasDefinition(await response.json())
+      if (!result.ok) {
+        return rejectWithValue({
+          atlasId: statusAtlasId,
+          error: result.error,
+        })
+      }
+
+      const atlasJson = result.atlas
       const atlasId = atlasJson.id ?? statusAtlasId
 
       return { atlasId, requestedAtlasId, atlas: atlasJson }

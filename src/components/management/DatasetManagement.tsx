@@ -3,7 +3,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   downloadCurrentDataset,
 } from "@/store/slices/dataset";
-import NetworkManagementControls from "@/components/network/NetworkManagementControls";
 import DatasetSummaryHeader from "@/components/management/components/DatasetSummaryHeader";
 import MatrixSummarySection from "@/components/management/components/MatrixSummarySection";
 import CatalogManagementSections from "@/components/management/components/catalogs/CatalogManagementSections";
@@ -24,7 +23,12 @@ function DatasetManagement() {
   }
 
   if (!data) {
-    return <Typography.Text>No dataset loaded yet.</Typography.Text>;
+    return (
+      <Space direction="vertical" size={16} style={{ width: "100%" }}>
+        <Typography.Text>No dataset loaded yet.</Typography.Text>
+        <MatrixUploader />
+      </Space>
+    );
   }
 
   const handleDownload = () => {
@@ -34,10 +38,6 @@ function DatasetManagement() {
   return (
     <Space direction="vertical" size={16} style={{ width: "100%" }}>
       <DatasetSummaryHeader />
-
-      <div>
-        <NetworkManagementControls />
-      </div>
 
       <MatrixSummarySection />
 

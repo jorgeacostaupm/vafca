@@ -1,6 +1,5 @@
-import { Divider, Form, Select, Space, Switch, Typography } from "antd";
+import { Divider, Form, Space, Switch, Typography } from "antd";
 import DebouncedRangeSlider from "@/components/common/DebouncedRangeSlider";
-import type { LogicalMode } from "@/types/networkVisualization";
 import type {
   MatrixNetworkViewSettings,
   NodeLinkNetworkViewSettings,
@@ -19,12 +18,8 @@ type NetworkFilterRolePopoverProps = {
   ) => void;
   useAsNodeFilter: boolean;
   onUseAsNodeFilterChange: (checked: boolean) => void;
-  nodeFilterMode: LogicalMode;
-  onNodeFilterModeChange: (value: LogicalMode) => void;
   useAsLinkFilter: boolean;
   onUseAsLinkFilterChange: (checked: boolean) => void;
-  linkFilterMode: LogicalMode;
-  onLinkFilterModeChange: (value: LogicalMode) => void;
 };
 
 export default function NetworkFilterRolePopover({
@@ -35,12 +30,8 @@ export default function NetworkFilterRolePopover({
   onStatRangeChange,
   useAsNodeFilter,
   onUseAsNodeFilterChange,
-  nodeFilterMode,
-  onNodeFilterModeChange,
   useAsLinkFilter,
   onUseAsLinkFilterChange,
-  linkFilterMode,
-  onLinkFilterModeChange,
 }: NetworkFilterRolePopoverProps) {
   return (
     <Space direction="vertical" size={12} style={{ width: 280 }}>
@@ -118,32 +109,10 @@ export default function NetworkFilterRolePopover({
           onChange={(checked) => onUseAsNodeFilterChange(checked)}
         />
       </Form.Item>
-      <Form.Item label="Node mode">
-        <Select
-          value={nodeFilterMode}
-          disabled={!useAsNodeFilter}
-          onChange={(value) => onNodeFilterModeChange(value as LogicalMode)}
-          options={[
-            { value: "or", label: "OR (union)" },
-            { value: "and", label: "AND (intersection)" },
-          ]}
-        />
-      </Form.Item>
       <Form.Item label="Use as link filter" valuePropName="checked">
         <Switch
           checked={useAsLinkFilter}
           onChange={(checked) => onUseAsLinkFilterChange(checked)}
-        />
-      </Form.Item>
-      <Form.Item label="Link mode">
-        <Select
-          value={linkFilterMode}
-          disabled={!useAsLinkFilter}
-          onChange={(value) => onLinkFilterModeChange(value as LogicalMode)}
-          options={[
-            { value: "or", label: "OR (union)" },
-            { value: "and", label: "AND (intersection)" },
-          ]}
         />
       </Form.Item>
     </Space>

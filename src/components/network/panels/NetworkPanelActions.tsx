@@ -87,17 +87,9 @@ export default function NetworkPanelActions({
       onUseAsNodeFilterChange={(checked) =>
         patchSharedSettings({ useAsNodeFilter: checked })
       }
-      nodeFilterMode={computed.nodeFilterMode}
-      onNodeFilterModeChange={(value) =>
-        patchSharedSettings({ nodeFilterMode: value })
-      }
       useAsLinkFilter={computed.useAsLinkFilter}
       onUseAsLinkFilterChange={(checked) =>
         patchSharedSettings({ useAsLinkFilter: checked })
-      }
-      linkFilterMode={computed.linkFilterMode}
-      onLinkFilterModeChange={(value) =>
-        patchSharedSettings({ linkFilterMode: value })
       }
     />
   );

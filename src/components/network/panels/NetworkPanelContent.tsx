@@ -9,6 +9,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
 import type { ReactNode } from "react";
 import type { ComputedView } from "@/types/networkVisualization";
+import type { ResolvedUiRange } from "@/utils/matrixUiRange";
 import type { NetworkPanelCommonProps } from "@/types/networkPanels";
 import type { buildAdaptedNetworkPanelData } from "@/components/network/panels/networkPanelData";
 
@@ -18,7 +19,7 @@ type NetworkPanelContentProps = {
   adapted: ReturnType<typeof buildAdaptedNetworkPanelData>;
   isMatrixView: boolean;
   statusContent: ReactNode;
-  matrixLegendRange?: { min: number | undefined; max: number | undefined };
+  matrixLegendRange?: ResolvedUiRange;
   svgRef: NetworkPanelCommonProps["svgRef"];
   valueFilters: {
     measure: null;
@@ -65,6 +66,7 @@ export default function NetworkPanelContent({
         svgRef={svgRef}
         legendMin={matrixLegendRange?.min}
         legendMax={matrixLegendRange?.max}
+        invertColorScale={view.statId === "p_value" || view.statId === "t_value"}
         valueFilters={valueFilters}
         brushEnabled={computed.brushEnabled}
         showAllLabels={Boolean(computed.zoomState.current)}

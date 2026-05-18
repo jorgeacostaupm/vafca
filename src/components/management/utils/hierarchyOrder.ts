@@ -1,4 +1,4 @@
-import { normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
+import { getRoiFieldValue, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
 import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
 import type {
   BuildCategoryOrderEditorsArgs,
@@ -48,7 +48,10 @@ export const buildCategoryOrderEditors = ({
   }
 
   const roiById = new Map(
-    atlasDefinition.rois.map((roi) => [String(roi.id), roi] as const),
+    atlasDefinition.rois.flatMap((roi) => [
+      [String(roi.id), roi] as const,
+      [String(roi.atlasId), roi] as const,
+    ]),
   );
 
   const editorMap = new Map<
@@ -74,7 +77,7 @@ export const buildCategoryOrderEditors = ({
           values: new Set<string>(),
         });
       }
-      const value = normalizeRoiFieldValue(roi[field]);
+      const value = normalizeRoiFieldValue(getRoiFieldValue(roi, field));
       editorMap.get(orderKey)?.values.add(value);
       parentValues.push(value);
     });

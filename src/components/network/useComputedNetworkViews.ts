@@ -3,6 +3,8 @@ import { buildLabelState } from "@/components/selectors/labelSelection";
 import { getZoomState } from "@/components/selectors/useViewSettingsState";
 import { DEFAULT_LINK_WIDTH_RANGE } from "@/utils/matrixViewUtils";
 import { filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
+import { resolveMatrixUiRange } from "@/utils/matrixUiRange";
+import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
 import {
   collectVisibleGraph,
   toMatrixStatFilter,
@@ -17,8 +19,9 @@ import type {
   NodeLinkNetworkViewSettings,
   ViewVisibility,
 } from "@/types/networkVisualization";
-import type { MatrixShape } from "@/types/matrix";
 import type { StatRangeValue } from "@/types/matrixView";
+import type { DatasetMeta } from "@/types/datasetState";
+import type { RoiGroup, UiRangeMode } from "@/types/connectivityBundle";
 
 type UseComputedNetworkViewsArgs = {
   views: NetworkViewDescriptor[];
@@ -36,9 +39,45 @@ type UseComputedNetworkViewsArgs = {
   atlasOrderLength: number;
   activeLabelIds: string[];
   matrixActiveLabelIds: string[];
-  matrixShape: MatrixShape;
-  defaultMeasureRanges: Record<string, [number, number]>;
+  circularHierarchyCategoryOrder: Record<string, string[]>;
+  matrixHierarchyCategoryOrder: Record<string, string[]>;
+  dataset: DatasetMeta | null;
+  uiRangeMode: UiRangeMode;
+  includeDiagonalInRanges: boolean;
 };
+
+const sortReducedGroupsByCategoryOrder = (
+  groups: RoiGroup[],
+  fields: string[],
+  categoryOrder: Record<string, string[]>,
+) =>
+  [...groups].sort((a, b) => {
+    const parentValues: string[] = [];
+
+    for (let index = 0; index < fields.length; index += 1) {
+      const field = fields[index];
+      const orderKey = buildCircularCategoryOrderKey(index, parentValues);
+      const configuredOrder = categoryOrder[orderKey] ?? [];
+      const aValue = a.criteria[field] ?? "Unknown";
+      const bValue = b.criteria[field] ?? "Unknown";
+      const aIndex = configuredOrder.indexOf(aValue);
+      const bIndex = configuredOrder.indexOf(bValue);
+
+      if (aIndex !== bIndex) {
+        if (aIndex < 0) return 1;
+        if (bIndex < 0) return -1;
+        return aIndex - bIndex;
+      }
+
+      const fallback = aValue.localeCompare(bValue, undefined, {
+        sensitivity: "base",
+      });
+      if (fallback !== 0) return fallback;
+      parentValues.push(aValue);
+    }
+
+    return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
+  });
 
 const buildRangeFallback = (
   bounds?: [number, number],
@@ -63,8 +102,11 @@ export const useComputedNetworkViews = ({
   atlasOrderLength,
   activeLabelIds,
   matrixActiveLabelIds,
-  matrixShape,
-  defaultMeasureRanges,
+  circularHierarchyCategoryOrder,
+  matrixHierarchyCategoryOrder,
+  dataset,
+  uiRangeMode,
+  includeDiagonalInRanges,
 }: UseComputedNetworkViewsArgs) => {
   const computedByViewId = useMemo(() => {
     const map: Record<string, ComputedView> = {};
@@ -77,12 +119,34 @@ export const useComputedNetworkViews = ({
         view.type === "matrix"
           ? matrixSettingsByViewId[view.id]
           : nodeLinkSettingsByViewId[view.id];
+      const sourceMatrix =
+        dataset?.connectivity?.matrixIndex[matrix.id] ?? matrix;
+      const storedReducedLabels =
+        "kind" in sourceMatrix &&
+        sourceMatrix.kind === "reduced" &&
+        sourceMatrix.geometry.roiOrder
+          ? sourceMatrix.geometry.roiOrder
+          : null;
+      const orderedReducedLabels =
+        "kind" in sourceMatrix &&
+        sourceMatrix.kind === "reduced" &&
+        sourceMatrix.reduction
+          ? sortReducedGroupsByCategoryOrder(
+              sourceMatrix.reduction.groups,
+              sourceMatrix.reduction.fields,
+              view.type === "matrix"
+                ? matrixHierarchyCategoryOrder
+                : circularHierarchyCategoryOrder,
+            ).map((group) => group.id)
+          : storedReducedLabels;
       const nodeLinkSettings =
         view.type === "matrix" ? undefined : nodeLinkSettingsByViewId[view.id];
       const zoomState = getZoomState(settings);
       const zoomSelection = zoomState.current;
       const viewActiveLabelIds =
         view.type === "matrix" ? matrixActiveLabelIds : activeLabelIds;
+      const viewMatrixOrderIds = storedReducedLabels ?? matrixOrderIds;
+      const activeIdsForView = orderedReducedLabels ?? viewActiveLabelIds;
       const {
         labels,
         rowLabelSelection,
@@ -92,9 +156,9 @@ export const useComputedNetworkViews = ({
         zoomLabelSelection,
         orderedZoomLabels,
       } = buildLabelState({
-        matrixOrderIds,
-        atlasOrderLength,
-        activeLabelIds: viewActiveLabelIds,
+        matrixOrderIds: viewMatrixOrderIds,
+        atlasOrderLength: storedReducedLabels ? storedReducedLabels.length : atlasOrderLength,
+        activeLabelIds: activeIdsForView,
         labels: settings?.labels,
         zoomLabelSelection: settings?.zoomLabelSelection,
         zoomSelection,
@@ -104,8 +168,13 @@ export const useComputedNetworkViews = ({
         view.type === "matrix"
           ? toMatrixStatFilter(settings?.statRange)
           : toNodeLinkStatFilter(settings?.statRange);
-      const measureBounds = defaultMeasureRanges[view.measureId];
-      const [statSliderMin, statSliderMax] = measureBounds ?? [-1, 1];
+      const sliderRange = resolveMatrixUiRange(sourceMatrix, dataset?.catalogs, {
+        uiRangeMode,
+        includeDiagonal: includeDiagonalInRanges,
+        target: "slider",
+      });
+      const measureBounds: [number, number] = [sliderRange.min, sliderRange.max];
+      const [statSliderMin, statSliderMax] = measureBounds;
       const hasNegativeRange = statSliderMin < 0 && statSliderMax > 0;
       const rangeFallback = buildRangeFallback(measureBounds);
       const statRangeValue = settings?.statRange ?? rangeFallback;
@@ -116,7 +185,6 @@ export const useComputedNetworkViews = ({
         labels,
         rowLabelSelection,
         colLabelSelection,
-        matrixShape,
         hideIsolatedNodes: false,
       });
 
@@ -139,12 +207,14 @@ export const useComputedNetworkViews = ({
         linkWidthRange:
           nodeLinkSettings?.linkWidthRange ?? DEFAULT_LINK_WIDTH_RANGE,
         useAsNodeFilter: settings?.useAsNodeFilter ?? false,
-        nodeFilterMode: settings?.nodeFilterMode ?? "or",
         useAsLinkFilter: settings?.useAsLinkFilter ?? false,
-        linkFilterMode: settings?.linkFilterMode ?? "or",
+        isRangeFilterSource:
+          Boolean(settings?.useAsNodeFilter) || Boolean(settings?.useAsLinkFilter),
         statSliderMin,
         statSliderMax,
         hasNegativeRange,
+        uiRangeMode,
+        includeDiagonalInRanges,
         statRangeValue,
       };
     });
@@ -159,8 +229,11 @@ export const useComputedNetworkViews = ({
     atlasOrderLength,
     activeLabelIds,
     matrixActiveLabelIds,
-    matrixShape,
-    defaultMeasureRanges,
+    circularHierarchyCategoryOrder,
+    matrixHierarchyCategoryOrder,
+    dataset,
+    uiRangeMode,
+    includeDiagonalInRanges,
   ]);
 
   const visibilityByViewId = useMemo(() => {
@@ -208,32 +281,28 @@ export const useComputedNetworkViews = ({
     return result;
   }, [computedByViewId]);
 
-  const nodeFilterContributors = useMemo(
+  const activeFilterSource = useMemo(
     () =>
-      Object.values(computedByViewId)
-        .filter((computed) => computed.useAsNodeFilter)
-        .map(
-          (computed) =>
-            ({
-              viewId: computed.view.id,
-              mode: computed.nodeFilterMode,
-            }) as FilterContributor,
-        ),
+      Object.values(computedByViewId).find(
+        (computed) => computed.isRangeFilterSource,
+      ),
     [computedByViewId],
   );
 
-  const linkFilterContributors = useMemo(
+  const nodeFilterContributors = useMemo<FilterContributor[]>(
     () =>
-      Object.values(computedByViewId)
-        .filter((computed) => computed.useAsLinkFilter)
-        .map(
-          (computed) =>
-            ({
-              viewId: computed.view.id,
-              mode: computed.linkFilterMode,
-            }) as FilterContributor,
-        ),
-    [computedByViewId],
+      activeFilterSource?.useAsNodeFilter
+        ? [{ viewId: activeFilterSource.view.id }]
+        : [],
+    [activeFilterSource],
+  );
+
+  const linkFilterContributors = useMemo<FilterContributor[]>(
+    () =>
+      activeFilterSource?.useAsLinkFilter
+        ? [{ viewId: activeFilterSource.view.id }]
+        : [],
+    [activeFilterSource],
   );
 
   return {

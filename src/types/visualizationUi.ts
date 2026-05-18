@@ -1,4 +1,4 @@
-import type { MatrixShape } from "@/types/matrix";
+import type { UiRangeMode } from "@/types/connectivityBundle";
 
 export type HoveredCell =
   | {
@@ -35,6 +35,7 @@ export type VisualizationUiState = {
   atlasLinkIds: string[];
   selectedLinksDownloadStatus: "idle" | "loading" | "ready" | "error";
   selectedLinksDownloadError: string | null;
-  matrixShape: MatrixShape;
+  uiRangeMode: UiRangeMode;
+  includeDiagonalInRanges: boolean;
   atlasPanel: AtlasPanelState;
 };

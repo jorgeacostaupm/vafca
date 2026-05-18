@@ -1,11 +1,9 @@
 import { useMemo, type RefObject } from "react";
 import MatrixHeatmap from "@/components/matrix/Matrix";
 import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
-import type { MatrixShape } from "@/types/matrix";
 import { useMatrixHeatmapController } from "@/components/matrix/useMatrixController";
 import ViewPanelTemplate from "@/components/layout/ViewPanelTemplate";
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
-import { useAppSelector } from "@/store/hooks";
 
 type MatrixHeatmapPanelProps = {
   data: number[][];
@@ -17,6 +15,7 @@ type MatrixHeatmapPanelProps = {
   svgRef?: RefObject<SVGSVGElement>;
   legendMin?: number;
   legendMax?: number;
+  invertColorScale?: boolean;
   valueFilters?: {
     measure?: [number, number] | null;
     stat?: [number, number] | Array<[number, number]> | null;
@@ -24,7 +23,6 @@ type MatrixHeatmapPanelProps = {
   brushEnabled?: boolean;
   showAllLabels?: boolean;
   selectedZoomLabels?: string[];
-  matrixShape?: MatrixShape;
   onLabelToggle?: (label: string) => void;
   onBrushZoom?: (payload: {
     rowLabels: string[];
@@ -42,17 +40,14 @@ export default function MatrixHeatmapPanel({
   svgRef,
   legendMin,
   legendMax,
+  invertColorScale,
   valueFilters,
   brushEnabled,
   showAllLabels,
   selectedZoomLabels,
-  matrixShape,
   onLabelToggle,
   onBrushZoom,
 }: MatrixHeatmapPanelProps) {
-  const configuredMatrixShape = useAppSelector(
-    (state) => state.visualizationUi.matrixShape,
-  );
   const {
     labelNames,
     labelTitles,
@@ -97,9 +92,9 @@ export default function MatrixHeatmapPanel({
           labelColors={labelColors}
           svgRef={svgRef}
           selectedZoomLabels={selectedZoomLabels}
-          matrixShape={matrixShape ?? configuredMatrixShape}
           legendMin={legendMin}
           legendMax={legendMax}
+          invertColorScale={invertColorScale}
           valueFilters={valueFilters}
           hoveredCell={hoveredCell}
           selectedCells={selectedCells}

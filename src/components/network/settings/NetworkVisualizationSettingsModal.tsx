@@ -1,4 +1,5 @@
 import { Modal, Tabs } from "antd";
+import NetworkGeneralSettingsTab from "./NetworkGeneralSettingsTab";
 import PaletteSettingsTab from "./PaletteSettingsTab";
 import HierarchySettingsTab from "./HierarchySettingsTab";
 
@@ -22,6 +23,11 @@ export default function NetworkVisualizationSettingsModal({
     >
       <Tabs
         items={[
+          {
+            key: "general",
+            label: "General",
+            children: <NetworkGeneralSettingsTab />,
+          },
           {
             key: "palette",
             label: "Palette",

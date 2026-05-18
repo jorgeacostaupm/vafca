@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import type { AtlasDefinition, AtlasRoi } from "@/types/atlas";
 import type { CircularHierarchyLayoutPoint } from "@/types/circular";
-import { normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
+import { getRoiFieldValue, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
 
 
 type CircularHierarchyLayoutParams = {
@@ -99,7 +99,7 @@ const buildHierarchyRoot = (
     const roi = roiById.get(labelId);
     let cursor = root;
     hierarchyFields.forEach((field) => {
-      const key = normalizeRoiFieldValue(roi?.[field]);
+      const key = normalizeRoiFieldValue(getRoiFieldValue(roi, field));
       let next = cursor.children.get(key);
       if (!next) {
         next = {
@@ -132,7 +132,10 @@ export const buildCircularHierarchyLayout = ({
   }
 
   const roiById = new Map(
-    atlasDefinition.rois.map((roi) => [String(roi.id), roi] as const),
+    atlasDefinition.rois.flatMap((roi) => [
+      [String(roi.id), roi] as const,
+      [String(roi.atlasId), roi] as const,
+    ]),
   );
   const hierarchyRoot = buildHierarchyRoot(labelIds, cleanFields, roiById);
   const hierarchyData = toHierarchyData(hierarchyRoot, 0, [], categoryOrder);
@@ -144,17 +147,17 @@ export const buildCircularHierarchyLayout = ({
   const cluster = d3
     .cluster<HierarchyDataNode>()
     .size([Math.PI * 2, radius])
-    .separation((a: any, b: any) => (a.parent === b.parent ? 1 : 2));
+    .separation((a, b) => (a.parent === b.parent ? 1 : 2));
 
   cluster(root);
 
   return root
     .leaves()
-    .filter((leaf: any): leaf is d3.HierarchyPointNode<HierarchyDataNode> & {
+    .filter((leaf): leaf is d3.HierarchyPointNode<HierarchyDataNode> & {
       data: HierarchyDataNode & { labelId: string };
     } => typeof leaf.data.labelId === "string")
-    .sort((a: any, b: any) => a.x - b.x)
-    .map((leaf: any, order: number) => {
+    .sort((a, b) => a.x - b.x)
+    .map((leaf, order) => {
       const angle = leaf.x - Math.PI / 2;
       return {
         labelId: leaf.data.labelId,

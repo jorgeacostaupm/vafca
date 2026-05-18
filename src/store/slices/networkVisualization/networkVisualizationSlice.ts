@@ -10,6 +10,7 @@ import type {
   ZoomSelection,
 } from '@/types/networkVisualization'
 import type { StatRangeValue } from '@/types/matrixView'
+import type { MatrixFilterDefinition, RuntimeEdgeMask } from '@/types/edgeFilter'
 import {
   initialNetworkControls,
   initialNetworkVisualizationState,
@@ -30,10 +31,29 @@ const getSharedSettings = (
     zoomHistory: source.zoomHistory,
     zoomIndex: source.zoomIndex,
     useAsNodeFilter: source.useAsNodeFilter,
-    nodeFilterMode: source.nodeFilterMode,
     useAsLinkFilter: source.useAsLinkFilter,
-    linkFilterMode: source.linkFilterMode,
   }
+}
+
+const clearFilterSourceFromOtherViews = (
+  state: NetworkVisualizationState,
+  activeViewId: string,
+) => {
+  state.viewsOrder.forEach((viewId) => {
+    if (viewId === activeViewId) return
+
+    const matrixSettings = state.matrixSettingsByViewId[viewId]
+    if (matrixSettings) {
+      matrixSettings.useAsNodeFilter = false
+      matrixSettings.useAsLinkFilter = false
+    }
+
+    const nodeLinkSettings = state.nodeLinkSettingsByViewId[viewId]
+    if (nodeLinkSettings) {
+      nodeLinkSettings.useAsNodeFilter = false
+      nodeLinkSettings.useAsLinkFilter = false
+    }
+  })
 }
 
 const getZoomHistory = (
@@ -233,6 +253,9 @@ const networkVisualizationSlice = createSlice({
         ...state.matrixSettingsByViewId[viewId],
         ...patch,
       }
+      if (patch.useAsNodeFilter || patch.useAsLinkFilter) {
+        clearFilterSourceFromOtherViews(state, viewId)
+      }
     },
     patchNetworkNodeLinkSettings(
       state,
@@ -245,6 +268,9 @@ const networkVisualizationSlice = createSlice({
       state.nodeLinkSettingsByViewId[viewId] = {
         ...state.nodeLinkSettingsByViewId[viewId],
         ...patch,
+      }
+      if (patch.useAsNodeFilter || patch.useAsLinkFilter) {
+        clearFilterSourceFromOtherViews(state, viewId)
       }
     },
     setNetworkHideIsolatedNodes(
@@ -385,6 +411,34 @@ const networkVisualizationSlice = createSlice({
     ) {
       state.layout = state.layout.filter((entry) => entry.i !== action.payload.viewId)
     },
+    applyNetworkEdgeFilter(
+      state,
+      action: PayloadAction<{
+        filter: MatrixFilterDefinition
+        mask: RuntimeEdgeMask
+      }>,
+    ) {
+      state.activeNetworkFilter = action.payload.filter
+      state.activeEdgeMask = action.payload.mask
+    },
+    clearNetworkEdgeFilter(state) {
+      state.activeNetworkFilter = null
+      state.activeEdgeMask = null
+    },
+    applyAggregatedNetworkEdgeFilter(
+      state,
+      action: PayloadAction<{
+        filter: MatrixFilterDefinition
+        mask: RuntimeEdgeMask
+      }>,
+    ) {
+      state.activeAggregatedNetworkFilter = action.payload.filter
+      state.activeAggregatedEdgeMask = action.payload.mask
+    },
+    clearAggregatedNetworkEdgeFilter(state) {
+      state.activeAggregatedNetworkFilter = null
+      state.activeAggregatedEdgeMask = null
+    },
   },
 })
 
@@ -408,6 +462,10 @@ export const {
   setNetworkLayout,
   addNetworkLayoutItem,
   removeNetworkLayoutItem,
+  applyNetworkEdgeFilter,
+  clearNetworkEdgeFilter,
+  applyAggregatedNetworkEdgeFilter,
+  clearAggregatedNetworkEdgeFilter,
 } = networkVisualizationSlice.actions
 
 export default networkVisualizationSlice.reducer

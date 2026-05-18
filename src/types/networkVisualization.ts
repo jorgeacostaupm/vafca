@@ -1,7 +1,7 @@
+import type { UiRangeMode } from "@/types/connectivityBundle";
 import type { MatrixValueRange, StatRangeValue } from "@/types/matrixView";
 
 export type NetworkViewType = "matrix" | "circular" | "classic";
-export type LogicalMode = "and" | "or";
 export type ViewLoadStatus = "formatting" | "ready" | "error";
 
 export type ZoomSelection = {
@@ -31,9 +31,7 @@ export type SharedNetworkViewSettings = {
   zoomHistory?: ZoomSelection[];
   zoomIndex?: number;
   useAsNodeFilter?: boolean;
-  nodeFilterMode?: LogicalMode;
   useAsLinkFilter?: boolean;
-  linkFilterMode?: LogicalMode;
 };
 
 export type MatrixNetworkViewSettings = SharedNetworkViewSettings & {
@@ -83,7 +81,6 @@ export type ViewVisibility = {
 
 export type FilterContributor = {
   viewId: string;
-  mode: LogicalMode;
 };
 
 export type CanonicalMatrixData = {
@@ -117,12 +114,13 @@ export type ComputedView = {
   geometricZoomEnabled: boolean;
   linkWidthRange: [number, number];
   useAsNodeFilter: boolean;
-  nodeFilterMode: LogicalMode;
   useAsLinkFilter: boolean;
-  linkFilterMode: LogicalMode;
+  isRangeFilterSource: boolean;
   statSliderMin: number;
   statSliderMax: number;
   hasNegativeRange: boolean;
+  uiRangeMode: UiRangeMode;
+  includeDiagonalInRanges: boolean;
   statRangeValue?:
     | MatrixNetworkViewSettings["statRange"]
     | NodeLinkNetworkViewSettings["statRange"];

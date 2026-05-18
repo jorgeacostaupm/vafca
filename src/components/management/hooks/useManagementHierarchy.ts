@@ -5,10 +5,9 @@ import { buildAtlasRoiColorById } from "@/utils/atlas/coloring";
 import { getCommonRoiFields } from "@/utils/atlas/atlasDefinition";
 import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
 import {
+  setAtlasColorFields,
   setCircularHierarchyCategoryOrder,
-  setCircularHierarchyFields,
   setMatrixHierarchyCategoryOrder,
-  setMatrixHierarchyFields,
 } from "@/store/slices/atlas";
 import { PREVIEW_PADDING, PREVIEW_SIZE } from "@/components/management/constants";
 import {
@@ -33,22 +32,6 @@ export const useManagementHierarchy = ({
     [atlasDefinition],
   );
 
-  const selectableCircularHierarchyFields = useMemo(
-    () =>
-      availableHierarchyFields.filter(
-        (field) => !atlas.circularHierarchyFields.includes(field),
-      ),
-    [availableHierarchyFields, atlas.circularHierarchyFields],
-  );
-
-  const selectableMatrixHierarchyFields = useMemo(
-    () =>
-      availableHierarchyFields.filter(
-        (field) => !atlas.matrixHierarchyFields.includes(field),
-      ),
-    [availableHierarchyFields, atlas.matrixHierarchyFields],
-  );
-
   const activeRoiIds = useMemo(() => {
     const enabled = atlas.order.filter((id) => atlas.labelsById[id]?.enabled !== false);
     return enabled.length > 0 ? enabled : atlas.order;
@@ -62,14 +45,14 @@ export const useManagementHierarchy = ({
         labelIds: activeRoiIds.slice(0, 220),
         radius: previewRadius,
         atlasDefinition,
-        hierarchyFields: atlas.circularHierarchyFields,
+        hierarchyFields: atlas.colorFields,
         categoryOrder: atlas.circularHierarchyCategoryOrder,
       }),
     [
       activeRoiIds,
       previewRadius,
       atlasDefinition,
-      atlas.circularHierarchyFields,
+      atlas.colorFields,
       atlas.circularHierarchyCategoryOrder,
     ],
   );
@@ -80,13 +63,13 @@ export const useManagementHierarchy = ({
         labelIds: activeRoiIds.slice(0, 220),
         radius: 1,
         atlasDefinition,
-        hierarchyFields: atlas.matrixHierarchyFields,
+        hierarchyFields: atlas.colorFields,
         categoryOrder: atlas.matrixHierarchyCategoryOrder,
       }),
     [
       activeRoiIds,
       atlasDefinition,
-      atlas.matrixHierarchyFields,
+      atlas.colorFields,
       atlas.matrixHierarchyCategoryOrder,
     ],
   );
@@ -113,13 +96,13 @@ export const useManagementHierarchy = ({
     () =>
       buildCategoryOrderEditors({
         atlasDefinition,
-        hierarchyFields: atlas.circularHierarchyFields,
+        hierarchyFields: atlas.colorFields,
         categoryOrder: atlas.circularHierarchyCategoryOrder,
         sourceIds: activeRoiIds,
       }),
     [
       atlasDefinition,
-      atlas.circularHierarchyFields,
+      atlas.colorFields,
       atlas.circularHierarchyCategoryOrder,
       activeRoiIds,
     ],
@@ -129,13 +112,13 @@ export const useManagementHierarchy = ({
     () =>
       buildCategoryOrderEditors({
         atlasDefinition,
-        hierarchyFields: atlas.matrixHierarchyFields,
+        hierarchyFields: atlas.colorFields,
         categoryOrder: atlas.matrixHierarchyCategoryOrder,
         sourceIds: activeRoiIds,
       }),
     [
       atlasDefinition,
-      atlas.matrixHierarchyFields,
+      atlas.colorFields,
       atlas.matrixHierarchyCategoryOrder,
       activeRoiIds,
     ],
@@ -143,23 +126,13 @@ export const useManagementHierarchy = ({
 
   useEffect(() => {
     if (!atlasDefinition?.rois?.length) return;
-    const valid = atlas.circularHierarchyFields.filter((field) =>
+    const valid = atlas.colorFields.filter((field) =>
       availableHierarchyFields.includes(field),
     );
-    if (valid.length !== atlas.circularHierarchyFields.length) {
-      dispatch(setCircularHierarchyFields(valid));
+    if (valid.length !== atlas.colorFields.length) {
+      dispatch(setAtlasColorFields(valid));
     }
-  }, [atlasDefinition, availableHierarchyFields, atlas.circularHierarchyFields, dispatch]);
-
-  useEffect(() => {
-    if (!atlasDefinition?.rois?.length) return;
-    const valid = atlas.matrixHierarchyFields.filter((field) =>
-      availableHierarchyFields.includes(field),
-    );
-    if (valid.length !== atlas.matrixHierarchyFields.length) {
-      dispatch(setMatrixHierarchyFields(valid));
-    }
-  }, [atlasDefinition, availableHierarchyFields, atlas.matrixHierarchyFields, dispatch]);
+  }, [atlasDefinition, availableHierarchyFields, atlas.colorFields, dispatch]);
 
   useEffect(() => {
     const cleaned = toCleanCategoryOrderMap(circularCategoryOrderEditors);
@@ -181,8 +154,6 @@ export const useManagementHierarchy = ({
     circularPreviewLayout,
     matrixPreviewIds,
     previewNodeColors,
-    selectableCircularHierarchyFields,
-    selectableMatrixHierarchyFields,
     circularCategoryOrderEditors,
     matrixCategoryOrderEditors,
   };

@@ -5,10 +5,10 @@ import type { MatrixSummary, StoredMatrix } from '@/types/matrixStore'
 const inMemoryMatrices = new Map<string, StoredMatrix>()
 
 export const createCompoundId = (
-  matrix: Pick<ConnectivityMatrix, 'bandId' | 'measureId' | 'statId' | 'populationIds'>
+  matrix: Pick<ConnectivityMatrix, 'id' | 'bandId' | 'measureId' | 'statId' | 'populationIds'>
 ) => {
   const populations = [...matrix.populationIds].sort().join('+')
-  return `${matrix.bandId}::${matrix.measureId}::${matrix.statId}::${populations}`
+  return `${matrix.bandId}::${matrix.measureId}::${matrix.statId}::${populations || matrix.id}`
 }
 
 export const saveMatrices = async (matrices: ConnectivityMatrix[]) => {
@@ -55,5 +55,6 @@ export const getAllMatrices = async (): Promise<ConnectivityMatrix[]> => {
     statId: record.statId,
     populationIds: record.populationIds,
     data: record.data,
+    dataStats: record.dataStats,
   }))
 }

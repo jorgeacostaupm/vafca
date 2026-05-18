@@ -1,5 +1,9 @@
-import type { MatrixShape } from "@/types/matrix"
 import type { MatrixOrderItem } from "@/types/matrixOrder"
+import type {
+  ExpectedRange,
+  RangeMode,
+  ScaleType,
+} from "@/types/connectivityBundle"
 
 export type ConnectivityMetadata = {
   atlas?: string
@@ -7,7 +11,6 @@ export type ConnectivityMetadata = {
   base?: string
   matrixOrder: MatrixOrderItem[]
   maxPopulations: number
-  matrixShape?: MatrixShape
 }
 
 export type BandCatalogItem = {
@@ -24,6 +27,7 @@ export type MeasureCatalogItem = {
   label: string
   min?: number
   max?: number
+  expectedRange?: ExpectedRange
   description?: string
   enabled?: boolean
 }
@@ -33,6 +37,10 @@ export type StatCatalogItem = {
   label: string
   min?: number
   max?: number
+  scaleType?: ScaleType
+  center?: number | null
+  rangeMode?: RangeMode
+  expectedRange?: ExpectedRange
   description?: string
   enabled?: boolean
   useDataRange?: boolean

@@ -63,7 +63,6 @@ const resolveLayerValue = (
   link: SelectedLink,
   matrixCache: MatrixCache,
   atlasIndex: Map<string, number>,
-  matrixShape: BuildLinkValuesParams["matrixShape"],
 ) => {
   if (compoundId in sourceValueMap) {
     return sourceValueMap[compoundId];
@@ -74,7 +73,7 @@ const resolveLayerValue = (
   const colIndex = atlasIndex.get(link.colId);
   const value =
     rowIndex !== undefined && colIndex !== undefined && matrix?.data
-      ? resolveMatrixValue(matrix.data, rowIndex, colIndex, matrixShape)
+      ? resolveMatrixValue(matrix.data, rowIndex, colIndex)
       : undefined;
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 };
@@ -84,7 +83,6 @@ export const buildLinkValues = ({
   layerIds,
   matrixCache,
   atlasIndex,
-  matrixShape,
 }: BuildLinkValuesParams): Record<string, number | null> => {
   const sourceValueMap = buildSourceValueMap(link);
   return layerIds.reduce<Record<string, number | null>>((acc, compoundId) => {
@@ -94,7 +92,6 @@ export const buildLinkValues = ({
       link,
       matrixCache,
       atlasIndex,
-      matrixShape,
     );
     return acc;
   }, {});
@@ -105,7 +102,6 @@ export const buildRows = ({
   selectedMatrixIds,
   matrixCache,
   atlasIndex,
-  matrixShape,
 }: BuildRowsParams): LinkRow[] => {
   return links.map((link) => ({
     key: link.id,
@@ -115,7 +111,6 @@ export const buildRows = ({
       layerIds: selectedMatrixIds,
       matrixCache,
       atlasIndex,
-      matrixShape,
     }),
   }));
 };
@@ -125,7 +120,6 @@ export const buildExportLinks = (
   layerIds: string[],
   matrixCache: MatrixCache,
   atlasIndex: Map<string, number>,
-  matrixShape: BuildLinkValuesParams["matrixShape"],
 ): ExportedLink[] => {
   return links.map((link) => ({
     id: link.id,
@@ -138,14 +132,12 @@ export const buildExportLinks = (
       layerIds,
       matrixCache,
       atlasIndex,
-      matrixShape,
     }),
   }));
 };
 
 export const buildExportPayload = (
   mode: DownloadMode,
-  matrixShape: BuildLinkValuesParams["matrixShape"],
   layerIds: string[],
   resolveLabel: (compoundId: string) => string,
   links: ExportedLink[],
@@ -153,7 +145,6 @@ export const buildExportPayload = (
   return {
     exportedAt: new Date().toISOString(),
     mode,
-    matrixShape,
     linksCount: links.length,
     layersCount: layerIds.length,
     layers: layerIds.map((compoundId) => ({
@@ -180,4 +171,3 @@ export const downloadExportPayload = (
   link.click();
   URL.revokeObjectURL(url);
 };
-

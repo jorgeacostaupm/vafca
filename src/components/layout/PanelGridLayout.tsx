@@ -45,6 +45,7 @@ export default function PanelGridLayout({
           {items.map((item) => (
             <div key={item.id} className="panel-grid-item">
               <Card
+                className={item.className}
                 size="small"
                 title={<span className="panel-card-handle">{item.title}</span>}
                 extra={

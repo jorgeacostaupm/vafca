@@ -8,3 +8,7 @@ export const selectDatasetDownloadStatus = (state: RootState) =>
   state.dataset.downloadStatus
 export const selectDatasetDownloadError = (state: RootState) =>
   state.dataset.downloadError
+export const selectDerivedCalculationStatus = (state: RootState) =>
+  state.dataset.derivedCalculationStatus
+export const selectDerivedCalculationError = (state: RootState) =>
+  state.dataset.derivedCalculationError

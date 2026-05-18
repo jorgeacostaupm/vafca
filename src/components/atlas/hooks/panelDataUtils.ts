@@ -2,6 +2,7 @@ import type { AtlasDefinition } from "@/types/atlas";
 import type { GroupedRow } from "@/types/atlasPanel";
 import {
   UNKNOWN_GROUP,
+  getRoiFieldValue,
   normalizeRoiFieldValue,
 } from "@/utils/atlas/atlasDefinition";
 import { ALL_FILTER } from "../panelConstants";
@@ -30,7 +31,7 @@ export const buildRoiFieldValuesById = (
   atlasDefinition.rois.forEach((roi) => {
     const id = String(roi.id);
     const values = fields.reduce<Record<string, string>>((acc, field) => {
-      acc[field] = normalizeRoiFieldValue(roi[field]);
+      acc[field] = normalizeRoiFieldValue(getRoiFieldValue(roi, field));
       return acc;
     }, {});
     map.set(id, values);

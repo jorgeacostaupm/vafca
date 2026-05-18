@@ -1,4 +1,4 @@
-export type MatrixShape = "full" | "upper" | "lower";
+import type { MatrixDataStats } from "@/types/connectivityBundle";
 
 export type ConnectivityMatrix = {
   id: string;
@@ -7,4 +7,5 @@ export type ConnectivityMatrix = {
   statId: string;
   populationIds: string[];
   data: number[][];
+  dataStats?: MatrixDataStats;
 };

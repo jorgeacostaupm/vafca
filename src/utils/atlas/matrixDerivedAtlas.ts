@@ -31,6 +31,49 @@ const getMatrixOrderExtraFields = (
   );
 };
 
+const getMatrixOrderTags = (
+  item: MatrixOrderItem | MatrixOrderEntry | undefined,
+) => {
+  const extras = getMatrixOrderExtraFields(item);
+  const flatTags = Object.fromEntries(
+    Object.entries(extras).filter(
+      (entry): entry is [string, string | number | boolean | null] => {
+        const value = entry[1];
+        return (
+          value === null ||
+          typeof value === "string" ||
+          typeof value === "number" ||
+          typeof value === "boolean"
+        );
+      },
+    ),
+  );
+  const itemRecord = item && isMatrixOrderObject(item)
+    ? (item as Record<string, unknown>)
+    : null;
+  const tags = itemRecord?.tags;
+  const nestedTags =
+    typeof tags === "object" &&
+    tags !== null &&
+    !Array.isArray(tags)
+      ? Object.fromEntries(
+          Object.entries(tags).filter(
+            (entry): entry is [string, string | number | boolean | null] => {
+              const value = entry[1];
+              return (
+                value === null ||
+                typeof value === "string" ||
+                typeof value === "number" ||
+                typeof value === "boolean"
+              );
+            },
+          ),
+        )
+      : {};
+
+  return { ...flatTags, ...nestedTags };
+};
+
 export const buildMatrixDerivedAtlas = (
   matrixOrder: MatrixOrderItem[] | MatrixOrderEntry[],
 ): AtlasDefinition | null => {
@@ -42,10 +85,14 @@ export const buildMatrixDerivedAtlas = (
     name: "Matrix-derived atlas",
     description: "Minimal atlas generated from the loaded matrix order.",
     rois: entries.map<AtlasRoi>((entry, index) => ({
-      ...getMatrixOrderExtraFields(matrixOrder[index]),
+      index,
       id: entry.id,
+      atlasId: entry.id,
       label: entry.acronym ?? entry.label,
       name: entry.label,
+      tags: getMatrixOrderTags(matrixOrder[index]),
+      coords: null,
+      metadata: {},
     })),
   };
 };

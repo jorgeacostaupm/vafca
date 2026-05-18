@@ -6,13 +6,14 @@ export {
   updateMetadata,
 } from './datasetSlice'
 export {
+  computeAggregatedMatrixFromVisualizationGroups,
+  computeDerivedMatrices,
   downloadCurrentDataset,
   loadTestDataset,
   uploadMatricesIntoDataset,
 } from './datasetThunks'
 export {
   initializeDatasetAndDerivedState,
-  setDatasetMatrixShape,
   syncDatasetDerivedState,
 } from './datasetWorkflows'
 export {
@@ -22,5 +23,7 @@ export {
   selectDatasetError,
   selectDatasetState,
   selectDatasetStatus,
+  selectDerivedCalculationError,
+  selectDerivedCalculationStatus,
 } from './datasetSelectors'
 export type { DatasetSliceState } from './datasetTypes'

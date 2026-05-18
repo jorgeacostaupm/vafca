@@ -37,7 +37,7 @@ export default function Circulas({
       rendererProps={{
         atlasDefinition: atlasDefinition ?? currentAtlasDefinition,
         circularHierarchyFields:
-          circularHierarchyFields ?? atlas.circularHierarchyFields,
+          circularHierarchyFields ?? atlas.colorFields,
         circularHierarchyCategoryOrder:
           circularHierarchyCategoryOrder ?? atlas.circularHierarchyCategoryOrder,
       }}

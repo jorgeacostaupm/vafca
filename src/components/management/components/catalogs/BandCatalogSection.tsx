@@ -42,7 +42,6 @@ function BandCatalogSection() {
                   <Typography.Text type="secondary">
                     Frequency range: {band.min}-{band.max} Hz
                   </Typography.Text>
-                  <Typography.Text type="secondary">ID: {band.id}</Typography.Text>
                 </Space>
 
                 <Input.TextArea

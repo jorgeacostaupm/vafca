@@ -76,13 +76,13 @@ export const useMatrixFilterOptions = ({
     const baseIds = atlas.order.filter((id) => atlas.labelsById[id]?.enabled !== false);
     if (!useMatrixHierarchyOrder) return baseIds;
     if (!atlasDefinition?.rois?.length) return baseIds;
-    if (atlas.matrixHierarchyFields.length === 0) return baseIds;
+    if (atlas.colorFields.length === 0) return baseIds;
 
     const hierarchyLayout = buildCircularHierarchyLayout({
       labelIds: baseIds,
       radius: 1,
       atlasDefinition,
-      hierarchyFields: atlas.matrixHierarchyFields,
+      hierarchyFields: atlas.colorFields,
       categoryOrder: atlas.matrixHierarchyCategoryOrder,
     });
     if (hierarchyLayout.length === 0) return baseIds;
@@ -174,7 +174,7 @@ export const useMatrixFilterOptions = ({
       }));
   }, [summaries, populationKey, measureId, statId, dataset]);
 
-  const matches = useMemo(() => {
+  const selectableMatrixSummaries = useMemo(() => {
     return summaries.filter((summary) => {
       if (!isEnabled(dataset?.catalogs.measures[summary.measureId])) return false;
       if (!isEnabled(dataset?.catalogs.bands[summary.bandId])) return false;
@@ -187,6 +187,12 @@ export const useMatrixFilterOptions = ({
       ) {
         return false;
       }
+      return true;
+    });
+  }, [summaries, dataset]);
+
+  const matches = useMemo(() => {
+    return selectableMatrixSummaries.filter((summary) => {
       if (
         populationKey &&
         normalizePopulationKey(summary.populationIds) !== populationKey
@@ -198,7 +204,14 @@ export const useMatrixFilterOptions = ({
       if (bandId && summary.bandId !== bandId) return false;
       return true;
     });
-  }, [summaries, populationKey, measureId, statId, bandId, dataset]);
+  }, [selectableMatrixSummaries, populationKey, measureId, statId, bandId]);
+
+  const allMatrixOptions = useMemo<Option[]>(() => {
+    return selectableMatrixSummaries.map((summary) => ({
+      value: summary.compoundId,
+      label: labelFormatter({ summary, dataset }),
+    }));
+  }, [selectableMatrixSummaries, dataset, labelFormatter]);
 
   const matrixOptions = useMemo<Option[]>(() => {
     return matches.map((summary) => ({
@@ -226,6 +239,8 @@ export const useMatrixFilterOptions = ({
     bandOptions,
     matches,
     matrixOptions,
+    allMatrixOptions,
+    selectableMatrixSummaries,
     labelOptions,
   };
 };
