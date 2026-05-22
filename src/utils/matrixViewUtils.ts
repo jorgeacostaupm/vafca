@@ -1,6 +1,10 @@
 import type { ConnectivityCatalogs } from "@/types/catalogs";
 import type { StatRangeValue } from "@/types/matrixView";
 
+type PopulationCatalogsLike = {
+  populations?: Record<string, { label?: string } | undefined>;
+};
+
 type MatrixSummaryLike = {
   populationIds: string[];
   measureId: string;
@@ -14,6 +18,16 @@ export const toLabel = (value?: string) => value ?? "Unknown";
 
 export const normalizePopulationKey = (ids: string[]) =>
   [...ids].sort().join("+");
+
+export const formatPopulationLabel = (
+  id: string,
+  catalogs?: PopulationCatalogsLike,
+) => catalogs?.populations?.[id]?.label ?? id;
+
+export const formatPopulationSetLabel = (
+  ids: string[],
+  catalogs?: PopulationCatalogsLike,
+) => ids.map((id) => formatPopulationLabel(id, catalogs)).join(" vs ");
 
 export const isEnabled = (value: { enabled?: boolean } | undefined) =>
   value?.enabled !== false;
@@ -159,9 +173,10 @@ export const buildMatrixLabel = (
   summary: MatrixSummaryLike,
   catalogs?: ConnectivityCatalogs,
 ) => {
-  const populationLabel = summary.populationIds
-    .map((id) => toLabel(catalogs?.populations[id]?.label))
-    .join("+");
+  const populationLabel = formatPopulationSetLabel(
+    summary.populationIds,
+    catalogs,
+  );
   const measureLabel = toLabel(catalogs?.measures[summary.measureId]?.label);
   const statLabel = toLabel(catalogs?.stats[summary.statId]?.label);
   const bandLabel = toLabel(catalogs?.bands[summary.bandId]?.label);

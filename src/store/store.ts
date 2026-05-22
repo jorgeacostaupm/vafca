@@ -7,6 +7,8 @@ import networkVisualizationReducer from '@/store/slices/networkVisualization'
 import matrixSummariesReducer from '@/store/slices/matrixSummaries'
 import matrixCacheReducer from '@/store/slices/matrixCache'
 import notificationsReducer from '@/store/slices/notifications'
+import rankingsReducer from '@/store/slices/rankings'
+import { rankingFilterListenerMiddleware } from '@/store/rankingFilterListeners'
 import { userNotificationListenerMiddleware } from '@/store/userNotificationListeners'
 
 export const store = configureStore({
@@ -19,6 +21,7 @@ export const store = configureStore({
     matrixSummaries: matrixSummariesReducer,
     matrixCache: matrixCacheReducer,
     notifications: notificationsReducer,
+    rankings: rankingsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -26,5 +29,8 @@ export const store = configureStore({
         warnAfter: 128,
         ignoredActionPaths: ['meta.arg.file', 'meta.arg.files'],
       },
-    }).prepend(userNotificationListenerMiddleware.middleware),
+    }).prepend(
+      rankingFilterListenerMiddleware.middleware,
+      userNotificationListenerMiddleware.middleware,
+    ),
 })

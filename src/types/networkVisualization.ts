@@ -42,6 +42,8 @@ export type NodeLinkNetworkViewSettings = SharedNetworkViewSettings & {
   brushEnabled?: boolean;
   geometricZoomEnabled?: boolean;
   linkWidthRange?: [number, number];
+  circularLinkTension?: number;
+  circularBundlingEnabled?: boolean;
 };
 
 export type NetworkViewDescriptor = {
@@ -72,6 +74,8 @@ export type NetworkSelectorControlsState = {
   selectedCompoundId: string;
   syncZoom: boolean;
   hideIsolatedNodes: boolean;
+  circularLinkTension: number;
+  circularBundlingEnabled: boolean;
 };
 
 export type ViewVisibility = {
@@ -113,6 +117,8 @@ export type ComputedView = {
   brushEnabled: boolean;
   geometricZoomEnabled: boolean;
   linkWidthRange: [number, number];
+  circularLinkTension: number;
+  circularBundlingEnabled: boolean;
   useAsNodeFilter: boolean;
   useAsLinkFilter: boolean;
   isRangeFilterSource: boolean;

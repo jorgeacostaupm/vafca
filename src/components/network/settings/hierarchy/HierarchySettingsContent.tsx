@@ -19,12 +19,16 @@ type HierarchySettingsContentProps = {
   mode: HierarchySettingsMode;
   atlas: AtlasState;
   hierarchy: HierarchySettingsModel;
+  circularLinkTension?: number;
+  circularBundlingEnabled?: boolean;
 };
 
 export default function HierarchySettingsContent({
   mode,
   atlas,
   hierarchy,
+  circularLinkTension,
+  circularBundlingEnabled,
 }: HierarchySettingsContentProps) {
   const dispatch = useAppDispatch();
   const config = useMemo(
@@ -42,7 +46,14 @@ export default function HierarchySettingsContent({
 
   return (
     <HierarchySettingsLayout
-      preview={<HierarchySettingsPreview mode={mode} hierarchy={hierarchy} />}
+      preview={
+        <HierarchySettingsPreview
+          mode={mode}
+          hierarchy={hierarchy}
+          circularLinkTension={circularLinkTension}
+          circularBundlingEnabled={circularBundlingEnabled}
+        />
+      }
     >
       <HierarchyCategoryOrderSection
         categoryOrderEditors={config.categoryOrderEditors}

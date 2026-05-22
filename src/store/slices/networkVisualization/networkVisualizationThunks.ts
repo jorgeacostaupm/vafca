@@ -1,4 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
+import { DEFAULT_NETWORK_PANEL_LAYOUT } from '@/config/ui'
 import type { MatrixSummary } from '@/types/matrixStore'
 import type { NetworkViewType } from '@/types/networkVisualization'
 import type { AppDispatch, RootState } from '@/types/store'
@@ -88,9 +89,9 @@ export const addNetworkViewAndFormat = createAsyncThunk<
     dispatch(
       addNetworkLayoutItem({
         viewId,
-        defaultW: 8,
-        defaultH: 5,
-        columns: 3,
+        defaultW: DEFAULT_NETWORK_PANEL_LAYOUT.width,
+        defaultH: DEFAULT_NETWORK_PANEL_LAYOUT.height,
+        columns: DEFAULT_NETWORK_PANEL_LAYOUT.columns,
       }),
     )
     await dispatch(markNetworkViewFormatting({ viewId }))

@@ -123,7 +123,13 @@ export default function NetworkPanelContent({
   };
 
   if (view.type === "circular") {
-    return <Circulas {...commonNodeLinkProps} />;
+    return (
+      <Circulas
+        {...commonNodeLinkProps}
+        circularLinkTension={computed.circularLinkTension}
+        circularBundlingEnabled={computed.circularBundlingEnabled}
+      />
+    );
   }
   return <NodeLinkPanel {...commonNodeLinkProps} />;
 }

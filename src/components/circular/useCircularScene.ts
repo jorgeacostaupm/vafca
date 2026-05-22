@@ -17,6 +17,8 @@ type UseCircularSceneArgs = {
   degreeById: Map<string, number>;
   selectedZoomLabels?: string[];
   linkWidthRange?: [number, number];
+  circularLinkTension?: number;
+  circularBundlingEnabled?: boolean;
   brushEnabled: boolean;
   geometricZoomEnabled: boolean;
   diverging?: boolean;
@@ -51,6 +53,8 @@ export const useCircularScene = ({
   degreeById,
   selectedZoomLabels,
   linkWidthRange,
+  circularLinkTension,
+  circularBundlingEnabled,
   brushEnabled,
   geometricZoomEnabled,
   diverging,
@@ -103,6 +107,8 @@ export const useCircularScene = ({
       degreeById,
       selectedZoomLabels,
       linkWidthRange,
+      circularLinkTension,
+      circularBundlingEnabled,
       brushEnabled,
       geometricZoomEnabled,
       diverging,
@@ -147,6 +153,8 @@ export const useCircularScene = ({
     degreeById,
     selectedZoomLabels,
     linkWidthRange,
+    circularLinkTension,
+    circularBundlingEnabled,
     brushEnabled,
     geometricZoomEnabled,
     diverging,

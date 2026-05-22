@@ -1,0 +1,1189 @@
+VAFCA — Specification for Codex
+Add Rankings tab to Network Visualization
+Updated with user clarifications and explicit cross-band link-ranking modes
+============================================================
+
+Change log for this version
+---------------------------
+
+This version incorporates the following confirmed design decisions:
+
+1. Ranking matrix collections must support original matrices, aggregated matrices and comparison matrices.
+
+2. "All bands" must mean all bands compatible with the currently selected combination. It must not mean all bands in the global catalog. A compatible band is a band for which at least one matrix exists matching the selected source, measure, statistic, matrix kind and geometry constraints.
+
+3. Link Ranking over several bands must distinguish two different modes:
+   a) Aggregated multi-band link ranking: one row per link, using a score computed from selected bands/matrices, such as mean across bands.
+   b) Expanded link-by-band ranking: one row per link per band/matrix, with no averaging across bands.
+
+
+Goal
+----
+
+Add a new tab-based selector area inside the current Network Visualization workflow.
+
+The current Network Visualization controls are used to create visualization views such as Matrix, Circular and Node-Link. These existing controls must be grouped under a tab called Views.
+
+Add a second tab called Rankings. From this Rankings tab, users must be able to create ranking tables for:
+
+1. Matrices
+2. Links
+3. ROIs
+
+The existing visualization functionality must remain unchanged.
+
+Important behavior:
+Rows in the ranking tables must interact with already-created visualization panels. When the user hovers the corresponding matrix, link or ROI (ROIs will be highligthed changing the color of the label to black and the text in white) must be highlighted in any currently visible visualization panel where that item is already visible. Do this in an efficient way avoinding views to recompute entirely.
+
+in link rankings there will be a column called actions with 2 types of buttons + or - , for adding or removing a link from the link view, take into account that links are based on ROI - ROI connections, so these links can be present in multiple rankings, but only one time in the selected link list
+
+
+1. UI structure
+---------------
+
+1.1 Add tabs inside Network Visualization controls
+
+Inside the Network Visualization section, add a tab group:
+
+    Views | Rankings
+
+Do not remove or change the current view creation logic except as needed to place it under the new Views tab.
+
+1.3 Rankings tab
+
+The Rankings tab contains the new ranking controls.
+
+It must allow the user to run ranking tables for:
+
+- Matrix Ranking
+- Link Ranking
+- ROI Ranking
+
+Suggested UI:
+
+    Ranking target:
+    [ Matrices | Links | ROIs ]
+
+    Ranking mode / source:
+    depends on selected target
+
+    Selectors:
+    - source: population / subject / comparison, depending on available matrices
+    - matrix kind: original / aggregated / comparison
+    - measure
+    - statistic
+    - band or bands
+    - matrix or matrix collection
+    - scope
+    - ranking metric
+    - top N
+
+    Action:
+    [Run ranking]
+
+
+2. Ranking targets
+------------------
+
+2.1 Matrix Ranking
+
+Matrix Ranking ranks complete matrices that match a metadata combination.
+
+Supported matrix kinds:
+
+- original matrices
+- aggregated matrices
+- comparison matrices
+
+Example:
+
+    Source = Control
+    Matrix kind = original
+    Measure = PLV
+    Statistic = mean
+    Bands = alpha, beta, gamma
+    Rank by = mean value
+    Top N = 10
+
+This answers:
+
+    Which matrix or band is most relevant for this source-measure-statistic combination?
+
+Required selectors:
+
+- Source: population / subject / comparison, depending on available matrices
+- Matrix kind: original / aggregated / comparison
+- Measure
+- Statistic
+- Bands
+- Scope
+- Ranking metric
+- Top N
+
+Band selector requirements:
+
+The band selector should support:
+
+- one compatible band
+- multiple compatible bands
+- all compatible bands for the selected combination
+
+Definition of compatible bands:
+
+"All compatible bands" means all bands for which at least one matrix exists matching the currently selected source, matrix kind, measure, statistic and geometry constraints. It must not mean all bands listed in the global catalog.
+
+Examples:
+
+    Source = Control
+    Matrix kind = original
+    Measure = PLV
+    Statistic = mean
+    All compatible bands = only bands that have Control + original + PLV + mean matrices.
+
+    Source = Study vs Control
+    Matrix kind = comparison
+    Measure = PLV
+    Statistic = Cohen's d
+    All compatible bands = only bands that have Study vs Control + comparison + PLV + Cohen's d matrices.
+
+Do not show a primary "All rows" option for ranking results. Use Top N plus pagination/export instead.
+
+Matrix-kind and geometry compatibility:
+
+Matrix Ranking should support original, aggregated and comparison matrices, but a single ranking result should not silently mix incompatible geometries.
+
+Default rule:
+
+- Original ROI-ROI matrices can be ranked together
+- Comparison ROI-ROI matrices can be ranked together
+- Aggregated matrices can be ranked together if they share the same aggregation scheme, group order and shape.
+- Do not mix ROI-ROI matrices and aggregated group-group matrices in the same ranking table unless an explicit future UI option allows it.
+
+Suggested metrics for normal connectivity matrices:
+
+- Mean value
+- Mean absolute value
+- Median value
+- Max value
+- Max absolute value
+- Number of links above threshold
+- Percentage of links above threshold
+
+Suggested metrics for comparison/effect/statistical matrices:
+
+- Mean absolute value
+- Max absolute value
+- Number of links with abs(value) > threshold
+- Number of positive links
+- Number of negative links
+
+Result table columns:
+
+- Rank
+- Matrix label
+- Source: population / subject / comparison
+- Matrix kind
+- Measure
+- Statistic
+- Band
+- Score
+- N links used
+- Actions
+
+Example:
+
+    Rank | Matrix                         | Kind     | Source  | Measure | Statistic | Band  | Score | N links used
+    1    | Control / PLV / beta / mean     | original | Control | PLV     | mean      | beta  | 0.62  | 4005
+    2    | Control / PLV / alpha / mean    | original | Control | PLV     | mean      | alpha | 0.57  | 4005
+
+Matrix row highlighting behavior:
+
+When the user hovers over or selects a row in the Matrix Ranking table:
+
+- If that matrix is currently displayed in an already-created visualization panel, highlight that panel.
+- If several panels use the same matrix, highlight all of them.
+- If the matrix is not currently visible in any panel, do not create a new view automatically.
+- Optionally show a subtle message: "Matrix is not currently visible in any view."
+
+Suggested actions per row:
+
+- Open as Matrix View
+- Open Link Ranking
+- Open ROI Ranking
+- Copy matrix id
+
+
+2.2 Link Ranking
+
+Link Ranking ranks links.
+
+For ROI-ROI matrices, a link means a ROI-ROI pair.
+For aggregated group-group matrices, a link means a group-group pair.
+
+Important:
+Link Ranking must support both:
+
+A. Single Matrix Link Ranking
+B. Matrix Collection Link Ranking, also called Cross-Band Link Ranking when the collection spans several bands
+
+Do not interpret "multi-matrix link" as a new kind of link object. It is still the same ROI-ROI pair or group-group pair, but its score is computed from several matrices instead of from one matrix.
+
+This is important because the user should not be limited to ranking links inside one specific matrix. The user should also be able to rank links across all compatible bands matching a combination such as:
+
+    Source = Control
+    Matrix kind = original
+    Measure = PLV
+    Statistic = mean
+    Bands = alpha, beta, gamma
+
+or:
+
+    Source = Study vs Control
+    Matrix kind = comparison
+    Measure = PLV
+    Statistic = Cohen's d
+    Bands = alpha, beta, gamma
+
+
+2.2.1 Single Matrix Link Ranking
+
+Ranks links within one selected matrix.
+
+Required selectors:
+
+- Matrix
+- Scope
+- Ranking metric
+- Top N
+
+Suggested metrics:
+
+- Highest value
+- Lowest value
+- Highest absolute value
+- Above threshold
+- Below threshold
+
+Result table columns for ROI-ROI matrices:
+
+- Rank
+- ROI A
+- ROI B
+- Value
+- Actions
+
+Result table columns for aggregated group-group matrices:
+
+- Rank
+- Value
+- Actions
+
+Example for ROI-ROI:
+
+    Rank | ROI A  | ROI B  | Value
+    1    | ROI 12 | ROI 45 | 0.84
+    2    | ROI 8  | ROI 31 | 0.81
+
+
+2.2.2 Matrix Collection / Cross-Band Link Ranking
+
+This feature must distinguish two different modes. Do not treat them as the same behavior.
+
+The user can select several bands/matrices for the same metadata combination, but the ranking can be computed in two ways:
+
+A. Aggregated multi-band link ranking
+   - One row per link.
+   - Values from the selected bands/matrices are combined into one score.
+   - Example score: mean value across selected bands.
+
+B. Expanded link-by-band ranking
+   - One row per link per band/matrix.
+   - No mean or aggregation across bands is computed.
+   - The same link may appear multiple times, once for alpha, once for beta, once for gamma, etc.
+
+This distinction is mandatory in the UI and in the implementation.
+
+Suggested UI selector:
+
+    Link collection ranking mode:
+    [Aggregate selected bands into one score] [Rank each band separately]
+
+Alternative wording if shorter labels are preferred:
+
+    Multi-band mode:
+    [Aggregated] [Expanded by band]
+
+Required selectors for both modes:
+
+- Source: population / subject / comparison
+- Matrix kind: original / aggregated / comparison
+- Measure
+- Statistic
+- Bands
+- Scope
+- Ranking metric
+- Top N
+
+The app should find all matrices matching the selected metadata combination and selected compatible bands.
+
+Definition of selected compatible bands:
+
+- If the user selects specific bands, include only matrices matching those bands and the rest of the selected metadata.
+- If the user selects all compatible bands, include only bands for which matching matrices exist for the selected source, matrix kind, measure and statistic.
+
+
+2.2.2.A Aggregated multi-band link ranking
+
+Aggregated mode ranks each link using a score computed from several matrices/bands.
+
+For each link:
+
+1. Collect its values across all matching matrices/bands.
+2. Compute a single ranking score.
+3. Return one ranking row for that link.
+
+Example 1:
+
+    Source = Control
+    Matrix kind = original
+    Measure = PLV
+    Statistic = mean
+    Bands = alpha, beta, gamma
+    Mode = Aggregated
+    Rank by = mean value across bands
+    Top N = 25
+
+This answers:
+
+    Which ROI-ROI links are strongest on average across the selected bands?
+
+Example row:
+
+    Rank | ROI A  | ROI B  | Score | Alpha | Beta | Gamma |
+    1    | ROI 12 | ROI 45 | 0.73  | 0.61  | 0.84 | 0.73  |
+
+In this example:
+
+    score = mean(alpha, beta, gamma)
+
+Example 2:
+
+    Source = Study vs Control
+    Matrix kind = comparison
+    Measure = PLV
+    Statistic = Cohen's d
+    Bands = alpha, beta, gamma
+    Mode = Aggregated
+    Rank by = number of bands with abs(value) > 0.8
+    Top N = 25
+
+This answers:
+
+    Which ROI-ROI links show strong effects consistently across selected bands?
+
+Aggregated-mode metrics:
+
+Support at least:
+
+- Mean value across selected matrices/bands
+- Mean absolute value across selected matrices/bands
+- Max value across selected matrices/bands
+- Max absolute value across selected matrices/bands
+- Min value across selected matrices/bands
+- Number of selected matrices/bands above threshold
+- Percentage of selected matrices/bands above threshold
+- Number of selected matrices/bands with abs(value) above threshold
+- Direction consistency
+
+Direction consistency:
+
+This is mainly useful for comparison matrices. For each link, inspect the signs of the values across selected matrices/bands:
+
+- all positive -> positive consistent
+- all negative -> negative consistent
+- mixed signs -> mixed
+
+Result table columns for aggregated mode:
+
+- Rank
+- ROI A and ROI B, or Group A and Group B for aggregated matrices
+- ROI/group metadata where available
+- Score
+- Best matrix / best band
+- N matrices/bands used
+- Per-band values or expandable details
+- Actions
+
+If there are many selected bands/matrices, do not create too many visible columns by default. Show:
+
+- Score
+- Best band / best matrix
+- N matrices/bands used
+- Small value profile or expandable details
+
+Then allow the row to expand and show the full list of values.
+
+
+2.2.2.B Expanded link-by-band ranking
+
+Expanded mode ranks link-band or link-matrix pairs. It does not aggregate values across bands.
+
+For each selected matrix/band:
+
+1. Iterate over its eligible links.
+2. Create one ranking row per link in that matrix/band.
+3. Rank all resulting rows by the selected metric.
+
+In this mode, the same ROI-ROI link may appear multiple times if it has high values in several bands.
+
+Example:
+
+    Source = Control
+    Matrix kind = original
+    Measure = PLV
+    Statistic = mean
+    Bands = alpha, beta, gamma
+    Mode = Expanded by band
+    Rank by = highest value
+    Top N = 25
+
+This answers:
+
+    Which specific link-band instances have the highest values?
+
+Example result:
+
+    Rank | ROI A  | ROI B  | Band  | Value
+    1    | ROI 12 | ROI 45 | beta  | 0.84
+    2    | ROI 8  | ROI 31 | beta  | 0.81
+    3    | ROI 12 | ROI 45 | gamma | 0.73
+    4    | ROI 12 | ROI 45 | alpha | 0.61
+
+Here, ROI 12 -- ROI 45 appears three times because alpha, beta and gamma are treated as separate ranking rows. No mean across bands is computed.
+
+Expanded-mode metrics:
+
+Support at least:
+
+- Highest value
+- Lowest value
+- Highest absolute value
+- Above threshold
+- Below threshold
+
+For p-value-like matrices, lowest value should be available.
+For effect-like matrices such as Cohen's d, z-score or t-value, highest absolute value should be available.
+
+Result table columns for expanded mode:
+
+- Rank
+- ROI A and ROI B, or Group A and Group B for aggregated matrices
+- ROI/group metadata where available
+- Band
+- Matrix label
+- Value
+- Actions
+
+Optional display variant:
+
+- Allow grouping rows by band, producing one Top N list per band.
+- This should be a display option, not the default behavior.
+
+Default behavior for expanded mode:
+
+- Produce one global ranking across all selected bands/matrices.
+- Include the Band and Matrix columns so the user can see which band each row comes from.
+
+Link row highlighting behavior:
+
+When the user hovers over or selects a row in any Link Ranking table:
+
+- Highlight the corresponding ROI-ROI link or group-group link in every currently visible visualization panel where that link is visible.
+- In Matrix views, highlight the corresponding cell.
+- In Circular views, highlight the corresponding edge.
+- In Node-Link views, highlight the corresponding edge.
+- In Atlas-related views, optionally highlight the two endpoint ROIs for ROI-ROI links.
+
+Important constraints:
+
+- Do not create new views automatically.
+- Only highlight links in already-created views.
+- If a view is filtered and the link is not currently visible, do not force it to appear.
+- If a view uses a different matrix but the same ROI pair exists, highlight only if the view's matrix belongs to the ranking collection, unless this behavior is changed in a future clarification.
+
+Recommended default behavior:
+
+- For single-matrix link ranking:
+  Highlight only views using the same matrix, plus optionally endpoint ROIs in atlas.
+
+- For matrix collection link ranking:
+  Highlight matching links in visible matrix/network views whose matrix belongs to the selected matrix collection.
+
+Suggested actions per row:
+
+- Add link to Selected Links
+- Add top N links to Selected Links
+- Highlight link
+- Open values across matrices
+- Create filter from this threshold
+
+Selected Links integration:
+
+When adding a link from a matrix collection ranking to Selected Links, do not create a new special "multi-matrix link" type. Add the ROI pair or group pair as usual.
+
+If Selected Links already supports adding extra matrices as value columns, add the matrices from the ranking collection as additional columns so the user can see the per-band/per-matrix values that produced the ranking score. If this is not yet supported, add only the link and the ranking score.
+
+
+2.3 ROI Ranking
+
+ROI Ranking ranks ROIs according to their incident links.
+
+For aggregated group-group matrices, use Group Ranking instead of ROI Ranking. In the first implementation, ROI Ranking may be limited to ROI-ROI matrices. Aggregated matrix support can be added later as Group Ranking if needed.
+
+It should support:
+
+A. Ranking ROIs within one matrix
+B. Ranking ROIs across a matrix collection
+C. Ranking ROIs using current selected links or active filter
+
+Required selectors:
+
+- Ranking source:
+  - Single matrix
+  - Matrix collection
+  - Active filter
+  - Selected links
+
+- Source: population / subject / comparison
+- Matrix kind: original / comparison for ROI Ranking; aggregated only if Group Ranking is implemented
+- Measure
+- Statistic
+- Bands
+- Scope
+- Ranking metric
+- Top N
+
+Suggested metrics:
+
+- Mean incident value
+- Mean absolute incident value
+- Max incident value
+- Max absolute incident value
+- Sum incident values
+- Sum absolute incident values
+- Number of incident links above threshold
+- Number of incident links with abs(value) above threshold
+- Weighted degree
+
+Result table columns:
+
+- Rank
+- ROI
+- ROI group
+- Score
+- N incident links
+- Max value
+- Mean value
+- Actions
+
+Example:
+
+    Rank | ROI         | Group | Score | N incident links | Max value | Mean value
+    1    | Precuneus L | DMN   | 0.72  | 89               | 1.91      | 0.42
+    2    | PCC R       | DMN   | 0.68  | 89               | 1.74      | 0.39
+
+ROI row highlighting behavior:
+
+When the user hovers over or selects a row in the ROI Ranking table:
+
+- Highlight the ROI in every currently visible visualization where that ROI exists.
+- In Matrix views, highlight the corresponding row and column.
+- In Circular views, highlight the node.
+- In Node-Link views, highlight the node.
+- In Atlas views, highlight the ROI if visible.
+
+Important constraints:
+
+- Do not activate inactive ROIs automatically.
+- Do not create new views automatically.
+- If the ROI is filtered out or hidden in a view, do not force it to appear.
+
+Suggested actions per row:
+
+- Highlight ROI
+- Filter links incident to this ROI
+- Open ROI profile, if available
+- Add incident top links to Selected Links
+
+
+3. Top N and result size
+------------------------
+
+Do not use a prominent All option in the ranking result controls.
+
+Use:
+
+    Top N:
+    [10] [25] [50] [100] [250] [500]
+
+Default:
+
+    Top N = 25
+
+For larger results, use one or both:
+
+- pagination
+- export full ranking
+
+but pagination is independent of the n selected, the user must be able to select the pagination size and this is not related with the N selected.
+
+The UI should show how many eligible items existed before truncation:
+
+    Showing top 25 of 4005 eligible links.
+
+For Matrix Ranking:
+
+    Showing top 10 of 24 compatible matrices.
+
+For ROI Ranking:
+
+    Showing top 25 of 90 eligible ROIs.
+
+Every ranking result should expose the effective N used for score computation:
+
+- N links used
+- N matrices used
+- N incident links
+
+This is required for interpretability and reproducibility.
+
+
+4. Scope selector
+-----------------
+
+All rankings should support a scope selector where applicable.
+
+Suggested values:
+
+- All links
+- Active ROIs only
+- Active filter
+- Selected Links
+- Visible links in current views
+
+Implementation notes:
+
+All links:
+Use all valid off-diagonal ROI-ROI links or group-group links.
+
+Active ROIs only:
+Exclude links where one or both endpoint ROIs are inactive. For aggregated matrices, this scope is only valid if the aggregation was computed after applying active ROI exclusions or if a mapping exists from groups back to active ROIs.
+
+Active filter:
+Use only links passing the currently active link filter.
+
+Selected Links:
+Use only links currently present in the Selected Links state.
+
+Visible links in current views:
+Use the union of links currently visible in existing visualization panels.
+
+For the first implementation, it is acceptable to support only:
+
+- All links
+- Active ROIs only
+- Active filter
+- Selected Links
+
+Skip "Visible links in current views" in the first version unless it is already easy to compute from existing state.
+
+
+5. Highlighting model
+---------------------
+
+Ranking rows must interact with currently visible visualization panels.
+
+Implement two highlight states:
+
+- hoveredRankingItem
+- selectedRankingItem
+
+Hover behavior:
+
+When hovering a ranking row:
+
+- apply temporary highlight
+- remove it when mouse leaves
+
+Selection behavior:
+
+When clicking a ranking row:
+
+- apply persistent highlight
+- keep it until another ranking row is selected or the selection is cleared
+
+Ranking item types:
+
+    type RankingHighlightItem =
+      | {
+          type: "matrix";
+          matrixId: string;
+        }
+      | {
+          type: "link";
+          sourceId: string;
+          targetId: string;
+          endpointType: "roi" | "group";
+          matrixIds?: string[];
+        }
+      | {
+          type: "roi";
+          roiId: string;
+        };
+
+Expected highlight behavior by view:
+
+5.1 Matrix view
+
+matrix item:
+If view.matrixId === item.matrixId, highlight the whole panel/header/border.
+
+link item:
+If the matrix belongs to item.matrixIds or item.matrixIds is undefined, highlight the corresponding cell.
+
+roi item:
+Highlight the corresponding matrix row and column.
+
+5.2 Circular view
+
+matrix item:
+If view.matrixId === item.matrixId, highlight the whole panel/header/border.
+
+link item:
+Highlight the corresponding edge if it is currently rendered.
+
+roi item:
+Highlight the corresponding node if it is currently rendered.
+
+5.3 Node-Link view
+
+matrix item:
+If view.matrixId === item.matrixId, highlight the whole panel/header/border.
+
+link item:
+Highlight the corresponding edge if it is currently rendered.
+
+roi item:
+Highlight the corresponding node if it is currently rendered.
+
+5.4 Atlas view
+
+roi item:
+Highlight the ROI if visible.
+
+link item:
+Optionally highlight both endpoint ROIs for ROI-ROI links.
+
+matrix item:
+No required behavior.
+
+
+6. State design
+---------------
+
+Add ranking state to the existing global state management.
+
+Suggested types:
+
+    type RankingTarget = "matrices" | "links" | "rois";
+
+    type MatrixKindForRanking = "original" | "aggregated" | "comparison";
+
+    type RankingMode =
+      | "singleMatrix"
+      | "matrixCollection"
+      | "activeFilter"
+      | "selectedLinks";
+
+    type RankingTopN = 10 | 25 | 50 | 100;
+
+    type RankingScope =
+      | "allLinks"
+      | "activeRois"
+      | "activeFilter"
+      | "selectedLinks"
+      | "visibleLinks";
+
+    interface RankingQuery {
+      target: RankingTarget;
+      mode: RankingMode;
+
+      sourceType?: "population" | "subject" | "comparison";
+      sourceId?: string;
+      matrixKind?: MatrixKindForRanking;
+
+      measureId?: string;
+      statisticId?: string;
+      bandIds?: string[];
+
+      matrixId?: string;
+      matrixIds?: string[];
+
+      scope: RankingScope;
+      metric: string;
+      threshold?: number;
+      topN: RankingTopN;
+    }
+
+    interface RankingResult {
+      query: RankingQuery;
+      rows: RankingRow[];
+      totalEligibleItems: number;
+      createdAt: string;
+      warnings?: string[];
+    }
+
+    type RankingRow =
+      | MatrixRankingRow
+      | LinkRankingRow
+      | RoiRankingRow;
+
+    interface MatrixRankingRow {
+      type: "matrix";
+      rank: number;
+      matrixId: string;
+      label: string;
+      sourceType?: "population" | "subject" | "comparison";
+      sourceId?: string;
+      matrixKind?: MatrixKindForRanking;
+      measureId?: string;
+      statisticId?: string;
+      bandId?: string;
+      score: number;
+      nLinksUsed: number;
+    }
+
+    interface LinkRankingRow {
+      type: "link";
+      rank: number;
+      sourceId: string;
+      targetId: string;
+      endpointType: "roi" | "group";
+      sourceLabel: string;
+      targetLabel: string;
+      sourceGroup?: string;
+      targetGroup?: string;
+      score: number;
+      value?: number;
+      valuesByMatrix?: Record<string, number>;
+      bestMatrixId?: string;
+      bestBandId?: string;
+      nMatricesUsed?: number;
+    }
+
+    interface RoiRankingRow {
+      type: "roi";
+      rank: number;
+      roiId: string;
+      label: string;
+      group?: string;
+      score: number;
+      nIncidentLinks: number;
+      meanValue?: number;
+      maxValue?: number;
+    }
+
+Add UI state:
+
+    interface RankingUiState {
+      activeTab: "views" | "rankings";
+      currentQuery: RankingQuery;
+      currentResult?: RankingResult;
+      hoveredItem?: RankingHighlightItem;
+      selectedItem?: RankingHighlightItem;
+    }
+
+
+7. Ranking computation notes
+----------------------------
+
+7.1 Link identity
+
+Use a stable link key independent of direction for undirected symmetric ROI-ROI matrices:
+
+    function getUndirectedLinkKey(a: string, b: string): string {
+      return [a, b].sort().join("__");
+    }
+
+For aggregated group-group matrices, use the same approach with group IDs instead of ROI IDs.
+
+For directed matrices, preserve direction if the matrix metadata indicates directed connectivity.
+
+7.2 Diagonal handling
+
+By default, exclude diagonal links from rankings unless the global visualization settings explicitly include diagonal values.
+
+7.3 Invalid values
+
+Ignore invalid values:
+
+- NaN
+- null
+- undefined
+- non-numeric values
+
+Track the effective N after invalid values are excluded.
+
+7.4 Active ROIs
+
+When scope is activeRois, exclude links where one or both endpoint ROIs are inactive.
+
+For aggregated matrices, this is only straightforward if the aggregated matrix was computed from active ROIs or if the app can determine which active ROIs contributed to each group value. If this information is unavailable, disable Active ROIs scope for aggregated matrices and show an explanatory warning.
+
+7.5 Matrix collection resolution
+
+For matrix collection rankings, resolve matrix collections from metadata:
+
+    source + matrix kind + measure + statistic + compatible bands
+
+Supported matrix kinds:
+
+- original
+- aggregated
+- comparison
+
+Only include matrices that are compatible in:
+
+- matrix kind
+- ROI order or group order
+- matrix shape
+- atlas
+- aggregation scheme, for aggregated matrices
+- directed/symmetric semantics
+
+If incompatible matrices are found, exclude them and show a warning.
+
+Important:
+Do not mix original ROI-ROI matrices and aggregated group-group matrices in the same matrix collection. Their cells do not represent the same type of entity.
+
+
+8. Components to add
+--------------------
+
+Suggested components:
+
+- NetworkVisualizationTabs
+- ViewsTab
+- RankingsTab
+- RankingTargetSelector
+- RankingQueryControls
+- MatrixRankingControls
+- LinkRankingControls
+- RoiRankingControls
+- RankingResultsTable
+- MatrixRankingTable
+- LinkRankingTable
+- RoiRankingTable
+- RankingRowActions
+
+Suggested hooks/selectors:
+
+- useCompatibleMatricesForRanking(query)
+- useMatrixRanking(query)
+- useLinkRanking(query)
+- useRoiRanking(query)
+- useRankingHighlight()
+
+Suggested utilities:
+
+- computeMatrixRanking(...)
+- computeSingleMatrixLinkRanking(...)
+- computeMatrixCollectionLinkRanking(...)
+- computeRoiRanking(...)
+- resolveRankingMatrixCollection(...)
+- resolveCompatibleBands(...)
+- getEligibleLinks(...)
+
+
+9. Row actions
+--------------
+
+Each ranking table should expose actions where relevant.
+
+9.1 Matrix rows
+
+- Open Matrix View
+- Open Link Ranking for this matrix
+- Open ROI Ranking for this matrix
+- Highlight visible views
+
+9.2 Link rows
+
+- Add to Selected Links
+- Add top N to Selected Links
+- Highlight visible link
+- Create filter from threshold
+
+9.3 ROI rows
+
+- Highlight ROI
+- Filter incident links
+- Add incident top links to Selected Links
+
+For the initial implementation, the minimum required actions are:
+
+- Highlight on hover
+- Add link to Selected Links from Link Ranking
+- Open Matrix View for Matrix Ranking this will be done with a button in the column actions with an eye
+
+
+10. Acceptance criteria
+-----------------------
+
+10.1 UI
+
+- Network Visualization has two tabs: Views and Rankings.
+- Existing view creation controls are available under Views.
+- Rankings tab allows selecting Matrices, Links or ROIs.
+- Rankings tab supports Top N = 10, 25, 50, 100.
+- Rankings tab exposes matrix kind where relevant: original, aggregated, comparison.
+- Rankings are rendered in new cards as the views (matrix, circular, node-link) this cards should have a big initial size, and the list should be rendered in a way that if it overflows on the card it will let the user do vertical scroll. this cards are resizable.
+
+10.2 Matrix Ranking
+
+- User can rank matrices matching source + matrix kind + measure + statistic + compatible bands.
+- Original matrices are supported.
+- Aggregated matrices are supported.
+- Comparison matrices are supported.
+- Result table shows rank, matrix label, matrix kind, band, score and N links used.
+- "All compatible bands" includes only bands with matrices available for the selected combination.
+- Hovering/selecting a matrix row highlights existing visible panels using that matrix.
+
+10.3 Link Ranking
+
+- User can rank links within a single matrix.
+- User can rank links across a matrix collection, especially across several compatible bands for the same source + matrix kind + measure + statistic.
+- Result table shows rank, endpoints, score and effective N.
+- For ROI-ROI matrices, endpoints are ROIs.
+- For aggregated matrices, endpoints are groups.
+- Hovering/selecting a link row highlights the link in already-created compatible Matrix, Circular and Node-Link views.
+- The app does not create new views automatically on hover/select.
+
+10.4 ROI Ranking
+
+- User can rank ROIs by incident link values for ROI-ROI matrices.
+- Result table shows rank, ROI, score and N incident links.
+- Hovering/selecting a ROI row highlights the ROI in already-created compatible views.
+
+10.5 Highlighting
+
+- Ranking rows highlight only items that are currently visible in existing views.
+- Hidden, filtered-out or non-rendered links/ROIs are not forced to appear.
+- Matrix ranking rows highlight panels only if the matrix is already displayed.
+- Link ranking rows highlight matching links only in compatible visible views.
+- ROI ranking rows highlight matching ROIs only in compatible visible views.
+
+10.6 Non-regression
+
+- Existing Matrix, Circular and Node-Link view creation still works.
+- Existing filters still work.
+- Existing Selected Links functionality still works.
+- Existing export functions still work.
+
+
+12. Clarifications
+-----------------------------------------------
+
+12.1 Matrix kinds: original, aggregated and comparison
+
+Resolved.
+
+The ranking system must support:
+
+- original matrices
+- aggregated matrices
+- comparison matrices
+
+Explanation:
+
+- Original matrices are the standard matrices over ROIs.
+- Aggregated matrices are matrices computed after grouping ROIs, for example network-network or region-region matrices.
+- Comparison matrices are matrices derived from comparisons, for example difference, Cohen's d, z-score, p-value or t-value matrices.
+
+12.2 Meaning of "all bands"
+
+Resolved.
+
+"All bands" means all compatible bands for the selected combination.
+
+All bands should be available as an explicit option in the selector
+
+Example:
+
+    Source = Control
+    Matrix kind = original
+    Measure = PLV
+    Statistic = mean
+
+If matrices exist only for alpha, beta and gamma, then "all compatible bands" means alpha, beta and gamma. It does not include theta just because theta exists in the catalog.
+
+12.3 Cross-matrix or multi-matrix link ranking
+
+Explanation.
+
+This does not mean a new type of link. It means the same ROI-ROI pair is evaluated across several matrices.
+
+Example:
+
+    Link = ROI 12 -- ROI 45
+    Matrix collection = Control + PLV + mean + alpha/beta/gamma
+
+Then the ranking row may contain:
+
+    ROI 12 -- ROI 45
+    alpha value = 0.61
+    beta value = 0.84
+    gamma value = 0.73
+    score = mean across bands = 0.73
+
+So the ranked item is still one link. The difference is that its score is computed from several matrices/bands rather than from one matrix.
+
+Recommended default for Selected Links integration:
+
+When adding such a row to Selected Links, add the ROI pair as usual. If possible, also add the matrices used by the ranking as value columns, so the user can inspect alpha/beta/gamma values in Selected Links.
+
+12.4 Highlighting for matrix collection link rankings
+
+Highlight the same ROI pair in every visible view, regardless of matrix.
+Example: highlight ROI 12 -- ROI 45 even in theta or other unrelated views.
+There is already a machanism to highlight same links between matrices, somehow highliting links on row hover should use this mechanism
+
+
+12.7 Selected Links and matrix collection rankings
+
+Explanation.
+
+A "multi-matrix link" should not be stored as a special object. It is the same link, for example ROI 12 -- ROI 45. The only difference is that the ranking score was computed from several matrices.
+
+Open implementation detail:
+
+When adding top N links from a matrix collection ranking to Selected Links, decide how much information to carry over.
+
+Recommended default:
+
+- Always add the ROI pair.
+- Also add the matrix collection as additional value columns if Selected Links already supports showing additional matrices as columns.
+
+If adding extra columns requires too much refactoring, add only the ROI pair in the first version and leave the extra columns for a later task.
+
+12.8 Scope behavior
+
+
+Support:
+
+- All links
+- Active ROIs only
+- Active filter
+- Selected Links
+
+

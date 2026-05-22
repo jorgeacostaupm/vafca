@@ -2,6 +2,7 @@ import { Modal, Tabs } from "antd";
 import NetworkGeneralSettingsTab from "./NetworkGeneralSettingsTab";
 import PaletteSettingsTab from "./PaletteSettingsTab";
 import HierarchySettingsTab from "./HierarchySettingsTab";
+import CircularSettingsTab from "./CircularSettingsTab";
 
 type NetworkVisualizationSettingsModalProps = {
   open: boolean;
@@ -36,7 +37,7 @@ export default function NetworkVisualizationSettingsModal({
           {
             key: "circular",
             label: "Circular",
-            children: <HierarchySettingsTab mode="circular" />,
+            children: <CircularSettingsTab />,
           },
           {
             key: "matrices",

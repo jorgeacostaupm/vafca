@@ -192,6 +192,7 @@ export const renderHeatmapScene = ({
   const selectedLayer = root.append("g").attr("class", "heatmap-selected");
 
   root.selectAll(".heatmap-highlight").raise();
+  selectedLayer.raise();
   applyHighlightColor(highlights);
 
   return {

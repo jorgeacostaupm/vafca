@@ -1,4 +1,4 @@
-import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
+import { buildCircularHierarchyBundleLayout } from "@/utils/circular/hierarchy";
 import { buildDegreeByLabelId, buildFilteredUndirectedLinks } from "@/components/nodelink/graphModel";
 import type { AtlasDefinition } from "@/types/atlas";
 import type {
@@ -114,14 +114,16 @@ export const buildCircularGraphData = ({
   });
 
   const radius = Math.max(0, Math.min(width, height) / 2 - CIRCULAR_LAYOUT_MARGIN);
-  const hierarchyLayout = buildCircularHierarchyLayout({
+  const hierarchyLayout = buildCircularHierarchyBundleLayout({
     labelIds: visibleOriginalIndices.map((item) => item.labelId),
     radius,
     atlasDefinition,
     hierarchyFields,
     categoryOrder: hierarchyCategoryOrder,
   });
-  const hierarchyByLabel = new Map(hierarchyLayout.map((item) => [item.labelId, item] as const));
+  const hierarchyByLabel = new Map(
+    hierarchyLayout.points.map((item) => [item.labelId, item] as const),
+  );
 
   const orderedVisible = [...visibleOriginalIndices].sort((a, b) => {
     const orderA = hierarchyByLabel.get(a.labelId)?.order ?? a.fallbackOrder;
@@ -143,11 +145,12 @@ export const buildCircularGraphData = ({
   });
 
   const links = baseLinks
-    .map((link) => {
+    .map((link): CircularLink | null => {
       const source = indexMap.get(link.source);
       const target = indexMap.get(link.target);
       if (source === undefined || target === undefined) return null;
-      return { ...link, source, target };
+      const bundlePath = hierarchyLayout.pathByLabelPair(link.rowId, link.colId) ?? undefined;
+      return bundlePath ? { ...link, source, target, bundlePath } : { ...link, source, target };
     })
     .filter((link): link is CircularLink => link !== null);
 

@@ -2,6 +2,10 @@ import { useMemo } from "react";
 import { buildLabelState } from "@/components/selectors/labelSelection";
 import { getZoomState } from "@/components/selectors/useViewSettingsState";
 import { DEFAULT_LINK_WIDTH_RANGE } from "@/utils/matrixViewUtils";
+import {
+  DEFAULT_CIRCULAR_BUNDLING_ENABLED,
+  DEFAULT_CIRCULAR_LINK_TENSION,
+} from "@/types/circular";
 import { filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
 import { resolveMatrixUiRange } from "@/utils/matrixUiRange";
 import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
@@ -206,6 +210,11 @@ export const useComputedNetworkViews = ({
         geometricZoomEnabled: nodeLinkSettings?.geometricZoomEnabled ?? false,
         linkWidthRange:
           nodeLinkSettings?.linkWidthRange ?? DEFAULT_LINK_WIDTH_RANGE,
+        circularLinkTension:
+          nodeLinkSettings?.circularLinkTension ?? DEFAULT_CIRCULAR_LINK_TENSION,
+        circularBundlingEnabled:
+          nodeLinkSettings?.circularBundlingEnabled ??
+          DEFAULT_CIRCULAR_BUNDLING_ENABLED,
         useAsNodeFilter: settings?.useAsNodeFilter ?? false,
         useAsLinkFilter: settings?.useAsLinkFilter ?? false,
         isRangeFilterSource:

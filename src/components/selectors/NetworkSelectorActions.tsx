@@ -5,7 +5,7 @@ import {
   FilterOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { Button, Tooltip } from "antd";
+import { Button, Space, Tooltip, Typography } from "antd";
 import DerivedMatrixCalculationModal from "@/components/calculations/DerivedMatrixCalculationModal";
 import DataManagementModal from "@/components/management/DataManagementModal";
 import NetworkEdgeFilterModal from "@/components/network/edge-filter/NetworkEdgeFilterModal";
@@ -18,9 +18,13 @@ function DataAction() {
 
   return (
     <>
-      <Button icon={<DatabaseOutlined />} onClick={() => setOpen(true)}>
-        Data
-      </Button>
+      <Tooltip title="Manage loaded datasets and matrix metadata">
+        <Button
+          aria-label="Manage data"
+          icon={<DatabaseOutlined />}
+          onClick={() => setOpen(true)}
+        />
+      </Tooltip>
       <DataManagementModal open={open} onClose={() => setOpen(false)} />
     </>
   );
@@ -31,9 +35,13 @@ function SettingsAction() {
 
   return (
     <>
-      <Button icon={<SettingOutlined />} onClick={() => setOpen(true)}>
-        Settings
-      </Button>
+      <Tooltip title="Visualization settings">
+        <Button
+          aria-label="Visualization settings"
+          icon={<SettingOutlined />}
+          onClick={() => setOpen(true)}
+        />
+      </Tooltip>
       <NetworkVisualizationSettingsModal
         open={open}
         onClose={() => setOpen(false)}
@@ -47,9 +55,13 @@ function FilterAction() {
 
   return (
     <>
-      <Button icon={<FilterOutlined />} onClick={() => setOpen(true)}>
-        Filter
-      </Button>
+      <Tooltip title="Configure edge filters">
+        <Button
+          aria-label="Configure edge filters"
+          icon={<FilterOutlined />}
+          onClick={() => setOpen(true)}
+        />
+      </Tooltip>
       <NetworkEdgeFilterModal open={open} onClose={() => setOpen(false)} />
     </>
   );
@@ -73,12 +85,11 @@ function ComputeAction() {
         }
       >
         <Button
+          aria-label="Compute derived matrices"
           icon={<CalculatorOutlined />}
           disabled={!calculationAvailable}
           onClick={() => setOpen(true)}
-        >
-          Compute
-        </Button>
+        />
       </Tooltip>
       <DerivedMatrixCalculationModal
         open={open}
@@ -90,11 +101,21 @@ function ComputeAction() {
 
 export default function NetworkSelectorActions() {
   return (
-    <>
-      <DataAction />
-      <SettingsAction />
-      <FilterAction />
-      <ComputeAction />
-    </>
+    <div className="network-action-toolbar" aria-label="Network tools">
+      <Space size={6}>
+        <Typography.Text type="secondary" className="network-action-toolbar__label">
+          Data
+        </Typography.Text>
+        <DataAction />
+        <ComputeAction />
+      </Space>
+      <Space size={6}>
+        <Typography.Text type="secondary" className="network-action-toolbar__label">
+          Visualization
+        </Typography.Text>
+        <FilterAction />
+        <SettingsAction />
+      </Space>
+    </div>
   );
 }

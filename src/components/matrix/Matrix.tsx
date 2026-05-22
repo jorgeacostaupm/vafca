@@ -70,6 +70,7 @@ function MatrixHeatmap({
     null,
     undefined
   > | null>(null);
+  const selectedCellsRef = useRef(selectedCells);
   const highlightRefs = useRef<HeatmapHighlightSelections | null>(null);
 
   const xScaleRef = useRef<d3.ScaleBand<number> | null>(null);
@@ -85,6 +86,8 @@ function MatrixHeatmap({
   const selectCbRef = useRef(onCellSelect);
   const brushCbRef = useRef(onBrushZoom);
   const labelToggleCbRef = useRef(onLabelToggle);
+
+  selectedCellsRef.current = selectedCells;
 
   const positionTooltipForCell = (
     colX: number,
@@ -229,6 +232,17 @@ function MatrixHeatmap({
     rowLabelsRef.current = resolvedRowLabels;
     colLabelsRef.current = resolvedColLabels;
     normalizedRef.current = filtered;
+
+    updateSelectedCellsOverlay({
+      selectedLayer,
+      xScale: layout.xScale,
+      yScale: layout.yScale,
+      dataShape: {
+        rows: filtered.length,
+        cols: filtered[0]?.length ?? 0,
+      },
+      selectedCells: selectedCellsRef.current,
+    });
   }, [
     filtered,
     layout,

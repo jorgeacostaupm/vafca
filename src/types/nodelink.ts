@@ -1,4 +1,5 @@
 import type { RefObject } from "react";
+import type { CircularBundlePathPoint } from "@/types/circular";
 import type { MatrixValueRange } from "@/types/matrixView";
 
 export type NodeLinkValueFilters = {
@@ -18,6 +19,8 @@ export type NodeLinkPanelCommonProps = {
   brushEnabled?: boolean;
   geometricZoomEnabled?: boolean;
   hideIsolatedNodes?: boolean;
+  circularLinkTension?: number;
+  circularBundlingEnabled?: boolean;
   diverging?: boolean;
   onLabelToggle?: (label: string) => void;
   onBrushZoom?: (payload: { labels: string[] }) => void;
@@ -86,4 +89,5 @@ export type CircularLink = {
   value: number;
   rowId: string;
   colId: string;
+  bundlePath?: CircularBundlePathPoint[];
 };

@@ -17,6 +17,8 @@ export {
   resetNetworkControls,
   resetNetworkViewSettings,
   resetNetworkZoomLabelSelection,
+  setNetworkCircularBundlingEnabled,
+  setNetworkCircularLinkTension,
   setNetworkHideIsolatedNodes,
   setNetworkLayout,
   setNetworkViewStatus,

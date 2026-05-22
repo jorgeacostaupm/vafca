@@ -13,19 +13,26 @@ import type {
 type HierarchySettingsPreviewProps = {
   mode: HierarchySettingsMode;
   hierarchy: HierarchySettingsModel;
+  circularLinkTension?: number;
+  circularBundlingEnabled?: boolean;
 };
 
 export default function HierarchySettingsPreview({
   mode,
   hierarchy,
+  circularLinkTension,
+  circularBundlingEnabled,
 }: HierarchySettingsPreviewProps) {
   if (mode === "circular") {
     return (
       <CircularHierarchyPreview
         layout={hierarchy.circularPreviewLayout}
+        previewLinks={hierarchy.circularPreviewLinks}
         activeRoiCount={hierarchy.activeRoiIds.length}
         previewRadius={hierarchy.previewRadius}
         nodeColors={hierarchy.previewNodeColors}
+        linkTension={circularLinkTension}
+        bundlingEnabled={circularBundlingEnabled}
         displayWidth={CIRCULAR_PREVIEW_WIDTH}
       />
     );

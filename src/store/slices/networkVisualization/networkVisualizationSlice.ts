@@ -1,4 +1,8 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import {
+  DEFAULT_NETWORK_NEXT_VIEW_SEQ,
+  DEFAULT_NETWORK_PANEL_LAYOUT,
+} from '@/config/ui'
 import { areZoomSelectionsEqual } from '@/utils/matrixViewUtils'
 import type {
   MatrixNetworkViewSettings,
@@ -191,6 +195,14 @@ const networkVisualizationSlice = createSlice({
       } else {
         state.nodeLinkSettingsByViewId[id] = {
           hideIsolatedNodes: state.controls.hideIsolatedNodes,
+          circularLinkTension:
+            action.payload.type === 'circular'
+              ? state.controls.circularLinkTension
+              : undefined,
+          circularBundlingEnabled:
+            action.payload.type === 'circular'
+              ? state.controls.circularBundlingEnabled
+              : undefined,
         }
       }
     },
@@ -208,7 +220,7 @@ const networkVisualizationSlice = createSlice({
       state.layout = []
       state.matrixSettingsByViewId = {}
       state.nodeLinkSettingsByViewId = {}
-      state.nextViewSeq = 1
+      state.nextViewSeq = DEFAULT_NETWORK_NEXT_VIEW_SEQ
     },
     mutateNetworkViewTypeLocally(
       state,
@@ -294,6 +306,38 @@ const networkVisualizationSlice = createSlice({
         state.nodeLinkSettingsByViewId[viewId] = {
           ...state.nodeLinkSettingsByViewId[viewId],
           hideIsolatedNodes: value,
+        }
+      })
+    },
+    setNetworkCircularLinkTension(
+      state,
+      action: PayloadAction<{ value: number }>,
+    ) {
+      const value = Math.min(Math.max(action.payload.value, 0), 1)
+      state.controls.circularLinkTension = value
+      state.viewsOrder.forEach((viewId) => {
+        const descriptor = state.viewsById[viewId]
+        if (descriptor?.type !== 'circular') return
+
+        state.nodeLinkSettingsByViewId[viewId] = {
+          ...state.nodeLinkSettingsByViewId[viewId],
+          circularLinkTension: value,
+        }
+      })
+    },
+    setNetworkCircularBundlingEnabled(
+      state,
+      action: PayloadAction<{ value: boolean }>,
+    ) {
+      const { value } = action.payload
+      state.controls.circularBundlingEnabled = value
+      state.viewsOrder.forEach((viewId) => {
+        const descriptor = state.viewsById[viewId]
+        if (descriptor?.type !== 'circular') return
+
+        state.nodeLinkSettingsByViewId[viewId] = {
+          ...state.nodeLinkSettingsByViewId[viewId],
+          circularBundlingEnabled: value,
         }
       })
     },
@@ -391,9 +435,9 @@ const networkVisualizationSlice = createSlice({
       }>,
     ) {
       const { viewId } = action.payload
-      const defaultW = action.payload.defaultW ?? 8
-      const defaultH = action.payload.defaultH ?? 5
-      const columns = action.payload.columns ?? 3
+      const defaultW = action.payload.defaultW ?? DEFAULT_NETWORK_PANEL_LAYOUT.width
+      const defaultH = action.payload.defaultH ?? DEFAULT_NETWORK_PANEL_LAYOUT.height
+      const columns = action.payload.columns ?? DEFAULT_NETWORK_PANEL_LAYOUT.columns
       const yOffset = action.payload.yOffset ?? defaultH
       const x = (state.layout.length % columns) * defaultW
 
@@ -453,6 +497,8 @@ export const {
   patchNetworkMatrixSettings,
   patchNetworkNodeLinkSettings,
   setNetworkHideIsolatedNodes,
+  setNetworkCircularBundlingEnabled,
+  setNetworkCircularLinkTension,
   resetNetworkViewSettings,
   updateNetworkViewStatRange,
   applyNetworkZoom,

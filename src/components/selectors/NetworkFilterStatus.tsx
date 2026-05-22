@@ -1,4 +1,4 @@
-import { Space, Tag, Typography } from "antd";
+import { Tag, Typography } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   clearAggregatedNetworkEdgeFilter,
@@ -18,29 +18,27 @@ export default function NetworkFilterStatus() {
 
   return (
     <div className="network-control-card__filters">
+      <Typography.Text type="secondary" className="network-control-card__filters-label">
+        Active filters
+      </Typography.Text>
       {activeMask ? (
-        <Space wrap>
-          <Tag color="blue">
-            Filter active: {activeMask.selectedCount} / {activeMask.totalCount}{" "}
-            edges
-          </Tag>
-          <Typography.Link onClick={() => dispatch(clearNetworkEdgeFilter())}>
-            Clear filter
-          </Typography.Link>
-        </Space>
+        <Tag
+          color="blue"
+          closable
+          onClose={() => dispatch(clearNetworkEdgeFilter())}
+        >
+          ROI edges: {activeMask.selectedCount} / {activeMask.totalCount}
+        </Tag>
       ) : null}
       {activeAggregatedMask ? (
-        <Space wrap>
-          <Tag color="purple">
-            Aggregated filter active: {activeAggregatedMask.selectedCount} /{" "}
-            {activeAggregatedMask.totalCount} edges
-          </Tag>
-          <Typography.Link
-            onClick={() => dispatch(clearAggregatedNetworkEdgeFilter())}
-          >
-            Clear aggregated filter
-          </Typography.Link>
-        </Space>
+        <Tag
+          color="purple"
+          closable
+          onClose={() => dispatch(clearAggregatedNetworkEdgeFilter())}
+        >
+          Aggregated edges: {activeAggregatedMask.selectedCount} /{" "}
+          {activeAggregatedMask.totalCount}
+        </Tag>
       ) : null}
     </div>
   );

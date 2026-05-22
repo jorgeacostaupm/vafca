@@ -1,5 +1,6 @@
 import { Space, Typography } from "antd";
 import { useAppSelector } from "@/store/hooks";
+import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
 
 function MatrixSummarySection() {
   const data = useAppSelector((state) => state.dataset.data);
@@ -21,10 +22,10 @@ function MatrixSummarySection() {
                 );
                 const perPopulationSet = Object.entries(popMap)
                   .map(([populationKey, count]) => {
-                    const label = populationKey
-                      .split("+")
-                      .map((id) => data.catalogs.populations[id]?.label ?? id)
-                      .join("+");
+                    const label = formatPopulationSetLabel(
+                      populationKey.split("+"),
+                      data.catalogs,
+                    );
                     return `${label} ${count}`;
                   })
                   .join(", ");

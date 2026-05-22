@@ -1,3 +1,4 @@
+import { DeleteOutlined } from "@ant-design/icons";
 import { Button, Table, Typography } from "antd";
 import { useMemo } from "react";
 import type { TableColumnsType } from "antd";
@@ -59,10 +60,11 @@ export default function SelectedLinksTable({
           <Button
             size="small"
             type="text"
+            danger
+            icon={<DeleteOutlined />}
+            aria-label="Remove selected link"
             onClick={() => onRemoveSelectedLink(record.key)}
-          >
-            Remove
-          </Button>
+          />
         ),
       },
     ],
@@ -95,4 +97,3 @@ export default function SelectedLinksTable({
     />
   );
 }
-

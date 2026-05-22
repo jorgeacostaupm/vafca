@@ -27,6 +27,8 @@ type CircularSceneRenderArgs = {
   degreeById: Map<string, number>;
   selectedZoomLabels?: string[];
   linkWidthRange?: [number, number];
+  circularLinkTension?: number;
+  circularBundlingEnabled?: boolean;
   brushEnabled: boolean;
   geometricZoomEnabled: boolean;
   diverging?: boolean;
@@ -246,6 +248,8 @@ export const renderCircularScene = ({
   degreeById,
   selectedZoomLabels,
   linkWidthRange,
+  circularLinkTension,
+  circularBundlingEnabled,
   brushEnabled,
   geometricZoomEnabled,
   diverging,
@@ -303,6 +307,8 @@ export const renderCircularScene = ({
     labelAcronyms,
     selectedLinkIds,
     widthScale,
+    circularLinkTension,
+    circularBundlingEnabled,
     nodeRadius,
     zoomLabelSet,
     degreeById,

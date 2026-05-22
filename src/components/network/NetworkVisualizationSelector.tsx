@@ -4,13 +4,21 @@ import {
   removeNetworkView,
   setNetworkLayout,
 } from "@/store/slices/networkVisualization";
+import {
+  removeRankingResult,
+  setRankingLayout,
+} from "@/store/slices/rankings";
 import PanelGridLayout from "@/components/layout/PanelGridLayout";
 import { useNetworkMatrixCache } from "@/components/network/useNetworkMatrixCache";
 import { useComputedNetworkViews } from "@/components/network/useComputedNetworkViews";
 import { buildNetworkPanelItems } from "@/components/network/NetworkPanelItems";
+import RankingResultsTable from "@/components/rankings/RankingResultsTable";
+import { formatRankingPanelTitle } from "@/components/rankings/rankingOptions";
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { buildRuntimeMaskLinkSet } from "@/components/network/networkFormatting";
+import { getMatrixCompoundId } from "@/utils/rankings/rankingMatrixMetadata";
 import type { NetworkViewDescriptor } from "@/types/networkVisualization";
+import type { PanelItem } from "@/types/layout";
 
 function NetworkVisualizationSelector() {
   const dispatch = useAppDispatch();
@@ -23,6 +31,10 @@ function NetworkVisualizationSelector() {
     (state) => state.visualizationUi.includeDiagonalInRanges,
   );
   const networkState = useAppSelector((state) => state.networkVisualization);
+  const rankingState = useAppSelector((state) => state.rankings);
+  const rankingHighlightItem = useAppSelector(
+    (state) => state.rankings.hoveredItem ?? state.rankings.selectedItem,
+  );
 
   const views = useMemo(
     () =>
@@ -85,9 +97,17 @@ function NetworkVisualizationSelector() {
     [dataset?.connectivity?.matrixIndex, networkState.activeAggregatedEdgeMask],
   );
 
-  const panelItems = useMemo(
-    () =>
-      buildNetworkPanelItems({
+  const networkPanelItems = useMemo(
+    () => {
+      const highlightedMatrix =
+        rankingHighlightItem?.type === "matrix" && dataset?.connectivity
+          ? dataset.connectivity.matrixIndex[rankingHighlightItem.matrixId]
+          : undefined;
+      const highlightedCompoundId = highlightedMatrix
+        ? getMatrixCompoundId(highlightedMatrix)
+        : null;
+
+      return buildNetworkPanelItems({
         views,
         matrixByCompoundId,
         loadingCompoundIds,
@@ -98,7 +118,17 @@ function NetworkVisualizationSelector() {
         linkFilterContributors,
         runtimeAllowedLinkIds,
         runtimeAggregatedAllowedLinkIds,
-      }),
+      }).map((item) =>
+        highlightedCompoundId && item.id && views.find((view) => view.id === item.id)?.compoundId === highlightedCompoundId
+          ? {
+              ...item,
+              className: [item.className, "network-panel-card--ranking-highlight"]
+                .filter(Boolean)
+                .join(" "),
+            }
+          : item,
+      );
+    },
     [
       computedByViewId,
       dataset,
@@ -110,18 +140,57 @@ function NetworkVisualizationSelector() {
       runtimeAggregatedAllowedLinkIds,
       views,
       visibilityByViewId,
+      rankingHighlightItem,
     ],
+  );
+
+  const rankingPanelItems = useMemo<PanelItem[]>(
+    () =>
+      rankingState.resultsOrder
+        .map((id) => rankingState.resultsById[id])
+        .filter(Boolean)
+        .map((result) => ({
+          id: result.id,
+          title: formatRankingPanelTitle(result, dataset?.connectivity),
+          className: "ranking-panel-card",
+          content: <RankingResultsTable result={result} />,
+        })),
+    [dataset?.connectivity, rankingState.resultsById, rankingState.resultsOrder],
+  );
+
+  const panelItems = useMemo(
+    () => [...networkPanelItems, ...rankingPanelItems],
+    [networkPanelItems, rankingPanelItems],
+  );
+
+  const combinedLayout = useMemo(
+    () => [...networkState.layout, ...rankingState.layout],
+    [networkState.layout, rankingState.layout],
   );
 
   return (
     <PanelGridLayout
       items={panelItems}
-      layout={networkState.layout}
-      onRemove={(viewId) => dispatch(removeNetworkView({ viewId }))}
-      setLayout={(nextLayout) =>
+      layout={combinedLayout}
+      onRemove={(id) => {
+        if (networkState.viewsById[id]) {
+          dispatch(removeNetworkView({ viewId: id }));
+          return;
+        }
+        dispatch(removeRankingResult({ resultId: id }));
+      }}
+      setLayout={(nextLayout) => {
+        const networkIds = new Set(networkState.viewsOrder);
+        const rankingIds = new Set(rankingState.resultsOrder);
+        const nextNetworkLayout = nextLayout.filter((entry) =>
+          networkIds.has(entry.i),
+        );
+        const nextRankingLayout = nextLayout.filter((entry) =>
+          rankingIds.has(entry.i),
+        );
         dispatch(
           setNetworkLayout(
-            nextLayout.map(({ i, x, y, w, h }) => ({
+            nextNetworkLayout.map(({ i, x, y, w, h }) => ({
               i,
               x,
               y,
@@ -129,8 +198,13 @@ function NetworkVisualizationSelector() {
               h,
             })),
           ),
-        )
-      }
+        );
+        dispatch(
+          setRankingLayout(
+            nextRankingLayout.map(({ i, x, y, w, h }) => ({ i, x, y, w, h })),
+          ),
+        );
+      }}
     />
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Modal, Space, Statistic, Tabs, Typography } from "antd";
+import { DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   applyAggregatedNetworkEdgeFilter,
@@ -21,8 +22,6 @@ import { formatMatrixKindLabel, formatNetworkMatrixLabel } from "./edgeFilterLab
 import type { MatrixFilterDefinition } from "@/types/edgeFilter";
 import { normalizeMatrixOrder } from "@/utils/matrixOrder";
 
-const INCLUDE_DIAGONAL_IN_EDGE_FILTERS = true;
-
 export type NetworkEdgeFilterMode = "roi" | "aggregated";
 
 type NetworkEdgeFilterModalProps = {
@@ -43,9 +42,9 @@ export default function NetworkEdgeFilterModal({
 
   const [drafts, setDrafts] = useState<Record<NetworkEdgeFilterMode, MatrixFilterDefinition>>(
     () => ({
-      roi: createEmptyMatrixFilterDefinition(INCLUDE_DIAGONAL_IN_EDGE_FILTERS, globalRangeMode),
+      roi: createEmptyMatrixFilterDefinition(DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL, globalRangeMode),
       aggregated: createEmptyMatrixFilterDefinition(
-        INCLUDE_DIAGONAL_IN_EDGE_FILTERS,
+        DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL,
         globalRangeMode,
       ),
     }),
@@ -84,17 +83,17 @@ export default function NetworkEdgeFilterModal({
       roi: network.activeNetworkFilter
         ? {
             ...cloneMatrixFilterDefinition(network.activeNetworkFilter),
-            includeDiagonal: INCLUDE_DIAGONAL_IN_EDGE_FILTERS,
+            includeDiagonal: DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL,
             uiRangeMode: globalRangeMode,
           }
-        : createEmptyMatrixFilterDefinition(INCLUDE_DIAGONAL_IN_EDGE_FILTERS, globalRangeMode),
+        : createEmptyMatrixFilterDefinition(DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL, globalRangeMode),
       aggregated: network.activeAggregatedNetworkFilter
         ? {
             ...cloneMatrixFilterDefinition(network.activeAggregatedNetworkFilter),
-            includeDiagonal: INCLUDE_DIAGONAL_IN_EDGE_FILTERS,
+            includeDiagonal: DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL,
             uiRangeMode: globalRangeMode,
           }
-        : createEmptyMatrixFilterDefinition(INCLUDE_DIAGONAL_IN_EDGE_FILTERS, globalRangeMode),
+        : createEmptyMatrixFilterDefinition(DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL, globalRangeMode),
     });
   }, [
     globalRangeMode,
@@ -132,7 +131,7 @@ export default function NetworkEdgeFilterModal({
   const normalizedDraft = useMemo(
     () =>
       normalizeMatrixFilterDefinitionForRanges(
-        { ...draft, includeDiagonal: INCLUDE_DIAGONAL_IN_EDGE_FILTERS },
+        { ...draft, includeDiagonal: DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL },
         matrixIndex,
         dataset?.connectivity?.catalogs,
         globalRangeMode,
@@ -190,7 +189,7 @@ export default function NetworkEdgeFilterModal({
           onClick={() =>
             setCurrentDraft(
               createEmptyMatrixFilterDefinition(
-                INCLUDE_DIAGONAL_IN_EDGE_FILTERS,
+                DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL,
                 globalRangeMode,
               ),
             )
@@ -248,11 +247,11 @@ export default function NetworkEdgeFilterModal({
           matrixGroups={matrixGroups}
           catalogs={dataset?.connectivity?.catalogs}
           uiRangeMode={globalRangeMode}
-          includeDiagonal={INCLUDE_DIAGONAL_IN_EDGE_FILTERS}
+          includeDiagonal={DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL}
           onChange={(root) =>
             setCurrentDraft({
               ...draft,
-              includeDiagonal: INCLUDE_DIAGONAL_IN_EDGE_FILTERS,
+              includeDiagonal: DEFAULT_EDGE_FILTER_INCLUDE_DIAGONAL,
               root,
             })
           }

@@ -7,6 +7,7 @@ import { buildLabelNameMap, normalizeMatrixOrder } from "@/utils/matrixOrder";
 import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
 import {
   buildMatrixLabel,
+  formatPopulationSetLabel,
   hasOnlyEnabledPopulations,
   isEnabled,
   normalizePopulationKey,
@@ -106,7 +107,10 @@ export const useMatrixFilterOptions = ({
 
     return Array.from(keys)
       .sort()
-      .map((key) => ({ value: key, label: key }));
+      .map((key) => ({
+        value: key,
+        label: formatPopulationSetLabel(key.split("+"), dataset?.catalogs),
+      }));
   }, [summaries, dataset]);
 
   const measures = useMemo<Option[]>(() => {

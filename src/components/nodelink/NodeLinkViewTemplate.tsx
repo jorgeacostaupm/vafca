@@ -33,6 +33,8 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
   valueFilters,
   selectedZoomLabels,
   linkWidthRange,
+  circularLinkTension,
+  circularBundlingEnabled,
   brushEnabled,
   geometricZoomEnabled,
   hideIsolatedNodes,
@@ -77,6 +79,8 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
           valueFilters={valueFilters}
           selectedZoomLabels={selectedZoomLabels}
           linkWidthRange={linkWidthRange}
+          circularLinkTension={circularLinkTension}
+          circularBundlingEnabled={circularBundlingEnabled}
           brushEnabled={brushEnabled}
           geometricZoomEnabled={geometricZoomEnabled}
           hideIsolatedNodes={hideIsolatedNodes}

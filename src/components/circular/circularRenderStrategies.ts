@@ -1,5 +1,9 @@
 import * as d3 from "d3";
 import { escapeHtml } from "@/utils/html";
+import {
+  DEFAULT_CIRCULAR_LINK_TENSION,
+  type CircularBundlePathPoint,
+} from "@/types/circular";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 import {
   buildRoiTooltipLabel,
@@ -8,7 +12,6 @@ import {
   LINK_POSITIVE,
   SELECTED_STROKE,
 } from "@/components/nodelink/nodelinkShared";
-
 
 type RenderCircularElementsArgs = {
   root: d3.Selection<SVGGElement, unknown, null, undefined>;
@@ -20,6 +23,8 @@ type RenderCircularElementsArgs = {
   labelAcronyms?: Record<string, string>;
   selectedLinkIds: Set<string>;
   widthScale: d3.ScaleLinear<number, number>;
+  circularLinkTension?: number;
+  circularBundlingEnabled?: boolean;
   nodeRadius: number;
   zoomLabelSet: Set<string> | null;
   degreeById: Map<string, number>;
@@ -53,6 +58,8 @@ export const renderCircularElements = ({
   labelAcronyms,
   selectedLinkIds,
   widthScale,
+  circularLinkTension = DEFAULT_CIRCULAR_LINK_TENSION,
+  circularBundlingEnabled = true,
   nodeRadius,
   zoomLabelSet,
   degreeById,
@@ -77,6 +84,11 @@ export const renderCircularElements = ({
     const base = widthScale(Math.abs(link.value));
     return isSelectedLink(link) ? Math.max(base, SELECTED_STROKE) : base;
   };
+  const bundledLine = d3
+    .lineRadial<CircularBundlePathPoint>()
+    .curve(d3.curveBundle.beta(circularLinkTension))
+    .angle((point) => point.angle)
+    .radius((point) => point.radius);
 
   const linkSelection = root
     .append("g")
@@ -84,6 +96,10 @@ export const renderCircularElements = ({
     .data(links)
     .join("path")
     .attr("d", (link: CircularLink) => {
+      if (circularBundlingEnabled && link.bundlePath && link.bundlePath.length > 1) {
+        return bundledLine(link.bundlePath);
+      }
+
       const source = nodes[link.source];
       const target = nodes[link.target];
       const path = d3.path();

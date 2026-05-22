@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/vafca/",
+  base: process.env.VITE_BASE_PATH ?? '/vafca/',
   plugins: [react()],
   resolve: {
     alias: {

@@ -1,22 +1,63 @@
 import { Typography } from "antd";
-import type { CircularHierarchyLayoutPoint } from "@/types/circular";
+import * as d3 from "d3";
+import {
+  DEFAULT_CIRCULAR_LINK_TENSION,
+  type CircularBundlePathPoint,
+  type CircularHierarchyLayoutPoint,
+  type CircularPreviewLink,
+} from "@/types/circular";
 import { PREVIEW_SIZE } from "@/components/management/constants";
 
 type CircularHierarchyPreviewProps = {
   layout: CircularHierarchyLayoutPoint[];
+  previewLinks?: CircularPreviewLink[];
   activeRoiCount: number;
   previewRadius: number;
   nodeColors: Record<string, string>;
+  linkTension?: number;
+  bundlingEnabled?: boolean;
   displayWidth?: number;
+};
+
+const buildFallbackPath = (
+  source: CircularHierarchyLayoutPoint,
+  target: CircularHierarchyLayoutPoint,
+) => {
+  const path = d3.path();
+  path.moveTo(source.x, source.y);
+  path.quadraticCurveTo(0, 0, target.x, target.y);
+  return path.toString();
 };
 
 function CircularHierarchyPreview({
   layout,
+  previewLinks = [],
   activeRoiCount,
   previewRadius,
   nodeColors,
+  linkTension = DEFAULT_CIRCULAR_LINK_TENSION,
+  bundlingEnabled = true,
   displayWidth = PREVIEW_SIZE,
 }: CircularHierarchyPreviewProps) {
+  const layoutByLabelId = new Map(layout.map((node) => [node.labelId, node] as const));
+  const bundledLine = d3
+    .lineRadial<CircularBundlePathPoint>()
+    .curve(d3.curveBundle.beta(linkTension))
+    .angle((point) => point.angle)
+    .radius((point) => point.radius);
+
+  const getLinkPath = (link: CircularPreviewLink) => {
+    if (bundlingEnabled && link.path && link.path.length > 1) {
+      return bundledLine(link.path);
+    }
+
+    const source = layoutByLabelId.get(link.sourceLabelId);
+    const target = layoutByLabelId.get(link.targetLabelId);
+    if (!source || !target) return null;
+
+    return buildFallbackPath(source, target);
+  };
+
   return (
     <div
       style={{
@@ -47,25 +88,40 @@ function CircularHierarchyPreview({
         viewBox={`0 0 ${PREVIEW_SIZE} ${PREVIEW_SIZE}`}
         style={{ display: "block" }}
       >
-        <circle
-          cx={PREVIEW_SIZE / 2}
-          cy={PREVIEW_SIZE / 2}
-          r={previewRadius}
-          fill="none"
-          stroke="var(--color-border)"
-          strokeWidth={1}
-        />
-        {layout.map((node) => (
+        <g transform={`translate(${PREVIEW_SIZE / 2}, ${PREVIEW_SIZE / 2})`}>
           <circle
-            key={node.labelId}
-            cx={PREVIEW_SIZE / 2 + node.x}
-            cy={PREVIEW_SIZE / 2 + node.y}
-            r={2}
-            fill={nodeColors[node.labelId] ?? "var(--color-primary)"}
-          >
-            <title>{node.labelId}</title>
-          </circle>
-        ))}
+            r={previewRadius}
+            fill="none"
+            stroke="var(--color-border)"
+            strokeWidth={1}
+          />
+          {previewLinks.map((link) => {
+            const path = getLinkPath(link);
+            if (!path) return null;
+
+            return (
+              <path
+                key={link.id}
+                d={path}
+                fill="none"
+                stroke="var(--color-primary)"
+                strokeOpacity={0.28}
+                strokeWidth={1.4}
+              />
+            );
+          })}
+          {layout.map((node) => (
+            <circle
+              key={node.labelId}
+              cx={node.x}
+              cy={node.y}
+              r={2}
+              fill={nodeColors[node.labelId] ?? "var(--color-primary)"}
+            >
+              <title>{node.labelId}</title>
+            </circle>
+          ))}
+        </g>
       </svg>
     </div>
   );

@@ -1,8 +1,7 @@
 import * as d3 from "d3";
 import type { AtlasDefinition, AtlasRoi } from "@/types/atlas";
-import type { CircularHierarchyLayoutPoint } from "@/types/circular";
+import type { CircularBundlePathPoint, CircularHierarchyLayoutPoint } from "@/types/circular";
 import { getRoiFieldValue, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
-
 
 type CircularHierarchyLayoutParams = {
   labelIds: string[];
@@ -16,6 +15,18 @@ type HierarchyDataNode = {
   key: string;
   labelId?: string;
   children?: HierarchyDataNode[];
+};
+
+type CircularHierarchyPointLeaf = d3.HierarchyPointNode<HierarchyDataNode> & {
+  data: HierarchyDataNode & { labelId: string };
+};
+
+export type CircularHierarchyBundleLayout = {
+  points: CircularHierarchyLayoutPoint[];
+  pathByLabelPair: (
+    sourceLabelId: string,
+    targetLabelId: string,
+  ) => CircularBundlePathPoint[] | null;
 };
 
 type MutableHierarchyNode = {
@@ -46,6 +57,14 @@ const buildUniformLayout = (
     };
   });
 };
+
+const buildUniformBundleLayout = (
+  labelIds: string[],
+  radius: number,
+): CircularHierarchyBundleLayout => ({
+  points: buildUniformLayout(labelIds, radius),
+  pathByLabelPair: () => null,
+});
 
 const toHierarchyData = (
   node: MutableHierarchyNode,
@@ -124,11 +143,27 @@ export const buildCircularHierarchyLayout = ({
   hierarchyFields,
   categoryOrder = {},
 }: CircularHierarchyLayoutParams): CircularHierarchyLayoutPoint[] => {
-  if (labelIds.length === 0) return [];
+  return buildCircularHierarchyBundleLayout({
+    labelIds,
+    radius,
+    atlasDefinition,
+    hierarchyFields,
+    categoryOrder,
+  }).points;
+};
+
+export const buildCircularHierarchyBundleLayout = ({
+  labelIds,
+  radius,
+  atlasDefinition,
+  hierarchyFields,
+  categoryOrder = {},
+}: CircularHierarchyLayoutParams): CircularHierarchyBundleLayout => {
+  if (labelIds.length === 0) return buildUniformBundleLayout(labelIds, radius);
 
   const cleanFields = hierarchyFields.filter((field) => field.trim().length > 0);
   if (!atlasDefinition?.rois?.length || cleanFields.length === 0) {
-    return buildUniformLayout(labelIds, radius);
+    return buildUniformBundleLayout(labelIds, radius);
   }
 
   const roiById = new Map(
@@ -151,20 +186,32 @@ export const buildCircularHierarchyLayout = ({
 
   cluster(root);
 
-  return root
+  const leaves = root
     .leaves()
-    .filter((leaf): leaf is d3.HierarchyPointNode<HierarchyDataNode> & {
-      data: HierarchyDataNode & { labelId: string };
-    } => typeof leaf.data.labelId === "string")
-    .sort((a, b) => a.x - b.x)
-    .map((leaf, order) => {
-      const angle = leaf.x - Math.PI / 2;
-      return {
-        labelId: leaf.data.labelId,
-        order,
-        angle,
-        x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius,
-      };
-    });
+    .filter((leaf): leaf is CircularHierarchyPointLeaf => typeof leaf.data.labelId === "string");
+  const leafByLabelId = new Map(leaves.map((leaf) => [leaf.data.labelId, leaf] as const));
+  const points = [...leaves].sort((a, b) => a.x - b.x).map((leaf, order) => {
+    const angle = leaf.x - Math.PI / 2;
+    return {
+      labelId: leaf.data.labelId,
+      order,
+      angle,
+      x: Math.cos(angle) * radius,
+      y: Math.sin(angle) * radius,
+    };
+  });
+
+  return {
+    points,
+    pathByLabelPair: (sourceLabelId, targetLabelId) => {
+      const source = leafByLabelId.get(sourceLabelId);
+      const target = leafByLabelId.get(targetLabelId);
+      if (!source || !target) return null;
+
+      return source.path(target).map((node) => ({
+        angle: node.x,
+        radius: node.y,
+      }));
+    },
+  };
 };

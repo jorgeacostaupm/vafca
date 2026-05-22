@@ -46,16 +46,17 @@ export const applyCircularHoverSelectionStyles = (args: {
 
   linkSelection
     .attr("stroke-opacity", (link: CircularLink) => {
+      if (isSelectedLink(link)) return hovered && isHoveredLink(link) ? 1 : 0.9;
       if (hovered) {
         if (isHoveredLink(link)) return 1;
-        return isSelectedLink(link) ? 0.65 : 0.2;
+        return 0.2;
       }
-      return isSelectedLink(link) ? 0.9 : 0.6;
+      return 0.6;
     })
     .attr("stroke-width", (link: CircularLink) => {
       const base = widthScale(Math.abs(link.value));
-      if (hovered && isHoveredLink(link)) return Math.max(base + 0.8, SELECTED_STROKE);
       if (isSelectedLink(link)) return Math.max(base, SELECTED_STROKE);
+      if (hovered && isHoveredLink(link)) return Math.max(base + 0.8, SELECTED_STROKE);
       return base;
     });
 

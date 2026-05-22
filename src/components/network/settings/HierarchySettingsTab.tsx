@@ -7,9 +7,15 @@ import type { HierarchySettingsMode } from "./hierarchy/hierarchySettingsTypes";
 
 type HierarchySettingsTabProps = {
   mode: HierarchySettingsMode;
+  circularLinkTension?: number;
+  circularBundlingEnabled?: boolean;
 };
 
-export default function HierarchySettingsTab({ mode }: HierarchySettingsTabProps) {
+export default function HierarchySettingsTab({
+  mode,
+  circularLinkTension,
+  circularBundlingEnabled,
+}: HierarchySettingsTabProps) {
   const dataset = useAppSelector((state) => state.dataset.data);
   const atlas = useAppSelector((state) => state.atlas);
   const atlasDefinition = useAtlasDefinition(
@@ -25,5 +31,13 @@ export default function HierarchySettingsTab({ mode }: HierarchySettingsTabProps
     return <Alert type="info" message="Load a dataset to configure node ordering." />;
   }
 
-  return <HierarchySettingsContent mode={mode} atlas={atlas} hierarchy={hierarchy} />;
+  return (
+    <HierarchySettingsContent
+      mode={mode}
+      atlas={atlas}
+      hierarchy={hierarchy}
+      circularLinkTension={circularLinkTension}
+      circularBundlingEnabled={circularBundlingEnabled}
+    />
+  );
 }

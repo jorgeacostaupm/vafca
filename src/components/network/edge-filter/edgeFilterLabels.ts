@@ -1,4 +1,5 @@
 import type { Catalogs, MatrixRecord } from "@/types/connectivityBundle";
+import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
 
 export const formatMatrixSourceLabel = (
   matrix: MatrixRecord,
@@ -8,28 +9,26 @@ export const formatMatrixSourceLabel = (
     return catalogs?.subjects[matrix.source.subjectId]?.label ?? matrix.source.subjectId;
   }
   if (matrix.source.level === "population") {
-    return matrix.source.populationIds
-      .map((id) => catalogs?.populations[id]?.label ?? id)
-      .join("+");
+    return formatPopulationSetLabel(matrix.source.populationIds, catalogs);
   }
   if (matrix.source.level === "reduction") {
     return `Reduced from ${matrix.source.baseMatrixId}`;
   }
   const left =
     matrix.source.left.label ??
-    matrix.source.left.populationIds
-      ?.map((id) => catalogs?.populations[id]?.label ?? id)
-      .join("+") ??
+    (matrix.source.left.populationIds
+      ? formatPopulationSetLabel(matrix.source.left.populationIds, catalogs)
+      : undefined) ??
     matrix.source.left.subjectId ??
     "Left";
   const right =
     matrix.source.right.label ??
-    matrix.source.right.populationIds
-      ?.map((id) => catalogs?.populations[id]?.label ?? id)
-      .join("+") ??
+    (matrix.source.right.populationIds
+      ? formatPopulationSetLabel(matrix.source.right.populationIds, catalogs)
+      : undefined) ??
     matrix.source.right.subjectId ??
     "Right";
-  return `${left}-${right}`;
+  return `${left} vs ${right}`;
 };
 
 export const formatMatrixKindLabel = (matrix: MatrixRecord) => {

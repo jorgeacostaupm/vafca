@@ -6,6 +6,14 @@ import type {
   NodeLinkNetworkViewSettings,
 } from '@/types/networkVisualization'
 import type { MatrixFilterDefinition, RuntimeEdgeMask } from '@/types/edgeFilter'
+import {
+  DEFAULT_CIRCULAR_BUNDLING_ENABLED,
+  DEFAULT_CIRCULAR_LINK_TENSION,
+  DEFAULT_NETWORK_HIDE_ISOLATED_NODES,
+  DEFAULT_NETWORK_NEXT_VIEW_SEQ,
+  DEFAULT_NETWORK_SYNC_ZOOM,
+  DEFAULT_NETWORK_VIEW_TYPE,
+} from '@/config/ui'
 
 export type NetworkVisualizationState = {
   controls: NetworkSelectorControlsState
@@ -33,14 +41,16 @@ export type SetNetworkViewStatusPayload = {
 }
 
 export const initialNetworkControls: NetworkSelectorControlsState = {
-  viewType: 'matrix',
+  viewType: DEFAULT_NETWORK_VIEW_TYPE,
   populationKey: '',
   measureId: '',
   statId: '',
   bandId: '',
   selectedCompoundId: '',
-  syncZoom: false,
-  hideIsolatedNodes: true,
+  syncZoom: DEFAULT_NETWORK_SYNC_ZOOM,
+  hideIsolatedNodes: DEFAULT_NETWORK_HIDE_ISOLATED_NODES,
+  circularLinkTension: DEFAULT_CIRCULAR_LINK_TENSION,
+  circularBundlingEnabled: DEFAULT_CIRCULAR_BUNDLING_ENABLED,
 }
 
 export const initialNetworkVisualizationState: NetworkVisualizationState = {
@@ -54,5 +64,5 @@ export const initialNetworkVisualizationState: NetworkVisualizationState = {
   activeEdgeMask: null,
   activeAggregatedNetworkFilter: null,
   activeAggregatedEdgeMask: null,
-  nextViewSeq: 1,
+  nextViewSeq: DEFAULT_NETWORK_NEXT_VIEW_SEQ,
 }
