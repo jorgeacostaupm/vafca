@@ -2,7 +2,7 @@ import type { MatrixDataStats } from "@/types/connectivityBundle";
 
 export type ConnectivityMatrix = {
   id: string;
-  bandId: string;
+  layerId: string;
   measureId: string;
   statId: string;
   populationIds: string[];

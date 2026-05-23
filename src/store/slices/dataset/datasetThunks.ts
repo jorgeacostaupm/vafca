@@ -13,6 +13,7 @@ import { setUploadedAtlas } from "@/store/slices/atlasDefinition";
 import { getAllMatrices, saveMatrices, upsertMatrices } from "@/utils/matrixStore";
 import { buildMatrixStats } from "@/utils/matrixStats";
 import { materializeMatrixData } from "@/utils/connectivityMatrix";
+import { getMatrixPopulationIds } from "@/utils/matrixSource";
 import { calculateDerivedMatrices } from "@/connectivity/calculations";
 import {
   type AggregatedMatrixOrderMode,
@@ -110,18 +111,10 @@ export const downloadCurrentDataset = createAsyncThunk<
 
 const toConnectivityMatrix = (matrix: MatrixRecord) => ({
   id: matrix.id,
-  bandId: matrix.context.bandId ?? "none",
+  layerId: matrix.context.layerId ?? "none",
   measureId: matrix.context.measureId,
   statId: matrix.stat.id,
-  populationIds:
-    matrix.source.level === "comparison"
-      ? [
-          ...(matrix.source.left.populationIds ?? []),
-          ...(matrix.source.right.populationIds ?? []),
-        ]
-      : "populationIds" in matrix.source
-        ? matrix.source.populationIds
-        : [],
+  populationIds: getMatrixPopulationIds(matrix),
   data: materializeMatrixData(matrix),
   dataStats: matrix.dataStats,
 });

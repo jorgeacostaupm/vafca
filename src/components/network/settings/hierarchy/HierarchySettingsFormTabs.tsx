@@ -1,5 +1,6 @@
 import { Tabs } from "antd";
 import type { ReactNode } from "react";
+import { DEFAULT_HIERARCHY_SETTINGS_TAB } from "@/config/ui";
 import type { HierarchySettingsContentMode } from "./hierarchySettingsTypes";
 
 type HierarchySettingsFormTabsProps = {
@@ -14,6 +15,7 @@ export default function HierarchySettingsFormTabs({
   return (
     <Tabs
       size="small"
+      defaultActiveKey={DEFAULT_HIERARCHY_SETTINGS_TAB}
       items={[
         {
           key: "configuration",

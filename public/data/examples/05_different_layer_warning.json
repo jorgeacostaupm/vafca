@@ -2,8 +2,8 @@
   "schemaVersion": "fc-connectivity-v1.0",
   "bundle": {
     "id": "bundle_beta_study",
-    "label": "Beta band study demo",
-    "description": "Beta band study demo",
+    "label": "Beta layer study demo",
+    "description": "Beta layer study demo",
     "createdAt": null
   },
   "atlas": {
@@ -1277,15 +1277,11 @@
     ]
   },
   "catalogs": {
-    "bands": {
+    "layers": {
       "beta": {
         "id": "beta",
         "label": "Beta",
-        "rangeHz": [
-          13,
-          30
-        ],
-        "description": "Beta band"
+        "description": "Beta layer (13-30 Hz)"
       }
     },
     "measures": {
@@ -1337,7 +1333,7 @@
       "kind": "aggregate",
       "label": "m_p_study_beta_plv_mean",
       "context": {
-        "bandId": "beta",
+        "layerId": "beta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -9672,7 +9668,7 @@
       "kind": "aggregate",
       "label": "m_p_study_beta_plv_std",
       "context": {
-        "bandId": "beta",
+        "layerId": "beta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,

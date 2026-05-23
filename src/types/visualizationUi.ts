@@ -36,6 +36,5 @@ export type VisualizationUiState = {
   selectedLinksDownloadStatus: "idle" | "loading" | "ready" | "error";
   selectedLinksDownloadError: string | null;
   uiRangeMode: UiRangeMode;
-  includeDiagonalInRanges: boolean;
   atlasPanel: AtlasPanelState;
 };

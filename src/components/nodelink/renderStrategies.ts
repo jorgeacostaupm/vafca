@@ -1,5 +1,11 @@
 import * as d3 from "d3";
 import { escapeHtml } from "@/utils/html";
+import {
+  NODE_LINK_LABEL_DY,
+  NODE_LINK_LABEL_FONT_SIZE,
+  NODE_LINK_LABEL_OFFSET,
+  NODE_LINK_ZOOM_RADIUS_OFFSET,
+} from "@/config/ui";
 import type { ClassicLink, ClassicNode } from "@/types/nodelink";
 import {
   buildRoiTooltipLabel,
@@ -8,6 +14,10 @@ import {
   LINK_POSITIVE,
   SELECTED_STROKE,
 } from "@/components/nodelink/nodelinkShared";
+import {
+  configureDraggableNodes,
+  syncNodeLinkPositions,
+} from "@/components/nodelink/draggableNodes";
 
 
 type RenderClassicElementsArgs = {
@@ -90,7 +100,7 @@ export const renderClassicElements = ({
 
   const linkGroup = root.append("g");
   const linkSelection = linkGroup
-    .selectAll("line")
+    .selectAll<SVGLineElement, ClassicLink>("line")
     .data(simLinks)
     .join("line")
     .attr("x1", (link: ClassicLink) => {
@@ -151,13 +161,15 @@ export const renderClassicElements = ({
 
   const nodeGroup = root.append("g");
   const nodeSelection = nodeGroup
-    .selectAll("circle")
+    .selectAll<SVGCircleElement, ClassicNode>("circle")
     .data(simNodes)
     .join("circle")
     .attr("cx", (node: ClassicNode) => clampX(node.x))
     .attr("cy", (node: ClassicNode) => clampY(node.y))
     .attr("r", (node: ClassicNode) =>
-      node.labelId && zoomLabelSet?.has(node.labelId) ? nodeRadius + 1.5 : nodeRadius,
+      node.labelId && zoomLabelSet?.has(node.labelId)
+        ? nodeRadius + NODE_LINK_ZOOM_RADIUS_OFFSET
+        : nodeRadius,
     )
     .attr("fill", (node: ClassicNode) => getNodeColor(node))
     .style("cursor", "pointer")
@@ -184,17 +196,19 @@ export const renderClassicElements = ({
 
   const labelGroup = root.append("g");
   const labelSelection = labelGroup
-    .selectAll("text")
+    .selectAll<SVGTextElement, ClassicNode>("text")
     .data(simNodes)
     .join("text")
     .attr("x", (node: ClassicNode) => clampX(node.x))
     .attr("y", (node: ClassicNode) => clampY(node.y))
-    .attr("dx", (node: ClassicNode) => (node.x ?? 0) >= width / 2 ? 8 : -8)
-    .attr("dy", 3)
+    .attr("dx", (node: ClassicNode) =>
+      (node.x ?? 0) >= width / 2 ? NODE_LINK_LABEL_OFFSET : -NODE_LINK_LABEL_OFFSET,
+    )
+    .attr("dy", NODE_LINK_LABEL_DY)
     .attr("text-anchor", (node: ClassicNode) =>
       (node.x ?? 0) >= width / 2 ? "start" : "end",
     )
-    .attr("font-size", 9)
+    .attr("font-size", NODE_LINK_LABEL_FONT_SIZE)
     .attr("fill", (node: ClassicNode) =>
       node.labelId && zoomLabelSet?.has(node.labelId) ? "#1b2b38" : "#394b59",
     )
@@ -218,30 +232,30 @@ export const renderClassicElements = ({
       onLabelToggle(node.labelId);
     });
 
-  labelGroup.selectAll("text").each(function () {
-    const text = d3.select(this);
-    const anchor = text.attr("text-anchor");
-    const dx = Number(text.attr("dx")) || 0;
-    const dy = Number(text.attr("dy")) || 0;
-    let x = Number(text.attr("x")) || 0;
-    let y = Number(text.attr("y")) || 0;
-    const textWidth = (this as SVGTextElement).getComputedTextLength();
+  syncNodeLinkPositions({
+    linkSelection,
+    nodeSelection,
+    labelSelection,
+    simNodes,
+    width,
+    height,
+    defaultMargin,
+    clampX,
+    clampY,
+  });
 
-    const minY = defaultMargin - dy;
-    const maxY = Math.max(minY, height - defaultMargin - dy);
-    y = Math.min(Math.max(y, minY), maxY);
-
-    if (anchor === "start") {
-      const minX = defaultMargin;
-      const maxX = Math.max(minX, width - defaultMargin - textWidth - dx);
-      x = Math.min(Math.max(x, minX), maxX);
-    } else {
-      const minX = defaultMargin + textWidth - dx;
-      const maxX = width - defaultMargin;
-      const safeMin = Math.min(minX, maxX);
-      x = Math.min(Math.max(x, safeMin), maxX);
-    }
-    text.attr("x", x).attr("y", y);
+  configureDraggableNodes({
+    linkSelection,
+    nodeSelection,
+    labelSelection,
+    simNodes,
+    simLinks,
+    width,
+    height,
+    defaultMargin,
+    clampX,
+    clampY,
+    hideTooltip,
   });
 
   return { linkSelection, nodeSelection, labelSelection };

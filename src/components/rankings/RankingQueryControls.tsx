@@ -1,29 +1,43 @@
-import { Button, Form, Radio, Select } from "antd";
-import { useMemo } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { patchRankingQuery, runRankingQuery } from "@/store/slices/rankings";
 import {
-  ALL_RANKING_MEASURES,
-  ALL_RANKING_SOURCES,
-  ALL_RANKING_STATISTICS,
-  getCompatibleBandOptions,
+  AimOutlined,
+  AppstoreOutlined,
+  LinkOutlined,
+} from "@ant-design/icons";
+import { Button, Form, Segmented, Select } from "antd";
+import { useMemo } from "react";
+import { createNetworkSegmentedOption } from "@/components/network/segmentedOption";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  patchRankingQuery,
+  runRankingQuery,
+  setRankingTarget,
+} from "@/store/slices/rankings";
+import {
+  getCompatibleLayerOptions,
   getMeasureOptions,
+  getRankingLayerSelectionPatch,
   getRankingQueryMissingFields,
   getSourceOptions,
   getStatisticOptions,
   linkMetricOptions,
   matrixMetricOptions,
   roiMetricOptions,
-  topNOptions,
 } from "@/components/rankings/rankingOptions";
-import type {
-  RankingTarget,
-  RankingTopN,
-} from "@/types/rankings";
-import { ALL_COMPATIBLE_BANDS } from "@/utils/rankings/rankingMatrixMetadata";
+import type { RankingTarget } from "@/types/rankings";
+import { ALL_COMPATIBLE_LAYERS } from "@/utils/rankings/rankingMatrixMetadata";
+
+const rankingTargetOptions = [
+  createNetworkSegmentedOption<RankingTarget>(
+    "matrices",
+    <AppstoreOutlined />,
+    "Network",
+  ),
+  createNetworkSegmentedOption<RankingTarget>("links", <LinkOutlined />, "Links"),
+  createNetworkSegmentedOption<RankingTarget>("rois", <AimOutlined />, "ROIs"),
+];
 
 const splitSourceValue = (value?: string) => {
-  if (!value || value === ALL_RANKING_SOURCES) {
+  if (!value) {
     return { sourceType: undefined, sourceId: undefined };
   }
   const [sourceType, ...rest] = value.split("::");
@@ -57,46 +71,31 @@ export default function RankingQueryControls() {
     () => getStatisticOptions(connectivity, query),
     [connectivity, query],
   );
-  const bandOptions = useMemo(
-    () => getCompatibleBandOptions(connectivity, query),
+  const layerOptions = useMemo(
+    () => getCompatibleLayerOptions(connectivity, query),
     [connectivity, query],
+  );
+  const isRoiRanking = query.target === "rois";
+  const selectableLayerOptions = useMemo(
+    () =>
+      isRoiRanking
+        ? layerOptions.filter((option) => option.value !== ALL_COMPATIBLE_LAYERS)
+        : layerOptions,
+    [layerOptions, isRoiRanking],
   );
   const selectedSourceValue =
     query.sourceType && query.sourceId
       ? `${query.sourceType}::${query.sourceId}`
-      : ALL_RANKING_SOURCES;
-  const selectedMeasureValue = query.measureId ?? ALL_RANKING_MEASURES;
-  const selectedStatisticValue = query.statisticId ?? ALL_RANKING_STATISTICS;
-  const selectedBandValues =
-    query.bandIds && query.bandIds.length > 0
-      ? query.bandIds
-      : [ALL_COMPATIBLE_BANDS];
-  const selectedBandCount = query.bandIds?.includes(ALL_COMPATIBLE_BANDS)
-    ? 2
-    : query.bandIds?.length ?? 0;
-  const isCollectionMode = selectedBandCount !== 1;
+      : undefined;
+  const selectedMeasureValue = query.measureId;
+  const selectedStatisticValue = query.statisticId;
+  const selectedLayerValues = query.layerIds ?? [];
+  const selectedSingleLayerValue = query.layerIds?.[0];
   const missingFields = getRankingQueryMissingFields(query, connectivity);
   const canAddRanking = missingFields.length === 0 && status !== "loading";
 
   const updateTarget = (target: RankingTarget) => {
-    dispatch(
-      patchRankingQuery({
-        target,
-        mode: "matrixCollection",
-        metric:
-          target === "matrices"
-            ? "meanAbsValue"
-            : target === "links"
-              ? "highestAbsValue"
-              : "meanAbsValue",
-        sourceType: undefined,
-        sourceId: undefined,
-        measureId: undefined,
-        statisticId: undefined,
-        bandIds: undefined,
-        matrixId: undefined,
-      }),
-    );
+    dispatch(setRankingTarget(target));
   };
 
   const updateSource = (value?: string) => {
@@ -104,9 +103,6 @@ export default function RankingQueryControls() {
     dispatch(
       patchRankingQuery({
         ...source,
-        measureId: undefined,
-        statisticId: undefined,
-        bandIds: undefined,
         matrixId: undefined,
       }),
     );
@@ -115,12 +111,7 @@ export default function RankingQueryControls() {
   const updateMeasure = (measureId?: string) => {
     dispatch(
       patchRankingQuery({
-        measureId:
-          !measureId || measureId === ALL_RANKING_MEASURES
-            ? undefined
-            : measureId,
-        statisticId: undefined,
-        bandIds: undefined,
+        measureId,
         matrixId: undefined,
       }),
     );
@@ -129,32 +120,49 @@ export default function RankingQueryControls() {
   const updateStatistic = (statisticId?: string) => {
     dispatch(
       patchRankingQuery({
-        statisticId:
-          !statisticId || statisticId === ALL_RANKING_STATISTICS
-            ? undefined
-            : statisticId,
-        bandIds: undefined,
+        statisticId,
         matrixId: undefined,
       }),
     );
   };
 
-  const updateBands = (bandIds?: string[]) => {
+  const updateLayers = (layerIds?: string[]) => {
     const switchedFromAllToSpecific =
-      selectedBandValues.includes(ALL_COMPATIBLE_BANDS) &&
-      bandIds &&
-      bandIds.length > 1 &&
-      bandIds.includes(ALL_COMPATIBLE_BANDS);
-    const nextBandIds =
-      switchedFromAllToSpecific
-        ? bandIds.filter((bandId) => bandId !== ALL_COMPATIBLE_BANDS)
-        : !bandIds || bandIds.length === 0 || bandIds.includes(ALL_COMPATIBLE_BANDS)
-          ? undefined
-          : bandIds;
+      selectedLayerValues.includes(ALL_COMPATIBLE_LAYERS) &&
+      layerIds &&
+      layerIds.length > 1 &&
+      layerIds.includes(ALL_COMPATIBLE_LAYERS);
+    let nextLayerIds: string[];
+    if (switchedFromAllToSpecific) {
+      nextLayerIds = layerIds.filter((layerId) => layerId !== ALL_COMPATIBLE_LAYERS);
+    } else if (!layerIds || layerIds.includes(ALL_COMPATIBLE_LAYERS)) {
+      nextLayerIds = layerIds?.includes(ALL_COMPATIBLE_LAYERS)
+        ? [ALL_COMPATIBLE_LAYERS]
+        : [];
+    } else {
+      nextLayerIds = layerIds;
+    }
+
     dispatch(
       patchRankingQuery({
-        bandIds: nextBandIds,
-        mode: nextBandIds?.length === 1 ? "singleMatrix" : "matrixCollection",
+        layerIds: nextLayerIds,
+        ...getRankingLayerSelectionPatch(connectivity, query, nextLayerIds),
+        mode: nextLayerIds?.length === 1 ? "singleMatrix" : "matrixCollection",
+        matrixId: undefined,
+      }),
+    );
+  };
+
+  const updateSingleLayer = (layerId?: string) => {
+    dispatch(
+      patchRankingQuery({
+        layerIds: layerId ? [layerId] : [],
+        ...getRankingLayerSelectionPatch(
+          connectivity,
+          query,
+          layerId ? [layerId] : [],
+        ),
+        mode: "singleMatrix",
         matrixId: undefined,
       }),
     );
@@ -162,90 +170,79 @@ export default function RankingQueryControls() {
 
   return (
     <Form layout="vertical" className="network-selector-controls ranking-query-controls">
-      <Form.Item label="Ranking target">
-        <Radio.Group
-          optionType="button"
-          buttonStyle="solid"
-          value={query.target}
-          onChange={(event) => updateTarget(event.target.value as RankingTarget)}
-          options={[
-            { label: "Matrices", value: "matrices" },
-            { label: "Links", value: "links" },
-            { label: "ROIs", value: "rois" },
-          ]}
-        />
-      </Form.Item>
-
-      {query.target === "links" && isCollectionMode ? (
-        <Form.Item label="Multi-band mode">
-          <Radio.Group
-            optionType="button"
-            value={query.linkCollectionMode}
-            onChange={(event) =>
-              dispatch(patchRankingQuery({ linkCollectionMode: event.target.value }))
-            }
-            options={[
-              { label: "Aggregated", value: "aggregated" },
-              { label: "One row per band", value: "expanded" },
-            ]}
+      <div className="ranking-query-controls__main-row">
+        <Form.Item
+          label="Ranking target"
+          className="network-segmented-setting ranking-query-controls__target"
+        >
+          <Segmented
+            value={query.target}
+            onChange={(value) => updateTarget(value as RankingTarget)}
+            options={rankingTargetOptions}
           />
         </Form.Item>
-      ) : null}
 
-      <Form.Item label="Source">
-        <Select
-          placeholder="Select a source..."
-          value={selectedSourceValue}
-          options={sourceOptions}
-          onChange={updateSource}
-        />
-      </Form.Item>
-      <Form.Item label="Measure">
-        <Select
-          placeholder="Select a measure..."
-          value={selectedMeasureValue}
-          disabled={!connectivity}
-          options={measureOptions}
-          onChange={updateMeasure}
-        />
-      </Form.Item>
-      <Form.Item label="Statistic">
-        <Select
-          placeholder="Select a statistic..."
-          value={selectedStatisticValue}
-          disabled={!connectivity}
-          options={statisticOptions}
-          onChange={updateStatistic}
-        />
-      </Form.Item>
-      <Form.Item label="Bands" className="ranking-query-controls__bands">
-        <Select
-          placeholder="Select bands..."
-          mode="multiple"
-          value={selectedBandValues}
-          disabled={!connectivity}
-          options={bandOptions}
-          onChange={updateBands}
-        />
-      </Form.Item>
+        <Form.Item label="Source">
+          <Select
+            placeholder="Select a source..."
+            value={selectedSourceValue}
+            options={sourceOptions}
+            onChange={updateSource}
+          />
+        </Form.Item>
 
-      <Form.Item label="Ranking metric">
-        <Select
-          value={query.metric}
-          options={metricOptions}
-          onChange={(metric) => dispatch(patchRankingQuery({ metric }))}
-        />
-      </Form.Item>
-      <Form.Item label="Top N">
-        <Select
-          value={query.topN}
-          options={topNOptions}
-          onChange={(topN: RankingTopN) => dispatch(patchRankingQuery({ topN }))}
-        />
-      </Form.Item>
+        <Form.Item label="Measure">
+          <Select
+            placeholder="Select a measure..."
+            value={selectedMeasureValue}
+            disabled={!connectivity}
+            options={measureOptions}
+            onChange={updateMeasure}
+          />
+        </Form.Item>
 
-      <div className="network-selector-controls__submit">
+        <Form.Item label="Statistic">
+          <Select
+            placeholder="Select a statistic..."
+            value={selectedStatisticValue}
+            disabled={!connectivity}
+            options={statisticOptions}
+            onChange={updateStatistic}
+          />
+        </Form.Item>
+
+        <Form.Item label="Ranking metric">
+          <Select
+            placeholder="Select a score..."
+            value={query.metric}
+            options={metricOptions}
+            onChange={(metric) => dispatch(patchRankingQuery({ metric }))}
+          />
+        </Form.Item>
+
+        <Form.Item label="Layers" className="ranking-query-controls__layers">
+          {isRoiRanking ? (
+            <Select
+              placeholder="Select one layer..."
+              value={selectedSingleLayerValue}
+              disabled={!connectivity}
+              options={selectableLayerOptions}
+              onChange={updateSingleLayer}
+            />
+          ) : (
+            <Select
+              placeholder="Select layers..."
+              mode="multiple"
+              value={selectedLayerValues}
+              disabled={!connectivity}
+              options={selectableLayerOptions}
+              onChange={updateLayers}
+            />
+          )}
+        </Form.Item>
+
         <Button
+          className="ranking-query-controls__submit"
           type="primary"
           loading={status === "loading"}
           disabled={!canAddRanking}

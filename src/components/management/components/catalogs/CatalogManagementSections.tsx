@@ -2,7 +2,7 @@ import { Divider } from "antd";
 import PopulationCatalogSection from "@/components/management/components/catalogs/PopulationCatalogSection";
 import MeasureCatalogSection from "@/components/management/components/catalogs/MeasureCatalogSection";
 import StatCatalogSection from "@/components/management/components/catalogs/StatCatalogSection";
-import BandCatalogSection from "@/components/management/components/catalogs/BandCatalogSection";
+import LayerCatalogSection from "@/components/management/components/catalogs/LayerCatalogSection";
 
 function CatalogManagementSections() {
   return (
@@ -11,7 +11,7 @@ function CatalogManagementSections() {
       <PopulationCatalogSection />
       <MeasureCatalogSection />
       <StatCatalogSection />
-      <BandCatalogSection />
+      <LayerCatalogSection />
     </>
   );
 }

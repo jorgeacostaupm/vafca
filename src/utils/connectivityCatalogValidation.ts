@@ -8,7 +8,7 @@ import {
 import { addError, createIssueBucket } from "@/utils/connectivityValidationTypes";
 
 const requiredCatalogKeys = [
-  "bands",
+  "layers",
   "measures",
   "stats",
   "populations",
@@ -49,7 +49,7 @@ export const validateCatalogs = (catalogs: unknown): ValidationResult => {
     }
   }
 
-  validateBands(bucket, catalogs);
+  validateLayers(bucket, catalogs);
   validateMeasures(bucket, catalogs);
   validateStats(bucket, catalogs);
   validatePopulations(bucket, catalogs);
@@ -58,24 +58,15 @@ export const validateCatalogs = (catalogs: unknown): ValidationResult => {
   return toResult(bucket, catalogs);
 };
 
-const validateBands = (
+const validateLayers = (
   bucket: ReturnType<typeof createIssueBucket>,
   catalogs: Record<string, unknown>,
 ) => {
-  if (!isRecord(catalogs.bands)) return;
-  for (const [key, entry] of Object.entries(catalogs.bands)) {
-    if (!validateKeyedId(bucket, "bands", key, entry) || !isRecord(entry)) continue;
+  if (!isRecord(catalogs.layers)) return;
+  for (const [key, entry] of Object.entries(catalogs.layers)) {
+    if (!validateKeyedId(bucket, "layers", key, entry) || !isRecord(entry)) continue;
     if (!isNonEmptyString(entry.label)) {
-      addError(bucket, `catalogs.bands.${key}.label`, "band.label is required.");
-    }
-    if (
-      !Array.isArray(entry.rangeHz) ||
-      entry.rangeHz.length !== 2 ||
-      !entry.rangeHz.every(isFiniteNumber)
-    ) {
-      addError(bucket, `catalogs.bands.${key}.rangeHz`, "rangeHz must be [min, max].");
-    } else if (entry.rangeHz[0] >= entry.rangeHz[1]) {
-      addError(bucket, `catalogs.bands.${key}.rangeHz`, "rangeHz min must be < max.");
+      addError(bucket, `catalogs.layers.${key}.label`, "layer.label is required.");
     }
   }
 };
@@ -217,8 +208,8 @@ const toResult = (
     subjectCount: isRecord(catalogs) && isRecord(catalogs.subjects)
       ? Object.keys(catalogs.subjects).length
       : 0,
-    bandCount: isRecord(catalogs) && isRecord(catalogs.bands)
-      ? Object.keys(catalogs.bands).length
+    layerCount: isRecord(catalogs) && isRecord(catalogs.layers)
+      ? Object.keys(catalogs.layers).length
       : 0,
     measureCount: isRecord(catalogs) && isRecord(catalogs.measures)
       ? Object.keys(catalogs.measures).length

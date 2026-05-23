@@ -16,7 +16,7 @@ import {
 import {
   assertContextCompatible,
   findEquivalentDerivedMatrix,
-  resolveCalculationInputsForBandMeasure,
+  resolveCalculationInputsForLayerMeasure,
   validateMatrixCalculationRequest,
 } from "@/connectivity/calculations/resolution";
 import {
@@ -129,7 +129,7 @@ const buildRecord = (params: {
     leftId: params.leftPopulationId,
     rightId: params.referencePopulationId ?? params.rightPopulationId,
     subjectId: params.subjectId,
-    bandId: params.sourceMatrix.context.bandId,
+    layerId: params.sourceMatrix.context.layerId,
     measureId: params.sourceMatrix.context.measureId,
     operator: params.operator,
     existingIds: params.existingIds,
@@ -162,7 +162,7 @@ const buildRecord = (params: {
       rightPopulationId: params.rightPopulationId,
       referencePopulationId: params.referencePopulationId,
       subjectId: params.subjectId,
-      bandId: params.sourceMatrix.context.bandId,
+      layerId: params.sourceMatrix.context.layerId,
       measureId: params.sourceMatrix.context.measureId,
       suffix: params.labelSuffix,
       useMinus: params.operation === "population_difference",
@@ -181,7 +181,7 @@ const buildRecord = (params: {
     dependencies: params.dependencies,
     provenanceParameters: buildProvenanceParameters({
       operation: params.operation,
-      bandId: params.sourceMatrix.context.bandId,
+      layerId: params.sourceMatrix.context.layerId,
       measureId: params.sourceMatrix.context.measureId,
       leftPopulationId: params.leftPopulationId,
       rightPopulationId: params.rightPopulationId,
@@ -197,24 +197,24 @@ const buildRecord = (params: {
 
 const ensureReady = (
   operation: MatrixCalculationOperation,
-  bandId: string,
+  layerId: string,
   measureId: string,
   skipped: MatrixCalculationSkipped[],
   request: MatrixCalculationBatchRequest,
   state: MatrixCalculationState,
   subjectId?: string,
 ) => {
-  const resolved = resolveCalculationInputsForBandMeasure(
+  const resolved = resolveCalculationInputsForLayerMeasure(
     { ...request, operation },
     state,
-    bandId,
+    layerId,
     measureId,
     subjectId,
   );
   if (resolved.missingRoles.length) {
     skipped.push({
       operation,
-      bandId,
+      layerId,
       measureId,
       subjectId,
       leftPopulationId: request.leftPopulationId,
@@ -230,7 +230,7 @@ const ensureReady = (
   } catch (error) {
     skipped.push({
       operation,
-      bandId,
+      layerId,
       measureId,
       subjectId,
       leftPopulationId: request.leftPopulationId,
@@ -268,11 +268,11 @@ const calculateSubjectZScoreVsPopulation = (
   existingIds: Set<string>,
 ) => {
   request.subjectIds?.forEach((subjectId) => {
-    request.bandIds.forEach((bandId) => {
+    request.layerIds.forEach((layerId) => {
       request.measureIds.forEach((measureId) => {
         const resolved = ensureReady(
           "subject_zscore_vs_population",
-          bandId,
+          layerId,
           measureId,
           result.skipped,
           request,
@@ -331,11 +331,11 @@ const calculatePopulationReferenceZScore = (
   result: MatrixCalculationResult,
   existingIds: Set<string>,
 ) => {
-  request.bandIds.forEach((bandId) => {
+  request.layerIds.forEach((layerId) => {
     request.measureIds.forEach((measureId) => {
       const resolved = ensureReady(
         "population_reference_zscore",
-        bandId,
+        layerId,
         measureId,
         result.skipped,
         request,
@@ -390,11 +390,11 @@ const calculatePopulationDifference = (
   result: MatrixCalculationResult,
   existingIds: Set<string>,
 ) => {
-  request.bandIds.forEach((bandId) => {
+  request.layerIds.forEach((layerId) => {
     request.measureIds.forEach((measureId) => {
       const resolved = ensureReady(
         "population_difference",
-        bandId,
+        layerId,
         measureId,
         result.skipped,
         request,
@@ -440,7 +440,7 @@ const calculatePopulationDifference = (
 
 const getNOrSkip = (
   operation: MatrixCalculationOperation,
-  bandId: string,
+  layerId: string,
   measureId: string,
   request: MatrixCalculationBatchRequest,
   state: MatrixCalculationState,
@@ -453,7 +453,7 @@ const getNOrSkip = (
   if (!nLeft || !nRight || nLeft <= 1 || nRight <= 1) {
     skipped.push({
       operation,
-      bandId,
+      layerId,
       measureId,
       leftPopulationId: request.leftPopulationId,
       rightPopulationId: request.rightPopulationId,
@@ -522,11 +522,11 @@ const calculatePopulationCohensD = (
   result: MatrixCalculationResult,
   existingIds: Set<string>,
 ) => {
-  request.bandIds.forEach((bandId) => {
+  request.layerIds.forEach((layerId) => {
     request.measureIds.forEach((measureId) => {
       const resolved = ensureReady(
         "population_cohens_d",
-        bandId,
+        layerId,
         measureId,
         result.skipped,
         request,
@@ -538,7 +538,7 @@ const calculatePopulationCohensD = (
       const rightMean = resolved.matrices.rightMean!;
       const n = getNOrSkip(
         "population_cohens_d",
-        bandId,
+        layerId,
         measureId,
         request,
         state,
@@ -664,11 +664,11 @@ const calculatePopulationTwoSampleZTest = (
   result: MatrixCalculationResult,
   existingIds: Set<string>,
 ) => {
-  request.bandIds.forEach((bandId) => {
+  request.layerIds.forEach((layerId) => {
     request.measureIds.forEach((measureId) => {
       const resolved = ensureReady(
         "population_two_sample_z_test",
-        bandId,
+        layerId,
         measureId,
         result.skipped,
         request,
@@ -680,7 +680,7 @@ const calculatePopulationTwoSampleZTest = (
       const rightMean = resolved.matrices.rightMean!;
       const n = getNOrSkip(
         "population_two_sample_z_test",
-        bandId,
+        layerId,
         measureId,
         request,
         state,
@@ -766,11 +766,11 @@ const calculatePopulationWelchT = (
   result: MatrixCalculationResult,
   existingIds: Set<string>,
 ) => {
-  request.bandIds.forEach((bandId) => {
+  request.layerIds.forEach((layerId) => {
     request.measureIds.forEach((measureId) => {
       const resolved = ensureReady(
         "population_welch_t",
-        bandId,
+        layerId,
         measureId,
         result.skipped,
         request,
@@ -782,7 +782,7 @@ const calculatePopulationWelchT = (
       const rightMean = resolved.matrices.rightMean!;
       const n = getNOrSkip(
         "population_welch_t",
-        bandId,
+        layerId,
         measureId,
         request,
         state,

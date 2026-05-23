@@ -9,7 +9,7 @@ type MatrixSummaryLike = {
   populationIds: string[];
   measureId: string;
   statId: string;
-  bandId: string;
+  layerId: string;
 };
 
 export const DEFAULT_LINK_WIDTH_RANGE: [number, number] = [0.6, 2.6];
@@ -179,6 +179,6 @@ export const buildMatrixLabel = (
   );
   const measureLabel = toLabel(catalogs?.measures[summary.measureId]?.label);
   const statLabel = toLabel(catalogs?.stats[summary.statId]?.label);
-  const bandLabel = toLabel(catalogs?.bands[summary.bandId]?.label);
-  return `${populationLabel} · ${measureLabel} · ${statLabel} · ${bandLabel}`;
+  const layerLabel = toLabel(catalogs?.layers[summary.layerId]?.label);
+  return `${populationLabel} · ${measureLabel} · ${statLabel} · ${layerLabel}`;
 };

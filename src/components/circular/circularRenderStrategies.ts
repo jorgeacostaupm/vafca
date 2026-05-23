@@ -4,6 +4,11 @@ import {
   DEFAULT_CIRCULAR_LINK_TENSION,
   type CircularBundlePathPoint,
 } from "@/types/circular";
+import {
+  CIRCULAR_LABEL_DY,
+  CIRCULAR_LABEL_FONT_SIZE,
+  CIRCULAR_LABEL_OFFSET,
+} from "@/config/ui";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 import {
   buildRoiTooltipLabel,
@@ -191,16 +196,16 @@ export const renderCircularElements = ({
       const angle = (node.angle * 180) / Math.PI;
       const normalizedAngle = ((angle % 360) + 360) % 360;
       const shouldFlip = normalizedAngle > 90 && normalizedAngle < 270;
-      return shouldFlip ? -6 : 6;
+      return shouldFlip ? -CIRCULAR_LABEL_OFFSET : CIRCULAR_LABEL_OFFSET;
     })
-    .attr("dy", 3)
+    .attr("dy", CIRCULAR_LABEL_DY)
     .attr("text-anchor", (node: CircularNode) => {
       const angle = (node.angle * 180) / Math.PI;
       const normalizedAngle = ((angle % 360) + 360) % 360;
       const shouldFlip = normalizedAngle > 90 && normalizedAngle < 270;
       return shouldFlip ? "end" : "start";
     })
-    .attr("font-size", 9)
+    .attr("font-size", CIRCULAR_LABEL_FONT_SIZE)
     .attr("fill", (node: CircularNode) =>
       node.labelId && zoomLabelSet?.has(node.labelId) ? "#1b2b38" : "#394b59",
     )

@@ -1,6 +1,6 @@
 import { type MutableRefObject } from "react";
 import * as d3 from "d3";
-import { getReadableTextColor } from "@/utils/atlas/coloring";
+import { getReadableTextColor } from "@/utils/groupingColoring";
 import { escapeHtml } from "@/utils/html";
 
 const ROW_LABEL_STEP = 1;

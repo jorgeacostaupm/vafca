@@ -7,7 +7,7 @@ export {
   assertContextCompatible,
   findEquivalentDerivedMatrix,
   getAvailableMatrixCalculations,
-  resolveCalculationInputsForBandMeasure,
+  resolveCalculationInputsForLayerMeasure,
   validateMatrixCalculationRequest,
 } from "@/connectivity/calculations/resolution";
 export {

@@ -34,7 +34,7 @@ const summaryFromPayload = (payload: unknown): ValidationResult["summary"] => {
       : 0,
     populationCount: isRecord(catalogs.populations) ? Object.keys(catalogs.populations).length : 0,
     subjectCount: isRecord(catalogs.subjects) ? Object.keys(catalogs.subjects).length : 0,
-    bandCount: isRecord(catalogs.bands) ? Object.keys(catalogs.bands).length : 0,
+    layerCount: isRecord(catalogs.layers) ? Object.keys(catalogs.layers).length : 0,
     measureCount: isRecord(catalogs.measures) ? Object.keys(catalogs.measures).length : 0,
   };
 };
@@ -175,7 +175,7 @@ export const createMatricesFromConnectivityState = (
 
 const toStoredMatrix = (matrix: MatrixRecord): ConnectivityMatrix => ({
   id: matrix.id,
-  bandId: matrix.context.bandId ?? "none",
+  layerId: matrix.context.layerId ?? "none",
   measureId: matrix.context.measureId,
   statId: matrix.stat.id,
   populationIds: getMatrixPopulationIds(matrix),
@@ -195,15 +195,13 @@ const getMatrixPopulationIds = (matrix: MatrixRecord): string[] => {
 };
 
 const createAppCatalogs = (state: ConnectivityDataState): ConnectivityCatalogs => ({
-  bands: Object.fromEntries(
-    Object.values(state.catalogs.bands).map((band) => [
-      band.id,
+  layers: Object.fromEntries(
+    Object.values(state.catalogs.layers).map((layer) => [
+      layer.id,
       {
-        id: band.id,
-        label: band.label,
-        min: band.rangeHz[0],
-        max: band.rangeHz[1],
-        description: band.description ?? undefined,
+        id: layer.id,
+        label: layer.label,
+        description: layer.description ?? undefined,
         enabled: true,
       },
     ]),
@@ -260,7 +258,7 @@ const createMatrixOrder = (state: ConnectivityDataState): MatrixOrderItem[] =>
 
 const createLoadSummary = (payload: unknown): ConnectivityLoadResult["summary"] => {
   if (!isRecord(payload)) {
-    return { matrices: 0, bands: [], measures: [], populations: [], subjects: [] };
+    return { matrices: 0, layers: [], measures: [], populations: [], subjects: [] };
   }
   const catalogs = isRecord(payload.catalogs) ? payload.catalogs : {};
   return {
@@ -268,7 +266,7 @@ const createLoadSummary = (payload: unknown): ConnectivityLoadResult["summary"] 
       ? payload.bundle.id
       : undefined,
     matrices: Array.isArray(payload.matrices) ? payload.matrices.length : 0,
-    bands: isRecord(catalogs.bands) ? Object.keys(catalogs.bands) : [],
+    layers: isRecord(catalogs.layers) ? Object.keys(catalogs.layers) : [],
     measures: isRecord(catalogs.measures) ? Object.keys(catalogs.measures) : [],
     populations: isRecord(catalogs.populations) ? Object.keys(catalogs.populations) : [],
     subjects: isRecord(catalogs.subjects) ? Object.keys(catalogs.subjects) : [],

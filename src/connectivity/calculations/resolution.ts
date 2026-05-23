@@ -11,10 +11,10 @@ import type {
 const sameContext = (
   matrix: MatrixRecord,
   request: MatrixCalculationBatchRequest,
-  bandId: string,
+  layerId: string,
   measureId: string,
 ) =>
-  matrix.context.bandId === bandId &&
+  matrix.context.layerId === layerId &&
   matrix.context.measureId === measureId &&
   (request.conditionId === undefined || matrix.context.conditionId === request.conditionId) &&
   (request.sessionId === undefined || matrix.context.sessionId === request.sessionId) &&
@@ -59,7 +59,7 @@ const findRoleMatrix = (
   role: CalculationInputRole,
   request: MatrixCalculationBatchRequest,
   state: MatrixCalculationState,
-  bandId: string,
+  layerId: string,
   measureId: string,
   subjectId?: string,
 ) => {
@@ -67,7 +67,7 @@ const findRoleMatrix = (
   const candidates = state.matrices.filter((matrix) => {
     if (matrix.kind !== criteria.kind) return false;
     if (matrix.stat.id !== criteria.statId) return false;
-    if (!sameContext(matrix, request, bandId, measureId)) return false;
+    if (!sameContext(matrix, request, layerId, measureId)) return false;
     if ("subjectId" in criteria) return hasSubject(matrix, criteria.subjectId);
     return hasPopulation(matrix, criteria.populationId);
   });
@@ -91,10 +91,10 @@ const requiredRolesForOperation = (
   return ["leftMean", "rightMean", "leftStd", "rightStd"];
 };
 
-export const resolveCalculationInputsForBandMeasure = (
+export const resolveCalculationInputsForLayerMeasure = (
   request: MatrixCalculationBatchRequest & { operation?: MatrixCalculationOperation },
   state: MatrixCalculationState,
-  bandId: string,
+  layerId: string,
   measureId: string,
   subjectId?: string,
 ): ResolvedCalculationInputs => {
@@ -109,7 +109,7 @@ export const resolveCalculationInputsForBandMeasure = (
       role,
       request,
       state,
-      bandId,
+      layerId,
       measureId,
       subjectId,
     );
@@ -131,7 +131,7 @@ export const assertContextCompatible = (matrices: MatrixRecord[]) => {
   const [first] = matrices;
   const incompatible = matrices.find(
     (matrix) =>
-      matrix.context.bandId !== first.context.bandId ||
+      matrix.context.layerId !== first.context.layerId ||
       matrix.context.measureId !== first.context.measureId ||
       matrix.geometry.atlasId !== first.geometry.atlasId ||
       matrix.geometry.shape[0] !== first.geometry.shape[0] ||
@@ -148,7 +148,7 @@ export const validateMatrixCalculationRequest = (
 ) => {
   const errors: string[] = [];
   if (!request.operations.length) errors.push("Select at least one calculation method.");
-  if (!request.bandIds.length) errors.push("Select at least one band.");
+  if (!request.layerIds.length) errors.push("Select at least one layer.");
   if (!request.measureIds.length) errors.push("Select at least one measure.");
   request.operations.forEach((operation) => {
     if (!getMatrixCalculationMethodDefinitions().some((method) => method.id === operation)) {
@@ -210,7 +210,7 @@ export const findEquivalentDerivedMatrix = (
     if (matrix.stat.id !== candidate.stat.id || matrix.stat.method !== candidate.stat.method) {
       return false;
     }
-    if (matrix.context.bandId !== candidate.context.bandId) return false;
+    if (matrix.context.layerId !== candidate.context.layerId) return false;
     if (matrix.context.measureId !== candidate.context.measureId) return false;
     if (matrix.comparison?.operator !== candidate.comparison?.operator) return false;
     if (matrix.comparison?.comparisonType !== candidate.comparison?.comparisonType) return false;

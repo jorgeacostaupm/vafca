@@ -15,7 +15,6 @@ type Props = {
   matrixGroups: MatrixOptionGroup[];
   catalogs?: Catalogs;
   uiRangeMode: "logical_default" | "observed";
-  includeDiagonal: boolean;
   onChange: (rule: MatrixFilterRule) => void;
   onDelete: () => void;
   onMoveUp: () => void;
@@ -28,7 +27,6 @@ export default function MatrixFilterRuleEditor({
   matrixGroups,
   catalogs,
   uiRangeMode,
-  includeDiagonal,
   onChange,
   onDelete,
   onMoveUp,
@@ -38,14 +36,13 @@ export default function MatrixFilterRuleEditor({
   const range = matrix
     ? resolveMatrixUiRange(matrix, catalogs, {
         uiRangeMode,
-        includeDiagonal,
         target: "slider",
       })
     : { min: -1, max: 1 };
   const rangeModeLabel =
     "source" in range && range.source === "observed" ? "Observed" : "Logical default";
   const isDivergent = "scaleType" in range && range.scaleType === "diverging";
-  const stats = matrix?.dataStats?.[includeDiagonal ? "allValues" : "offDiagonal"];
+  const stats = matrix?.dataStats?.allValues;
 
   const setValue = <K extends keyof MatrixFilterRule>(key: K, value: MatrixFilterRule[K]) =>
     onChange({ ...rule, [key]: value });
@@ -59,7 +56,6 @@ export default function MatrixFilterRuleEditor({
 
     const nextRange = resolveMatrixUiRange(nextMatrix, catalogs, {
       uiRangeMode,
-      includeDiagonal,
       target: "slider",
     });
     if (nextRange.scaleType === "diverging") {
@@ -126,7 +122,7 @@ export default function MatrixFilterRuleEditor({
               <Tag>{rangeModeLabel}</Tag>
             </div>
             <Typography.Text type="secondary">
-              Band: {matrix.context.bandId ?? "None"} · Measure: {matrix.context.measureId} · Statistic:{" "}
+              Layer: {matrix.context.layerId ?? "None"} · Measure: {matrix.context.measureId} · Statistic:{" "}
               {matrix.stat.id}
               {typeof matrix.source === "object" && "n" in matrix.source ? ` · n: ${matrix.source.n}` : ""}
               {stats?.min !== null && stats?.max !== null

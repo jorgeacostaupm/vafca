@@ -6,6 +6,7 @@ import {
 } from "@/components/nodelink/nodelinkShared";
 import { positionTooltipForPointer } from "@/components/nodelink/tooltipPosition";
 import { renderCircularElements } from "@/components/circular/circularRenderStrategies";
+import { CIRCULAR_NODE_RADIUS } from "@/config/ui";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 
 type CircularLinkSelection = d3.Selection<SVGPathElement, CircularLink, SVGGElement, unknown>;
@@ -295,7 +296,7 @@ export const renderCircularScene = ({
   const widthScale = createWidthScale({ links, linkWidthRange });
   const zoomLabelSet =
     selectedZoomLabels && selectedZoomLabels.length > 0 ? new Set(selectedZoomLabels) : null;
-  const nodeRadius = 3;
+  const nodeRadius = CIRCULAR_NODE_RADIUS;
 
   const { linkSelection, nodeSelection, labelSelection } = renderCircularElements({
     root,

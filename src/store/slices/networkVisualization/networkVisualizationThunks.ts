@@ -91,7 +91,8 @@ export const addNetworkViewAndFormat = createAsyncThunk<
         viewId,
         defaultW: DEFAULT_NETWORK_PANEL_LAYOUT.width,
         defaultH: DEFAULT_NETWORK_PANEL_LAYOUT.height,
-        columns: DEFAULT_NETWORK_PANEL_LAYOUT.columns,
+        initialX: DEFAULT_NETWORK_PANEL_LAYOUT.initialX,
+        initialY: DEFAULT_NETWORK_PANEL_LAYOUT.initialY,
       }),
     )
     await dispatch(markNetworkViewFormatting({ viewId }))

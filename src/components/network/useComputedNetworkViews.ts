@@ -47,7 +47,6 @@ type UseComputedNetworkViewsArgs = {
   matrixHierarchyCategoryOrder: Record<string, string[]>;
   dataset: DatasetMeta | null;
   uiRangeMode: UiRangeMode;
-  includeDiagonalInRanges: boolean;
 };
 
 const sortReducedGroupsByCategoryOrder = (
@@ -110,7 +109,6 @@ export const useComputedNetworkViews = ({
   matrixHierarchyCategoryOrder,
   dataset,
   uiRangeMode,
-  includeDiagonalInRanges,
 }: UseComputedNetworkViewsArgs) => {
   const computedByViewId = useMemo(() => {
     const map: Record<string, ComputedView> = {};
@@ -174,7 +172,6 @@ export const useComputedNetworkViews = ({
           : toNodeLinkStatFilter(settings?.statRange);
       const sliderRange = resolveMatrixUiRange(sourceMatrix, dataset?.catalogs, {
         uiRangeMode,
-        includeDiagonal: includeDiagonalInRanges,
         target: "slider",
       });
       const measureBounds: [number, number] = [sliderRange.min, sliderRange.max];
@@ -223,7 +220,6 @@ export const useComputedNetworkViews = ({
         statSliderMax,
         hasNegativeRange,
         uiRangeMode,
-        includeDiagonalInRanges,
         statRangeValue,
       };
     });
@@ -242,7 +238,6 @@ export const useComputedNetworkViews = ({
     matrixHierarchyCategoryOrder,
     dataset,
     uiRangeMode,
-    includeDiagonalInRanges,
   ]);
 
   const visibilityByViewId = useMemo(() => {

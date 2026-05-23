@@ -6,13 +6,15 @@ import type {
   UndirectedLink,
 } from "@/types/nodelink";
 import { DEFAULT_LINK_WIDTH_RANGE } from "@/components/nodelink/nodelinkShared";
+import { NODE_LINK_LAYOUT_MARGIN, NODE_LINK_NODE_RADIUS } from "@/config/ui";
+import { computeForceLayout } from "@/components/nodelink/forceLayout";
 import {
   buildDegreeByLabelId,
   buildFilteredUndirectedLinks,
 } from "@/components/nodelink/graphModel";
 
-export const DEFAULT_NODE_RADIUS = 3.5;
-export const DEFAULT_MARGIN = 20;
+export const DEFAULT_NODE_RADIUS = NODE_LINK_NODE_RADIUS;
+export const DEFAULT_MARGIN = NODE_LINK_LAYOUT_MARGIN;
 
 type BuildClassicSceneModelArgs = {
   data: number[][];
@@ -105,39 +107,6 @@ const remapVisibleGraph = (args: {
   return { simNodes, simLinks };
 };
 
-const runForceLayout = (args: {
-  nodes: ClassicNode[];
-  links: ClassicLink[];
-  width: number;
-  height: number;
-  nodeRadius: number;
-  iterations: number;
-}) => {
-  const { nodes, links, width, height, nodeRadius, iterations } = args;
-  const minDim = Math.min(width, height);
-  const linkDistance = Math.max(40, Math.min(120, minDim / 2.5));
-
-  const simulation = d3
-    .forceSimulation<ClassicNode>(nodes)
-    .force(
-      "link",
-      d3
-        .forceLink<ClassicNode, ClassicLink>(links)
-        .id((node) => node.id)
-        .distance(linkDistance)
-        .strength(0.7),
-    )
-    .force("charge", d3.forceManyBody().strength(-140))
-    .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide(nodeRadius + 6))
-    .stop();
-
-  for (let i = 0; i < iterations; i += 1) {
-    simulation.tick();
-  }
-  simulation.stop();
-};
-
 const buildWidthScale = (args: {
   links: ClassicLink[];
   linkWidthRange?: [number, number];
@@ -186,13 +155,12 @@ export const buildClassicSceneModel = ({
   const minDim = Math.min(width, height);
   const nodeRadius = Math.max(2.5, Math.min(DEFAULT_NODE_RADIUS, minDim / 50));
 
-  runForceLayout({
+  computeForceLayout({
     nodes: simNodes,
     links: simLinks,
     width,
     height,
     nodeRadius,
-    iterations: Math.min(240, Math.max(120, count * 8)),
   });
 
   const clampX = (value: number | undefined) =>

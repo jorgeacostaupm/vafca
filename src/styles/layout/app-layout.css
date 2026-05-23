@@ -1,0 +1,42 @@
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.app-content {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+}
+
+.app-tabs {
+  width: 100%;
+}
+
+.app-tabs > .ant-tabs-nav {
+  background: var(--color-bg);
+  margin: 0 0 var(--space-4);
+  padding: 0 var(--space-3);
+}
+
+.app-tabs > .ant-tabs-content-holder {
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.app-kicker {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 640px) {
+  .app-content {
+    padding: 2rem 1.25rem 2.75rem;
+  }
+}

@@ -8,7 +8,9 @@ import "react-grid-layout/css/styles.css";
 import "@/index.css";
 import App from "@/App";
 import { store } from "@/store/store";
-import { appTheme } from "@/theme";
+import { appTheme, applyThemeCssVariables } from "@/theme";
+
+applyThemeCssVariables();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

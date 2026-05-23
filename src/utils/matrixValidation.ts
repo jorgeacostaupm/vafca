@@ -75,11 +75,11 @@ const validateMatrixData = (
 const validateCatalogReferences = (
   matrix: Pick<
     ConnectivityMatrix,
-    "bandId" | "measureId" | "populationIds" | "statId"
+    "layerId" | "measureId" | "populationIds" | "statId"
   >,
   catalogs: ConnectivityCatalogs,
 ) => {
-  if (!catalogs.bands[matrix.bandId]) return `Unknown bandId '${matrix.bandId}'.`;
+  if (!catalogs.layers[matrix.layerId]) return `Unknown layerId '${matrix.layerId}'.`;
   if (!catalogs.measures[matrix.measureId]) {
     return `Unknown measureId '${matrix.measureId}'.`;
   }
@@ -109,7 +109,7 @@ const validateMatrixCandidate = (
   }
 
   const matrixId = isNonEmptyString(candidate.id) ? candidate.id : undefined;
-  const requiredFields = ["id", "bandId", "measureId", "statId"] as const;
+  const requiredFields = ["id", "layerId", "measureId", "statId"] as const;
   const missingField = requiredFields.find(
     (field) => !isNonEmptyString(candidate[field]),
   );
@@ -141,7 +141,7 @@ const validateMatrixCandidate = (
   }
 
   const id = candidate.id as string;
-  const bandId = candidate.bandId as string;
+  const layerId = candidate.layerId as string;
   const measureId = candidate.measureId as string;
   const statId = candidate.statId as string;
   const populationIds = candidate.populationIds as string[];
@@ -159,7 +159,7 @@ const validateMatrixCandidate = (
 
   const matrix: ConnectivityMatrix = {
     id,
-    bandId,
+    layerId,
     measureId,
     statId,
     populationIds,

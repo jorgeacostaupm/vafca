@@ -9,15 +9,13 @@ import {
   setAtlasColorFields,
 } from "@/store/slices/atlas";
 import type { AtlasColorCategoryItem } from "@/types/atlasPanel";
-import {
-  D3_CATEGORICAL_PALETTES,
-  buildAtlasColorCategories,
-} from "@/utils/atlas/coloring";
+import { D3_GROUPING_PALETTES } from "@/config/groupingPalettes";
+import { buildRoiGroupingColorCategories } from "@/utils/groupingColoring";
 import { getCommonRoiFields, humanizeFieldName } from "@/utils/atlas/atlasDefinition";
 
 const MIN_COLOR_PREVIEW_ITEMS = 7;
 
-export const useAtlasPaletteSettings = () => {
+export const useAtlasGroupingSettings = () => {
   const dispatch = useAppDispatch();
   const dataset = useAppSelector((state) => state.dataset.data);
   const colorFields = useAppSelector(selectAtlasColorFields);
@@ -49,9 +47,9 @@ export const useAtlasPaletteSettings = () => {
   const colorCategories = useMemo<AtlasColorCategoryItem[]>(() => {
     const includedIds = new Set(enabledIds);
 
-    return buildAtlasColorCategories({
+    return buildRoiGroupingColorCategories({
       atlasDefinition,
-      colorFields,
+      groupingFields: colorFields,
       colorPalette,
       includedIds,
     }).map((entry) => ({
@@ -67,7 +65,7 @@ export const useAtlasPaletteSettings = () => {
   const colorPreviewItems = useMemo<AtlasColorCategoryItem[]>(() => {
     if (colorCategories.length >= MIN_COLOR_PREVIEW_ITEMS) return colorCategories;
 
-    const palette = D3_CATEGORICAL_PALETTES[colorPalette];
+    const palette = D3_GROUPING_PALETTES[colorPalette].palette;
     const padded = [...colorCategories];
     for (let index = colorCategories.length; index < MIN_COLOR_PREVIEW_ITEMS; index += 1) {
       padded.push({

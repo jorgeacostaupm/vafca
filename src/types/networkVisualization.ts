@@ -2,6 +2,7 @@ import type { UiRangeMode } from "@/types/connectivityBundle";
 import type { MatrixValueRange, StatRangeValue } from "@/types/matrixView";
 
 export type NetworkViewType = "matrix" | "circular" | "classic";
+export type NetworkMatrixSelectorMode = "combined" | "fields";
 export type ViewLoadStatus = "formatting" | "ready" | "error";
 
 export type ZoomSelection = {
@@ -67,10 +68,11 @@ export type NetworkPanelLayoutItem = {
 
 export type NetworkSelectorControlsState = {
   viewType: NetworkViewType;
+  matrixSelectorMode: NetworkMatrixSelectorMode;
   populationKey: string;
   measureId: string;
   statId: string;
-  bandId: string;
+  layerId: string;
   selectedCompoundId: string;
   syncZoom: boolean;
   hideIsolatedNodes: boolean;
@@ -126,7 +128,6 @@ export type ComputedView = {
   statSliderMax: number;
   hasNegativeRange: boolean;
   uiRangeMode: UiRangeMode;
-  includeDiagonalInRanges: boolean;
   statRangeValue?:
     | MatrixNetworkViewSettings["statRange"]
     | NodeLinkNetworkViewSettings["statRange"];

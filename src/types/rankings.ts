@@ -14,7 +14,6 @@ export type RankingScope =
 export type LinkCollectionRankingMode = "aggregated" | "expanded";
 
 export type RankingHighlightItem =
-  | { type: "matrix"; matrixId: string }
   | {
       type: "link";
       sourceId: string;
@@ -28,16 +27,19 @@ export type RankingQuery = {
   target: RankingTarget;
   mode: RankingMode;
   linkCollectionMode?: LinkCollectionRankingMode;
+  allowLinkRankingAutoconnections: boolean;
+  allowRoiRankingAutoconnections: boolean;
   sourceType?: "population" | "subject" | "comparison";
   sourceId?: string;
   matrixKind?: MatrixKindForRanking;
+  aggregationGroupingKey?: string;
   measureId?: string;
   statisticId?: string;
-  bandIds?: string[];
+  layerIds?: string[];
   matrixId?: string;
   matrixIds?: string[];
   scope: RankingScope;
-  metric: string;
+  metric?: string;
   threshold?: number;
   topN: RankingTopN;
 };
@@ -50,9 +52,10 @@ export type MatrixRankingRow = {
   sourceType?: "population" | "subject" | "comparison";
   sourceId?: string;
   matrixKind?: MatrixKindForRanking;
+  aggregationGroupingKey?: string;
   measureId?: string;
   statisticId?: string;
-  bandId?: string;
+  layerId?: string;
   score: number;
   nLinksUsed: number;
 };
@@ -66,11 +69,10 @@ export type LinkRankingRow = {
   sourceLabel: string;
   targetLabel: string;
   score: number;
-  value?: number;
   valuesByMatrix?: Record<string, number>;
-  valuesByBand?: Record<string, number>;
+  valuesByLayer?: Record<string, number>;
   bestMatrixId?: string;
-  bestBandId?: string;
+  bestLayerId?: string;
   nMatricesUsed?: number;
 };
 
@@ -100,6 +102,7 @@ export type RankingResult = {
 export type RankingUiState = {
   activeTab: "views" | "rankings";
   currentQuery: RankingQuery;
+  queriesByTarget: Partial<Record<RankingTarget, RankingQuery>>;
   resultsOrder: string[];
   resultsById: Record<string, RankingResult>;
   layout: NetworkPanelLayoutItem[];

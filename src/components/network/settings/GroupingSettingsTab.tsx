@@ -1,15 +1,17 @@
 import { useCallback } from "react";
 import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Button, Select, Space, Typography } from "antd";
-import type { D3CategoricalPaletteKey } from "@/types/atlas";
+import {
+  D3_GROUPING_PALETTES,
+  type D3GroupingPaletteKey,
+} from "@/config/groupingPalettes";
 import { useAppDispatch } from "@/store/hooks";
 import { setAtlasColorFields, setAtlasColorPalette } from "@/store/slices/atlas";
-import { D3_CATEGORICAL_PALETTES } from "@/utils/atlas/coloring";
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
 import { moveField } from "@/components/atlas/panelFieldUtils";
-import { useAtlasPaletteSettings } from "./useAtlasPaletteSettings";
+import { useAtlasGroupingSettings } from "./useAtlasGroupingSettings";
 
-export default function PaletteSettingsTab() {
+export default function GroupingSettingsTab() {
   const dispatch = useAppDispatch();
   const {
     colorFields,
@@ -17,7 +19,7 @@ export default function PaletteSettingsTab() {
     selectableColorFields,
     colorCategories,
     colorPreviewItems,
-  } = useAtlasPaletteSettings();
+  } = useAtlasGroupingSettings();
 
   const handleMoveField = useCallback(
     (field: string, direction: "up" | "down") => {
@@ -43,9 +45,9 @@ export default function PaletteSettingsTab() {
   return (
     <Space direction="vertical" size={12} style={{ width: "100%" }}>
       <Space direction="vertical" size={4} style={{ width: "100%" }}>
-        <Typography.Text strong>Color fields</Typography.Text>
+        <Typography.Text strong>Grouping fields</Typography.Text>
         <Typography.Text type="secondary">
-          These fields define the categorical colors used by atlas nodes.
+          These fields define the categorical grouping used by atlas nodes.
         </Typography.Text>
       </Space>
 
@@ -81,7 +83,7 @@ export default function PaletteSettingsTab() {
       </Space>
 
       <Select
-        placeholder="Add color field"
+        placeholder="Add grouping field"
         style={{ width: "100%" }}
         options={selectableColorFields.map((field) => ({
           value: field,
@@ -97,18 +99,18 @@ export default function PaletteSettingsTab() {
           value={colorPalette}
           style={{ width: "100%" }}
           onChange={(value) =>
-            dispatch(setAtlasColorPalette(value as D3CategoricalPaletteKey))
+            dispatch(setAtlasColorPalette(value as D3GroupingPaletteKey))
           }
-          options={Object.keys(D3_CATEGORICAL_PALETTES).map((key) => ({
+          options={Object.entries(D3_GROUPING_PALETTES).map(([key, palette]) => ({
             value: key,
-            label: `D3 ${key}`,
+            label: palette.label,
           }))}
         />
       </Space>
 
       {colorFields.length === 0 ? (
         <Typography.Text type="secondary">
-          No color fields selected. All ROIs use the first color of the palette.
+          No grouping fields selected. All ROIs use the first color of the palette.
         </Typography.Text>
       ) : (
         <div className="atlas-panel__color-preview">

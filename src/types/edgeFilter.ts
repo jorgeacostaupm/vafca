@@ -41,13 +41,11 @@ export type MatrixFilterExpression = MatrixFilterRule | MatrixFilterGroup;
 
 export type MatrixFilterDefinition = {
   root: MatrixFilterGroup;
-  includeDiagonal: boolean;
   uiRangeMode: UiRangeMode;
 };
 
 export type RuntimeEdgeMask = {
   edgeDomainKey: string;
-  includeDiagonal: boolean;
   values: boolean[][];
   selectedCount: number;
   totalCount: number;

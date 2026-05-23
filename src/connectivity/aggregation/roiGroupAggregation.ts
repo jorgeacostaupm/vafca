@@ -8,6 +8,7 @@ import type {
 import { getMatrixValue } from "@/utils/connectivityMatrix";
 import { computeMatrixDataStats } from "@/utils/matrixDataStats";
 import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
+import { getMatrixPopulationIds } from "@/utils/matrixSource";
 
 export type RoiGroupingConfig = {
   source: "visualizationSettings" | "manual";
@@ -262,6 +263,24 @@ export const buildReducedMatrixId = (
     .filter(Boolean)
     .join("__");
 
+const normalizeIdPart = (value: string) =>
+  value.trim().replace(/[^a-zA-Z0-9_-]+/g, "_").replace(/^_+|_+$/g, "") ||
+  "none";
+
+export const buildReducedLayerId = (
+  baseLayerId: string | null,
+  fields: string[],
+  groupOrderHash?: string,
+) =>
+  [
+    `red_layer__${normalizeIdPart(baseLayerId ?? "none")}__by__${fields
+      .map(normalizeIdPart)
+      .join("_")}`,
+    groupOrderHash ? `order__${groupOrderHash}` : null,
+  ]
+    .filter(Boolean)
+    .join("__");
+
 export const createReducedMatrixRecord = ({
   baseMatrix,
   atlas,
@@ -277,7 +296,9 @@ export const createReducedMatrixRecord = ({
   missingTagPolicy,
 }: CreateReducedMatrixRecordArgs): MatrixRecord => {
   const id = buildReducedMatrixId(baseMatrix.id, fields, "mean", groupOrderHash);
-  const label = `${baseMatrix.label ?? baseMatrix.id} aggregated by ${fields.join(" / ")}`;
+  const label = `${baseMatrix.label ?? baseMatrix.id} by ${fields.join(" / ")}`;
+  const baseLayerId = baseMatrix.context.layerId ?? null;
+  const reducedLayerId = buildReducedLayerId(baseLayerId, fields, groupOrderHash);
   const valueStats = computeMatrixDataStats({
     ...baseMatrix,
     data,
@@ -290,9 +311,14 @@ export const createReducedMatrixRecord = ({
     id,
     kind: "reduced",
     label,
+    context: {
+      ...baseMatrix.context,
+      layerId: reducedLayerId,
+    },
     source: {
       level: "reduction",
       baseMatrixId: baseMatrix.id,
+      populationIds: getMatrixPopulationIds(baseMatrix),
     },
     stat: {
       id: "mean",
@@ -347,6 +373,7 @@ export const createReducedMatrixRecord = ({
         fields,
         aggregator: "mean",
         source: "visualizationSettings",
+        baseLayerId,
         activeRoiIds,
         groupOrderHash,
         orderMode,

@@ -3,10 +3,10 @@ import { useAppSelector } from "@/store/hooks";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
 import {
-  buildAtlasColorCategories,
-  buildAtlasColorCategoryKey,
-  buildAtlasRoiColorById,
-} from "@/utils/atlas/coloring";
+  buildGroupingColorCategoryKey,
+  buildRoiGroupingColorById,
+  buildRoiGroupingColorCategories,
+} from "@/utils/groupingColoring";
 import { buildLabelNameMap, normalizeMatrixOrder } from "@/utils/matrixOrder";
 
 type UseAtlasLabelPresentationArgs = {
@@ -127,16 +127,16 @@ export const useAtlasLabelPresentation = ({
 
   const nodeColors = useMemo(
     () => {
-      const baseColors = buildAtlasRoiColorById({
+      const baseColors = buildRoiGroupingColorById({
         atlasDefinition,
-        colorFields: atlas.colorFields,
+        groupingFields: atlas.colorFields,
         colorPalette: atlas.colorPalette,
       });
       if (atlas.colorFields.length === 0) return baseColors;
 
-      const categories = buildAtlasColorCategories({
+      const categories = buildRoiGroupingColorCategories({
         atlasDefinition,
-        colorFields: atlas.colorFields,
+        groupingFields: atlas.colorFields,
         colorPalette: atlas.colorPalette,
       });
       const colorByCategory = new Map(
@@ -146,7 +146,7 @@ export const useAtlasLabelPresentation = ({
       dataset?.connectivity?.matrices.forEach((matrix) => {
         matrix.reduction?.groups.forEach((group) => {
           const values = atlas.colorFields.map((field) => group.criteria[field] ?? "Unknown");
-          const color = colorByCategory.get(buildAtlasColorCategoryKey(values));
+          const color = colorByCategory.get(buildGroupingColorCategoryKey(values));
           if (color) baseColors[group.id] = color;
         });
       });

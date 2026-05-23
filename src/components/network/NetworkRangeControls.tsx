@@ -1,41 +1,40 @@
-import { Checkbox, Radio, Space, Typography } from "antd";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  selectIncludeDiagonalInRanges,
-  selectUiRangeMode,
-  setIncludeDiagonalInRanges,
-  setUiRangeMode,
-} from "@/store/slices/visualizationUi";
-import type { UiRangeMode } from "@/types/connectivityBundle";
+import { BarChartOutlined, DatabaseOutlined } from '@ant-design/icons'
+import { Form, Segmented } from 'antd'
+import { createNetworkSegmentedOption } from '@/components/network/segmentedOption'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { selectUiRangeMode, setUiRangeMode } from '@/store/slices/visualizationUi'
+import type { UiRangeMode } from '@/types/connectivityBundle'
+
+const rangeModeOptions = [
+  createNetworkSegmentedOption<UiRangeMode>(
+    'logical_default',
+    <DatabaseOutlined />,
+    'Catalog',
+  ),
+  createNetworkSegmentedOption<UiRangeMode>(
+    'observed',
+    <BarChartOutlined />,
+    'Observed',
+  ),
+]
 
 export default function NetworkRangeControls() {
-  const dispatch = useAppDispatch();
-  const uiRangeMode = useAppSelector(selectUiRangeMode);
-  const includeDiagonal = useAppSelector(selectIncludeDiagonalInRanges);
+  const dispatch = useAppDispatch()
+  const uiRangeMode = useAppSelector(selectUiRangeMode)
 
   return (
-    <Space wrap size={16}>
-      <Typography.Text>Range mode</Typography.Text>
-      <Radio.Group
-        size="small"
-        value={uiRangeMode}
-        aria-label="Range mode"
-        onChange={(event) =>
-          dispatch(setUiRangeMode(event.target.value as UiRangeMode))
-        }
-        options={[
-          { value: "logical_default", label: "Logical default" },
-          { value: "observed", label: "Observed range" },
-        ]}
-      />
-      <Checkbox
-        checked={includeDiagonal}
-        onChange={(event) =>
-          dispatch(setIncludeDiagonalInRanges(event.target.checked))
-        }
+    <Form layout="vertical" style={{ marginBottom: 0 }}>
+      <Form.Item
+        label="Range"
+        className="network-segmented-setting network-range-mode-setting"
+        style={{ marginBottom: 0 }}
       >
-        Include diagonal
-      </Checkbox>
-    </Space>
-  );
+        <Segmented
+          value={uiRangeMode}
+          onChange={(value) => dispatch(setUiRangeMode(value as UiRangeMode))}
+          options={rangeModeOptions}
+        />
+      </Form.Item>
+    </Form>
+  )
 }

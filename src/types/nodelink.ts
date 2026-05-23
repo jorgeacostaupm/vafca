@@ -64,6 +64,10 @@ export type ClassicNode = {
   label: string;
   x?: number;
   y?: number;
+  vx?: number;
+  vy?: number;
+  fx?: number | null;
+  fy?: number | null;
 };
 
 export type ClassicLink = {

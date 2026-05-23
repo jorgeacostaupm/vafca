@@ -15,6 +15,7 @@ import {
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { DEFAULT_DERIVED_MATRIX_CALCULATION_TAB } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   computeAggregatedMatrixFromVisualizationGroups,
@@ -32,7 +33,7 @@ import {
 import {
   getAvailableMatrixCalculations,
   getMatrixCalculationMethodDefinitions,
-  resolveCalculationInputsForBandMeasure,
+  resolveCalculationInputsForLayerMeasure,
   type MatrixCalculationAssociatedOutputId,
   type MatrixCalculationOperation,
 } from "@/connectivity/calculations";
@@ -40,12 +41,13 @@ import {
 type Props = {
   open: boolean;
   onClose: () => void;
+  onOpenGroupingSettings?: () => void;
 };
 
 type PreviewRow = {
   key: string;
   method: string;
-  band: string;
+  layer: string;
   measure: string;
   left: string;
   right: string;
@@ -66,6 +68,7 @@ const first = (values: string[]) => values[0] ?? "";
 export default function DerivedMatrixCalculationModal({
   open,
   onClose,
+  onOpenGroupingSettings,
 }: Props) {
   const dispatch = useAppDispatch();
   const dataset = useAppSelector(selectDatasetData);
@@ -94,8 +97,8 @@ export default function DerivedMatrixCalculationModal({
     () => Object.keys(connectivity?.catalogs.subjects ?? {}),
     [connectivity],
   );
-  const bandIds = useMemo(
-    () => Object.keys(connectivity?.catalogs.bands ?? {}),
+  const layerIds = useMemo(
+    () => Object.keys(connectivity?.catalogs.layers ?? {}),
     [connectivity],
   );
   const measureIds = useMemo(
@@ -118,8 +121,8 @@ export default function DerivedMatrixCalculationModal({
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>(
     subjectIds.slice(0, 1),
   );
-  const [selectedBandIds, setSelectedBandIds] = useState<string[]>(
-    bandIds.slice(0, 1),
+  const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>(
+    layerIds.slice(0, 1),
   );
   const [selectedMeasureIds, setSelectedMeasureIds] = useState<string[]>(
     measureIds.slice(0, 1),
@@ -132,10 +135,9 @@ export default function DerivedMatrixCalculationModal({
     null,
   );
   const [aggregationWarnings, setAggregationWarnings] = useState<string[]>([]);
-  const [aggregationEnabled, setAggregationEnabled] = useState(false);
   const [baseMatrixIds, setBaseMatrixIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<"comparison" | "aggregated">(
-    "comparison",
+    DEFAULT_DERIVED_MATRIX_CALCULATION_TAB,
   );
   const running = calculationStatus === "loading";
   const aggregationOrderMode: AggregatedMatrixOrderMode =
@@ -149,9 +151,9 @@ export default function DerivedMatrixCalculationModal({
   const effectiveSubjectIds = selectedSubjectIds.length
     ? selectedSubjectIds
     : subjectIds.slice(0, 1);
-  const effectiveBandIds = selectedBandIds.length
-    ? selectedBandIds
-    : bandIds.slice(0, 1);
+  const effectiveLayerIds = selectedLayerIds.length
+    ? selectedLayerIds
+    : layerIds.slice(0, 1);
   const effectiveMeasureIds = selectedMeasureIds.length
     ? selectedMeasureIds
     : measureIds.slice(0, 1);
@@ -170,13 +172,13 @@ export default function DerivedMatrixCalculationModal({
       rightPopulationId: effectiveRightPopulationId,
       referencePopulationId: effectiveReferencePopulationId,
       subjectIds: effectiveSubjectIds,
-      bandIds: effectiveBandIds,
+      layerIds: effectiveLayerIds,
       measureIds: effectiveMeasureIds,
       selectedAssociatedOutputs: associated,
     }),
     [
       associated,
-      effectiveBandIds,
+      effectiveLayerIds,
       effectiveLeftPopulationId,
       effectiveMeasureIds,
       effectiveReferencePopulationId,
@@ -195,16 +197,16 @@ export default function DerivedMatrixCalculationModal({
           ? effectiveSubjectIds
           : [undefined];
       return subjects.flatMap((subjectId) =>
-        effectiveBandIds.flatMap((bandId) =>
+        effectiveLayerIds.flatMap((layerId) =>
           effectiveMeasureIds.map((measureId) => {
-            const resolved = resolveCalculationInputsForBandMeasure(
+            const resolved = resolveCalculationInputsForLayerMeasure(
               { ...request, operation },
               connectivity,
-              bandId,
+              layerId,
               measureId,
               subjectId,
             );
-            const band = connectivity.catalogs.bands[bandId]?.label ?? bandId;
+            const layer = connectivity.catalogs.layers[layerId]?.label ?? layerId;
             const measure =
               connectivity.catalogs.measures[measureId]?.label ?? measureId;
             const left = subjectId
@@ -219,9 +221,9 @@ export default function DerivedMatrixCalculationModal({
             const right =
               connectivity.catalogs.populations[rightId]?.label ?? rightId;
             return {
-              key: `${operation}:${subjectId ?? "pop"}:${bandId}:${measureId}`,
+              key: `${operation}:${subjectId ?? "pop"}:${layerId}:${measureId}`,
               method: definition?.shortLabel ?? operation,
-              band,
+              layer,
               measure,
               left,
               right,
@@ -238,7 +240,7 @@ export default function DerivedMatrixCalculationModal({
     });
   }, [
     connectivity,
-    effectiveBandIds,
+    effectiveLayerIds,
     effectiveLeftPopulationId,
     effectiveMeasureIds,
     effectiveReferencePopulationId,
@@ -251,7 +253,7 @@ export default function DerivedMatrixCalculationModal({
 
   const canCalculate =
     operations.length > 0 &&
-    effectiveBandIds.length > 0 &&
+    effectiveLayerIds.length > 0 &&
     effectiveMeasureIds.length > 0 &&
     previewRows.some((row) => row.status.startsWith("ready"));
 
@@ -312,7 +314,6 @@ export default function DerivedMatrixCalculationModal({
     ).length;
   }, [activeRoiIds, connectivity]);
   const canAggregate =
-    aggregationEnabled &&
     Boolean(groupConfig) &&
     baseMatrixIds.length > 0 &&
     (groupPreview?.groups.length ?? 0) >= 2;
@@ -351,7 +352,7 @@ export default function DerivedMatrixCalculationModal({
   const methodOptions = methods.filter((method) => availableIds.has(method.id));
   const columns: ColumnsType<PreviewRow> = [
     { title: "Method", dataIndex: "method" },
-    { title: "Band", dataIndex: "band" },
+    { title: "Layer", dataIndex: "layer" },
     { title: "Measure", dataIndex: "measure" },
     { title: "Left/Target", dataIndex: "left" },
     { title: "Right/Control", dataIndex: "right" },
@@ -411,7 +412,7 @@ export default function DerivedMatrixCalculationModal({
                 <Space direction="vertical" size={16} style={{ width: "100%" }}>
                   <Typography.Text type="secondary">
                     Create derived comparison matrices from subjects,
-                    populations, bands, measures, and statistics.
+                    populations, layers, measures, and statistics.
                   </Typography.Text>
                   {summary ? (
                     <Alert type="success" showIcon message={summary} />
@@ -557,16 +558,16 @@ export default function DerivedMatrixCalculationModal({
                     </Space>
 
                     <Space size={16} align="start" wrap>
-                      <Form.Item label="Bands">
+                      <Form.Item label="Layers">
                         <Select
                           mode="multiple"
                           style={{ width: 320 }}
-                          value={effectiveBandIds}
-                          onChange={setSelectedBandIds}
-                          options={bandIds.map((id) => ({
+                          value={effectiveLayerIds}
+                          onChange={setSelectedLayerIds}
+                          options={layerIds.map((id) => ({
                             value: id,
                             label:
-                              connectivity?.catalogs.bands[id]?.label ?? id,
+                              connectivity?.catalogs.layers[id]?.label ?? id,
                           }))}
                         />
                       </Form.Item>
@@ -606,19 +607,11 @@ export default function DerivedMatrixCalculationModal({
                     Create a reduced ROI-group matrix from the current
                     Visualization Settings grouping.
                   </Typography.Text>
-                  <Checkbox
-                    checked={aggregationEnabled}
-                    onChange={(event) =>
-                      setAggregationEnabled(event.target.checked)
-                    }
-                  >
-                    Compute aggregated matrix using current visualization groups
-                  </Checkbox>
                   {groupConfig ? (
                     <Alert
                       type="info"
                       showIcon
-                      message={`Using Palette grouping: ${groupConfig.fields.join(" → ")} with ${aggregationOrderMode} order. Active ROIs: ${activeRoiIds.length}/${atlasState.order.length}. This will generate ${groupPreview?.groups.length ?? 0} ROI groups. Values will be computed as the mean of all valid ROI-to-ROI edges between groups.`}
+                      message={`Using grouping: ${groupConfig.fields.join(" → ")} with ${aggregationOrderMode} order. Active ROIs: ${activeRoiIds.length}/${atlasState.order.length}. This will generate ${groupPreview?.groups.length ?? 0} ROI groups. Values will be computed as the mean of all valid ROI-to-ROI edges between groups.`}
                       description="Aggregation summarizes an existing ROI-to-ROI matrix; it does not recompute PLV from source time series."
                     />
                   ) : (
@@ -626,7 +619,19 @@ export default function DerivedMatrixCalculationModal({
                       type="warning"
                       showIcon
                       message="No tag-based grouping is currently active in Visualization Settings."
-                      description="Select one or more color fields in Visualization Settings → Label/node color palette first."
+                      description={
+                        <Space direction="vertical" size={8}>
+                          <Typography.Text>
+                            Select one or more grouping fields in Visualization
+                            Settings &gt; Grouping first.
+                          </Typography.Text>
+                          {onOpenGroupingSettings ? (
+                            <Button size="small" onClick={onOpenGroupingSettings}>
+                              Open Grouping settings
+                            </Button>
+                          ) : null}
+                        </Space>
+                      }
                     />
                   )}
                   {inactiveRoiIds.length > 0 ? (
@@ -655,7 +660,7 @@ export default function DerivedMatrixCalculationModal({
                           <Button
                             size="small"
                             disabled={
-                              !aggregationEnabled ||
+                              !groupConfig ||
                               aggregationBaseMatrices.length === 0
                             }
                             onClick={() =>
@@ -670,9 +675,7 @@ export default function DerivedMatrixCalculationModal({
                           </Button>
                           <Button
                             size="small"
-                            disabled={
-                              !aggregationEnabled || baseMatrixIds.length === 0
-                            }
+                            disabled={!groupConfig || baseMatrixIds.length === 0}
                             onClick={() => setBaseMatrixIds([])}
                           >
                             Clear all
@@ -686,7 +689,7 @@ export default function DerivedMatrixCalculationModal({
                           mode="multiple"
                           style={{ width: "100%" }}
                           value={baseMatrixIds}
-                          disabled={!aggregationEnabled}
+                          disabled={!groupConfig}
                           onChange={setBaseMatrixIds}
                           placeholder="Select one or more ROI × ROI base matrices"
                           options={aggregationBaseMatrices.map((matrix) => ({

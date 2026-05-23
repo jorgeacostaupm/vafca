@@ -7,6 +7,7 @@ import type {
 } from '@/types/datasetState'
 import { buildMatrixStats } from '@/utils/matrixStats'
 import { materializeMatrixData } from '@/utils/connectivityMatrix'
+import { getMatrixPopulationIds } from '@/utils/matrixSource'
 import {
   computeAggregatedMatrixFromVisualizationGroups,
   computeDerivedMatrices,
@@ -80,18 +81,10 @@ const DERIVED_STAT_CATALOG = {
 
 const toConnectivityMatrix = (matrix: MatrixRecord) => ({
   id: matrix.id,
-  bandId: matrix.context.bandId ?? 'none',
+  layerId: matrix.context.layerId ?? 'none',
   measureId: matrix.context.measureId,
   statId: matrix.stat.id,
-  populationIds:
-    matrix.source.level === 'comparison'
-      ? [
-          ...(matrix.source.left.populationIds ?? []),
-          ...(matrix.source.right.populationIds ?? []),
-        ]
-      : 'populationIds' in matrix.source
-        ? matrix.source.populationIds
-        : [],
+  populationIds: getMatrixPopulationIds(matrix),
   data: materializeMatrixData(matrix),
   dataStats: matrix.dataStats,
 })
@@ -118,6 +111,44 @@ const addDerivedStatsToCatalogs = (data: DatasetMeta, matrices: MatrixRecord[]) 
             : stat.id === 'difference'
               ? [-1, 1]
               : undefined,
+      }
+    }
+  })
+}
+
+const addReducedLayersToCatalogs = (data: DatasetMeta, matrices: MatrixRecord[]) => {
+  const connectivity = data.connectivity
+  matrices.forEach((matrix) => {
+    if (matrix.kind !== 'reduced') return
+    const layerId = matrix.context.layerId
+    if (!layerId) return
+
+    const baseMatrix = matrix.reduction?.baseMatrixId
+      ? connectivity?.matrixIndex[matrix.reduction.baseMatrixId]
+      : undefined
+    const baseLayerId = baseMatrix?.context.layerId ?? null
+    const baseLayerLabel =
+      (baseLayerId
+        ? connectivity?.catalogs.layers[baseLayerId]?.label ??
+          data.catalogs.layers[baseLayerId]?.label
+        : undefined) ??
+      baseLayerId ??
+      'No layer'
+    const groupingLabel = matrix.reduction?.fields.join(' / ') || 'ROI groups'
+    const label = `${baseLayerLabel} by ${groupingLabel}`
+    const description = `Visualization-only layer derived from ${baseLayerLabel}.`
+
+    data.catalogs.layers[layerId] = {
+      id: layerId,
+      label,
+      description,
+      enabled: true,
+    }
+    if (connectivity) {
+      connectivity.catalogs.layers[layerId] = {
+        id: layerId,
+        label,
+        description,
       }
     }
   })
@@ -174,6 +205,7 @@ const datasetSlice = createSlice({
         connectivity.matrixIndex[matrix.id] = matrix
       })
       addDerivedStatsToCatalogs(state.data, action.payload)
+      addReducedLayersToCatalogs(state.data, action.payload)
       state.data.matrixStats = buildMatrixStats(
         connectivity.matrices.map(toConnectivityMatrix),
       )
@@ -259,6 +291,7 @@ const datasetSlice = createSlice({
           connectivity.matrixIndex[matrix.id] = matrix
         })
         addDerivedStatsToCatalogs(state.data, action.payload.matrices)
+        addReducedLayersToCatalogs(state.data, action.payload.matrices)
         state.data.matrixStats = buildMatrixStats(
           connectivity.matrices.map(toConnectivityMatrix),
         )
@@ -283,6 +316,7 @@ const datasetSlice = createSlice({
           connectivity.matrixIndex[matrix.id] = matrix
         })
         addDerivedStatsToCatalogs(state.data, matrices)
+        addReducedLayersToCatalogs(state.data, matrices)
         state.data.matrixStats = buildMatrixStats(
           connectivity.matrices.map(toConnectivityMatrix),
         )

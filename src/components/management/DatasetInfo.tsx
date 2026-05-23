@@ -19,7 +19,7 @@ function DatasetInfo() {
 
   const matrixOrder = normalizeMatrixOrder(data.metadata.matrixOrder);
   const atlasLabel = data.metadata.atlasId ?? data.metadata.atlas ?? "Unknown";
-  const bands = Object.values(data.catalogs.bands);
+  const layers = Object.values(data.catalogs.layers);
   const measures = Object.values(data.catalogs.measures);
   const stats = Object.values(data.catalogs.stats);
   const populations = Object.values(data.catalogs.populations);
@@ -76,15 +76,15 @@ function DatasetInfo() {
       </div>
 
       <div>
-        <Typography.Text strong>Bands</Typography.Text>
+        <Typography.Text strong>Layers</Typography.Text>
         <List
           size="small"
-          dataSource={bands}
-          renderItem={(band) => (
+          dataSource={layers}
+          renderItem={(layer) => (
             <List.Item>
               <Typography.Text>
-                {(band.label ?? band.id)} ({band.min}-{band.max} Hz)
-                {band.description ? ` · ${band.description}` : ""}
+                {layer.label ?? layer.id}
+                {layer.description ? ` · ${layer.description}` : ""}
               </Typography.Text>
             </List.Item>
           )}

@@ -76,7 +76,7 @@ const toResult = (
     matrixCount: 0,
     populationCount: 0,
     subjectCount: 0,
-    bandCount: 0,
+    layerCount: 0,
     measureCount: 0,
   },
 });

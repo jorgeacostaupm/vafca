@@ -25,7 +25,6 @@ type Props = {
   matrixGroups: MatrixOptionGroup[];
   catalogs?: Catalogs;
   uiRangeMode: "logical_default" | "observed";
-  includeDiagonal: boolean;
   onChange: (group: MatrixFilterGroup) => void;
   onDelete?: () => void;
   onMoveUp?: () => void;
@@ -54,7 +53,6 @@ export default function MatrixFilterGroupEditor({
   matrixGroups,
   catalogs,
   uiRangeMode,
-  includeDiagonal,
   onChange,
   onDelete,
   onMoveUp,
@@ -137,7 +135,6 @@ export default function MatrixFilterGroupEditor({
                   matrixGroups={matrixGroups}
                   catalogs={catalogs}
                   uiRangeMode={uiRangeMode}
-                  includeDiagonal={includeDiagonal}
                   onChange={(rule) => updateChild(index, rule)}
                   onDelete={() =>
                     setChildren(group.children.filter((_, itemIndex) => itemIndex !== index))
@@ -153,7 +150,6 @@ export default function MatrixFilterGroupEditor({
                   matrixGroups={matrixGroups}
                   catalogs={catalogs}
                   uiRangeMode={uiRangeMode}
-                  includeDiagonal={includeDiagonal}
                   onChange={(nextGroup) => updateChild(index, nextGroup)}
                   onDelete={() =>
                     setChildren(group.children.filter((_, itemIndex) => itemIndex !== index))

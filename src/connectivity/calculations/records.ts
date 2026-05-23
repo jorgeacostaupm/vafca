@@ -34,8 +34,8 @@ export const populationLabel = (catalogs: Catalogs, populationId?: string) =>
 export const subjectLabel = (catalogs: Catalogs, subjectId?: string) =>
   subjectId ? catalogs.subjects[subjectId]?.label ?? subjectId : "Unknown";
 
-export const bandLabel = (catalogs: Catalogs, bandId: string | null) =>
-  bandId ? catalogs.bands[bandId]?.label ?? bandId : "No band";
+export const layerLabel = (catalogs: Catalogs, layerId: string | null) =>
+  layerId ? catalogs.layers[layerId]?.label ?? layerId : "No layer";
 
 export const measureLabel = (catalogs: Catalogs, measureId: string) =>
   catalogs.measures[measureId]?.label ?? measureId;
@@ -45,7 +45,7 @@ export const generateDerivedMatrixId = (params: {
   leftId?: string;
   rightId?: string;
   subjectId?: string;
-  bandId: string | null;
+  layerId: string | null;
   measureId: string;
   operator: string;
   existingIds: Set<string>;
@@ -57,7 +57,7 @@ export const generateDerivedMatrixId = (params: {
       params.subjectId ?? params.leftId,
       params.rightId ? "vs" : null,
       params.rightId,
-      params.bandId ?? "none",
+      params.layerId ?? "none",
       params.measureId,
       params.operator,
     ]
@@ -77,7 +77,7 @@ export const generateDerivedMatrixLabel = (params: {
   rightPopulationId?: string;
   referencePopulationId?: string;
   subjectId?: string;
-  bandId: string | null;
+  layerId: string | null;
   measureId: string;
   suffix: string;
   useMinus?: boolean;
@@ -90,7 +90,7 @@ export const generateDerivedMatrixLabel = (params: {
     params.referencePopulationId ?? params.rightPopulationId,
   );
   const separator = params.useMinus ? " - " : " vs ";
-  return `${left}${separator}${right} · ${bandLabel(params.catalogs, params.bandId)} · ${measureLabel(params.catalogs, params.measureId)} · ${params.suffix}`;
+  return `${left}${separator}${right} · ${layerLabel(params.catalogs, params.layerId)} · ${measureLabel(params.catalogs, params.measureId)} · ${params.suffix}`;
 };
 
 export const outputValueDomain = (output: MatrixCalculationOutputSpec): MatrixValueDomain => {
@@ -148,7 +148,7 @@ export const createDerivedMatrixRecord = ({
 
 export const buildProvenanceParameters = (params: {
   operation: MatrixCalculationOperation;
-  bandId: string | null;
+  layerId: string | null;
   measureId: string;
   leftPopulationId?: string;
   rightPopulationId?: string;
@@ -159,7 +159,7 @@ export const buildProvenanceParameters = (params: {
   extra?: Record<string, unknown>;
 }) => ({
   operation: params.operation,
-  bandId: params.bandId,
+  layerId: params.layerId,
   measureId: params.measureId,
   leftPopulationId: params.leftPopulationId,
   rightPopulationId: params.rightPopulationId,

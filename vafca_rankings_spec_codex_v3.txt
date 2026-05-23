@@ -1,6 +1,6 @@
 VAFCA — Specification for Codex
 Add Rankings tab to Network Visualization
-Updated with user clarifications and explicit cross-band link-ranking modes
+Updated with user clarifications and explicit cross-layer link-ranking modes
 ============================================================
 
 Change log for this version
@@ -10,11 +10,11 @@ This version incorporates the following confirmed design decisions:
 
 1. Ranking matrix collections must support original matrices, aggregated matrices and comparison matrices.
 
-2. "All bands" must mean all bands compatible with the currently selected combination. It must not mean all bands in the global catalog. A compatible band is a band for which at least one matrix exists matching the selected source, measure, statistic, matrix kind and geometry constraints.
+2. "All layers" must mean all layers compatible with the currently selected combination. It must not mean all layers in the global catalog. A compatible layer is a layer for which at least one matrix exists matching the selected source, measure, statistic, matrix kind and geometry constraints.
 
-3. Link Ranking over several bands must distinguish two different modes:
-   a) Aggregated multi-band link ranking: one row per link, using a score computed from selected bands/matrices, such as mean across bands.
-   b) Expanded link-by-band ranking: one row per link per band/matrix, with no averaging across bands.
+3. Link Ranking over several layers must distinguish two different modes:
+   a) Aggregated multi-layer link ranking: one row per link, using a score computed from selected layers/matrices, such as mean across layers.
+   b) Expanded link-by-layer ranking: one row per link per layer/matrix, with no averaging across layers.
 
 
 Goal
@@ -72,7 +72,7 @@ Suggested UI:
     - matrix kind: original / aggregated / comparison
     - measure
     - statistic
-    - band or bands
+    - layer or layers
     - matrix or matrix collection
     - scope
     - ranking metric
@@ -101,13 +101,13 @@ Example:
     Matrix kind = original
     Measure = PLV
     Statistic = mean
-    Bands = alpha, beta, gamma
+    Layers = alpha, beta, gamma
     Rank by = mean value
     Top N = 10
 
 This answers:
 
-    Which matrix or band is most relevant for this source-measure-statistic combination?
+    Which matrix or layer is most relevant for this source-measure-statistic combination?
 
 Required selectors:
 
@@ -115,22 +115,22 @@ Required selectors:
 - Matrix kind: original / aggregated / comparison
 - Measure
 - Statistic
-- Bands
+- Layers
 - Scope
 - Ranking metric
 - Top N
 
-Band selector requirements:
+Layer selector requirements:
 
-The band selector should support:
+The layer selector should support:
 
-- one compatible band
-- multiple compatible bands
-- all compatible bands for the selected combination
+- one compatible layer
+- multiple compatible layers
+- all compatible layers for the selected combination
 
-Definition of compatible bands:
+Definition of compatible layers:
 
-"All compatible bands" means all bands for which at least one matrix exists matching the currently selected source, matrix kind, measure, statistic and geometry constraints. It must not mean all bands listed in the global catalog.
+"All compatible layers" means all layers for which at least one matrix exists matching the currently selected source, matrix kind, measure, statistic and geometry constraints. It must not mean all layers listed in the global catalog.
 
 Examples:
 
@@ -138,13 +138,13 @@ Examples:
     Matrix kind = original
     Measure = PLV
     Statistic = mean
-    All compatible bands = only bands that have Control + original + PLV + mean matrices.
+    All compatible layers = only layers that have Control + original + PLV + mean matrices.
 
     Source = Study vs Control
     Matrix kind = comparison
     Measure = PLV
     Statistic = Cohen's d
-    All compatible bands = only bands that have Study vs Control + comparison + PLV + Cohen's d matrices.
+    All compatible layers = only layers that have Study vs Control + comparison + PLV + Cohen's d matrices.
 
 Do not show a primary "All rows" option for ranking results. Use Top N plus pagination/export instead.
 
@@ -185,14 +185,14 @@ Result table columns:
 - Matrix kind
 - Measure
 - Statistic
-- Band
+- Layer
 - Score
 - N links used
 - Actions
 
 Example:
 
-    Rank | Matrix                         | Kind     | Source  | Measure | Statistic | Band  | Score | N links used
+    Rank | Matrix                         | Kind     | Source  | Measure | Statistic | Layer  | Score | N links used
     1    | Control / PLV / beta / mean     | original | Control | PLV     | mean      | beta  | 0.62  | 4005
     2    | Control / PLV / alpha / mean    | original | Control | PLV     | mean      | alpha | 0.57  | 4005
 
@@ -224,17 +224,17 @@ Important:
 Link Ranking must support both:
 
 A. Single Matrix Link Ranking
-B. Matrix Collection Link Ranking, also called Cross-Band Link Ranking when the collection spans several bands
+B. Matrix Collection Link Ranking, also called Cross-Layer Link Ranking when the collection spans several layers
 
 Do not interpret "multi-matrix link" as a new kind of link object. It is still the same ROI-ROI pair or group-group pair, but its score is computed from several matrices instead of from one matrix.
 
-This is important because the user should not be limited to ranking links inside one specific matrix. The user should also be able to rank links across all compatible bands matching a combination such as:
+This is important because the user should not be limited to ranking links inside one specific matrix. The user should also be able to rank links across all compatible layers matching a combination such as:
 
     Source = Control
     Matrix kind = original
     Measure = PLV
     Statistic = mean
-    Bands = alpha, beta, gamma
+    Layers = alpha, beta, gamma
 
 or:
 
@@ -242,7 +242,7 @@ or:
     Matrix kind = comparison
     Measure = PLV
     Statistic = Cohen's d
-    Bands = alpha, beta, gamma
+    Layers = alpha, beta, gamma
 
 
 2.2.1 Single Matrix Link Ranking
@@ -285,20 +285,20 @@ Example for ROI-ROI:
     2    | ROI 8  | ROI 31 | 0.81
 
 
-2.2.2 Matrix Collection / Cross-Band Link Ranking
+2.2.2 Matrix Collection / Cross-Layer Link Ranking
 
 This feature must distinguish two different modes. Do not treat them as the same behavior.
 
-The user can select several bands/matrices for the same metadata combination, but the ranking can be computed in two ways:
+The user can select several layers/matrices for the same metadata combination, but the ranking can be computed in two ways:
 
-A. Aggregated multi-band link ranking
+A. Aggregated multi-layer link ranking
    - One row per link.
-   - Values from the selected bands/matrices are combined into one score.
-   - Example score: mean value across selected bands.
+   - Values from the selected layers/matrices are combined into one score.
+   - Example score: mean value across selected layers.
 
-B. Expanded link-by-band ranking
-   - One row per link per band/matrix.
-   - No mean or aggregation across bands is computed.
+B. Expanded link-by-layer ranking
+   - One row per link per layer/matrix.
+   - No mean or aggregation across layers is computed.
    - The same link may appear multiple times, once for alpha, once for beta, once for gamma, etc.
 
 This distinction is mandatory in the UI and in the implementation.
@@ -306,12 +306,12 @@ This distinction is mandatory in the UI and in the implementation.
 Suggested UI selector:
 
     Link collection ranking mode:
-    [Aggregate selected bands into one score] [Rank each band separately]
+    [Aggregate selected layers into one score] [Rank each layer separately]
 
 Alternative wording if shorter labels are preferred:
 
-    Multi-band mode:
-    [Aggregated] [Expanded by band]
+    Multi-layer mode:
+    [Aggregated] [Expanded by layer]
 
 Required selectors for both modes:
 
@@ -319,26 +319,26 @@ Required selectors for both modes:
 - Matrix kind: original / aggregated / comparison
 - Measure
 - Statistic
-- Bands
+- Layers
 - Scope
 - Ranking metric
 - Top N
 
-The app should find all matrices matching the selected metadata combination and selected compatible bands.
+The app should find all matrices matching the selected metadata combination and selected compatible layers.
 
-Definition of selected compatible bands:
+Definition of selected compatible layers:
 
-- If the user selects specific bands, include only matrices matching those bands and the rest of the selected metadata.
-- If the user selects all compatible bands, include only bands for which matching matrices exist for the selected source, matrix kind, measure and statistic.
+- If the user selects specific layers, include only matrices matching those layers and the rest of the selected metadata.
+- If the user selects all compatible layers, include only layers for which matching matrices exist for the selected source, matrix kind, measure and statistic.
 
 
-2.2.2.A Aggregated multi-band link ranking
+2.2.2.A Aggregated multi-layer link ranking
 
-Aggregated mode ranks each link using a score computed from several matrices/bands.
+Aggregated mode ranks each link using a score computed from several matrices/layers.
 
 For each link:
 
-1. Collect its values across all matching matrices/bands.
+1. Collect its values across all matching matrices/layers.
 2. Compute a single ranking score.
 3. Return one ranking row for that link.
 
@@ -348,14 +348,14 @@ Example 1:
     Matrix kind = original
     Measure = PLV
     Statistic = mean
-    Bands = alpha, beta, gamma
+    Layers = alpha, beta, gamma
     Mode = Aggregated
-    Rank by = mean value across bands
+    Rank by = mean value across layers
     Top N = 25
 
 This answers:
 
-    Which ROI-ROI links are strongest on average across the selected bands?
+    Which ROI-ROI links are strongest on average across the selected layers?
 
 Example row:
 
@@ -372,32 +372,32 @@ Example 2:
     Matrix kind = comparison
     Measure = PLV
     Statistic = Cohen's d
-    Bands = alpha, beta, gamma
+    Layers = alpha, beta, gamma
     Mode = Aggregated
-    Rank by = number of bands with abs(value) > 0.8
+    Rank by = number of layers with abs(value) > 0.8
     Top N = 25
 
 This answers:
 
-    Which ROI-ROI links show strong effects consistently across selected bands?
+    Which ROI-ROI links show strong effects consistently across selected layers?
 
 Aggregated-mode metrics:
 
 Support at least:
 
-- Mean value across selected matrices/bands
-- Mean absolute value across selected matrices/bands
-- Max value across selected matrices/bands
-- Max absolute value across selected matrices/bands
-- Min value across selected matrices/bands
-- Number of selected matrices/bands above threshold
-- Percentage of selected matrices/bands above threshold
-- Number of selected matrices/bands with abs(value) above threshold
+- Mean value across selected matrices/layers
+- Mean absolute value across selected matrices/layers
+- Max value across selected matrices/layers
+- Max absolute value across selected matrices/layers
+- Min value across selected matrices/layers
+- Number of selected matrices/layers above threshold
+- Percentage of selected matrices/layers above threshold
+- Number of selected matrices/layers with abs(value) above threshold
 - Direction consistency
 
 Direction consistency:
 
-This is mainly useful for comparison matrices. For each link, inspect the signs of the values across selected matrices/bands:
+This is mainly useful for comparison matrices. For each link, inspect the signs of the values across selected matrices/layers:
 
 - all positive -> positive consistent
 - all negative -> negative consistent
@@ -409,32 +409,32 @@ Result table columns for aggregated mode:
 - ROI A and ROI B, or Group A and Group B for aggregated matrices
 - ROI/group metadata where available
 - Score
-- Best matrix / best band
-- N matrices/bands used
-- Per-band values or expandable details
+- Best matrix / best layer
+- N matrices/layers used
+- Per-layer values or expandable details
 - Actions
 
-If there are many selected bands/matrices, do not create too many visible columns by default. Show:
+If there are many selected layers/matrices, do not create too many visible columns by default. Show:
 
 - Score
-- Best band / best matrix
-- N matrices/bands used
+- Best layer / best matrix
+- N matrices/layers used
 - Small value profile or expandable details
 
 Then allow the row to expand and show the full list of values.
 
 
-2.2.2.B Expanded link-by-band ranking
+2.2.2.B Expanded link-by-layer ranking
 
-Expanded mode ranks link-band or link-matrix pairs. It does not aggregate values across bands.
+Expanded mode ranks link-layer or link-matrix pairs. It does not aggregate values across layers.
 
-For each selected matrix/band:
+For each selected matrix/layer:
 
 1. Iterate over its eligible links.
-2. Create one ranking row per link in that matrix/band.
+2. Create one ranking row per link in that matrix/layer.
 3. Rank all resulting rows by the selected metric.
 
-In this mode, the same ROI-ROI link may appear multiple times if it has high values in several bands.
+In this mode, the same ROI-ROI link may appear multiple times if it has high values in several layers.
 
 Example:
 
@@ -442,24 +442,24 @@ Example:
     Matrix kind = original
     Measure = PLV
     Statistic = mean
-    Bands = alpha, beta, gamma
-    Mode = Expanded by band
+    Layers = alpha, beta, gamma
+    Mode = Expanded by layer
     Rank by = highest value
     Top N = 25
 
 This answers:
 
-    Which specific link-band instances have the highest values?
+    Which specific link-layer instances have the highest values?
 
 Example result:
 
-    Rank | ROI A  | ROI B  | Band  | Value
+    Rank | ROI A  | ROI B  | Layer  | Value
     1    | ROI 12 | ROI 45 | beta  | 0.84
     2    | ROI 8  | ROI 31 | beta  | 0.81
     3    | ROI 12 | ROI 45 | gamma | 0.73
     4    | ROI 12 | ROI 45 | alpha | 0.61
 
-Here, ROI 12 -- ROI 45 appears three times because alpha, beta and gamma are treated as separate ranking rows. No mean across bands is computed.
+Here, ROI 12 -- ROI 45 appears three times because alpha, beta and gamma are treated as separate ranking rows. No mean across layers is computed.
 
 Expanded-mode metrics:
 
@@ -479,20 +479,20 @@ Result table columns for expanded mode:
 - Rank
 - ROI A and ROI B, or Group A and Group B for aggregated matrices
 - ROI/group metadata where available
-- Band
+- Layer
 - Matrix label
 - Value
 - Actions
 
 Optional display variant:
 
-- Allow grouping rows by band, producing one Top N list per band.
+- Allow grouping rows by layer, producing one Top N list per layer.
 - This should be a display option, not the default behavior.
 
 Default behavior for expanded mode:
 
-- Produce one global ranking across all selected bands/matrices.
-- Include the Band and Matrix columns so the user can see which band each row comes from.
+- Produce one global ranking across all selected layers/matrices.
+- Include the Layer and Matrix columns so the user can see which layer each row comes from.
 
 Link row highlighting behavior:
 
@@ -531,7 +531,7 @@ Selected Links integration:
 
 When adding a link from a matrix collection ranking to Selected Links, do not create a new special "multi-matrix link" type. Add the ROI pair or group pair as usual.
 
-If Selected Links already supports adding extra matrices as value columns, add the matrices from the ranking collection as additional columns so the user can see the per-band/per-matrix values that produced the ranking score. If this is not yet supported, add only the link and the ranking score.
+If Selected Links already supports adding extra matrices as value columns, add the matrices from the ranking collection as additional columns so the user can see the per-layer/per-matrix values that produced the ranking score. If this is not yet supported, add only the link and the ranking score.
 
 
 2.3 ROI Ranking
@@ -558,7 +558,7 @@ Required selectors:
 - Matrix kind: original / comparison for ROI Ranking; aggregated only if Group Ranking is implemented
 - Measure
 - Statistic
-- Bands
+- Layers
 - Scope
 - Ranking metric
 - Top N
@@ -824,7 +824,7 @@ Suggested types:
 
       measureId?: string;
       statisticId?: string;
-      bandIds?: string[];
+      layerIds?: string[];
 
       matrixId?: string;
       matrixIds?: string[];
@@ -858,7 +858,7 @@ Suggested types:
       matrixKind?: MatrixKindForRanking;
       measureId?: string;
       statisticId?: string;
-      bandId?: string;
+      layerId?: string;
       score: number;
       nLinksUsed: number;
     }
@@ -877,7 +877,7 @@ Suggested types:
       value?: number;
       valuesByMatrix?: Record<string, number>;
       bestMatrixId?: string;
-      bestBandId?: string;
+      bestLayerId?: string;
       nMatricesUsed?: number;
     }
 
@@ -944,7 +944,7 @@ For aggregated matrices, this is only straightforward if the aggregated matrix w
 
 For matrix collection rankings, resolve matrix collections from metadata:
 
-    source + matrix kind + measure + statistic + compatible bands
+    source + matrix kind + measure + statistic + compatible layers
 
 Supported matrix kinds:
 
@@ -1051,18 +1051,18 @@ For the initial implementation, the minimum required actions are:
 
 10.2 Matrix Ranking
 
-- User can rank matrices matching source + matrix kind + measure + statistic + compatible bands.
+- User can rank matrices matching source + matrix kind + measure + statistic + compatible layers.
 - Original matrices are supported.
 - Aggregated matrices are supported.
 - Comparison matrices are supported.
-- Result table shows rank, matrix label, matrix kind, band, score and N links used.
-- "All compatible bands" includes only bands with matrices available for the selected combination.
+- Result table shows rank, matrix label, matrix kind, layer, score and N links used.
+- "All compatible layers" includes only layers with matrices available for the selected combination.
 - Hovering/selecting a matrix row highlights existing visible panels using that matrix.
 
 10.3 Link Ranking
 
 - User can rank links within a single matrix.
-- User can rank links across a matrix collection, especially across several compatible bands for the same source + matrix kind + measure + statistic.
+- User can rank links across a matrix collection, especially across several compatible layers for the same source + matrix kind + measure + statistic.
 - Result table shows rank, endpoints, score and effective N.
 - For ROI-ROI matrices, endpoints are ROIs.
 - For aggregated matrices, endpoints are groups.
@@ -1110,13 +1110,13 @@ Explanation:
 - Aggregated matrices are matrices computed after grouping ROIs, for example network-network or region-region matrices.
 - Comparison matrices are matrices derived from comparisons, for example difference, Cohen's d, z-score, p-value or t-value matrices.
 
-12.2 Meaning of "all bands"
+12.2 Meaning of "all layers"
 
 Resolved.
 
-"All bands" means all compatible bands for the selected combination.
+"All layers" means all compatible layers for the selected combination.
 
-All bands should be available as an explicit option in the selector
+All layers should be available as an explicit option in the selector
 
 Example:
 
@@ -1125,7 +1125,7 @@ Example:
     Measure = PLV
     Statistic = mean
 
-If matrices exist only for alpha, beta and gamma, then "all compatible bands" means alpha, beta and gamma. It does not include theta just because theta exists in the catalog.
+If matrices exist only for alpha, beta and gamma, then "all compatible layers" means alpha, beta and gamma. It does not include theta just because theta exists in the catalog.
 
 12.3 Cross-matrix or multi-matrix link ranking
 
@@ -1144,9 +1144,9 @@ Then the ranking row may contain:
     alpha value = 0.61
     beta value = 0.84
     gamma value = 0.73
-    score = mean across bands = 0.73
+    score = mean across layers = 0.73
 
-So the ranked item is still one link. The difference is that its score is computed from several matrices/bands rather than from one matrix.
+So the ranked item is still one link. The difference is that its score is computed from several matrices/layers rather than from one matrix.
 
 Recommended default for Selected Links integration:
 

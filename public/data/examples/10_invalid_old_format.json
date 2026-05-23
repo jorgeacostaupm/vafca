@@ -2,7 +2,7 @@
   "matrices": [
     {
       "id": "old_matrix",
-      "bandId": "alpha",
+      "layerId": "alpha",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [

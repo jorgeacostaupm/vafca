@@ -15,7 +15,6 @@ import { computeArrayMatrixDataStats } from "@/utils/matrixDataStats";
 
 export type ResolveMatrixUiRangeOptions = {
   uiRangeMode?: UiRangeMode;
-  includeDiagonal?: boolean;
   target: "slider" | "colorLegend";
   observedDivergingMode?: "symmetric" | "raw";
 };
@@ -26,7 +25,7 @@ export type ResolvedUiRange = {
   center: number | null;
   scaleType: ScaleType;
   source: "logical_default" | "observed";
-  dataScope: "allValues" | "offDiagonal";
+  dataScope: "allValues";
 };
 
 type MatrixLike = MatrixRecord | ConnectivityMatrix;
@@ -154,14 +153,13 @@ export const resolveMatrixUiRange = (
 ): ResolvedUiRange => {
   const {
     uiRangeMode = "logical_default",
-    includeDiagonal = false,
     target,
     observedDivergingMode = "symmetric",
   } = options;
   const measureId = getMeasureId(matrix);
   const statId = getStatId(matrix);
   const stat = getStatConfig(catalogs, statId);
-  const dataScope = includeDiagonal ? "allValues" : "offDiagonal";
+  const dataScope = "allValues";
   const statsBucket = getDataStats(matrix)[dataScope];
   const observed = observedRange(statsBucket);
   const measureExpected = getMeasureExpectedRange(catalogs, measureId);

@@ -1,4 +1,3 @@
-import "@/App.css";
 import { useEffect } from "react";
 import { Layout, Tabs } from "antd";
 import NetworkVisualizationTab from "@/components/network/NetworkVisualizationTab";

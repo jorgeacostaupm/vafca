@@ -1,0 +1,154 @@
+.ant-typography,
+.ant-typography p {
+  color: var(--color-text);
+}
+
+.ant-typography.ant-typography-secondary {
+  color: var(--color-text-muted);
+}
+
+.ant-typography h1,
+.ant-typography h2,
+.ant-typography h3,
+.ant-typography h4,
+.ant-typography h5,
+.ant-typography h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.ant-card,
+.ant-card-bordered {
+  border-radius: var(--radius-md);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+  background: var(--color-surface);
+}
+
+.ant-card-head {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ant-btn {
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.ant-btn-default {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.ant-btn-default:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.ant-btn-primary {
+  box-shadow: none;
+}
+
+.ant-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ant-btn[disabled],
+.ant-btn[disabled]:hover {
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  background: #eef1f5;
+  box-shadow: none;
+}
+
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker {
+  border-radius: var(--radius-sm);
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
+
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-select-selector:hover,
+.ant-picker:hover {
+  border-color: var(--color-primary);
+}
+
+.ant-input:focus,
+.ant-input-affix-wrapper-focused,
+.ant-select-focused .ant-select-selector,
+.ant-picker-focused {
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.ant-input::placeholder {
+  color: #8c98a8;
+}
+
+.ant-input[disabled],
+.ant-select-disabled .ant-select-selector,
+.ant-picker-disabled {
+  background: #eef1f5;
+  color: var(--color-text-muted);
+}
+
+.ant-tabs-nav {
+  margin-bottom: var(--space-4);
+}
+
+.ant-tabs-tab {
+  font-weight: 600;
+}
+
+.ant-tabs-ink-bar {
+  height: 3px;
+  border-radius: 999px;
+}
+
+.ant-divider {
+  border-color: var(--color-border);
+}
+
+.ant-list-item {
+  padding-inline: var(--space-3);
+}
+
+.ant-table {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.ant-table-thead > tr > th {
+  background: #eef2f8;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.ant-modal-content {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.ant-modal-header {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ant-tag {
+  border-radius: var(--radius-pill);
+  padding-inline: var(--space-2);
+}
+
+.ant-badge .ant-badge-count,
+.ant-badge .ant-badge-dot {
+  box-shadow: 0 0 0 2px var(--color-surface);
+}
+
+.ant-alert {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}

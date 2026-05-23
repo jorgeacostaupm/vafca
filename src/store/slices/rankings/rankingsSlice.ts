@@ -3,11 +3,16 @@ import type {
   RankingHighlightItem,
   RankingQuery,
 } from "@/types/rankings";
-import { initialRankingsState } from "@/store/slices/rankings/rankingsTypes";
+import { DEFAULT_RANKING_PANEL_LAYOUT } from "@/config/ui";
+import {
+  createDefaultRankingQueryForTarget,
+  initialRankingsState,
+} from "@/store/slices/rankings/rankingsTypes";
 import {
   recomputeRankingsForActiveFilters,
   runRankingQuery,
 } from "@/store/slices/rankings/rankingsThunks";
+import type { RankingTarget } from "@/types/rankings";
 
 const rankingsSlice = createSlice({
   name: "rankings",
@@ -20,10 +25,20 @@ const rankingsSlice = createSlice({
       state.activeTab = action.payload;
     },
     patchRankingQuery(state, action: PayloadAction<Partial<RankingQuery>>) {
-      state.currentQuery = {
+      const nextQuery = {
         ...state.currentQuery,
         ...action.payload,
       };
+      state.currentQuery = nextQuery;
+      state.queriesByTarget[nextQuery.target] = nextQuery;
+    },
+    setRankingTarget(state, action: PayloadAction<RankingTarget>) {
+      const target = action.payload;
+      state.queriesByTarget[state.currentQuery.target] = state.currentQuery;
+      state.currentQuery =
+        state.queriesByTarget[target] ??
+        createDefaultRankingQueryForTarget(target);
+      state.queriesByTarget[target] = state.currentQuery;
     },
     setHoveredRankingItem(
       state,
@@ -64,8 +79,17 @@ const rankingsSlice = createSlice({
         state.resultsOrder.unshift(action.payload.id);
         state.resultsById[action.payload.id] = action.payload;
         state.layout = [
-          { i: action.payload.id, x: 0, y: 0, w: 16, h: 6 },
-          ...state.layout.map((entry) => ({ ...entry, y: entry.y + 6 })),
+          {
+            i: action.payload.id,
+            x: DEFAULT_RANKING_PANEL_LAYOUT.initialX,
+            y: DEFAULT_RANKING_PANEL_LAYOUT.initialY,
+            w: DEFAULT_RANKING_PANEL_LAYOUT.width,
+            h: DEFAULT_RANKING_PANEL_LAYOUT.height,
+          },
+          ...state.layout.map((entry) => ({
+            ...entry,
+            y: entry.y + DEFAULT_RANKING_PANEL_LAYOUT.height,
+          })),
         ];
       })
       .addCase(runRankingQuery.rejected, (state, action) => {
@@ -86,6 +110,7 @@ const rankingsSlice = createSlice({
 export const {
   setRankingActiveTab,
   patchRankingQuery,
+  setRankingTarget,
   setHoveredRankingItem,
   setSelectedRankingItem,
   setRankingLayout,

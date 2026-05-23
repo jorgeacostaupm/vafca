@@ -16,7 +16,6 @@ import RankingResultsTable from "@/components/rankings/RankingResultsTable";
 import { formatRankingPanelTitle } from "@/components/rankings/rankingOptions";
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { buildRuntimeMaskLinkSet } from "@/components/network/networkFormatting";
-import { getMatrixCompoundId } from "@/utils/rankings/rankingMatrixMetadata";
 import type { NetworkViewDescriptor } from "@/types/networkVisualization";
 import type { PanelItem } from "@/types/layout";
 
@@ -27,14 +26,8 @@ function NetworkVisualizationSelector() {
   const uiRangeMode = useAppSelector(
     (state) => state.visualizationUi.uiRangeMode,
   );
-  const includeDiagonalInRanges = useAppSelector(
-    (state) => state.visualizationUi.includeDiagonalInRanges,
-  );
   const networkState = useAppSelector((state) => state.networkVisualization);
   const rankingState = useAppSelector((state) => state.rankings);
-  const rankingHighlightItem = useAppSelector(
-    (state) => state.rankings.hoveredItem ?? state.rankings.selectedItem,
-  );
 
   const views = useMemo(
     () =>
@@ -70,7 +63,6 @@ function NetworkVisualizationSelector() {
     matrixHierarchyCategoryOrder: atlas.matrixHierarchyCategoryOrder,
     dataset,
     uiRangeMode,
-    includeDiagonalInRanges,
   });
 
   const runtimeAllowedLinkIds = useMemo(
@@ -98,16 +90,8 @@ function NetworkVisualizationSelector() {
   );
 
   const networkPanelItems = useMemo(
-    () => {
-      const highlightedMatrix =
-        rankingHighlightItem?.type === "matrix" && dataset?.connectivity
-          ? dataset.connectivity.matrixIndex[rankingHighlightItem.matrixId]
-          : undefined;
-      const highlightedCompoundId = highlightedMatrix
-        ? getMatrixCompoundId(highlightedMatrix)
-        : null;
-
-      return buildNetworkPanelItems({
+    () =>
+      buildNetworkPanelItems({
         views,
         matrixByCompoundId,
         loadingCompoundIds,
@@ -118,17 +102,7 @@ function NetworkVisualizationSelector() {
         linkFilterContributors,
         runtimeAllowedLinkIds,
         runtimeAggregatedAllowedLinkIds,
-      }).map((item) =>
-        highlightedCompoundId && item.id && views.find((view) => view.id === item.id)?.compoundId === highlightedCompoundId
-          ? {
-              ...item,
-              className: [item.className, "network-panel-card--ranking-highlight"]
-                .filter(Boolean)
-                .join(" "),
-            }
-          : item,
-      );
-    },
+      }),
     [
       computedByViewId,
       dataset,
@@ -140,7 +114,6 @@ function NetworkVisualizationSelector() {
       runtimeAggregatedAllowedLinkIds,
       views,
       visibilityByViewId,
-      rankingHighlightItem,
     ],
   );
 

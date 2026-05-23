@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import {
   DEFAULT_NETWORK_NEXT_VIEW_SEQ,
   DEFAULT_NETWORK_PANEL_LAYOUT,
+  DEFAULT_PANEL_GRID_CONFIG,
 } from '@/config/ui'
 import { areZoomSelectionsEqual } from '@/utils/matrixViewUtils'
 import type {
@@ -156,13 +157,30 @@ const networkVisualizationSlice = createSlice({
       state,
       action: PayloadAction<Partial<NetworkSelectorControlsState>>,
     ) {
+      const previousViewType = state.controls.viewType
+      const nextViewType = action.payload.viewType ?? previousViewType
+      state.controlsByViewType[previousViewType] = { ...state.controls }
+
+      const baseControls =
+        nextViewType !== previousViewType
+          ? (state.controlsByViewType[nextViewType] ?? {
+              ...initialNetworkControls,
+              viewType: nextViewType,
+            })
+          : state.controls
+
       state.controls = {
-        ...state.controls,
+        ...baseControls,
         ...action.payload,
+        viewType: nextViewType,
       }
+      state.controlsByViewType[nextViewType] = { ...state.controls }
     },
     resetNetworkControls(state) {
       state.controls = { ...initialNetworkControls }
+      state.controlsByViewType = {
+        [initialNetworkControls.viewType]: { ...initialNetworkControls },
+      }
     },
     addNetworkView(
       state,
@@ -232,7 +250,10 @@ const networkVisualizationSlice = createSlice({
       if (target.type === nextType) return
 
       const currentType = target.type
-      if (currentType === 'matrix') {
+      const currentIsMatrix = currentType === 'matrix'
+      const nextIsMatrix = nextType === 'matrix'
+
+      if (currentIsMatrix && !nextIsMatrix) {
         const source = state.matrixSettingsByViewId[viewId]
         const shared = getSharedSettings(source)
         delete state.matrixSettingsByViewId[viewId]
@@ -240,7 +261,7 @@ const networkVisualizationSlice = createSlice({
           ...state.nodeLinkSettingsByViewId[viewId],
           ...shared,
         }
-      } else {
+      } else if (!currentIsMatrix && nextIsMatrix) {
         const source = state.nodeLinkSettingsByViewId[viewId]
         const shared = getSharedSettings(source)
         delete state.nodeLinkSettingsByViewId[viewId]
@@ -430,19 +451,27 @@ const networkVisualizationSlice = createSlice({
         viewId: string
         defaultW?: number
         defaultH?: number
-        columns?: number
+        initialX?: number
+        initialY?: number
         yOffset?: number
       }>,
     ) {
       const { viewId } = action.payload
       const defaultW = action.payload.defaultW ?? DEFAULT_NETWORK_PANEL_LAYOUT.width
       const defaultH = action.payload.defaultH ?? DEFAULT_NETWORK_PANEL_LAYOUT.height
-      const columns = action.payload.columns ?? DEFAULT_NETWORK_PANEL_LAYOUT.columns
+      const initialX =
+        action.payload.initialX ?? DEFAULT_NETWORK_PANEL_LAYOUT.initialX
+      const initialY =
+        action.payload.initialY ?? DEFAULT_NETWORK_PANEL_LAYOUT.initialY
       const yOffset = action.payload.yOffset ?? defaultH
-      const x = (state.layout.length % columns) * defaultW
+      const panelsPerRow = Math.max(
+        1,
+        Math.floor(DEFAULT_PANEL_GRID_CONFIG.columns / defaultW),
+      )
+      const x = initialX + (state.layout.length % panelsPerRow) * defaultW
 
       state.layout = [
-        { i: viewId, x, y: 0, w: defaultW, h: defaultH },
+        { i: viewId, x, y: initialY, w: defaultW, h: defaultH },
         ...state.layout.map((entry) => ({
           ...entry,
           y: entry.y + yOffset,

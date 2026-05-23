@@ -29,30 +29,26 @@ const addValue = (bucket: MatrixDataStatsBucket, value: number | null) => {
 export const computeMatrixDataStats = (matrix: MatrixRecord): MatrixDataStats => {
   const [rows, cols] = matrix.geometry.shape;
   const allValues = emptyBucket();
-  const offDiagonal = emptyBucket();
 
   for (let i = 0; i < rows; i += 1) {
     for (let j = 0; j < cols; j += 1) {
       const value = getMatrixValue(matrix, i, j);
       addValue(allValues, value);
-      if (i !== j) addValue(offDiagonal, value);
     }
   }
 
-  return { allValues, offDiagonal };
+  return { allValues };
 };
 
 export const computeArrayMatrixDataStats = (data: number[][]): MatrixDataStats => {
   const allValues = emptyBucket();
-  const offDiagonal = emptyBucket();
 
-  data.forEach((row, i) => {
-    row.forEach((value, j) => {
+  data.forEach((row) => {
+    row.forEach((value) => {
       const normalized = Number.isFinite(value) ? value : null;
       addValue(allValues, normalized);
-      if (i !== j) addValue(offDiagonal, normalized);
     });
   });
 
-  return { allValues, offDiagonal };
+  return { allValues };
 };

@@ -5,11 +5,14 @@ import {
   FilterOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { Button, Space, Tooltip, Typography } from "antd";
+import { Button, Space, Tooltip } from "antd";
 import DerivedMatrixCalculationModal from "@/components/calculations/DerivedMatrixCalculationModal";
 import DataManagementModal from "@/components/management/DataManagementModal";
 import NetworkEdgeFilterModal from "@/components/network/edge-filter/NetworkEdgeFilterModal";
-import NetworkVisualizationSettingsModal from "@/components/network/settings/NetworkVisualizationSettingsModal";
+import NetworkVisualizationSettingsModal, {
+  type NetworkVisualizationSettingsTabKey,
+} from "@/components/network/settings/NetworkVisualizationSettingsModal";
+import { DEFAULT_NETWORK_SETTINGS_TAB } from "@/config/ui";
 import { getAvailableMatrixCalculations } from "@/connectivity/calculations";
 import { useAppSelector } from "@/store/hooks";
 
@@ -30,21 +33,35 @@ function DataAction() {
   );
 }
 
-function SettingsAction() {
-  const [open, setOpen] = useState(false);
+type SettingsActionProps = {
+  open: boolean;
+  activeTab: NetworkVisualizationSettingsTabKey;
+  onOpen: () => void;
+  onClose: () => void;
+  onTabChange: (tab: NetworkVisualizationSettingsTabKey) => void;
+};
 
+function SettingsAction({
+  open,
+  activeTab,
+  onOpen,
+  onClose,
+  onTabChange,
+}: SettingsActionProps) {
   return (
     <>
       <Tooltip title="Visualization settings">
         <Button
           aria-label="Visualization settings"
           icon={<SettingOutlined />}
-          onClick={() => setOpen(true)}
+          onClick={onOpen}
         />
       </Tooltip>
       <NetworkVisualizationSettingsModal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={onClose}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
       />
     </>
   );
@@ -67,7 +84,11 @@ function FilterAction() {
   );
 }
 
-function ComputeAction() {
+type ComputeActionProps = {
+  onOpenGroupingSettings: () => void;
+};
+
+function ComputeAction({ onOpenGroupingSettings }: ComputeActionProps) {
   const connectivity = useAppSelector(
     (state) => state.dataset.data?.connectivity,
   );
@@ -80,7 +101,7 @@ function ComputeAction() {
       <Tooltip
         title={
           calculationAvailable
-            ? undefined
+            ? "Compute derived networks from the loaded connectivity data"
             : "No derived matrix calculations are available with the currently loaded data."
         }
       >
@@ -94,27 +115,40 @@ function ComputeAction() {
       <DerivedMatrixCalculationModal
         open={open}
         onClose={() => setOpen(false)}
+        onOpenGroupingSettings={() => {
+          setOpen(false);
+          onOpenGroupingSettings();
+        }}
       />
     </>
   );
 }
 
 export default function NetworkSelectorActions() {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] =
+    useState<NetworkVisualizationSettingsTabKey>(DEFAULT_NETWORK_SETTINGS_TAB);
+
+  const openSettings = (
+    tab: NetworkVisualizationSettingsTabKey = DEFAULT_NETWORK_SETTINGS_TAB,
+  ) => {
+    setSettingsTab(tab);
+    setSettingsOpen(true);
+  };
+
   return (
     <div className="network-action-toolbar" aria-label="Network tools">
       <Space size={6}>
-        <Typography.Text type="secondary" className="network-action-toolbar__label">
-          Data
-        </Typography.Text>
         <DataAction />
-        <ComputeAction />
-      </Space>
-      <Space size={6}>
-        <Typography.Text type="secondary" className="network-action-toolbar__label">
-          Visualization
-        </Typography.Text>
+        <ComputeAction onOpenGroupingSettings={() => openSettings("grouping")} />
         <FilterAction />
-        <SettingsAction />
+        <SettingsAction
+          open={settingsOpen}
+          activeTab={settingsTab}
+          onOpen={() => openSettings(DEFAULT_NETWORK_SETTINGS_TAB)}
+          onClose={() => setSettingsOpen(false)}
+          onTabChange={setSettingsTab}
+        />
       </Space>
     </div>
   );

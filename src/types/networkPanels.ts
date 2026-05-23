@@ -24,19 +24,12 @@ export type NetworkPanelCommonProps = {
 
 export type BuildPanelItem = (props: NetworkPanelCommonProps) => PanelItem;
 
-export type ViewTypeSelectProps = {
-  value: "matrix" | "circular" | "classic";
-  onChange: (value: "matrix" | "circular" | "classic") => void;
-};
-
 export type StatusContentBuilder = (args: {
   viewId: string;
   status: "formatting" | "ready" | "error";
   error?: string;
   onRetry: () => void;
 }) => ReactNode;
-
-export type ResolveTypeTitle = (type: "matrix" | "circular" | "classic") => string;
 
 export type NetworkPanelValueFilters = {
   measure: null;

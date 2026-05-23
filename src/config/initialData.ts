@@ -27,9 +27,9 @@ export const testDatasetFiles = {
     label: "Two populations",
     path: "data/examples/04_two_populations.json",
   },
-  betaBandStudy: {
-    label: "Beta band study",
-    path: "data/examples/05_different_band_warning.json",
+  betaLayerStudy: {
+    label: "Beta layer study",
+    path: "data/examples/05_different_layer_warning.json",
   },
   ciPlvStudy: {
     label: "ciPLV study",

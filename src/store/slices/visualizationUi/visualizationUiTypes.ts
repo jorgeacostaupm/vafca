@@ -1,7 +1,6 @@
 import type { VisualizationUiState } from '@/types/visualizationUi'
 import {
   DEFAULT_ATLAS_PANEL_VIEWER_HEIGHT,
-  DEFAULT_INCLUDE_DIAGONAL_IN_RANGES,
   DEFAULT_UI_RANGE_MODE,
 } from '@/config/ui'
 
@@ -23,6 +22,5 @@ export const initialVisualizationUiState: VisualizationUiSliceState = {
   selectedLinksDownloadStatus: 'idle',
   selectedLinksDownloadError: null,
   uiRangeMode: DEFAULT_UI_RANGE_MODE,
-  includeDiagonalInRanges: DEFAULT_INCLUDE_DIAGONAL_IN_RANGES,
   atlasPanel: initialAtlasPanelState,
 }

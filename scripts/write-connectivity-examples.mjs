@@ -74,10 +74,10 @@ const createAal90Atlas = () => ({
     metadata: {},
   })),
 });
-const createCatalogs = ({ bands = ["alpha"], measures = ["plv"], stats = ["mean"], populations = { p_control: 10 }, subjects = {} } = {}) => {
-  const bandEntries = {
-    alpha: { id: "alpha", label: "Alpha", rangeHz: [8, 12], description: "Alpha band" },
-    beta: { id: "beta", label: "Beta", rangeHz: [13, 30], description: "Beta band" },
+const createCatalogs = ({ layers = ["alpha"], measures = ["plv"], stats = ["mean"], populations = { p_control: 10 }, subjects = {} } = {}) => {
+  const layerEntries = {
+    alpha: { id: "alpha", label: "Alpha", description: "Alpha layer (8-12 Hz)" },
+    beta: { id: "beta", label: "Beta", description: "Beta layer (13-30 Hz)" },
   };
   const measureEntries = {
     plv: { id: "plv", label: "PLV", description: "Phase Locking Value", expectedRange, symmetric: true, directed: false },
@@ -95,7 +95,7 @@ const createCatalogs = ({ bands = ["alpha"], measures = ["plv"], stats = ["mean"
     q_value: { id: "q_value", label: "q-value", category: "corrected_inferential", scaleType: "sequential", center: null, rangeMode: "fixed", expectedRange },
   };
   return {
-    bands: Object.fromEntries(bands.map((id) => [id, bandEntries[id]])),
+    layers: Object.fromEntries(layers.map((id) => [id, layerEntries[id]])),
     measures: Object.fromEntries(measures.map((id) => [id, measureEntries[id]])),
     stats: Object.fromEntries(stats.map((id) => [id, statEntries[id] ?? {
       id,
@@ -110,11 +110,11 @@ const createCatalogs = ({ bands = ["alpha"], measures = ["plv"], stats = ["mean"
     roiGroupSchemes: {},
   };
 };
-const matrix = ({ id, kind, bandId, measureId, statId, source, data, layout = "full" }) => ({
+const matrix = ({ id, kind, layerId, measureId, statId, source, data, layout = "full" }) => ({
   id,
   kind,
   label: id,
-  context: { bandId, measureId, conditionId: null, sessionId: null, taskId: null },
+  context: { layerId, measureId, conditionId: null, sessionId: null, taskId: null },
   source,
   stat: { id: statId, method: statId === "mean" ? "arithmetic" : null, parameters: {} },
   geometry: { atlasId: "aal-90", shape: [90, 90], roiOrderRef: "atlas.rois", roiOrder: null },
@@ -138,24 +138,24 @@ const studyStd = createStdMatrix(90, 202);
 const subject = createSubjectMatrixFromMean(controlMean, 301);
 const population = (id, n) => ({ level: "population", populationIds: [id], n });
 const b01 = bundle("bundle_control_population", "Control population demo", createCatalogs({ stats: ["mean", "std"], populations: { p_control: 10 } }), [
-  matrix({ id: "m_p_control_alpha_plv_mean", kind: "aggregate", bandId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), data: controlMean }),
-  matrix({ id: "m_p_control_alpha_plv_std", kind: "aggregate", bandId: "alpha", measureId: "plv", statId: "std", source: population("p_control", 10), data: controlStd }),
+  matrix({ id: "m_p_control_alpha_plv_mean", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), data: controlMean }),
+  matrix({ id: "m_p_control_alpha_plv_std", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "std", source: population("p_control", 10), data: controlStd }),
 ]);
 const swappedAtlas = createAal90Atlas();
 [swappedAtlas.rois[0].index, swappedAtlas.rois[1].index] = [swappedAtlas.rois[1].index, swappedAtlas.rois[0].index];
 const files = {
   "01_one_population_control.json": b01,
   "02_one_subject_study.json": bundle("bundle_one_subject_study", "One subject study demo", createCatalogs({ stats: ["value"], populations: { p_study: 10 }, subjects: { s001: ["p_study"] } }), [
-    matrix({ id: "m_s001_alpha_plv_value", kind: "subject", bandId: "alpha", measureId: "plv", statId: "value", source: { level: "subject", subjectId: "s001", populationIds: ["p_study"] }, data: subject }),
+    matrix({ id: "m_s001_alpha_plv_value", kind: "subject", layerId: "alpha", measureId: "plv", statId: "value", source: { level: "subject", subjectId: "s001", populationIds: ["p_study"] }, data: subject }),
   ]),
-  "03_population_and_subject.json": bundle("bundle_population_and_subject", "Population and subject demo", createCatalogs({ stats: ["value", "mean", "std"], populations: { p_control: 10 }, subjects: { s001: ["p_control"] } }), [...b01.matrices, matrix({ id: "m_s001_alpha_plv_value", kind: "subject", bandId: "alpha", measureId: "plv", statId: "value", source: { level: "subject", subjectId: "s001", populationIds: ["p_control"] }, data: subject })]),
-  "04_two_populations.json": bundle("bundle_two_populations", "Two populations demo", createCatalogs({ stats: ["mean", "std"], populations: { p_control: 10, p_study: 20 } }), [...b01.matrices, matrix({ id: "m_p_study_alpha_plv_mean", kind: "aggregate", bandId: "alpha", measureId: "plv", statId: "mean", source: population("p_study", 20), data: studyMean }), matrix({ id: "m_p_study_alpha_plv_std", kind: "aggregate", bandId: "alpha", measureId: "plv", statId: "std", source: population("p_study", 20), data: studyStd })]),
-  "05_different_band_warning.json": bundle("bundle_beta_study", "Beta band study demo", createCatalogs({ bands: ["beta"], stats: ["mean", "std"], populations: { p_study: 10 } }), [matrix({ id: "m_p_study_beta_plv_mean", kind: "aggregate", bandId: "beta", measureId: "plv", statId: "mean", source: population("p_study", 10), data: studyMean }), matrix({ id: "m_p_study_beta_plv_std", kind: "aggregate", bandId: "beta", measureId: "plv", statId: "std", source: population("p_study", 10), data: studyStd })]),
-  "06_different_measure_warning.json": bundle("bundle_ciplv_study", "ciPLV study demo", createCatalogs({ measures: ["ciplv"], stats: ["mean", "std"], populations: { p_study: 10 } }), [matrix({ id: "m_p_study_alpha_ciplv_mean", kind: "aggregate", bandId: "alpha", measureId: "ciplv", statId: "mean", source: population("p_study", 10), data: studyMean }), matrix({ id: "m_p_study_alpha_ciplv_std", kind: "aggregate", bandId: "alpha", measureId: "ciplv", statId: "std", source: population("p_study", 10), data: studyStd })]),
+  "03_population_and_subject.json": bundle("bundle_population_and_subject", "Population and subject demo", createCatalogs({ stats: ["value", "mean", "std"], populations: { p_control: 10 }, subjects: { s001: ["p_control"] } }), [...b01.matrices, matrix({ id: "m_s001_alpha_plv_value", kind: "subject", layerId: "alpha", measureId: "plv", statId: "value", source: { level: "subject", subjectId: "s001", populationIds: ["p_control"] }, data: subject })]),
+  "04_two_populations.json": bundle("bundle_two_populations", "Two populations demo", createCatalogs({ stats: ["mean", "std"], populations: { p_control: 10, p_study: 20 } }), [...b01.matrices, matrix({ id: "m_p_study_alpha_plv_mean", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_study", 20), data: studyMean }), matrix({ id: "m_p_study_alpha_plv_std", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "std", source: population("p_study", 20), data: studyStd })]),
+  "05_different_layer_warning.json": bundle("bundle_beta_study", "Beta layer study demo", createCatalogs({ layers: ["beta"], stats: ["mean", "std"], populations: { p_study: 10 } }), [matrix({ id: "m_p_study_beta_plv_mean", kind: "aggregate", layerId: "beta", measureId: "plv", statId: "mean", source: population("p_study", 10), data: studyMean }), matrix({ id: "m_p_study_beta_plv_std", kind: "aggregate", layerId: "beta", measureId: "plv", statId: "std", source: population("p_study", 10), data: studyStd })]),
+  "06_different_measure_warning.json": bundle("bundle_ciplv_study", "ciPLV study demo", createCatalogs({ measures: ["ciplv"], stats: ["mean", "std"], populations: { p_study: 10 } }), [matrix({ id: "m_p_study_alpha_ciplv_mean", kind: "aggregate", layerId: "alpha", measureId: "ciplv", statId: "mean", source: population("p_study", 10), data: studyMean }), matrix({ id: "m_p_study_alpha_ciplv_std", kind: "aggregate", layerId: "alpha", measureId: "ciplv", statId: "std", source: population("p_study", 10), data: studyStd })]),
   "07_incompatible_roi_order_error.json": bundle("bundle_swapped_roi_order", "Swapped ROI order demo", b01.catalogs, b01.matrices, swappedAtlas),
-  "08_upper_triangular_layout.json": bundle("bundle_upper_triangular", "Upper triangular demo", createCatalogs({ stats: ["mean"], populations: { p_control: 10 } }), [matrix({ id: "m_p_control_alpha_plv_mean_upper", kind: "aggregate", bandId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), layout: "upper_triangular", data: toUpperTriangularData(controlMean) })]),
-  "09_lower_triangular_layout.json": bundle("bundle_lower_triangular", "Lower triangular demo", createCatalogs({ stats: ["mean"], populations: { p_control: 10 } }), [matrix({ id: "m_p_control_alpha_plv_mean_lower", kind: "aggregate", bandId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), layout: "lower_triangular", data: toLowerTriangularData(controlMean) })]),
-  "10_invalid_old_format.json": { matrices: [{ id: "old_matrix", bandId: "alpha", measureId: "plv", statId: "mean", populationIds: ["p_control"], size: 90, matrix: controlMean }] },
+  "08_upper_triangular_layout.json": bundle("bundle_upper_triangular", "Upper triangular demo", createCatalogs({ stats: ["mean"], populations: { p_control: 10 } }), [matrix({ id: "m_p_control_alpha_plv_mean_upper", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), layout: "upper_triangular", data: toUpperTriangularData(controlMean) })]),
+  "09_lower_triangular_layout.json": bundle("bundle_lower_triangular", "Lower triangular demo", createCatalogs({ stats: ["mean"], populations: { p_control: 10 } }), [matrix({ id: "m_p_control_alpha_plv_mean_lower", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), layout: "lower_triangular", data: toLowerTriangularData(controlMean) })]),
+  "10_invalid_old_format.json": { matrices: [{ id: "old_matrix", layerId: "alpha", measureId: "plv", statId: "mean", populationIds: ["p_control"], size: 90, matrix: controlMean }] },
   "11_invalid_shape.json": { ...b01, bundle: { ...b01.bundle, id: "bundle_invalid_shape" }, matrices: [{ ...b01.matrices[0], geometry: { ...b01.matrices[0].geometry, shape: [89, 89] } }] },
   "12_invalid_data_length.json": { ...b01, bundle: { ...b01.bundle, id: "bundle_invalid_data_length" }, matrices: [{ ...b01.matrices[0], data: controlMean.slice(0, 89) }] },
   "13_duplicate_matrix_id.json": { ...b01, bundle: { ...b01.bundle, id: "bundle_duplicate_matrix_id" }, matrices: [b01.matrices[0], { ...b01.matrices[1], id: b01.matrices[0].id }] },

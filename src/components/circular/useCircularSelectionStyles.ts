@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type * as d3 from "d3";
 import type { MutableRefObject } from "react";
 import { applyCircularHoverSelectionStyles } from "@/components/circular/circularVisualEffects";
+import { CIRCULAR_NODE_RADIUS } from "@/config/ui";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 
 type UseCircularSelectionStylesArgs = {
@@ -53,7 +54,7 @@ export const useCircularSelectionStyles = ({
       labelSelection,
       widthScale,
       zoomLabelSet: zoomLabelSetRef.current,
-      nodeRadius: nodeRadiusRef.current ?? 3,
+      nodeRadius: nodeRadiusRef.current ?? CIRCULAR_NODE_RADIUS,
       hoveredCell,
       hoveredNodeId,
       selectedLinkIds,

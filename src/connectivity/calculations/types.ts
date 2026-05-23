@@ -80,7 +80,7 @@ export type MatrixCalculationBatchRequest = {
   rightPopulationId?: string;
   referencePopulationId?: string;
   subjectIds?: string[];
-  bandIds: string[];
+  layerIds: string[];
   measureIds: string[];
   conditionId?: string | null;
   sessionId?: string | null;
@@ -110,7 +110,7 @@ export type ResolvedCalculationInputs = {
 
 export type MatrixCalculationSkipped = {
   operation: MatrixCalculationOperation;
-  bandId: string;
+  layerId: string;
   measureId: string;
   subjectId?: string;
   leftPopulationId?: string;
@@ -122,7 +122,7 @@ export type MatrixCalculationSkipped = {
 
 export type MatrixCalculationPreviewRow = {
   operation: MatrixCalculationOperation;
-  bandId: string;
+  layerId: string;
   measureId: string;
   outputStatId: string;
   outputLabel: string;

@@ -259,7 +259,6 @@ El modal Visualization Settings permite configurar opciones globales.
 Incluye:
 
 - modo de rango para escalas y filtros
-- inclusion o exclusion de diagonal en rangos
 - zoom coordinado
 - ocultacion de nodos aislados
 - campos usados para colorear nodos y ROIs

@@ -1,6 +1,7 @@
 import type * as d3 from "d3";
 import { escapeHtml } from "@/utils/html";
 import { buildRoiTooltipLabel, SELECTED_STROKE } from "@/components/nodelink/nodelinkShared";
+import { CIRCULAR_NODE_HOVER_RADIUS_OFFSET } from "@/config/ui";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 
 type CircularLinkSelection = d3.Selection<SVGPathElement, CircularLink, SVGGElement, unknown>;
@@ -40,16 +41,26 @@ export const applyCircularHoverSelectionStyles = (args: {
       ? (link.rowId === hovered.rowId && link.colId === hovered.colId) ||
         (link.rowId === hovered.colId && link.colId === hovered.rowId)
       : false;
+  const isHoveredNodeLink = (link: CircularLink) =>
+    hoveredNode ? link.rowId === hoveredNode || link.colId === hoveredNode : false;
   const isSelectedLink = (link: CircularLink) =>
     selectedLinkIds.has(`${link.rowId}::${link.colId}`) ||
     selectedLinkIds.has(`${link.colId}::${link.rowId}`);
 
   linkSelection
     .attr("stroke-opacity", (link: CircularLink) => {
-      if (isSelectedLink(link)) return hovered && isHoveredLink(link) ? 1 : 0.9;
+      if (isSelectedLink(link)) {
+        if (hovered) return isHoveredLink(link) ? 1 : 0.25;
+        if (hoveredNode) return isHoveredNodeLink(link) ? 1 : 0.25;
+        return 0.9;
+      }
       if (hovered) {
         if (isHoveredLink(link)) return 1;
         return 0.2;
+      }
+      if (hoveredNode) {
+        if (isHoveredNodeLink(link)) return 1;
+        return 0.12;
       }
       return 0.6;
     })
@@ -57,6 +68,7 @@ export const applyCircularHoverSelectionStyles = (args: {
       const base = widthScale(Math.abs(link.value));
       if (isSelectedLink(link)) return Math.max(base, SELECTED_STROKE);
       if (hovered && isHoveredLink(link)) return Math.max(base + 0.8, SELECTED_STROKE);
+      if (hoveredNode && isHoveredNodeLink(link)) return Math.max(base + 0.8, SELECTED_STROKE);
       return base;
     });
 
@@ -64,7 +76,7 @@ export const applyCircularHoverSelectionStyles = (args: {
     .attr("r", (node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);
       const isHover = hoveredNode === labelId;
-      return nodeRadius + (isHover ? 2 : 0);
+      return nodeRadius + (isHover ? CIRCULAR_NODE_HOVER_RADIUS_OFFSET : 0);
     })
     .attr("fill", (node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);

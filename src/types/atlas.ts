@@ -1,3 +1,5 @@
+import type { D3GroupingPaletteKey } from "@/config/groupingPalettes";
+
 export type AtlasMeshMode = "with_mesh_points" | "without_mesh_points";
 
 export type AtlasTagValue = string | number | boolean | null;
@@ -36,18 +38,6 @@ export type AtlasSource = {
   fileName: string;
 };
 
-export type D3CategoricalPaletteKey =
-  | "category10"
-  | "tableau10"
-  | "accent"
-  | "dark2"
-  | "paired"
-  | "pastel1"
-  | "pastel2"
-  | "set1"
-  | "set2"
-  | "set3";
-
 export type AtlasLabel = {
   id: string;
   label: string;
@@ -60,7 +50,7 @@ export type AtlasState = {
   labelsById: Record<string, AtlasLabel>;
   initialized: boolean;
   colorFields: string[];
-  colorPalette: D3CategoricalPaletteKey;
+  colorPalette: D3GroupingPaletteKey;
   circularHierarchyFields: string[];
   circularHierarchyCategoryOrder: Record<string, string[]>;
   matrixHierarchyFields: string[];

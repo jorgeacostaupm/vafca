@@ -47,11 +47,9 @@ export const createEmptyMatrixFilterGroup = (
 });
 
 export const createEmptyMatrixFilterDefinition = (
-  includeDiagonal = false,
   uiRangeMode: MatrixFilterDefinition["uiRangeMode"] = "logical_default",
 ): MatrixFilterDefinition => ({
   root: createEmptyMatrixFilterGroup("AND"),
-  includeDiagonal,
   uiRangeMode,
 });
 
@@ -79,14 +77,12 @@ const normalizeRuleForRange = (
   matrixIndex: MatrixIndex,
   catalogs: Catalogs | undefined,
   uiRangeMode: MatrixFilterDefinition["uiRangeMode"],
-  includeDiagonal: boolean,
 ): MatrixFilterRule => {
   const matrix = matrixIndex[rule.matrixId];
   if (!matrix) return { ...rule, operator: "between" };
 
   const range = resolveMatrixUiRange(matrix, catalogs, {
     uiRangeMode,
-    includeDiagonal,
     target: "slider",
   });
   if (range.scaleType === "diverging") {
@@ -119,7 +115,6 @@ const normalizeExpressionForRanges = (
   matrixIndex: MatrixIndex,
   catalogs: Catalogs | undefined,
   uiRangeMode: MatrixFilterDefinition["uiRangeMode"],
-  includeDiagonal: boolean,
 ): MatrixFilterExpression => {
   if (expression.type === "rule") {
     return normalizeRuleForRange(
@@ -127,7 +122,6 @@ const normalizeExpressionForRanges = (
       matrixIndex,
       catalogs,
       uiRangeMode,
-      includeDiagonal,
     );
   }
 
@@ -139,7 +133,6 @@ const normalizeExpressionForRanges = (
         matrixIndex,
         catalogs,
         uiRangeMode,
-        includeDiagonal,
       ),
     ),
   };
@@ -158,7 +151,6 @@ export const normalizeMatrixFilterDefinitionForRanges = (
     matrixIndex,
     catalogs,
     uiRangeMode,
-    definition.includeDiagonal,
   ) as MatrixFilterGroup,
 });
 
@@ -472,7 +464,6 @@ export const createRuntimeEdgeMask = (
 
   for (let i = 0; i < edgeDomain.rows; i += 1) {
     for (let j = 0; j < edgeDomain.cols; j += 1) {
-      if (!filter.includeDiagonal && i === j) continue;
       if (!edgeDomain.directed && j < i) continue;
 
       totalCount += 1;
@@ -485,7 +476,6 @@ export const createRuntimeEdgeMask = (
 
   return {
     edgeDomainKey: edgeDomain.key,
-    includeDiagonal: filter.includeDiagonal,
     values,
     selectedCount,
     totalCount,

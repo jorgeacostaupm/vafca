@@ -14,8 +14,8 @@ import type { RankingHighlightItem, RankingRow } from "@/types/rankings";
 
 export const getRankingHighlightItem = (
   row: RankingRow,
-): RankingHighlightItem => {
-  if (row.type === "matrix") return { type: "matrix", matrixId: row.matrixId };
+): RankingHighlightItem | undefined => {
+  if (row.type === "matrix") return undefined;
   if (row.type === "roi") return { type: "roi", roiId: row.roiId };
   return {
     type: "link",
@@ -52,6 +52,7 @@ export const useRankingRowInteractions = () => {
   const handleEnter = useCallback(
     (row: RankingRow) => {
       const item = getRankingHighlightItem(row);
+      if (!item) return;
       dispatch(setHoveredRankingItem(item));
       applySharedHover(item);
     },
@@ -66,6 +67,7 @@ export const useRankingRowInteractions = () => {
   const handleSelect = useCallback(
     (row: RankingRow) => {
       const item = getRankingHighlightItem(row);
+      if (!item) return;
       dispatch(setSelectedRankingItem(item));
       applySharedHover(item);
     },

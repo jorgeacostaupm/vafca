@@ -16,10 +16,10 @@ export const getHierarchySettingsConfig = ({
     mode,
     configurationLabel: "Category order",
     description:
-      "Fields come from Palette. Configure category order for this view.",
-    addFieldPlaceholder: "Add tag field in Palette",
+      "Fields come from Grouping. Configure category order for this view.",
+    addFieldPlaceholder: "Add tag field in Grouping",
     emptyHierarchyMessage:
-      "No palette fields selected. Add color fields in Palette first.",
+      "No grouping fields selected. Add grouping fields first.",
     hierarchyFields: atlas.colorFields,
     selectableFields: [],
   };

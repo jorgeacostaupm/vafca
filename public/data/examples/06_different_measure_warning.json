@@ -1277,15 +1277,11 @@
     ]
   },
   "catalogs": {
-    "bands": {
+    "layers": {
       "alpha": {
         "id": "alpha",
         "label": "Alpha",
-        "rangeHz": [
-          8,
-          12
-        ],
-        "description": "Alpha band"
+        "description": "Alpha layer (8-12 Hz)"
       }
     },
     "measures": {
@@ -1337,7 +1333,7 @@
       "kind": "aggregate",
       "label": "m_p_study_alpha_ciplv_mean",
       "context": {
-        "bandId": "alpha",
+        "layerId": "alpha",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -9672,7 +9668,7 @@
       "kind": "aggregate",
       "label": "m_p_study_alpha_ciplv_std",
       "context": {
-        "bandId": "alpha",
+        "layerId": "alpha",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,

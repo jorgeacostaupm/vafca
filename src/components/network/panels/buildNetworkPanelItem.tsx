@@ -6,6 +6,7 @@ import type { BuildPanelItem } from "@/types/networkPanels";
 import { NetworkPanelStatusContent } from "@/components/network/panels/NetworkPanelCommon";
 import NetworkPanelActions from "@/components/network/panels/NetworkPanelActions";
 import NetworkPanelContent from "@/components/network/panels/NetworkPanelContent";
+import NetworkPanelViewTypeSelector from "@/components/network/panels/NetworkPanelViewTypeSelector";
 import {
   buildAdaptedNetworkPanelData,
   buildPanelValueFilters,
@@ -72,7 +73,8 @@ export const buildNetworkPanelItem: BuildPanelItem = ({
 
   return {
     id: view.id,
-    title: `${viewTitle} · ${view.label}`,
+    title: view.label,
+    headerStart: <NetworkPanelViewTypeSelector view={view} />,
     className: computed.isRangeFilterSource
       ? "network-panel-card--range-filter-source"
       : undefined,

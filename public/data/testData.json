@@ -906,54 +906,40 @@
     "maxPopulations": 2
   },
   "catalogs": {
-    "bands": {
+    "layers": {
       "delta": {
         "id": "delta",
-        "min": 2,
-        "max": 4,
-        "description": "some description",
+        "description": "some description (2-4 Hz)",
         "label": "Delta"
       },
       "theta": {
         "id": "theta",
-        "min": 4,
-        "max": 7,
-        "description": "some description",
+        "description": "some description (4-7 Hz)",
         "label": "Theta"
       },
       "alpha_low": {
         "id": "alpha_low",
-        "min": 8,
-        "max": 10,
-        "description": "some description",
+        "description": "some description (8-10 Hz)",
         "label": "Alpha Low"
       },
       "alpha_high": {
         "id": "alpha_high",
-        "min": 10,
-        "max": 12,
-        "description": "some description",
+        "description": "some description (10-12 Hz)",
         "label": "Alpha High"
       },
       "beta_low": {
         "id": "beta_low",
-        "min": 12,
-        "max": 20,
-        "description": "some description",
+        "description": "some description (12-20 Hz)",
         "label": "Beta Low"
       },
       "beta_high": {
         "id": "beta_high",
-        "min": 20,
-        "max": 30,
-        "description": "some description",
+        "description": "some description (20-30 Hz)",
         "label": "Beta High"
       },
       "gamma": {
         "id": "gamma",
-        "min": 30,
-        "max": 50,
-        "description": "some description",
+        "description": "some description (30-50 Hz)",
         "label": "Gamma"
       }
     },
@@ -1008,7 +994,7 @@
   "matrices": [
     {
       "id": "m_001",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -9301,7 +9287,7 @@
     },
     {
       "id": "m_002",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -17594,7 +17580,7 @@
     },
     {
       "id": "m_003",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -25887,7 +25873,7 @@
     },
     {
       "id": "m_004",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -34180,7 +34166,7 @@
     },
     {
       "id": "m_005",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -42473,7 +42459,7 @@
     },
     {
       "id": "m_006",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -50766,7 +50752,7 @@
     },
     {
       "id": "m_007",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -59059,7 +59045,7 @@
     },
     {
       "id": "m_008",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -67352,7 +67338,7 @@
     },
     {
       "id": "m_009",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -75645,7 +75631,7 @@
     },
     {
       "id": "m_010",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -83938,7 +83924,7 @@
     },
     {
       "id": "m_011",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -92231,7 +92217,7 @@
     },
     {
       "id": "m_012",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -100524,7 +100510,7 @@
     },
     {
       "id": "m_013",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -108817,7 +108803,7 @@
     },
     {
       "id": "m_014",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -117110,7 +117096,7 @@
     },
     {
       "id": "m_015",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -125403,7 +125389,7 @@
     },
     {
       "id": "m_016",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -133696,7 +133682,7 @@
     },
     {
       "id": "m_017",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -141989,7 +141975,7 @@
     },
     {
       "id": "m_018",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -150282,7 +150268,7 @@
     },
     {
       "id": "m_019",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -158575,7 +158561,7 @@
     },
     {
       "id": "m_020",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -166868,7 +166854,7 @@
     },
     {
       "id": "m_021",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -175161,7 +175147,7 @@
     },
     {
       "id": "m_022",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -183454,7 +183440,7 @@
     },
     {
       "id": "m_023",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -191747,7 +191733,7 @@
     },
     {
       "id": "m_024",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -200040,7 +200026,7 @@
     },
     {
       "id": "m_025",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -208333,7 +208319,7 @@
     },
     {
       "id": "m_026",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -216626,7 +216612,7 @@
     },
     {
       "id": "m_027",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -224919,7 +224905,7 @@
     },
     {
       "id": "m_028",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -233212,7 +233198,7 @@
     },
     {
       "id": "m_029",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -241505,7 +241491,7 @@
     },
     {
       "id": "m_030",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -249798,7 +249784,7 @@
     },
     {
       "id": "m_031",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -258091,7 +258077,7 @@
     },
     {
       "id": "m_032",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -266384,7 +266370,7 @@
     },
     {
       "id": "m_033",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -274677,7 +274663,7 @@
     },
     {
       "id": "m_034",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -282970,7 +282956,7 @@
     },
     {
       "id": "m_035",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -291263,7 +291249,7 @@
     },
     {
       "id": "m_036",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -299556,7 +299542,7 @@
     },
     {
       "id": "m_037",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -307849,7 +307835,7 @@
     },
     {
       "id": "m_038",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -316142,7 +316128,7 @@
     },
     {
       "id": "m_039",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -324435,7 +324421,7 @@
     },
     {
       "id": "m_040",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -332728,7 +332714,7 @@
     },
     {
       "id": "m_041",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "plv",
       "statId": "mean",
       "populationIds": [
@@ -341021,7 +341007,7 @@
     },
     {
       "id": "m_042",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "plv",
       "statId": "std",
       "populationIds": [
@@ -349314,7 +349300,7 @@
     },
     {
       "id": "m_043",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -357607,7 +357593,7 @@
     },
     {
       "id": "m_044",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -365900,7 +365886,7 @@
     },
     {
       "id": "m_045",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -374193,7 +374179,7 @@
     },
     {
       "id": "m_046",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -382486,7 +382472,7 @@
     },
     {
       "id": "m_047",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -390779,7 +390765,7 @@
     },
     {
       "id": "m_048",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -399072,7 +399058,7 @@
     },
     {
       "id": "m_049",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -407365,7 +407351,7 @@
     },
     {
       "id": "m_050",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -415658,7 +415644,7 @@
     },
     {
       "id": "m_051",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -423951,7 +423937,7 @@
     },
     {
       "id": "m_052",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -432244,7 +432230,7 @@
     },
     {
       "id": "m_053",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -440537,7 +440523,7 @@
     },
     {
       "id": "m_054",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -448830,7 +448816,7 @@
     },
     {
       "id": "m_055",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "ciplv",
       "statId": "mean",
       "populationIds": [
@@ -457123,7 +457109,7 @@
     },
     {
       "id": "m_056",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "ciplv",
       "statId": "std",
       "populationIds": [
@@ -465416,7 +465402,7 @@
     },
     {
       "id": "m_057",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "ciplv",
       "statId": "zscore",
       "populationIds": [
@@ -473710,7 +473696,7 @@
     },
     {
       "id": "m_058",
-      "bandId": "delta",
+      "layerId": "delta",
       "measureId": "plv",
       "statId": "zscore",
       "populationIds": [
@@ -482004,7 +481990,7 @@
     },
     {
       "id": "m_059",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "ciplv",
       "statId": "zscore",
       "populationIds": [
@@ -490298,7 +490284,7 @@
     },
     {
       "id": "m_060",
-      "bandId": "theta",
+      "layerId": "theta",
       "measureId": "plv",
       "statId": "zscore",
       "populationIds": [
@@ -498592,7 +498578,7 @@
     },
     {
       "id": "m_061",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "ciplv",
       "statId": "zscore",
       "populationIds": [
@@ -506886,7 +506872,7 @@
     },
     {
       "id": "m_062",
-      "bandId": "alpha_low",
+      "layerId": "alpha_low",
       "measureId": "plv",
       "statId": "zscore",
       "populationIds": [
@@ -515180,7 +515166,7 @@
     },
     {
       "id": "m_063",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "ciplv",
       "statId": "zscore",
       "populationIds": [
@@ -523474,7 +523460,7 @@
     },
     {
       "id": "m_064",
-      "bandId": "alpha_high",
+      "layerId": "alpha_high",
       "measureId": "plv",
       "statId": "zscore",
       "populationIds": [
@@ -531768,7 +531754,7 @@
     },
     {
       "id": "m_065",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "ciplv",
       "statId": "zscore",
       "populationIds": [
@@ -540062,7 +540048,7 @@
     },
     {
       "id": "m_066",
-      "bandId": "beta_low",
+      "layerId": "beta_low",
       "measureId": "plv",
       "statId": "zscore",
       "populationIds": [
@@ -548356,7 +548342,7 @@
     },
     {
       "id": "m_067",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "ciplv",
       "statId": "zscore",
       "populationIds": [
@@ -556650,7 +556636,7 @@
     },
     {
       "id": "m_068",
-      "bandId": "beta_high",
+      "layerId": "beta_high",
       "measureId": "plv",
       "statId": "zscore",
       "populationIds": [
@@ -564944,7 +564930,7 @@
     },
     {
       "id": "m_069",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "ciplv",
       "statId": "zscore",
       "populationIds": [
@@ -573238,7 +573224,7 @@
     },
     {
       "id": "m_070",
-      "bandId": "gamma",
+      "layerId": "gamma",
       "measureId": "plv",
       "statId": "zscore",
       "populationIds": [

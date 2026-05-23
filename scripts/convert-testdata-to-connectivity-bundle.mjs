@@ -40,15 +40,23 @@ const toLabel = (value) =>
     .replace(/_/g, " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
+const layerDescription = (id, layer) => {
+  const frequency =
+    Number.isFinite(layer.min) && Number.isFinite(layer.max)
+      ? `${layer.min}-${layer.max} Hz`
+      : null;
+  const description = layer.description ?? `${toLabel(id)} layer`;
+  return frequency ? `${description} (${frequency})` : description;
+};
+
 const toCatalogs = (catalogs) => ({
-  bands: Object.fromEntries(
-    Object.entries(catalogs.bands).map(([id, band]) => [
+  layers: Object.fromEntries(
+    Object.entries(catalogs.layers).map(([id, layer]) => [
       id,
       {
         id,
-        label: band.label ?? toLabel(id),
-        rangeHz: [band.min, band.max],
-        description: band.description ?? null,
+        label: layer.label ?? toLabel(id),
+        description: layerDescription(id, layer),
       },
     ]),
   ),
@@ -151,7 +159,7 @@ const toUpperTriangularData = (matrixData) => {
 const findPopulationMatrixId = (matrices, matrix, populationId, statId) =>
   matrices.find(
     (candidate) =>
-      candidate.bandId === matrix.bandId &&
+      candidate.layerId === matrix.layerId &&
       candidate.measureId === matrix.measureId &&
       candidate.statId === statId &&
       candidate.populationIds.length === 1 &&
@@ -196,13 +204,13 @@ const toMatrixRecord = (matrix, sourceMatrices, catalogs) => {
     id: matrix.id,
     kind: isComparison ? "comparison" : "aggregate",
     label: [
-      catalogs.bands[matrix.bandId]?.label ?? matrix.bandId,
+      catalogs.layers[matrix.layerId]?.label ?? matrix.layerId,
       catalogs.measures[matrix.measureId]?.label ?? matrix.measureId,
       catalogs.stats[matrix.statId]?.label ?? matrix.statId,
       matrix.populationIds.map((id) => catalogs.populations[id]?.label ?? id).join(" vs "),
     ].join(" - "),
     context: {
-      bandId: matrix.bandId,
+      layerId: matrix.layerId,
       measureId: matrix.measureId,
       conditionId: null,
       sessionId: null,

@@ -3,10 +3,10 @@ import { useAppSelector } from "@/store/hooks";
 import { isEnabled } from "@/components/management/utils/catalogValues";
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 
-function BandCatalogSection() {
+function LayerCatalogSection() {
   const updateItem = useCatalogItemUpdater();
-  const bands = useAppSelector(
-    (state) => state.dataset.data?.catalogs.bands ?? {},
+  const layers = useAppSelector(
+    (state) => state.dataset.data?.catalogs.layers ?? {},
   );
 
   return (
@@ -14,42 +14,39 @@ function BandCatalogSection() {
       <Divider style={{ margin: "8px 0" }} />
 
       <div>
-        <Typography.Text strong>Bands</Typography.Text>
+        <Typography.Text strong>Layers</Typography.Text>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          {Object.values(bands).map((band) => (
-            <Card key={band.id} size="small" style={{ width: 300 }}>
+          {Object.values(layers).map((layer) => (
+            <Card key={layer.id} size="small" style={{ width: 300 }}>
               <Space direction="vertical" size={8} style={{ width: "100%" }}>
                 <Space wrap size={12} align="start">
                   <Input
                     size="small"
-                    placeholder="Band label"
-                    value={band.label ?? ""}
+                    placeholder="Layer label"
+                    value={layer.label ?? ""}
                     style={{ width: 160 }}
                     onChange={(event) =>
-                      updateItem("bands", band.id, {
+                      updateItem("layers", layer.id, {
                         label: event.target.value,
                       })
                     }
                   />
                   <Switch
-                    checked={isEnabled(band)}
+                    checked={isEnabled(layer)}
                     onChange={(checked) =>
-                      updateItem("bands", band.id, {
+                      updateItem("layers", layer.id, {
                         enabled: checked,
                       })
                     }
                   />
-                  <Typography.Text type="secondary">
-                    Frequency range: {band.min}-{band.max} Hz
-                  </Typography.Text>
                 </Space>
 
                 <Input.TextArea
                   size="small"
                   placeholder="Description"
-                  value={band.description ?? ""}
+                  value={layer.description ?? ""}
                   onChange={(event) =>
-                    updateItem("bands", band.id, {
+                    updateItem("layers", layer.id, {
                       description: event.target.value,
                     })
                   }
@@ -64,4 +61,4 @@ function BandCatalogSection() {
   );
 }
 
-export default BandCatalogSection;
+export default LayerCatalogSection;

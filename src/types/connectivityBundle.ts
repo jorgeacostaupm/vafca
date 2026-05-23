@@ -25,7 +25,6 @@ export type MatrixDataStatsBucket = {
 
 export type MatrixDataStats = {
   allValues: MatrixDataStatsBucket;
-  offDiagonal: MatrixDataStatsBucket;
 };
 
 export type BundleMetadata = {
@@ -56,10 +55,9 @@ export type Atlas = {
   rois: AtlasRoi[];
 };
 
-export type BandCatalogEntry = {
+export type LayerCatalogEntry = {
   id: string;
   label: string;
-  rangeHz: [number, number];
   description?: string | null;
 };
 
@@ -106,7 +104,7 @@ export type SubjectCatalogEntry = {
 };
 
 export type Catalogs = {
-  bands: Record<string, BandCatalogEntry>;
+  layers: Record<string, LayerCatalogEntry>;
   measures: Record<string, MeasureCatalogEntry>;
   stats: Record<string, StatCatalogEntry>;
   populations: Record<string, PopulationCatalogEntry>;
@@ -115,7 +113,7 @@ export type Catalogs = {
 };
 
 export type MatrixContext = {
-  bandId: string | null;
+  layerId: string | null;
   measureId: string;
   conditionId?: string | null;
   sessionId?: string | null;
@@ -151,6 +149,7 @@ export type ComparisonMatrixSource = {
 export type ReductionMatrixSource = {
   level: "reduction";
   baseMatrixId: string;
+  populationIds: string[];
 };
 
 export type MatrixSource =
@@ -271,7 +270,7 @@ export type ValidationSummary = {
   matrixCount: number;
   populationCount: number;
   subjectCount: number;
-  bandCount: number;
+  layerCount: number;
   measureCount: number;
 };
 
@@ -307,7 +306,7 @@ export type ConnectivityLoadResult = {
   summary: {
     bundleId?: string;
     matrices: number;
-    bands: string[];
+    layers: string[];
     measures: string[];
     populations: string[];
     subjects: string[];

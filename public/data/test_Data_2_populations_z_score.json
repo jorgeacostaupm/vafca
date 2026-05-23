@@ -1,82 +1,47 @@
 {
   "atlas": "aal",
   "base": "aal-90",
-  "bands": [
+  "layers": [
     {
       "name": "Delta",
       "acronim": "delta",
-      "range": [
-        2,
-        4
-      ],
-      "unit": "Hz",
-      "description": "some descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome description",
+      "description": "some descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome description (2-4 Hz)",
       "active": true
     },
     {
       "name": "Theta",
       "acronim": "theta",
-      "unit": "Hz",
-      "range": [
-        4,
-        7
-      ],
-      "description": "some descriptionsome descriptionsome descriptionsome description",
+      "description": "some descriptionsome descriptionsome descriptionsome description (4-7 Hz)",
       "active": true
     },
     {
       "name": "Alpha Low",
       "acronim": "alpha_low",
-      "range": [
-        8,
-        10
-      ],
-      "unit": "Hz",
-      "description": "some description",
+      "description": "some description (8-10 Hz)",
       "active": true
     },
     {
       "name": "Alpha High",
       "acronim": "alpha_high",
-      "range": [
-        10,
-        12
-      ],
-      "unit": "Hz",
-      "description": "some description",
+      "description": "some description (10-12 Hz)",
       "active": true
     },
     {
       "name": "Beta Low",
       "acronim": "beta_low",
-      "range": [
-        12,
-        20
-      ],
-      "unit": "Hz",
-      "description": "some description",
+      "description": "some description (12-20 Hz)",
       "active": true
     },
     {
       "name": "Beta High",
       "acronim": "beta_high",
-      "range": [
-        20,
-        30
-      ],
-      "unit": "Hz",
-      "description": "some description",
+      "description": "some description (20-30 Hz)",
       "active": true
     },
     {
       "name": "Gamma",
       "acronim": "gamma",
-      "range": [
-        30,
-        50
-      ],
-      "unit": "Hz",
-      "description": "some description",
+      "description": "some description (30-50 Hz)",
       "active": true
     }
   ],
@@ -105,7 +70,7 @@
   "matrices": [
     {
       "atlas_base": "aal",
-      "band_name": "delta",
+      "layer_name": "delta",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -16672,11 +16637,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "delta"
+      "layer_acronim": "delta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "theta",
+      "layer_name": "theta",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -33243,11 +33208,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "theta"
+      "layer_acronim": "theta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_low",
+      "layer_name": "alpha_low",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -49814,11 +49779,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "alpha_low"
+      "layer_acronim": "alpha_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_high",
+      "layer_name": "alpha_high",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -66385,11 +66350,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "alpha_high"
+      "layer_acronim": "alpha_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_low",
+      "layer_name": "beta_low",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -82956,11 +82921,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "beta_low"
+      "layer_acronim": "beta_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_high",
+      "layer_name": "beta_high",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -99527,11 +99492,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "beta_high"
+      "layer_acronim": "beta_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "gamma",
+      "layer_name": "gamma",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -116098,11 +116063,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "gamma"
+      "layer_acronim": "gamma"
     },
     {
       "atlas_base": "aal",
-      "band_name": "delta",
+      "layer_name": "delta",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -132669,11 +132634,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "delta"
+      "layer_acronim": "delta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "theta",
+      "layer_name": "theta",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -149240,11 +149205,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "theta"
+      "layer_acronim": "theta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_low",
+      "layer_name": "alpha_low",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -165811,11 +165776,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "alpha_low"
+      "layer_acronim": "alpha_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_high",
+      "layer_name": "alpha_high",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -182382,11 +182347,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "alpha_high"
+      "layer_acronim": "alpha_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_low",
+      "layer_name": "beta_low",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -198953,11 +198918,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "beta_low"
+      "layer_acronim": "beta_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_high",
+      "layer_name": "beta_high",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -215524,11 +215489,11 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "beta_high"
+      "layer_acronim": "beta_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "gamma",
+      "layer_name": "gamma",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -232095,12 +232060,12 @@
         ]
       ],
       "type_acronim": "study",
-      "band_acronim": "gamma"
+      "layer_acronim": "gamma"
     },
     {
       "type_acronim": "study",
       "measure_acronim": "plv",
-      "band_acronim": "max",
+      "layer_acronim": "max",
       "mean": [
         [
           0.5405684441328049,
@@ -240388,7 +240353,7 @@
     {
       "type_acronim": "study",
       "measure_acronim": "ciplv",
-      "band_acronim": "max",
+      "layer_acronim": "max",
       "mean": [
         [
           0.5405684441328049,
@@ -248676,7 +248641,7 @@
     {
       "type_acronim": "study",
       "measure_acronim": "plv",
-      "band_acronim": "min",
+      "layer_acronim": "min",
       "mean": [
         [
           0.4006679534912109,
@@ -256964,7 +256929,7 @@
     {
       "type_acronim": "study",
       "measure_acronim": "ciplv",
-      "band_acronim": "min",
+      "layer_acronim": "min",
       "mean": [
         [
           0.4006679534912109,
@@ -265252,7 +265217,7 @@
     {
       "type_acronim": "study",
       "measure_acronim": "plv",
-      "band_acronim": "mean",
+      "layer_acronim": "mean",
       "mean": [
         [
           0.4646365834133966,
@@ -273540,7 +273505,7 @@
     {
       "type_acronim": "study",
       "measure_acronim": "ciplv",
-      "band_acronim": "mean",
+      "layer_acronim": "mean",
       "mean": [
         [
           0.4646365834133966,
@@ -281827,7 +281792,7 @@
     },
     {
       "atlas_base": "aal",
-      "band_name": "delta",
+      "layer_name": "delta",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -298394,11 +298359,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "delta"
+      "layer_acronim": "delta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "theta",
+      "layer_name": "theta",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -314965,11 +314930,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "theta"
+      "layer_acronim": "theta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_low",
+      "layer_name": "alpha_low",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -331536,11 +331501,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "alpha_low"
+      "layer_acronim": "alpha_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_high",
+      "layer_name": "alpha_high",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -348107,11 +348072,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "alpha_high"
+      "layer_acronim": "alpha_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_low",
+      "layer_name": "beta_low",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -364678,11 +364643,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "beta_low"
+      "layer_acronim": "beta_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_high",
+      "layer_name": "beta_high",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -381249,11 +381214,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "beta_high"
+      "layer_acronim": "beta_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "gamma",
+      "layer_name": "gamma",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -397820,11 +397785,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "gamma"
+      "layer_acronim": "gamma"
     },
     {
       "atlas_base": "aal",
-      "band_name": "delta",
+      "layer_name": "delta",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -414391,11 +414356,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "delta"
+      "layer_acronim": "delta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "theta",
+      "layer_name": "theta",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -430962,11 +430927,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "theta"
+      "layer_acronim": "theta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_low",
+      "layer_name": "alpha_low",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -447533,11 +447498,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "alpha_low"
+      "layer_acronim": "alpha_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_high",
+      "layer_name": "alpha_high",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -464104,11 +464069,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "alpha_high"
+      "layer_acronim": "alpha_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_low",
+      "layer_name": "beta_low",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -480675,11 +480640,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "beta_low"
+      "layer_acronim": "beta_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_high",
+      "layer_name": "beta_high",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -497246,11 +497211,11 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "beta_high"
+      "layer_acronim": "beta_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "gamma",
+      "layer_name": "gamma",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -513817,12 +513782,12 @@
         ]
       ],
       "type_acronim": "control",
-      "band_acronim": "gamma"
+      "layer_acronim": "gamma"
     },
     {
       "type_acronim": "control",
       "measure_acronim": "plv",
-      "band_acronim": "max",
+      "layer_acronim": "max",
       "mean": [
         [
           0.5428376734256745,
@@ -522110,7 +522075,7 @@
     {
       "type_acronim": "control",
       "measure_acronim": "ciplv",
-      "band_acronim": "max",
+      "layer_acronim": "max",
       "mean": [
         [
           0.5428376734256745,
@@ -530398,7 +530363,7 @@
     {
       "type_acronim": "control",
       "measure_acronim": "plv",
-      "band_acronim": "min",
+      "layer_acronim": "min",
       "mean": [
         [
           0.405399763584137,
@@ -538686,7 +538651,7 @@
     {
       "type_acronim": "control",
       "measure_acronim": "ciplv",
-      "band_acronim": "min",
+      "layer_acronim": "min",
       "mean": [
         [
           0.405399763584137,
@@ -546974,7 +546939,7 @@
     {
       "type_acronim": "control",
       "measure_acronim": "plv",
-      "band_acronim": "mean",
+      "layer_acronim": "mean",
       "mean": [
         [
           0.4750759341887066,
@@ -555262,7 +555227,7 @@
     {
       "type_acronim": "control",
       "measure_acronim": "ciplv",
-      "band_acronim": "mean",
+      "layer_acronim": "mean",
       "mean": [
         [
           0.4750759341887066,
@@ -563549,7 +563514,7 @@
     },
     {
       "atlas_base": "aal",
-      "band_name": "delta",
+      "layer_name": "delta",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -571835,11 +571800,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "delta"
+      "layer_acronim": "delta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "delta",
+      "layer_name": "delta",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -580125,11 +580090,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "delta"
+      "layer_acronim": "delta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "theta",
+      "layer_name": "theta",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -588415,11 +588380,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "theta"
+      "layer_acronim": "theta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "theta",
+      "layer_name": "theta",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -596705,11 +596670,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "theta"
+      "layer_acronim": "theta"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_low",
+      "layer_name": "alpha_low",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -604995,11 +604960,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "alpha_low"
+      "layer_acronim": "alpha_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_low",
+      "layer_name": "alpha_low",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -613285,11 +613250,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "alpha_low"
+      "layer_acronim": "alpha_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_high",
+      "layer_name": "alpha_high",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -621575,11 +621540,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "alpha_high"
+      "layer_acronim": "alpha_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "alpha_high",
+      "layer_name": "alpha_high",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -629865,11 +629830,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "alpha_high"
+      "layer_acronim": "alpha_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_low",
+      "layer_name": "beta_low",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -638155,11 +638120,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "beta_low"
+      "layer_acronim": "beta_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_low",
+      "layer_name": "beta_low",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -646445,11 +646410,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "beta_low"
+      "layer_acronim": "beta_low"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_high",
+      "layer_name": "beta_high",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -654735,11 +654700,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "beta_high"
+      "layer_acronim": "beta_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "beta_high",
+      "layer_name": "beta_high",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -663025,11 +662990,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "beta_high"
+      "layer_acronim": "beta_high"
     },
     {
       "atlas_base": "aal",
-      "band_name": "gamma",
+      "layer_name": "gamma",
       "measure_acronim": "ciplv",
       "mean": [
         [
@@ -671315,11 +671280,11 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "gamma"
+      "layer_acronim": "gamma"
     },
     {
       "atlas_base": "aal",
-      "band_name": "gamma",
+      "layer_name": "gamma",
       "measure_acronim": "plv",
       "mean": [
         [
@@ -679605,12 +679570,12 @@
       ],
       "std": [],
       "type_acronim": "zscore",
-      "band_acronim": "gamma"
+      "layer_acronim": "gamma"
     },
     {
       "type_acronim": "zscore",
       "measure_acronim": "plv",
-      "band_acronim": "max",
+      "layer_acronim": "max",
       "mean": [
         [
           -1.635747225285127,
@@ -687898,7 +687863,7 @@
     {
       "type_acronim": "zscore",
       "measure_acronim": "ciplv",
-      "band_acronim": "max",
+      "layer_acronim": "max",
       "mean": [
         [
           -1.635747225285127,
@@ -696186,7 +696151,7 @@
     {
       "type_acronim": "zscore",
       "measure_acronim": "plv",
-      "band_acronim": "min",
+      "layer_acronim": "min",
       "mean": [
         [
           -0.10683192075373231,
@@ -704474,7 +704439,7 @@
     {
       "type_acronim": "zscore",
       "measure_acronim": "ciplv",
-      "band_acronim": "min",
+      "layer_acronim": "min",
       "mean": [
         [
           -0.10683192075373231,
@@ -712762,7 +712727,7 @@
     {
       "type_acronim": "zscore",
       "measure_acronim": "plv",
-      "band_acronim": "mean",
+      "layer_acronim": "mean",
       "mean": [
         [
           0.5527976227053611,
@@ -721050,7 +721015,7 @@
     {
       "type_acronim": "zscore",
       "measure_acronim": "ciplv",
-      "band_acronim": "mean",
+      "layer_acronim": "mean",
       "mean": [
         [
           0.5527976227053611,

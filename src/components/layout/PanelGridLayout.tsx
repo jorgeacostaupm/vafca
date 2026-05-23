@@ -4,23 +4,25 @@ import ReactGridLayout, {
 } from "react-grid-layout";
 import { Button, Card, Space } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
+import {
+  DEFAULT_PANEL_GRID_CONFIG,
+  DEFAULT_PANEL_GRID_DRAG_HANDLE,
+} from "@/config/ui";
 import type { PanelGridLayoutProps } from "@/types/layout";
 
-
-const DEFAULT_COLS = 24;
-const DEFAULT_ROW_HEIGHT = 100;
-const DEFAULT_MARGIN: [number, number] = [10, 10];
-const DEFAULT_DRAG_HANDLE = ".panel-card-handle";
+function getPanelCardClassName(className?: string) {
+  return ["panel-card", className].filter(Boolean).join(" ");
+}
 
 export default function PanelGridLayout({
   items,
   layout,
   onRemove,
   setLayout,
-  cols = DEFAULT_COLS,
-  rowHeight = DEFAULT_ROW_HEIGHT,
-  margin = DEFAULT_MARGIN,
-  dragHandleClass = DEFAULT_DRAG_HANDLE,
+  cols = DEFAULT_PANEL_GRID_CONFIG.columns,
+  rowHeight = DEFAULT_PANEL_GRID_CONFIG.rowHeight,
+  margin = DEFAULT_PANEL_GRID_CONFIG.margin,
+  dragHandleClass = DEFAULT_PANEL_GRID_DRAG_HANDLE,
 }: PanelGridLayoutProps) {
   const { width, containerRef, mounted } = useContainerWidth();
 
@@ -45,11 +47,16 @@ export default function PanelGridLayout({
           {items.map((item) => (
             <div key={item.id} className="panel-grid-item">
               <Card
-                className={item.className}
+                className={getPanelCardClassName(item.className)}
                 size="small"
-                title={<span className="panel-card-handle">{item.title}</span>}
+                title={
+                  <div className="panel-card-title">
+                    {item.headerStart}
+                    <span className="panel-card-handle">{item.title}</span>
+                  </div>
+                }
                 extra={
-                  <Space size={4}>
+                  <Space className="panel-card-extra-actions" size={4} wrap>
                     {item.actions}
                     <Button
                       size="small"
@@ -61,7 +68,6 @@ export default function PanelGridLayout({
                   </Space>
                 }
                 style={{ height: "100%" }}
-                bodyStyle={{ height: "calc(100% - 56px)" }}
               >
                 {item.content}
               </Card>

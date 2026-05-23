@@ -1,11 +1,9 @@
 import { createRef, type RefObject } from "react";
-import { Space } from "antd";
 import { buildNetworkPanelItem } from "@/components/network/panels/buildNetworkPanelItem";
 import { buildComparableMatrixLegendRanges } from "@/components/network/panels/matrixLegendRanges";
 import {
   LoadingPanelBody,
   NetworkPanelReloadButton,
-  NetworkViewTypeControl,
 } from "@/components/network/panels/NetworkPanelCommon";
 import type { PanelItem } from "@/types/layout";
 import type {
@@ -15,9 +13,6 @@ import type {
   ViewVisibility,
 } from "@/types/networkVisualization";
 import type { RootState } from "@/types/store";
-
-const resolveViewTypeTitle = (type: "matrix" | "circular" | "classic") =>
-  type === "matrix" ? "Matrix" : type === "circular" ? "Circular" : "Node-Link";
 
 type BuildNetworkPanelItemsArgs = {
   views: NetworkViewDescriptor[];
@@ -65,18 +60,12 @@ export const buildNetworkPanelItems = ({
       loadingCompoundIds.has(view.compoundId) ||
       typeof matrixRecord === "undefined";
     const computed = computedByViewId[view.id];
-    const typeSelect = <NetworkViewTypeControl viewId={view.id} value={view.type} />;
 
     if (isLoadingMatrix || !computed || !matrixRecord) {
       return {
         id: view.id,
-        title: `${resolveViewTypeTitle(view.type)} · ${view.label}`,
-        actions: (
-          <Space size={4}>
-            {typeSelect}
-            <NetworkPanelReloadButton viewId={view.id} />
-          </Space>
-        ),
+        title: view.label,
+        actions: <NetworkPanelReloadButton viewId={view.id} />,
         content: <LoadingPanelBody text="Loading matrix…" />,
       };
     }
@@ -96,14 +85,6 @@ export const buildNetworkPanelItems = ({
 
     const built = buildNetworkPanelItem(common);
 
-    return {
-      ...built,
-      actions: (
-        <Space size={4}>
-          {typeSelect}
-          {built.actions}
-        </Space>
-      ),
-    };
+    return built;
   });
 };

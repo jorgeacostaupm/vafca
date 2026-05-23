@@ -8,7 +8,6 @@ import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
 import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
 import { useNetworkViewLifecycle } from "@/components/network/useNetworkViewLifecycle";
 import { buildMatrixLabel, normalizePopulationKey } from "@/utils/matrixViewUtils";
-import type { NetworkViewType } from "@/types/networkVisualization";
 
 export const useNetworkSelectorModel = () => {
   const dispatch = useAppDispatch();
@@ -21,7 +20,7 @@ export const useNetworkSelectorModel = () => {
     populationOptions,
     measures,
     statOptions,
-    bandOptions,
+    layerOptions,
     matches,
     allMatrixOptions,
     selectableMatrixSummaries,
@@ -32,7 +31,7 @@ export const useNetworkSelectorModel = () => {
     populationKey: controls.populationKey,
     measureId: controls.measureId,
     statId: controls.statId,
-    bandId: controls.bandId,
+    layerId: controls.layerId,
   });
 
   useNetworkViewLifecycle({
@@ -41,13 +40,6 @@ export const useNetworkSelectorModel = () => {
     summaries,
   });
 
-  const handleViewTypeChange = useCallback(
-    (viewType: NetworkViewType) => {
-      dispatch(patchNetworkControls({ viewType }));
-    },
-    [dispatch],
-  );
-
   const handlePopulationChange = useCallback(
     (value?: string) => {
       dispatch(
@@ -55,7 +47,8 @@ export const useNetworkSelectorModel = () => {
           populationKey: value ?? "",
           measureId: "",
           statId: "",
-          bandId: "",
+          layerId: "",
+          selectedCompoundId: "",
         }),
       );
     },
@@ -68,7 +61,8 @@ export const useNetworkSelectorModel = () => {
         patchNetworkControls({
           measureId: value ?? "",
           statId: "",
-          bandId: "",
+          layerId: "",
+          selectedCompoundId: "",
         }),
       );
     },
@@ -80,16 +74,22 @@ export const useNetworkSelectorModel = () => {
       dispatch(
         patchNetworkControls({
           statId: value ?? "",
-          bandId: "",
+          layerId: "",
+          selectedCompoundId: "",
         }),
       );
     },
     [dispatch],
   );
 
-  const handleBandChange = useCallback(
+  const handleLayerChange = useCallback(
     (value?: string) => {
-      dispatch(patchNetworkControls({ bandId: value ?? "" }));
+      dispatch(
+        patchNetworkControls({
+          layerId: value ?? "",
+          selectedCompoundId: "",
+        }),
+      );
     },
     [dispatch],
   );
@@ -97,7 +97,16 @@ export const useNetworkSelectorModel = () => {
   const handleMatrixChange = useCallback(
     (value?: string) => {
       if (!value) {
-        dispatch(patchNetworkControls({ selectedCompoundId: "" }));
+        const shouldClearFields = controls.matrixSelectorMode === "combined";
+        dispatch(
+          patchNetworkControls({
+            populationKey: shouldClearFields ? "" : controls.populationKey,
+            measureId: shouldClearFields ? "" : controls.measureId,
+            statId: shouldClearFields ? "" : controls.statId,
+            layerId: shouldClearFields ? "" : controls.layerId,
+            selectedCompoundId: "",
+          }),
+        );
         return;
       }
 
@@ -114,12 +123,20 @@ export const useNetworkSelectorModel = () => {
           populationKey: normalizePopulationKey(summary.populationIds),
           measureId: summary.measureId,
           statId: summary.statId,
-          bandId: summary.bandId,
+          layerId: summary.layerId,
           selectedCompoundId: summary.compoundId,
         }),
       );
     },
-    [dispatch, selectableMatrixSummaries],
+    [
+      controls.layerId,
+      controls.matrixSelectorMode,
+      controls.measureId,
+      controls.populationKey,
+      controls.statId,
+      dispatch,
+      selectableMatrixSummaries,
+    ],
   );
 
   const handleAddView = useCallback(() => {
@@ -153,19 +170,18 @@ export const useNetworkSelectorModel = () => {
     error,
     measures,
     populations: populationOptions,
-    bands: bandOptions,
+    layers: layerOptions,
     stats: statOptions,
     matrices: allMatrixOptions,
     disabled: {
       measures: !controls.populationKey,
       stats: !controls.measureId,
-      bands: !controls.statId,
+      layers: !controls.statId,
     },
-    onViewTypeChange: handleViewTypeChange,
     onPopulationChange: handlePopulationChange,
     onMeasureChange: handleMeasureChange,
     onStatChange: handleStatChange,
-    onBandChange: handleBandChange,
+    onLayerChange: handleLayerChange,
     onMatrixChange: handleMatrixChange,
     onAddView: handleAddView,
   };

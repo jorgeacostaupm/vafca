@@ -13,11 +13,9 @@ export type ConnectivityMetadata = {
   maxPopulations: number
 }
 
-export type BandCatalogItem = {
+export type LayerCatalogItem = {
   id: string
   label?: string
-  min: number
-  max: number
   description?: string
   enabled?: boolean
 }
@@ -54,7 +52,7 @@ export type PopulationCatalogItem = {
 }
 
 export type ConnectivityCatalogs = {
-  bands: Record<string, BandCatalogItem>
+  layers: Record<string, LayerCatalogItem>
   measures: Record<string, MeasureCatalogItem>
   stats: Record<string, StatCatalogItem>
   populations: Record<string, PopulationCatalogItem>

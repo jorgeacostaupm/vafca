@@ -5,10 +5,10 @@ import type { MatrixSummary, StoredMatrix } from '@/types/matrixStore'
 const inMemoryMatrices = new Map<string, StoredMatrix>()
 
 export const createCompoundId = (
-  matrix: Pick<ConnectivityMatrix, 'id' | 'bandId' | 'measureId' | 'statId' | 'populationIds'>
+  matrix: Pick<ConnectivityMatrix, 'id' | 'layerId' | 'measureId' | 'statId' | 'populationIds'>
 ) => {
   const populations = [...matrix.populationIds].sort().join('+')
-  return `${matrix.bandId}::${matrix.measureId}::${matrix.statId}::${populations || matrix.id}`
+  return `${matrix.layerId}::${matrix.measureId}::${matrix.statId}::${populations || matrix.id}`
 }
 
 export const saveMatrices = async (matrices: ConnectivityMatrix[]) => {
@@ -39,7 +39,7 @@ export const getMatrix = async (compoundId: string): Promise<StoredMatrix | unde
 export const getAllMatrixSummaries = async (): Promise<MatrixSummary[]> => {
   return Array.from(inMemoryMatrices.values()).map((record) => ({
     compoundId: record.compoundId,
-    bandId: record.bandId,
+    layerId: record.layerId,
     measureId: record.measureId,
     statId: record.statId,
     populationIds: record.populationIds,
@@ -50,7 +50,7 @@ export const getAllMatrixSummaries = async (): Promise<MatrixSummary[]> => {
 export const getAllMatrices = async (): Promise<ConnectivityMatrix[]> => {
   return Array.from(inMemoryMatrices.values()).map((record) => ({
     id: record.id,
-    bandId: record.bandId,
+    layerId: record.layerId,
     measureId: record.measureId,
     statId: record.statId,
     populationIds: record.populationIds,

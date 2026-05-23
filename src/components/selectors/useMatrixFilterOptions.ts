@@ -27,7 +27,7 @@ type UseMatrixFilterOptionsArgs = {
   populationKey: string;
   measureId: string;
   statId: string;
-  bandId: string;
+  layerId: string;
   atlasDefinition?: AtlasDefinition | null;
   useMatrixHierarchyOrder?: boolean;
   labelFormatter?: LabelFormatter;
@@ -43,7 +43,7 @@ export const useMatrixFilterOptions = ({
   populationKey,
   measureId,
   statId,
-  bandId,
+  layerId,
   atlasDefinition,
   useMatrixHierarchyOrder = false,
   labelFormatter = defaultLabelFormatter,
@@ -156,7 +156,7 @@ export const useMatrixFilterOptions = ({
       }));
   }, [summaries, populationKey, measureId, dataset]);
 
-  const bandOptions = useMemo<Option[]>(() => {
+  const layerOptions = useMemo<Option[]>(() => {
     const filtered = summaries.filter((summary) => {
       if (
         populationKey &&
@@ -169,19 +169,19 @@ export const useMatrixFilterOptions = ({
       return true;
     });
 
-    return Array.from(new Set(filtered.map((summary) => summary.bandId)))
-      .filter((id) => isEnabled(dataset?.catalogs.bands[id]))
+    return Array.from(new Set(filtered.map((summary) => summary.layerId)))
+      .filter((id) => isEnabled(dataset?.catalogs.layers[id]))
       .sort()
       .map((id) => ({
         value: id,
-        label: dataset?.catalogs.bands[id]?.label ?? id,
+        label: dataset?.catalogs.layers[id]?.label ?? id,
       }));
   }, [summaries, populationKey, measureId, statId, dataset]);
 
   const selectableMatrixSummaries = useMemo(() => {
     return summaries.filter((summary) => {
       if (!isEnabled(dataset?.catalogs.measures[summary.measureId])) return false;
-      if (!isEnabled(dataset?.catalogs.bands[summary.bandId])) return false;
+      if (!isEnabled(dataset?.catalogs.layers[summary.layerId])) return false;
       if (!isEnabled(dataset?.catalogs.stats[summary.statId])) return false;
       if (
         !hasOnlyEnabledPopulations(
@@ -205,10 +205,10 @@ export const useMatrixFilterOptions = ({
       }
       if (measureId && summary.measureId !== measureId) return false;
       if (statId && summary.statId !== statId) return false;
-      if (bandId && summary.bandId !== bandId) return false;
+      if (layerId && summary.layerId !== layerId) return false;
       return true;
     });
-  }, [selectableMatrixSummaries, populationKey, measureId, statId, bandId]);
+  }, [selectableMatrixSummaries, populationKey, measureId, statId, layerId]);
 
   const allMatrixOptions = useMemo<Option[]>(() => {
     return selectableMatrixSummaries.map((summary) => ({
@@ -240,7 +240,7 @@ export const useMatrixFilterOptions = ({
     populationOptions,
     measures,
     statOptions,
-    bandOptions,
+    layerOptions,
     matches,
     matrixOptions,
     allMatrixOptions,

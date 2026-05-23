@@ -89,11 +89,11 @@ const validateContext = (
     addError(bucket, `${path}.context`, "matrix.context is required.");
     return;
   }
-  if (matrix.context.bandId !== null && !isNonEmptyString(matrix.context.bandId)) {
-    addError(bucket, `${path}.context.bandId`, "context.bandId must be string or null.");
+  if (matrix.context.layerId !== null && !isNonEmptyString(matrix.context.layerId)) {
+    addError(bucket, `${path}.context.layerId`, "context.layerId must be string or null.");
   }
-  if (isNonEmptyString(matrix.context.bandId) && !bundle.catalogs.bands[matrix.context.bandId]) {
-    addError(bucket, `${path}.context.bandId`, `Unknown bandId '${matrix.context.bandId}'.`);
+  if (isNonEmptyString(matrix.context.layerId) && !bundle.catalogs.layers[matrix.context.layerId]) {
+    addError(bucket, `${path}.context.layerId`, `Unknown layerId '${matrix.context.layerId}'.`);
   }
   if (!isNonEmptyString(matrix.context.measureId)) {
     addError(bucket, `${path}.context.measureId`, "context.measureId is required.");
@@ -467,7 +467,7 @@ const toResult = (bucket: ReturnType<typeof createIssueBucket>): ValidationResul
     matrixCount: 0,
     populationCount: 0,
     subjectCount: 0,
-    bandCount: 0,
+    layerCount: 0,
     measureCount: 0,
   },
 });

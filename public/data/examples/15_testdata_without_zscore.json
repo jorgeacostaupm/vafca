@@ -1457,69 +1457,41 @@
     ]
   },
   "catalogs": {
-    "bands": {
+    "layers": {
       "delta": {
         "id": "delta",
         "label": "Delta",
-        "rangeHz": [
-          2,
-          4
-        ],
-        "description": "some description"
+        "description": "some description (2-4 Hz)"
       },
       "theta": {
         "id": "theta",
         "label": "Theta",
-        "rangeHz": [
-          4,
-          7
-        ],
-        "description": "some description"
+        "description": "some description (4-7 Hz)"
       },
       "alpha_low": {
         "id": "alpha_low",
         "label": "Alpha Low",
-        "rangeHz": [
-          8,
-          10
-        ],
-        "description": "some description"
+        "description": "some description (8-10 Hz)"
       },
       "alpha_high": {
         "id": "alpha_high",
         "label": "Alpha High",
-        "rangeHz": [
-          10,
-          12
-        ],
-        "description": "some description"
+        "description": "some description (10-12 Hz)"
       },
       "beta_low": {
         "id": "beta_low",
         "label": "Beta Low",
-        "rangeHz": [
-          12,
-          20
-        ],
-        "description": "some description"
+        "description": "some description (12-20 Hz)"
       },
       "beta_high": {
         "id": "beta_high",
         "label": "Beta High",
-        "rangeHz": [
-          20,
-          30
-        ],
-        "description": "some description"
+        "description": "some description (20-30 Hz)"
       },
       "gamma": {
         "id": "gamma",
         "label": "Gamma",
-        "rangeHz": [
-          30,
-          50
-        ],
-        "description": "some description"
+        "description": "some description (30-50 Hz)"
       }
     },
     "measures": {
@@ -1603,7 +1575,7 @@
       "kind": "aggregate",
       "label": "Delta - PLV - Mean - Study",
       "context": {
-        "bandId": "delta",
+        "layerId": "delta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -5758,7 +5730,7 @@
       "kind": "aggregate",
       "label": "Delta - PLV - Standard deviation - Study",
       "context": {
-        "bandId": "delta",
+        "layerId": "delta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -9913,7 +9885,7 @@
       "kind": "aggregate",
       "label": "Theta - PLV - Mean - Study",
       "context": {
-        "bandId": "theta",
+        "layerId": "theta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -14068,7 +14040,7 @@
       "kind": "aggregate",
       "label": "Theta - PLV - Standard deviation - Study",
       "context": {
-        "bandId": "theta",
+        "layerId": "theta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -18223,7 +18195,7 @@
       "kind": "aggregate",
       "label": "Alpha Low - PLV - Mean - Study",
       "context": {
-        "bandId": "alpha_low",
+        "layerId": "alpha_low",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -22378,7 +22350,7 @@
       "kind": "aggregate",
       "label": "Alpha Low - PLV - Standard deviation - Study",
       "context": {
-        "bandId": "alpha_low",
+        "layerId": "alpha_low",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -26533,7 +26505,7 @@
       "kind": "aggregate",
       "label": "Alpha High - PLV - Mean - Study",
       "context": {
-        "bandId": "alpha_high",
+        "layerId": "alpha_high",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -30688,7 +30660,7 @@
       "kind": "aggregate",
       "label": "Alpha High - PLV - Standard deviation - Study",
       "context": {
-        "bandId": "alpha_high",
+        "layerId": "alpha_high",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -34843,7 +34815,7 @@
       "kind": "aggregate",
       "label": "Beta Low - PLV - Mean - Study",
       "context": {
-        "bandId": "beta_low",
+        "layerId": "beta_low",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -38998,7 +38970,7 @@
       "kind": "aggregate",
       "label": "Beta Low - PLV - Standard deviation - Study",
       "context": {
-        "bandId": "beta_low",
+        "layerId": "beta_low",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -43153,7 +43125,7 @@
       "kind": "aggregate",
       "label": "Beta High - PLV - Mean - Study",
       "context": {
-        "bandId": "beta_high",
+        "layerId": "beta_high",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -47308,7 +47280,7 @@
       "kind": "aggregate",
       "label": "Beta High - PLV - Standard deviation - Study",
       "context": {
-        "bandId": "beta_high",
+        "layerId": "beta_high",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -51463,7 +51435,7 @@
       "kind": "aggregate",
       "label": "Gamma - PLV - Mean - Study",
       "context": {
-        "bandId": "gamma",
+        "layerId": "gamma",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -55618,7 +55590,7 @@
       "kind": "aggregate",
       "label": "Gamma - PLV - Standard deviation - Study",
       "context": {
-        "bandId": "gamma",
+        "layerId": "gamma",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -59773,7 +59745,7 @@
       "kind": "aggregate",
       "label": "Delta - ciPLV - Mean - Study",
       "context": {
-        "bandId": "delta",
+        "layerId": "delta",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -63928,7 +63900,7 @@
       "kind": "aggregate",
       "label": "Delta - ciPLV - Standard deviation - Study",
       "context": {
-        "bandId": "delta",
+        "layerId": "delta",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -68083,7 +68055,7 @@
       "kind": "aggregate",
       "label": "Theta - ciPLV - Mean - Study",
       "context": {
-        "bandId": "theta",
+        "layerId": "theta",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -72238,7 +72210,7 @@
       "kind": "aggregate",
       "label": "Theta - ciPLV - Standard deviation - Study",
       "context": {
-        "bandId": "theta",
+        "layerId": "theta",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -76393,7 +76365,7 @@
       "kind": "aggregate",
       "label": "Alpha Low - ciPLV - Mean - Study",
       "context": {
-        "bandId": "alpha_low",
+        "layerId": "alpha_low",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -80548,7 +80520,7 @@
       "kind": "aggregate",
       "label": "Alpha Low - ciPLV - Standard deviation - Study",
       "context": {
-        "bandId": "alpha_low",
+        "layerId": "alpha_low",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -84703,7 +84675,7 @@
       "kind": "aggregate",
       "label": "Alpha High - ciPLV - Mean - Study",
       "context": {
-        "bandId": "alpha_high",
+        "layerId": "alpha_high",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -88858,7 +88830,7 @@
       "kind": "aggregate",
       "label": "Alpha High - ciPLV - Standard deviation - Study",
       "context": {
-        "bandId": "alpha_high",
+        "layerId": "alpha_high",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -93013,7 +92985,7 @@
       "kind": "aggregate",
       "label": "Beta Low - ciPLV - Mean - Study",
       "context": {
-        "bandId": "beta_low",
+        "layerId": "beta_low",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -97168,7 +97140,7 @@
       "kind": "aggregate",
       "label": "Beta Low - ciPLV - Standard deviation - Study",
       "context": {
-        "bandId": "beta_low",
+        "layerId": "beta_low",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -101323,7 +101295,7 @@
       "kind": "aggregate",
       "label": "Beta High - ciPLV - Mean - Study",
       "context": {
-        "bandId": "beta_high",
+        "layerId": "beta_high",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -105478,7 +105450,7 @@
       "kind": "aggregate",
       "label": "Beta High - ciPLV - Standard deviation - Study",
       "context": {
-        "bandId": "beta_high",
+        "layerId": "beta_high",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -109633,7 +109605,7 @@
       "kind": "aggregate",
       "label": "Gamma - ciPLV - Mean - Study",
       "context": {
-        "bandId": "gamma",
+        "layerId": "gamma",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -113788,7 +113760,7 @@
       "kind": "aggregate",
       "label": "Gamma - ciPLV - Standard deviation - Study",
       "context": {
-        "bandId": "gamma",
+        "layerId": "gamma",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -117943,7 +117915,7 @@
       "kind": "aggregate",
       "label": "Delta - PLV - Mean - Control",
       "context": {
-        "bandId": "delta",
+        "layerId": "delta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -122098,7 +122070,7 @@
       "kind": "aggregate",
       "label": "Delta - PLV - Standard deviation - Control",
       "context": {
-        "bandId": "delta",
+        "layerId": "delta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -126253,7 +126225,7 @@
       "kind": "aggregate",
       "label": "Theta - PLV - Mean - Control",
       "context": {
-        "bandId": "theta",
+        "layerId": "theta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -130408,7 +130380,7 @@
       "kind": "aggregate",
       "label": "Theta - PLV - Standard deviation - Control",
       "context": {
-        "bandId": "theta",
+        "layerId": "theta",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -134563,7 +134535,7 @@
       "kind": "aggregate",
       "label": "Alpha Low - PLV - Mean - Control",
       "context": {
-        "bandId": "alpha_low",
+        "layerId": "alpha_low",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -138718,7 +138690,7 @@
       "kind": "aggregate",
       "label": "Alpha Low - PLV - Standard deviation - Control",
       "context": {
-        "bandId": "alpha_low",
+        "layerId": "alpha_low",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -142873,7 +142845,7 @@
       "kind": "aggregate",
       "label": "Alpha High - PLV - Mean - Control",
       "context": {
-        "bandId": "alpha_high",
+        "layerId": "alpha_high",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -147028,7 +147000,7 @@
       "kind": "aggregate",
       "label": "Alpha High - PLV - Standard deviation - Control",
       "context": {
-        "bandId": "alpha_high",
+        "layerId": "alpha_high",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -151183,7 +151155,7 @@
       "kind": "aggregate",
       "label": "Beta Low - PLV - Mean - Control",
       "context": {
-        "bandId": "beta_low",
+        "layerId": "beta_low",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -155338,7 +155310,7 @@
       "kind": "aggregate",
       "label": "Beta Low - PLV - Standard deviation - Control",
       "context": {
-        "bandId": "beta_low",
+        "layerId": "beta_low",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -159493,7 +159465,7 @@
       "kind": "aggregate",
       "label": "Beta High - PLV - Mean - Control",
       "context": {
-        "bandId": "beta_high",
+        "layerId": "beta_high",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -163648,7 +163620,7 @@
       "kind": "aggregate",
       "label": "Beta High - PLV - Standard deviation - Control",
       "context": {
-        "bandId": "beta_high",
+        "layerId": "beta_high",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -167803,7 +167775,7 @@
       "kind": "aggregate",
       "label": "Gamma - PLV - Mean - Control",
       "context": {
-        "bandId": "gamma",
+        "layerId": "gamma",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -171958,7 +171930,7 @@
       "kind": "aggregate",
       "label": "Gamma - PLV - Standard deviation - Control",
       "context": {
-        "bandId": "gamma",
+        "layerId": "gamma",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,
@@ -176113,7 +176085,7 @@
       "kind": "aggregate",
       "label": "Delta - ciPLV - Mean - Control",
       "context": {
-        "bandId": "delta",
+        "layerId": "delta",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -180268,7 +180240,7 @@
       "kind": "aggregate",
       "label": "Delta - ciPLV - Standard deviation - Control",
       "context": {
-        "bandId": "delta",
+        "layerId": "delta",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -184423,7 +184395,7 @@
       "kind": "aggregate",
       "label": "Theta - ciPLV - Mean - Control",
       "context": {
-        "bandId": "theta",
+        "layerId": "theta",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -188578,7 +188550,7 @@
       "kind": "aggregate",
       "label": "Theta - ciPLV - Standard deviation - Control",
       "context": {
-        "bandId": "theta",
+        "layerId": "theta",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -192733,7 +192705,7 @@
       "kind": "aggregate",
       "label": "Alpha Low - ciPLV - Mean - Control",
       "context": {
-        "bandId": "alpha_low",
+        "layerId": "alpha_low",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -196888,7 +196860,7 @@
       "kind": "aggregate",
       "label": "Alpha Low - ciPLV - Standard deviation - Control",
       "context": {
-        "bandId": "alpha_low",
+        "layerId": "alpha_low",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -201043,7 +201015,7 @@
       "kind": "aggregate",
       "label": "Alpha High - ciPLV - Mean - Control",
       "context": {
-        "bandId": "alpha_high",
+        "layerId": "alpha_high",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -205198,7 +205170,7 @@
       "kind": "aggregate",
       "label": "Alpha High - ciPLV - Standard deviation - Control",
       "context": {
-        "bandId": "alpha_high",
+        "layerId": "alpha_high",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -209353,7 +209325,7 @@
       "kind": "aggregate",
       "label": "Beta Low - ciPLV - Mean - Control",
       "context": {
-        "bandId": "beta_low",
+        "layerId": "beta_low",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -213508,7 +213480,7 @@
       "kind": "aggregate",
       "label": "Beta Low - ciPLV - Standard deviation - Control",
       "context": {
-        "bandId": "beta_low",
+        "layerId": "beta_low",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -217663,7 +217635,7 @@
       "kind": "aggregate",
       "label": "Beta High - ciPLV - Mean - Control",
       "context": {
-        "bandId": "beta_high",
+        "layerId": "beta_high",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -221818,7 +221790,7 @@
       "kind": "aggregate",
       "label": "Beta High - ciPLV - Standard deviation - Control",
       "context": {
-        "bandId": "beta_high",
+        "layerId": "beta_high",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -225973,7 +225945,7 @@
       "kind": "aggregate",
       "label": "Gamma - ciPLV - Mean - Control",
       "context": {
-        "bandId": "gamma",
+        "layerId": "gamma",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,
@@ -230128,7 +230100,7 @@
       "kind": "aggregate",
       "label": "Gamma - ciPLV - Standard deviation - Control",
       "context": {
-        "bandId": "gamma",
+        "layerId": "gamma",
         "measureId": "ciplv",
         "conditionId": null,
         "sessionId": null,

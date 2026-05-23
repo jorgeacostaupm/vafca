@@ -1,12 +1,7 @@
-import { Button, Select, Spin, Typography } from "antd";
+import { Button, Spin, Typography } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import { useAppDispatch } from "@/store/hooks";
-import {
-  markNetworkViewFormatting,
-  mutateNetworkViewType,
-} from "@/store/slices/networkVisualization";
-import type { ViewTypeSelectProps } from "@/types/networkPanels";
-import type { NetworkViewType } from "@/types/networkVisualization";
+import { markNetworkViewFormatting } from "@/store/slices/networkVisualization";
 
 export const LoadingPanelBody = ({ text }: { text: string }) => (
   <div
@@ -61,47 +56,6 @@ export const NetworkPanelStatusContent = ({
       status={status}
       error={error}
       onRetry={() => dispatch(markNetworkViewFormatting({ viewId }))}
-    />
-  );
-};
-
-export const ViewTypeSelect = ({ value, onChange }: ViewTypeSelectProps) => (
-  <Select
-    size="small"
-    style={{ width: 128 }}
-    aria-label="Mutate view type"
-    value={value}
-    onChange={(nextValue) =>
-      onChange(nextValue as "matrix" | "circular" | "classic")
-    }
-    options={[
-      { value: "matrix", label: "Matrix" },
-      { value: "circular", label: "Circular" },
-      { value: "classic", label: "Node-Link" },
-    ]}
-  />
-);
-
-export const NetworkViewTypeControl = ({
-  viewId,
-  value,
-}: {
-  viewId: string;
-  value: NetworkViewType;
-}) => {
-  const dispatch = useAppDispatch();
-
-  return (
-    <ViewTypeSelect
-      value={value}
-      onChange={(nextType) =>
-        dispatch(
-          mutateNetworkViewType({
-            viewId,
-            nextType,
-          }),
-        )
-      }
     />
   );
 };

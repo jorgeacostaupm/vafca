@@ -1,4 +1,5 @@
 import { Button, Modal, Space, Tabs, Typography } from "antd";
+import { DEFAULT_DATA_MANAGEMENT_TAB } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { downloadCurrentDataset } from "@/store/slices/dataset";
 import CatalogManagementSections from "@/components/management/components/catalogs/CatalogManagementSections";
@@ -19,7 +20,7 @@ function DataLoadingTab() {
         { label: "Populations", value: Object.keys(data.catalogs.populations).length },
         { label: "Measures", value: Object.keys(data.catalogs.measures).length },
         { label: "Statistics", value: Object.keys(data.catalogs.stats).length },
-        { label: "Bands", value: Object.keys(data.catalogs.bands).length },
+        { label: "Layers", value: Object.keys(data.catalogs.layers).length },
       ]
     : [];
 
@@ -100,7 +101,7 @@ function DataManagementModal({ open, onClose }: DataManagementModalProps) {
       width={980}
       destroyOnHidden
     >
-      <Tabs items={items} />
+      <Tabs defaultActiveKey={DEFAULT_DATA_MANAGEMENT_TAB} items={items} />
     </Modal>
   );
 }

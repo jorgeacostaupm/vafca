@@ -10,7 +10,7 @@ Single matrix:
 ```json
 {
   "id": "alpha-power-z-control",
-  "bandId": "alpha",
+  "layerId": "alpha",
   "measureId": "plv",
   "statId": "z_score",
   "populationIds": ["control"],
@@ -28,7 +28,7 @@ List of matrices:
 [
   {
     "id": "alpha-power-z-control",
-    "bandId": "alpha",
+    "layerId": "alpha",
     "measureId": "plv",
     "statId": "z_score",
     "populationIds": ["control"],
@@ -53,7 +53,7 @@ Dataset-like payload:
   "matrices": [
     {
       "id": "alpha-power-z-control",
-      "bandId": "alpha",
+      "layerId": "alpha",
       "measureId": "plv",
       "statId": "z_score",
       "populationIds": ["control"],
@@ -69,7 +69,7 @@ Dataset-like payload:
 ## Required fields
 
 - `id`: non-empty string that identifies the matrix.
-- `bandId`: non-empty string. It must exist in the current dataset band catalog.
+- `layerId`: non-empty string. It must exist in the current dataset layer catalog.
 - `measureId`: non-empty string. It must exist in the current dataset measure catalog.
 - `statId`: non-empty string. It must exist in the current dataset stat catalog.
 - `populationIds`: non-empty array of strings. Every id must exist in the current dataset population catalog.
@@ -103,5 +103,5 @@ and validation message.
 Matrices are stored by the compound key:
 
 ```text
-bandId::measureId::statId::sortedPopulationIds
+layerId::measureId::statId::sortedPopulationIds
 ```

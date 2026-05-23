@@ -90,15 +90,11 @@ export type MatrixEdge = {
   value: MatrixCellValue;
 };
 
-export function* iterateMatrixEdges(
-  matrix: MatrixRecord,
-  includeDiagonal = false,
-): Generator<MatrixEdge> {
+export function* iterateMatrixEdges(matrix: MatrixRecord): Generator<MatrixEdge> {
   const [rows, cols] = matrix.geometry.shape;
   for (let i = 0; i < rows; i += 1) {
     const start = matrix.encoding.symmetric ? i : 0;
     for (let j = start; j < cols; j += 1) {
-      if (!includeDiagonal && i === j) continue;
       yield { i, j, value: getMatrixValue(matrix, i, j) };
     }
   }

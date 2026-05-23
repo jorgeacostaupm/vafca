@@ -12,6 +12,4 @@ export const selectSelectedLinksDownloadStatus = (state: RootState) =>
 export const selectSelectedLinksDownloadError = (state: RootState) =>
   state.visualizationUi.selectedLinksDownloadError
 export const selectUiRangeMode = (state: RootState) => state.visualizationUi.uiRangeMode
-export const selectIncludeDiagonalInRanges = (state: RootState) =>
-  state.visualizationUi.includeDiagonalInRanges
 export const selectAtlasPanelState = (state: RootState) => state.visualizationUi.atlasPanel

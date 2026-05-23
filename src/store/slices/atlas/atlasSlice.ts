@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { AtlasLabel, AtlasState } from '@/types/atlas'
 import type { MatrixOrderEntry } from '@/types/matrixOrder'
-import { DEFAULT_D3_CATEGORICAL_PALETTE } from '@/utils/atlas/coloring'
+import { DEFAULT_D3_GROUPING_PALETTE } from '@/config/groupingPalettes'
 import {
   type AtlasColorPalettePayload,
   initialAtlasState,
@@ -117,7 +117,7 @@ export const buildAtlasState = (
     labelsById,
     initialized: true,
     colorFields: previous?.colorFields ?? [],
-    colorPalette: previous?.colorPalette ?? DEFAULT_D3_CATEGORICAL_PALETTE,
+    colorPalette: previous?.colorPalette ?? DEFAULT_D3_GROUPING_PALETTE,
     circularHierarchyFields: previous?.circularHierarchyFields ?? [],
     circularHierarchyCategoryOrder: previous?.circularHierarchyCategoryOrder ?? {},
     matrixHierarchyFields: previous?.matrixHierarchyFields ?? [],

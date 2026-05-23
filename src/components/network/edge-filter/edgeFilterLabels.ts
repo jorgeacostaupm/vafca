@@ -43,10 +43,10 @@ export const formatNetworkMatrixLabel = (
   catalogs?: Catalogs,
 ) => {
   const source = formatMatrixSourceLabel(matrix, catalogs);
-  const band = matrix.context.bandId
-    ? catalogs?.bands[matrix.context.bandId]?.label ?? matrix.context.bandId
-    : "No band";
+  const layer = matrix.context.layerId
+    ? catalogs?.layers[matrix.context.layerId]?.label ?? matrix.context.layerId
+    : "No layer";
   const measure = catalogs?.measures[matrix.context.measureId]?.label ?? matrix.context.measureId;
   const stat = catalogs?.stats[matrix.stat.id]?.label ?? matrix.stat.id;
-  return matrix.label ?? `${source} · ${band} · ${measure} · ${stat}`;
+  return matrix.label ?? `${source} · ${layer} · ${measure} · ${stat}`;
 };

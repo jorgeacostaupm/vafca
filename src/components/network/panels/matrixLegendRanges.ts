@@ -67,7 +67,6 @@ export const buildComparableMatrixLegendRanges = ({
       dataset?.connectivity?.matrixIndex[matrixRecord.id] ?? matrixRecord;
     const range = resolveMatrixUiRange(sourceMatrix, dataset?.catalogs, {
       uiRangeMode: computed.uiRangeMode,
-      includeDiagonal: computed.includeDiagonalInRanges,
       target: "colorLegend",
     });
     const key = getComparableLegendGroupKey(view);

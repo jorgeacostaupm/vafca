@@ -1277,15 +1277,11 @@
     ]
   },
   "catalogs": {
-    "bands": {
+    "layers": {
       "alpha": {
         "id": "alpha",
         "label": "Alpha",
-        "rangeHz": [
-          8,
-          12
-        ],
-        "description": "Alpha band"
+        "description": "Alpha layer (8-12 Hz)"
       }
     },
     "measures": {
@@ -1338,7 +1334,7 @@
       "kind": "subject",
       "label": "m_s001_alpha_plv_value",
       "context": {
-        "bandId": "alpha",
+        "layerId": "alpha",
         "measureId": "plv",
         "conditionId": null,
         "sessionId": null,

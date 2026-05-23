@@ -5,6 +5,7 @@ export type PanelItem = {
   id: string;
   title: string;
   content: ReactNode;
+  headerStart?: ReactNode;
   actions?: ReactNode;
   className?: string;
 };

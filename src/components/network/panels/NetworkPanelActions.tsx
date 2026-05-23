@@ -1,4 +1,4 @@
-import { Button, Popover, Space } from "antd";
+import { Button, Popover } from "antd";
 import {
   FilterOutlined,
   FullscreenOutlined,
@@ -95,7 +95,7 @@ export default function NetworkPanelActions({
   );
 
   return (
-    <Space size={4}>
+    <div className="network-panel-actions">
       <ChartDownloadButton svgRef={svgRef} fileName={`${viewTitle} ${view.label}`} />
       <Button
         size="small"
@@ -212,6 +212,6 @@ export default function NetworkPanelActions({
           icon={<FilterOutlined />}
         />
       </Popover>
-    </Space>
+    </div>
   );
 }

@@ -1,21 +1,29 @@
 import {
-  ALL_COMPATIBLE_BANDS,
+  ALL_COMPATIBLE_LAYERS,
+  getMatrixAggregationGroupingKey,
+  getMatrixAggregationGroupingLabel,
   getMatrixLabel,
   getMatrixSource,
   getMatrixSourceLabel,
   matrixMatchesRankingQuery,
   toRankingMatrixKind,
 } from "@/utils/rankings/rankingMatrixMetadata";
+import { RANKING_TOP_N_OPTIONS } from "@/config/ui";
 import type { ConnectivityDataState, MatrixRecord } from "@/types/connectivityBundle";
 import type { RankingQuery } from "@/types/rankings";
 
 type Option = { value: string; label: string };
 
-export const ALL_RANKING_SOURCES = "__all_ranking_sources__";
-export const ALL_RANKING_MEASURES = "__all_ranking_measures__";
-export const ALL_RANKING_STATISTICS = "__all_ranking_statistics__";
+const isRankingMatrixCandidate = (matrix: MatrixRecord) => {
+  void matrix;
+  return true;
+};
 
-const isRankingMatrixCandidate = (matrix: MatrixRecord) => matrix.kind !== "reduced";
+const sourceTypeLabel: Record<NonNullable<RankingQuery["sourceType"]>, string> = {
+  population: "Population",
+  subject: "Subject",
+  comparison: "Comparison",
+};
 
 const matchesQueryPart = (
   matrix: MatrixRecord,
@@ -26,7 +34,69 @@ const matchesQueryPart = (
   ignored.forEach((key) => {
     delete patch[key];
   });
+  if (patch.layerIds?.length === 0) {
+    delete patch.layerIds;
+  }
   return isRankingMatrixCandidate(matrix) && matrixMatchesRankingQuery(matrix, patch);
+};
+
+const getSelectedLayerCompatibility = (
+  matrices: MatrixRecord[],
+  query: RankingQuery,
+) => {
+  const selectedLayerIds = (query.layerIds ?? []).filter(
+    (layerId) => layerId !== ALL_COMPATIBLE_LAYERS,
+  );
+  if (selectedLayerIds.length === 0) return {};
+
+  const selectedMatrices = matrices.filter(
+    (matrix) =>
+      selectedLayerIds.includes(matrix.context.layerId ?? "none") &&
+      matchesQueryPart(matrix, query, ["layerIds"]),
+  );
+  const selectedKinds = new Set(
+    selectedMatrices.map((matrix) => toRankingMatrixKind(matrix.kind)),
+  );
+  const selectedGroupingKeys = new Set(
+    selectedMatrices
+      .map(getMatrixAggregationGroupingKey)
+      .filter((key): key is string => Boolean(key)),
+  );
+
+  return {
+    matrixKind: selectedKinds.size === 1 ? Array.from(selectedKinds)[0] : undefined,
+    aggregationGroupingKey:
+      selectedGroupingKeys.size === 1
+        ? Array.from(selectedGroupingKeys)[0]
+        : undefined,
+  };
+};
+
+export const getRankingLayerSelectionPatch = (
+  connectivity: ConnectivityDataState | null | undefined,
+  query: RankingQuery,
+  layerIds: string[],
+): Partial<RankingQuery> => {
+  if (!connectivity || layerIds.includes(ALL_COMPATIBLE_LAYERS)) {
+    return layerIds.includes(ALL_COMPATIBLE_LAYERS) && query.aggregationGroupingKey
+      ? {
+          matrixKind: query.matrixKind,
+          aggregationGroupingKey: query.aggregationGroupingKey,
+        }
+      : {
+          matrixKind: undefined,
+          aggregationGroupingKey: undefined,
+        };
+  }
+
+  const compatibility = getSelectedLayerCompatibility(connectivity.matrices, {
+    ...query,
+    layerIds,
+  });
+  return {
+    matrixKind: compatibility.matrixKind,
+    aggregationGroupingKey: compatibility.aggregationGroupingKey,
+  };
 };
 
 export const matrixMetricOptions = [
@@ -41,8 +111,8 @@ export const linkMetricOptions = [
   { label: "Highest value", value: "highestValue" },
   { label: "Lowest value", value: "lowestValue" },
   { label: "Highest absolute value", value: "highestAbsValue" },
-  { label: "Mean across bands", value: "meanAcrossMatrices" },
-  { label: "Mean absolute across bands", value: "meanAbsAcrossMatrices" },
+  { label: "Mean across layers", value: "meanAcrossMatrices" },
+  { label: "Mean absolute across layers", value: "meanAbsAcrossMatrices" },
 ];
 
 export const roiMetricOptions = [
@@ -52,7 +122,7 @@ export const roiMetricOptions = [
   { label: "Max absolute incident value", value: "maxAbsValue" },
 ];
 
-export const topNOptions = [10, 25, 50, 100, 250, 500].map((value) => ({
+export const topNOptions = RANKING_TOP_N_OPTIONS.map((value) => ({
   label: String(value),
   value,
 }));
@@ -73,10 +143,15 @@ export const getSourceOptions = (
     if (seen.has(value)) return [];
     seen.add(value);
     return [
-      { label: getMatrixSourceLabel(matrix, connectivity) ?? source.sourceId, value },
+      {
+        label: `${sourceTypeLabel[source.sourceType]} · ${
+          getMatrixSourceLabel(matrix, connectivity) ?? source.sourceId
+        }`,
+        value,
+      },
     ];
   });
-  return [{ label: "All sources", value: ALL_RANKING_SOURCES }, ...options];
+  return options;
 };
 
 export const getMeasureOptions = (
@@ -96,7 +171,7 @@ export const getMeasureOptions = (
       label: connectivity.catalogs.measures[id]?.label ?? id,
       value: id,
     }));
-  return [{ label: "All measures", value: ALL_RANKING_MEASURES }, ...options];
+  return options;
 };
 
 export const getStatisticOptions = (
@@ -116,23 +191,63 @@ export const getStatisticOptions = (
       label: connectivity.catalogs.stats[id]?.label ?? id,
       value: id,
     }));
-  return [{ label: "All statistics", value: ALL_RANKING_STATISTICS }, ...options];
+  return options;
 };
 
-export const getCompatibleBandOptions = (
+export const getCompatibleLayerOptions = (
   connectivity: ConnectivityDataState | null | undefined,
   query: RankingQuery,
 ) => {
   if (!connectivity) return [];
-  const bands = connectivity.matrices
-    .filter((matrix) => matchesQueryPart(matrix, query, ["bandIds"]))
-    .map((matrix) => matrix.context.bandId ?? "none");
-  const uniqueBands = Array.from(new Set(bands));
+  const selectedCompatibility = getSelectedLayerCompatibility(
+    connectivity.matrices,
+    query,
+  );
+  const layers = connectivity.matrices
+    .filter((matrix) => {
+      if (!matchesQueryPart(matrix, query, ["layerIds", "aggregationGroupingKey"])) {
+        return false;
+      }
+      if (
+        selectedCompatibility.matrixKind &&
+        toRankingMatrixKind(matrix.kind) !== selectedCompatibility.matrixKind
+      ) {
+        return false;
+      }
+      if (
+        selectedCompatibility.aggregationGroupingKey &&
+        getMatrixAggregationGroupingKey(matrix) !==
+          selectedCompatibility.aggregationGroupingKey
+      ) {
+        return false;
+      }
+      return true;
+    });
+  const uniqueLayers = Array.from(
+    new Map(
+      layers.map((matrix) => {
+        const layerId = matrix.context.layerId ?? "none";
+        const groupingLabel = getMatrixAggregationGroupingLabel(matrix);
+        return [
+          layerId,
+          {
+            layerId,
+            groupingLabel,
+          },
+        ];
+      }),
+    ).values(),
+  );
   return [
-    { label: "All compatible bands", value: ALL_COMPATIBLE_BANDS },
-    ...uniqueBands.map((bandId) => ({
-      label: connectivity.catalogs.bands[bandId]?.label ?? bandId,
-      value: bandId,
+    { label: "All layers", value: ALL_COMPATIBLE_LAYERS },
+    ...uniqueLayers.map(({ layerId, groupingLabel }) => ({
+      label: [
+        connectivity.catalogs.layers[layerId]?.label ?? layerId,
+        groupingLabel ? `grouped by ${groupingLabel}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      value: layerId,
     })),
   ];
 };
@@ -168,28 +283,53 @@ export const getRankingQueryMissingFields = (
   const missing: string[] = [];
   if (!connectivity) missing.push("dataset");
   if (!query.target) missing.push("target");
+  if (!query.sourceType || !query.sourceId) missing.push("source");
+  if (!query.measureId) missing.push("measure");
+  if (!query.statisticId) missing.push("statistic");
   if (!query.metric) missing.push("metric");
   if (!query.topN) missing.push("top N");
+  const hasSelectedLayers = Boolean(query.layerIds?.length);
+  if (!hasSelectedLayers) missing.push("layers");
+  if (
+    query.target === "rois" &&
+    (!hasSelectedLayers ||
+      query.layerIds?.length !== 1 ||
+      query.layerIds.includes(ALL_COMPATIBLE_LAYERS))
+  ) {
+    missing.push("single layer");
+  }
+  if (
+    connectivity &&
+    query.sourceType &&
+    query.sourceId &&
+    query.measureId &&
+    query.statisticId &&
+    hasSelectedLayers &&
+    !connectivity.matrices.some((matrix) => matchesQueryPart(matrix, query))
+  ) {
+    missing.push("compatible matrices");
+  }
   if (
     query.target === "links" &&
-    query.bandIds &&
-    query.bandIds.length !== 1 &&
+    query.layerIds &&
+    query.layerIds.length !== 1 &&
     !query.linkCollectionMode
   ) {
-    missing.push("multi-band mode");
+    missing.push("multi-layer mode");
   }
   return missing;
 };
 
 const titleCaseTarget = (target: RankingQuery["target"]) => {
+  if (target === "matrices") return "Networks";
   if (target === "rois") return "ROIs";
-  return target.charAt(0).toUpperCase() + target.slice(1);
+  return "Links";
 };
 
 const optionLabel = (options: Option[], value?: string) =>
   value ? options.find((option) => option.value === value)?.label ?? value : undefined;
 
-const rankingMetricLabel = (query: RankingQuery) => {
+export const getRankingMetricLabel = (query: RankingQuery) => {
   const options =
     query.target === "matrices"
       ? matrixMetricOptions
@@ -199,25 +339,20 @@ const rankingMetricLabel = (query: RankingQuery) => {
   return optionLabel(options, query.metric) ?? query.metric;
 };
 
-const rankingModeLabel = (query: RankingQuery) => {
-  if (query.target !== "links") return undefined;
-  if (query.linkCollectionMode === "expanded") return "one row per band";
-  return "aggregated bands";
-};
-
-const rankingBandLabel = (
-  connectivity: ConnectivityDataState,
-  query: RankingQuery,
-) => {
-  const bandIds = query.bandIds ?? [];
-  if (bandIds.length === 0 || bandIds.includes(ALL_COMPATIBLE_BANDS)) {
-    return "all bands";
+const rankingAutoconnectionsLabel = (query: RankingQuery) => {
+  if (
+    query.target === "links" &&
+    query.allowLinkRankingAutoconnections
+  ) {
+    return "autoconnections allowed";
   }
-  if (bandIds.length === 1) {
-    const bandId = bandIds[0];
-    return connectivity.catalogs.bands[bandId]?.label ?? bandId;
+  if (
+    query.target === "rois" &&
+    query.allowRoiRankingAutoconnections
+  ) {
+    return "autoconnections allowed";
   }
-  return `${bandIds.length} bands`;
+  return undefined;
 };
 
 export const formatRankingPanelTitle = (
@@ -237,18 +372,14 @@ export const formatRankingPanelTitle = (
     connectivity && query.statisticId
       ? connectivity.catalogs.stats[query.statisticId]?.label ?? query.statisticId
       : "all statistics";
-  const bands = connectivity ? rankingBandLabel(connectivity, query) : undefined;
-  const mode = rankingModeLabel(query);
+  const autoconnections = rankingAutoconnectionsLabel(query);
 
   return [
-    `${titleCaseTarget(query.target)} ranking`,
-    rankingMetricLabel(query),
+    titleCaseTarget(query.target),
     source,
     measure,
     statistic,
-    bands,
-    mode,
-    `top ${query.topN}`,
+    autoconnections,
   ]
     .filter(Boolean)
     .join(" · ");

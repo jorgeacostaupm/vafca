@@ -62,9 +62,6 @@ const visualizationUiSlice = createSlice({
     setUiRangeMode(state, action: PayloadAction<UiRangeMode>) {
       state.uiRangeMode = action.payload
     },
-    setIncludeDiagonalInRanges(state, action: PayloadAction<boolean>) {
-      state.includeDiagonalInRanges = action.payload
-    },
     setAtlasPanelState(state, action: PayloadAction<Partial<AtlasPanelState>>) {
       state.atlasPanel = { ...state.atlasPanel, ...action.payload }
     },
@@ -99,7 +96,6 @@ export const {
   toggleAtlasLinkId,
   clearAtlasLinkIds,
   setUiRangeMode,
-  setIncludeDiagonalInRanges,
   setAtlasPanelState,
 } = visualizationUiSlice.actions
 

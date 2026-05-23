@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useAppDispatch } from "@/store/hooks";
 import type { AtlasDefinition, AtlasState } from "@/types/atlas";
 import type { CircularPreviewLink } from "@/types/circular";
-import { buildAtlasRoiColorById } from "@/utils/atlas/coloring";
+import { buildRoiGroupingColorById } from "@/utils/groupingColoring";
 import { getCommonRoiFields } from "@/utils/atlas/atlasDefinition";
 import {
   buildCircularHierarchyBundleLayout,
@@ -139,9 +139,9 @@ export const useManagementHierarchy = ({
 
   const previewNodeColors = useMemo(
     () =>
-      buildAtlasRoiColorById({
+      buildRoiGroupingColorById({
         atlasDefinition,
-        colorFields: atlas.colorFields,
+        groupingFields: atlas.colorFields,
         colorPalette: atlas.colorPalette,
       }),
     [atlasDefinition, atlas.colorFields, atlas.colorPalette],

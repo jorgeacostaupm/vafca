@@ -1,9 +1,11 @@
 import type {
   AtlasLabel,
   AtlasState,
-  D3CategoricalPaletteKey,
 } from '@/types/atlas'
-import { DEFAULT_D3_CATEGORICAL_PALETTE } from '@/utils/atlas/coloring'
+import {
+  DEFAULT_D3_GROUPING_PALETTE,
+  type D3GroupingPaletteKey,
+} from '@/config/groupingPalettes'
 
 export type AtlasSliceState = AtlasState
 
@@ -17,11 +19,11 @@ export const initialAtlasState: AtlasSliceState = {
   labelsById: {},
   initialized: false,
   colorFields: [],
-  colorPalette: DEFAULT_D3_CATEGORICAL_PALETTE,
+  colorPalette: DEFAULT_D3_GROUPING_PALETTE,
   circularHierarchyFields: [],
   circularHierarchyCategoryOrder: {},
   matrixHierarchyFields: [],
   matrixHierarchyCategoryOrder: {},
 }
 
-export type AtlasColorPalettePayload = D3CategoricalPaletteKey
+export type AtlasColorPalettePayload = D3GroupingPaletteKey

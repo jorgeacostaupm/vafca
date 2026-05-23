@@ -24,7 +24,7 @@ export default function NetworkVisualizationTab() {
   const rankingError = useAppSelector((state) => state.rankings.error);
 
   return (
-    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+    <div className="network-visualization-tab">
       <Card className="network-control-card" variant="outlined">
         <Tabs
           activeKey={activeTab}
@@ -50,6 +50,6 @@ export default function NetworkVisualizationTab() {
         />
       </Card>
       <NetworkVisualizationSelector />
-    </Space>
+    </div>
   );
 }

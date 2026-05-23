@@ -1,12 +1,21 @@
+import type * as d3 from "d3";
 import { escapeHtml } from "@/utils/html";
 import { buildRoiTooltipLabel, SELECTED_STROKE } from "@/components/nodelink/nodelinkShared";
+import {
+  NODE_LINK_NODE_HOVER_RADIUS_OFFSET,
+  NODE_LINK_ZOOM_RADIUS_OFFSET,
+} from "@/config/ui";
 import type { ClassicLink, ClassicNode } from "@/types/nodelink";
 
+type ClassicLinkSelection = d3.Selection<SVGLineElement, ClassicLink, SVGGElement, unknown>;
+type ClassicNodeSelection = d3.Selection<SVGCircleElement, ClassicNode, SVGGElement, unknown>;
+type ClassicLabelSelection = d3.Selection<SVGTextElement, ClassicNode, SVGGElement, unknown>;
+
 export const applyClassicHoverSelectionStyles = (args: {
-  linkSelection: any;
-  nodeSelection: any;
-  labelSelection: any;
-  widthScale: any;
+  linkSelection: ClassicLinkSelection;
+  nodeSelection: ClassicNodeSelection;
+  labelSelection: ClassicLabelSelection;
+  widthScale: d3.ScaleLinear<number, number>;
   zoomLabelSet: Set<string> | null;
   nodeRadius: number;
   hoveredCell?: { rowId: string; colId: string } | null;
@@ -36,16 +45,26 @@ export const applyClassicHoverSelectionStyles = (args: {
       ? (link.rowId === hovered.rowId && link.colId === hovered.colId) ||
         (link.rowId === hovered.colId && link.colId === hovered.rowId)
       : false;
+  const isHoveredNodeLink = (link: ClassicLink) =>
+    hoveredNode ? link.rowId === hoveredNode || link.colId === hoveredNode : false;
   const isSelectedLink = (link: ClassicLink) =>
     selectedLinkIds.has(`${link.rowId}::${link.colId}`) ||
     selectedLinkIds.has(`${link.colId}::${link.rowId}`);
 
   linkSelection
     .attr("stroke-opacity", (link: ClassicLink) => {
-      if (isSelectedLink(link)) return hovered && isHoveredLink(link) ? 1 : 0.9;
+      if (isSelectedLink(link)) {
+        if (hovered) return isHoveredLink(link) ? 1 : 0.25;
+        if (hoveredNode) return isHoveredNodeLink(link) ? 1 : 0.25;
+        return 0.9;
+      }
       if (hovered) {
         if (isHoveredLink(link)) return 1;
         return 0.2;
+      }
+      if (hoveredNode) {
+        if (isHoveredNodeLink(link)) return 1;
+        return 0.12;
       }
       return 0.55;
     })
@@ -53,6 +72,7 @@ export const applyClassicHoverSelectionStyles = (args: {
       const base = widthScale(Math.abs(link.value));
       if (isSelectedLink(link)) return Math.max(base, SELECTED_STROKE);
       if (hovered && isHoveredLink(link)) return Math.max(base + 0.8, SELECTED_STROKE);
+      if (hoveredNode && isHoveredNodeLink(link)) return Math.max(base + 0.8, SELECTED_STROKE);
       return base;
     });
 
@@ -61,8 +81,8 @@ export const applyClassicHoverSelectionStyles = (args: {
       const isZoom = node.labelId !== undefined && zoomLabelSet?.has(node.labelId);
       const labelId = node.labelId ?? String(node.id);
       const isHover = hoveredNode === labelId;
-      let radius = nodeRadius + (isZoom ? 1.5 : 0);
-      if (isHover) radius += 2.5;
+      let radius = nodeRadius + (isZoom ? NODE_LINK_ZOOM_RADIUS_OFFSET : 0);
+      if (isHover) radius += NODE_LINK_NODE_HOVER_RADIUS_OFFSET;
       return radius;
     })
     .attr("fill", (node: ClassicNode) => {
