@@ -1,6 +1,6 @@
 export type InitialDataConfig = {
-  loadTestDataset: boolean;
-  testDatasetFile: InitialDataFile;
+  loadInitialDataset: boolean;
+  initialDatasetFile: InitialDataFile;
   loadTestAtlas: boolean;
   testAtlasFile: InitialDataFile;
 };
@@ -10,50 +10,26 @@ export type InitialDataFile = {
   path: string;
 };
 
-export const testDatasetFiles = {
-  onePopulationControl: {
-    label: "One population control",
-    path: "data/examples/01_one_population_control.json",
+export const initialDatasetFiles = {
+  minimalMatrices: {
+    label: "Minimal matrices",
+    path: "data/examples/01_minimal_matrices.zip",
   },
-  oneSubjectStudy: {
-    label: "One subject study",
-    path: "data/examples/02_one_subject_study.json",
+  roisAndMatrices: {
+    label: "ROIs and matrices",
+    path: "data/examples/02_rois_and_matrices.zip",
   },
-  populationAndSubject: {
-    label: "Population and subject",
-    path: "data/examples/03_population_and_subject.json",
+  matrixFolder: {
+    label: "Matrix folder",
+    path: "data/examples/03_matrix_folder.zip",
   },
-  twoPopulations: {
-    label: "Two populations",
-    path: "data/examples/04_two_populations.json",
+  testDataTwoPopulationsZScore: {
+    label: "test_Data 2 populations z-score",
+    path: "data/examples/04_test_data_2_populations_z_score.zip",
   },
-  betaLayerStudy: {
-    label: "Beta layer study",
-    path: "data/examples/05_different_layer_warning.json",
-  },
-  ciPlvStudy: {
-    label: "ciPLV study",
-    path: "data/examples/06_different_measure_warning.json",
-  },
-  swappedRoiOrder: {
-    label: "Swapped ROI order",
-    path: "data/examples/07_incompatible_roi_order_error.json",
-  },
-  upperTriangular: {
-    label: "Upper triangular layout",
-    path: "data/examples/08_upper_triangular_layout.json",
-  },
-  lowerTriangular: {
-    label: "Lower triangular layout",
-    path: "data/examples/09_lower_triangular_layout.json",
-  },
-  testDataFullZscore: {
-    label: "testData with z-score",
-    path: "data/examples/14_testdata_full_zscore.json",
-  },
-  testDataWithoutZscore: {
-    label: "testData without z-score",
-    path: "data/examples/15_testdata_without_zscore.json",
+  simpleSubset: {
+    label: "Simple subset",
+    path: "data/examples/05_simple_subset.zip",
   },
 } satisfies Record<string, InitialDataFile>;
 
@@ -69,8 +45,8 @@ export const testAtlasFiles = {
 } satisfies Record<string, InitialDataFile>;
 
 export const initialDataConfig: InitialDataConfig = {
-  loadTestDataset: true,
-  testDatasetFile: testDatasetFiles.testDataFullZscore,
+  loadInitialDataset: true,
+  initialDatasetFile: initialDatasetFiles.testDataTwoPopulationsZScore,
   loadTestAtlas: true,
   testAtlasFile: testAtlasFiles.aal90WithoutMeshPoints,
 };

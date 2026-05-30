@@ -11,7 +11,6 @@ type UseCircularSceneArgs = {
   labels?: string[];
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  labelAcronyms?: Record<string, string>;
   nodes: CircularNode[];
   links: CircularLink[];
   degreeById: Map<string, number>;
@@ -47,7 +46,6 @@ export const useCircularScene = ({
   labels,
   labelNames,
   labelTitles,
-  labelAcronyms,
   nodes,
   links,
   degreeById,
@@ -101,7 +99,6 @@ export const useCircularScene = ({
       labels,
       labelNames,
       labelTitles,
-      labelAcronyms,
       nodes,
       links,
       degreeById,
@@ -147,7 +144,6 @@ export const useCircularScene = ({
     labels,
     labelNames,
     labelTitles,
-    labelAcronyms,
     nodes,
     links,
     degreeById,

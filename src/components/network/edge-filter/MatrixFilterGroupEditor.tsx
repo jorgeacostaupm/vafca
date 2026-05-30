@@ -1,3 +1,4 @@
+import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Button, Card, Select, Space, Tooltip, Typography } from "antd";
 import {
   createDraftMatrixFilterRule,
@@ -80,12 +81,37 @@ export default function MatrixFilterGroupEditor({
     <Card
       size="small"
       className="edge-filter-group"
-      title={isRoot ? "Root group" : `Group level ${depth}`}
+      title={isRoot ? "Custom rule" : `Group level ${depth}`}
       extra={
-        <Space wrap>
-          {onMoveUp ? <a onClick={onMoveUp}>Move up</a> : null}
-          {onMoveDown ? <a onClick={onMoveDown}>Move down</a> : null}
-          {!isRoot && onDelete ? <a onClick={onDelete}>Delete group</a> : null}
+        <Space wrap className="edge-filter-group__actions">
+          {onMoveUp ? (
+            <Tooltip title="Move up">
+              <Button
+                aria-label="Move group up"
+                icon={<ArrowUpOutlined />}
+                onClick={onMoveUp}
+              />
+            </Tooltip>
+          ) : null}
+          {onMoveDown ? (
+            <Tooltip title="Move down">
+              <Button
+                aria-label="Move group down"
+                icon={<ArrowDownOutlined />}
+                onClick={onMoveDown}
+              />
+            </Tooltip>
+          ) : null}
+          {!isRoot && onDelete ? (
+            <Tooltip title="Delete group">
+              <Button
+                aria-label="Delete group"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={onDelete}
+              />
+            </Tooltip>
+          ) : null}
         </Space>
       }
     >

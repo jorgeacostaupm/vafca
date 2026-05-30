@@ -1,12 +1,13 @@
 import { Card, Input, Space, Switch, Typography } from "antd";
 import { useAppSelector } from "@/store/hooks";
+import { selectDatasetContent } from "@/store/slices/dataset";
 import { isEnabled } from "@/components/management/utils/catalogValues";
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 
 function PopulationCatalogSection() {
   const updateItem = useCatalogItemUpdater();
   const populations = useAppSelector(
-    (state) => state.dataset.data?.catalogs.populations ?? {},
+    (state) => selectDatasetContent(state)?.catalogs.populations ?? {},
   );
 
   return (

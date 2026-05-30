@@ -6,11 +6,13 @@ import NodeLinkViewTemplate from "@/components/nodelink/NodeLinkViewTemplate";
 import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
 import type { CircularNode as Node } from "@/types/nodelink";
 import { buildCircularGraphData } from "@/components/circular/circularGraphModel";
 import { useCircularProgrammaticTooltip } from "@/components/circular/useCircularProgrammaticTooltip";
 import { useCircularSelectionStyles } from "@/components/circular/useCircularSelectionStyles";
 import { useCircularScene } from "@/components/circular/useCircularScene";
+import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 import type {
   CircularNodeLinkPanelProps,
   CircularNodeLinkProps,
@@ -25,11 +27,9 @@ export default function Circulas({
   circularHierarchyCategoryOrder,
   ...props
 }: CircularNodeLinkPanelProps) {
-  const dataset = useAppSelector((state) => state.dataset.data);
-  const atlas = useAppSelector((state) => state.atlas);
-  const currentAtlasDefinition = useAtlasDefinition(
-    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
-  );
+  const dataset = useAppSelector((state) => selectDatasetData(state));
+  const atlas = useAppSelector((state) => state.atlasUi);
+  const currentAtlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
 
   return (
     <NodeLinkViewTemplate
@@ -53,7 +53,6 @@ function CircularNodeLink({
   labels,
   labelNames,
   labelTitles,
-  labelAcronyms,
   nodeColors,
   width,
   height,
@@ -140,7 +139,6 @@ function CircularNodeLink({
     labels,
     labelNames,
     labelTitles,
-    labelAcronyms,
     nodes,
     links,
     degreeById,
@@ -190,7 +188,6 @@ function CircularNodeLink({
     hoveredNodeId,
     labelNames,
     labelTitles,
-    labelAcronyms,
     valueLabel,
     zoomTransformRef,
   });

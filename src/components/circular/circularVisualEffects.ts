@@ -1,6 +1,6 @@
 import type * as d3 from "d3";
 import { escapeHtml } from "@/utils/html";
-import { buildRoiTooltipLabel, SELECTED_STROKE } from "@/components/nodelink/nodelinkShared";
+import { SELECTED_STROKE } from "@/components/nodelink/nodelinkShared";
 import { CIRCULAR_NODE_HOVER_RADIUS_OFFSET } from "@/config/ui";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 
@@ -115,12 +115,12 @@ export const syncCircularProgrammaticTooltip = (args: {
   hoveredNodeId?: string | null;
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  labelAcronyms?: Record<string, string>;
   valueLabel?: string;
   width: number;
   height: number;
   zoomTransform: d3.ZoomTransform;
   positionTooltip: (x: number, y: number, wrapperRect: DOMRect) => void;
+  positionNodeTooltip: (node: CircularNode, wrapperRect: DOMRect) => void;
 }) => {
   const {
     tooltipEl,
@@ -132,12 +132,12 @@ export const syncCircularProgrammaticTooltip = (args: {
     hoveredNodeId,
     labelNames,
     labelTitles,
-    labelAcronyms,
     valueLabel = "Value",
     width,
     height,
     zoomTransform,
     positionTooltip,
+    positionNodeTooltip,
   } = args;
   if (width <= 0 || height <= 0) {
     tooltipEl.style.opacity = "0";
@@ -185,16 +185,12 @@ export const syncCircularProgrammaticTooltip = (args: {
     }
     const labelId = node.labelId ?? String(node.id);
     const degree = degreeById.get(labelId) ?? 0;
-    const tooltipLabel = buildRoiTooltipLabel(
-      labelTitles?.[labelId] ?? node.label,
-      labelAcronyms?.[labelId] ?? labelId,
-    );
-    const [screenX, screenY] = zoomTransform.apply([centerX + node.x, centerY + node.y]);
+    const tooltipLabel = labelTitles?.[labelId] ?? node.label;
     tooltipEl.innerHTML = `<div><strong>${escapeHtml(
       tooltipLabel,
     )}</strong></div><div>Links: ${degree}</div>`;
     tooltipEl.style.opacity = "1";
-    positionTooltip(screenX, screenY, wrapperRect);
+    positionNodeTooltip(node, wrapperRect);
     return;
   }
 

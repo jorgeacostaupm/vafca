@@ -24,11 +24,25 @@ export const normalizeMatrixOrder = (
       String(index)
     )
     const label = toSafeString(item.label ?? item.name ?? item.id, id)
+    const name =
+      typeof item.name === 'string' && item.name.trim().length > 0
+        ? item.name
+        : undefined
     const acronym =
       typeof item.acronym === 'string' && item.acronym.trim().length > 0
         ? item.acronym
         : undefined
-    return { id, label, acronym }
+    const tags =
+      item.tags && typeof item.tags === 'object' && !Array.isArray(item.tags)
+        ? item.tags
+        : undefined
+    const metadata =
+      item.metadata &&
+      typeof item.metadata === 'object' &&
+      !Array.isArray(item.metadata)
+        ? item.metadata
+        : undefined
+    return { id, label, name, acronym, tags, metadata }
   })
 }
 

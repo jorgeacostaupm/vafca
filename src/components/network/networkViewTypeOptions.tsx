@@ -24,11 +24,11 @@ export const networkViewTypeOptions: ViewTypeOption[] = [
   createNetworkSegmentedOption("classic", <BranchesOutlined />, "Node-Link"),
 ];
 
-export const networkPanelViewTypeOptions = networkViewTypeOptions.map(
+export const networkViewTypeIconOptions = networkViewTypeOptions.map(
   ({ value }) => ({
     value,
     label: (
-      <span className="network-panel-view-type-option">
+      <span className="network-view-type-option">
         {viewTypeIcons[value]}
       </span>
     ),

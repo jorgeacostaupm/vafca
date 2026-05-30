@@ -3,7 +3,7 @@ import { Button, Col, Input, Row, Select, Space, Typography } from "antd";
 import { ALL_FILTER } from "./panelConstants";
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
 import { useAppDispatch } from "@/store/hooks";
-import { setAllLabels } from "@/store/slices/atlas";
+import { setAllLabels } from "@/store/slices/atlasUi";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 
 const { Search } = Input;

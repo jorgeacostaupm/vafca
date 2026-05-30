@@ -26,7 +26,7 @@ export type HeatmapProps = {
   };
   hoveredCell?: { rowId: string; colId: string } | null;
   selectedCells?: Array<{ row: number; col: number }>;
-  svgRef?: RefObject<SVGSVGElement>;
+  svgRef?: RefObject<SVGSVGElement | null>;
   onCellHover?: (payload: {
     row: number;
     col: number;

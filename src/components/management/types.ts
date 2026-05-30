@@ -1,7 +1,7 @@
 import type { AtlasDefinition } from "@/types/atlas";
-import type { ConnectivityCatalogs } from "@/types/catalogs";
+import type { Catalogs } from "@/types/connectivityBundle";
 
-export type CatalogKey = keyof ConnectivityCatalogs;
+export type CatalogKey = keyof Catalogs;
 
 export type MoveDirection = "up" | "down";
 

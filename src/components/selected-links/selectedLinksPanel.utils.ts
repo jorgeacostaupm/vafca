@@ -6,7 +6,7 @@ import type {
   DownloadMode,
   ExportedLink,
   LinkRow,
-  MatrixCache,
+  MatrixLookup,
   MatrixColumn,
   MatrixOption,
   SelectedLinksExportPayload,
@@ -61,14 +61,14 @@ const resolveLayerValue = (
   sourceValueMap: Record<string, number>,
   compoundId: string,
   link: SelectedLink,
-  matrixCache: MatrixCache,
+  matrixLookup: MatrixLookup,
   atlasIndex: Map<string, number>,
 ) => {
   if (compoundId in sourceValueMap) {
     return sourceValueMap[compoundId];
   }
 
-  const matrix = matrixCache[compoundId];
+  const matrix = matrixLookup[compoundId];
   const rowIndex = atlasIndex.get(link.rowId);
   const colIndex = atlasIndex.get(link.colId);
   const value =
@@ -81,7 +81,7 @@ const resolveLayerValue = (
 export const buildLinkValues = ({
   link,
   layerIds,
-  matrixCache,
+  matrixLookup,
   atlasIndex,
 }: BuildLinkValuesParams): Record<string, number | null> => {
   const sourceValueMap = buildSourceValueMap(link);
@@ -90,7 +90,7 @@ export const buildLinkValues = ({
       sourceValueMap,
       compoundId,
       link,
-      matrixCache,
+      matrixLookup,
       atlasIndex,
     );
     return acc;
@@ -100,7 +100,7 @@ export const buildLinkValues = ({
 export const buildRows = ({
   links,
   selectedMatrixIds,
-  matrixCache,
+  matrixLookup,
   atlasIndex,
 }: BuildRowsParams): LinkRow[] => {
   return links.map((link) => ({
@@ -109,7 +109,7 @@ export const buildRows = ({
     values: buildLinkValues({
       link,
       layerIds: selectedMatrixIds,
-      matrixCache,
+      matrixLookup,
       atlasIndex,
     }),
   }));
@@ -118,7 +118,7 @@ export const buildRows = ({
 export const buildExportLinks = (
   links: SelectedLink[],
   layerIds: string[],
-  matrixCache: MatrixCache,
+  matrixLookup: MatrixLookup,
   atlasIndex: Map<string, number>,
 ): ExportedLink[] => {
   return links.map((link) => ({
@@ -130,7 +130,7 @@ export const buildExportLinks = (
     values: buildLinkValues({
       link,
       layerIds,
-      matrixCache,
+      matrixLookup,
       atlasIndex,
     }),
   }));

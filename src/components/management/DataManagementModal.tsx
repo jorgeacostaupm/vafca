@@ -1,11 +1,18 @@
 import { Button, Modal, Space, Tabs, Typography } from "antd";
 import { DEFAULT_DATA_MANAGEMENT_TAB } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { downloadCurrentDataset } from "@/store/slices/dataset";
+import {
+  downloadCurrentDataset,
+  selectDatasetData,
+  selectDatasetDownloadStatus,
+  selectDatasetError,
+  selectDatasetStatus,
+} from "@/store/slices/dataset";
 import CatalogManagementSections from "@/components/management/components/catalogs/CatalogManagementSections";
 import DatasetSummaryHeader from "@/components/management/components/DatasetSummaryHeader";
 import MatrixSummarySection from "@/components/management/components/MatrixSummarySection";
 import MatrixUploader from "@/components/management/components/MatrixUploader";
+import { getDatasetCatalogs } from "@/utils/datasetAccessors";
 
 interface DataManagementModalProps {
   open: boolean;
@@ -14,13 +21,15 @@ interface DataManagementModalProps {
 
 function DataLoadingTab() {
   const dispatch = useAppDispatch();
-  const { data, downloadStatus } = useAppSelector((state) => state.dataset);
-  const metadata = data
+  const data = useAppSelector(selectDatasetData);
+  const downloadStatus = useAppSelector(selectDatasetDownloadStatus);
+  const catalogs = getDatasetCatalogs(data);
+  const metadata = catalogs
     ? [
-        { label: "Populations", value: Object.keys(data.catalogs.populations).length },
-        { label: "Measures", value: Object.keys(data.catalogs.measures).length },
-        { label: "Statistics", value: Object.keys(data.catalogs.stats).length },
-        { label: "Layers", value: Object.keys(data.catalogs.layers).length },
+        { label: "Populations", value: Object.keys(catalogs.populations).length },
+        { label: "Measures", value: Object.keys(catalogs.measures).length },
+        { label: "Statistics", value: Object.keys(catalogs.stats).length },
+        { label: "Layers", value: Object.keys(catalogs.layers).length },
       ]
     : [];
 
@@ -60,7 +69,7 @@ function DataLoadingTab() {
 }
 
 function DataCatalogsTab() {
-  const data = useAppSelector((state) => state.dataset.data);
+  const data = useAppSelector(selectDatasetData);
 
   if (!data) {
     return <Typography.Text type="secondary">Load a dataset to edit catalogs.</Typography.Text>;
@@ -70,7 +79,8 @@ function DataCatalogsTab() {
 }
 
 function DataManagementModal({ open, onClose }: DataManagementModalProps) {
-  const { status, error } = useAppSelector((state) => state.dataset);
+  const status = useAppSelector(selectDatasetStatus);
+  const error = useAppSelector(selectDatasetError);
 
   const items = [
     {

@@ -6,7 +6,7 @@ import {
   type D3GroupingPaletteKey,
 } from "@/config/groupingPalettes";
 import { useAppDispatch } from "@/store/hooks";
-import { setAtlasColorFields, setAtlasColorPalette } from "@/store/slices/atlas";
+import { setAtlasColorFields, setAtlasColorPalette } from "@/store/slices/atlasUi";
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
 import { moveField } from "@/components/atlas/panelFieldUtils";
 import { useAtlasGroupingSettings } from "./useAtlasGroupingSettings";

@@ -1,6 +1,16 @@
-import type { MatrixCalculationMethodDefinition } from "@/connectivity/calculations/types";
+import {
+  createBinaryData,
+  ensureReady,
+  maybePush,
+} from "@/connectivity/calculations/methodRuntime";
+import { createComparisonMatrix } from "@/connectivity/calculations/comparisonMatrixRecord";
+import { getFiniteMatrixValueOrNull } from "@/connectivity/calculations/matrixMath";
+import type {
+  MatrixCalculationMethod,
+  MatrixCalculationMethodDefinition,
+} from "@/connectivity/calculations/types";
 
-export const populationDifference: MatrixCalculationMethodDefinition = {
+export const populationDifferenceDefinition: MatrixCalculationMethodDefinition = {
   id: "population_difference",
   label: "Difference between population means",
   shortLabel: "Difference",
@@ -17,6 +27,8 @@ export const populationDifference: MatrixCalculationMethodDefinition = {
   outputs: [
     {
       statId: "difference",
+      statLabel: "Difference",
+      statCategory: "comparison",
       operator: "difference",
       comparisonType: "population_vs_population",
       labelSuffix: "difference",
@@ -24,7 +36,69 @@ export const populationDifference: MatrixCalculationMethodDefinition = {
       scaleType: "diverging",
       center: 0,
       rangeMode: "observed_symmetric",
+      expectedRange: [-1, 1],
+      useDataRange: true,
     },
   ],
   requiresControlOrReference: true,
+};
+
+const differenceOutput = populationDifferenceDefinition.outputs[0];
+
+export const calculatePopulationDifference: MatrixCalculationMethod["calculate"] = ({
+  request,
+  state,
+  result,
+  existingIds,
+}) => {
+  request.layerIds.forEach((layerId) => {
+    request.measureIds.forEach((measureId) => {
+      const resolved = ensureReady(
+        "population_difference",
+        layerId,
+        measureId,
+        result.skipped,
+        request,
+        state,
+      );
+      if (!resolved) return;
+      result.warnings.push(...resolved.warnings);
+      const leftMean = resolved.matrices.leftMean!;
+      const rightMean = resolved.matrices.rightMean!;
+      const data = createBinaryData(leftMean, (i, j) => {
+        const left = getFiniteMatrixValueOrNull(leftMean, i, j);
+        const right = getFiniteMatrixValueOrNull(rightMean, i, j);
+        return left === null || right === null ? null : left - right;
+      });
+      maybePush(
+        createComparisonMatrix({
+          runtime: { state, request, existingIds },
+          method: populationDifferenceDefinition,
+          output: differenceOutput,
+          endpoints: {
+            left: { type: "population", populationId: request.leftPopulationId, matrix: leftMean },
+            right: { type: "population", populationId: request.rightPopulationId, matrix: rightMean },
+          },
+          dependencies: [leftMean.id, rightMean.id],
+          calculation: {
+            data,
+            statMethod: "left_minus_right",
+            formula: "left_mean - right_mean",
+            comparisonParameters: {
+              leftMeanMatrixId: leftMean.id,
+              rightMeanMatrixId: rightMean.id,
+            },
+          },
+          labelMode: "minus",
+        }),
+        state,
+        result,
+      );
+    });
+  });
+};
+
+export const populationDifference: MatrixCalculationMethod = {
+  definition: populationDifferenceDefinition,
+  calculate: calculatePopulationDifference,
 };

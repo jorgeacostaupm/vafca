@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
 import {
   addNetworkViewAndFormat,
   patchNetworkControls,
@@ -8,13 +9,19 @@ import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
 import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
 import { useNetworkViewLifecycle } from "@/components/network/useNetworkViewLifecycle";
 import { buildMatrixLabel, normalizePopulationKey } from "@/utils/matrixViewUtils";
+import {
+  getDatasetCatalogs,
+  getDatasetMatrixStats,
+} from "@/utils/datasetAccessors";
 
 export const useNetworkSelectorModel = () => {
   const dispatch = useAppDispatch();
-  const dataset = useAppSelector((state) => state.dataset.data);
-  const atlas = useAppSelector((state) => state.atlas);
+  const dataset = useAppSelector((state) => selectDatasetData(state));
+  const catalogs = getDatasetCatalogs(dataset);
+  const atlas = useAppSelector((state) => state.atlasUi);
   const controls = useAppSelector((state) => state.networkVisualization.controls);
-  const { summaries, status, error } = useMatrixSummaries(dataset?.matrixStats.total);
+  const matrixStats = getDatasetMatrixStats(dataset);
+  const { summaries, status, error } = useMatrixSummaries(matrixStats.total);
 
   const {
     populationOptions,
@@ -151,7 +158,7 @@ export const useNetworkSelectorModel = () => {
       addNetworkViewAndFormat({
         type: controls.viewType,
         compoundId: summary.compoundId,
-        label: buildMatrixLabel(summary, dataset?.catalogs),
+        label: buildMatrixLabel(summary, catalogs),
         measureId: summary.measureId,
         statId: summary.statId,
       }),
@@ -159,7 +166,7 @@ export const useNetworkSelectorModel = () => {
   }, [
     controls.selectedCompoundId,
     controls.viewType,
-    dataset,
+    catalogs,
     dispatch,
     selectableMatrixSummaries,
   ]);

@@ -1,8 +1,9 @@
-import { Card, Col, InputNumber, Row, Select, Slider, Space, Tag, Typography } from "antd";
+import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Button, Card, Select, Space, Tooltip, Typography } from "antd";
 import { resolveMatrixUiRange } from "@/utils/matrixUiRange";
 import type { Catalogs, MatrixRecord } from "@/types/connectivityBundle";
 import type { MatrixFilterRule } from "@/types/edgeFilter";
-import { formatMatrixKindLabel, formatNetworkMatrixLabel, formatMatrixSourceLabel } from "./edgeFilterLabels";
+import MatrixFilterRangeControl from "./MatrixFilterRangeControl";
 
 type MatrixOptionGroup = {
   label: string;
@@ -39,10 +40,7 @@ export default function MatrixFilterRuleEditor({
         target: "slider",
       })
     : { min: -1, max: 1 };
-  const rangeModeLabel =
-    "source" in range && range.source === "observed" ? "Observed" : "Logical default";
   const isDivergent = "scaleType" in range && range.scaleType === "diverging";
-  const stats = matrix?.dataStats?.allValues;
 
   const setValue = <K extends keyof MatrixFilterRule>(key: K, value: MatrixFilterRule[K]) =>
     onChange({ ...rule, [key]: value });
@@ -86,121 +84,84 @@ export default function MatrixFilterRuleEditor({
     });
   };
 
+  const rangeControl = isDivergent ? (
+    <Space size={8} className="edge-filter-rule__ranges">
+      <MatrixFilterRangeControl
+        label="Negative"
+        minInputValue={rule.negativeMin}
+        maxInputValue={rule.negativeMax}
+        minInputLabel="Negative minimum"
+        maxInputLabel="Negative maximum"
+        onMinInputChange={(value) => setValue("negativeMin", value)}
+        onMaxInputChange={(value) => setValue("negativeMax", value)}
+      />
+      <MatrixFilterRangeControl
+        label="Positive"
+        minInputValue={rule.positiveMin}
+        maxInputValue={rule.positiveMax}
+        minInputLabel="Positive minimum"
+        maxInputLabel="Positive maximum"
+        onMinInputChange={(value) => setValue("positiveMin", value)}
+        onMaxInputChange={(value) => setValue("positiveMax", value)}
+      />
+    </Space>
+  ) : (
+    <MatrixFilterRangeControl
+      label="Range"
+      minInputValue={rule.min}
+      maxInputValue={rule.max}
+      minInputLabel="Minimum value"
+      maxInputLabel="Maximum value"
+      onMinInputChange={(value) => onChange({ ...rule, operator: "between", min: value })}
+      onMaxInputChange={(value) => onChange({ ...rule, operator: "between", max: value })}
+    />
+  );
+
   return (
     <Card size="small" className="edge-filter-rule">
-      <Space direction="vertical" size={12} style={{ width: "100%" }}>
-        <Row gutter={[12, 12]}>
-          <Col xs={24} lg={16}>
-            <Typography.Text strong>Matrix</Typography.Text>
-            <Select
-              showSearch
-              value={rule.matrixId || undefined}
-              placeholder="Select a matrix"
-              options={matrixGroups}
-              optionFilterProp="searchText"
-              style={{ width: "100%", marginTop: 6 }}
-              onChange={configureForMatrix}
+      <div className="edge-filter-rule__controls">
+        <div className="edge-filter-rule__matrix-select">
+          <Typography.Text className="edge-filter-rule__field-label">
+            Network
+          </Typography.Text>
+          <Select
+            showSearch
+            value={rule.matrixId || undefined}
+            placeholder="Select a matrix"
+            options={matrixGroups}
+            optionFilterProp="searchText"
+            style={{ width: "100%" }}
+            onChange={configureForMatrix}
+          />
+        </div>
+
+        {rangeControl}
+
+        <Space wrap className="edge-filter-rule__actions">
+          <Tooltip title="Move up">
+            <Button
+              aria-label="Move rule up"
+              icon={<ArrowUpOutlined />}
+              onClick={onMoveUp}
             />
-          </Col>
-          <Col xs={24} lg={8}>
-            <Typography.Text strong>Actions</Typography.Text>
-            <Space wrap style={{ width: "100%", marginTop: 6 }}>
-              <a onClick={onMoveUp}>Move up</a>
-              <a onClick={onMoveDown}>Move down</a>
-              <a onClick={onDelete}>Delete rule</a>
-            </Space>
-          </Col>
-        </Row>
-
-        {matrix ? (
-          <div className="edge-filter-rule__metadata">
-            <Typography.Text strong>{formatNetworkMatrixLabel(matrix, catalogs)}</Typography.Text>
-            <div>
-              <Tag>{formatMatrixKindLabel(matrix)}</Tag>
-              <Tag>{formatMatrixSourceLabel(matrix, catalogs)}</Tag>
-              <Tag>{matrix.geometry.shape.join("x")}</Tag>
-              <Tag>{rangeModeLabel}</Tag>
-            </div>
-            <Typography.Text type="secondary">
-              Layer: {matrix.context.layerId ?? "None"} · Measure: {matrix.context.measureId} · Statistic:{" "}
-              {matrix.stat.id}
-              {typeof matrix.source === "object" && "n" in matrix.source ? ` · n: ${matrix.source.n}` : ""}
-              {stats?.min !== null && stats?.max !== null
-                ? ` · Observed range: ${stats?.min} - ${stats?.max}`
-                : ""}
-            </Typography.Text>
-          </div>
-        ) : null}
-
-        {isDivergent ? (
-          <Row gutter={[12, 12]}>
-            <Col xs={24} md={12}>
-              <Typography.Text>Negative range</Typography.Text>
-              <Slider
-                range
-                min={range.min}
-                max={Math.min(0, range.max)}
-                step={0.01}
-                value={[rule.negativeMin ?? range.min, rule.negativeMax ?? 0]}
-                onChange={([negativeMin, negativeMax]) =>
-                  onChange({ ...rule, negativeMin, negativeMax })
-                }
-              />
-              <Space.Compact block>
-                <InputNumber value={rule.negativeMin} onChange={(value) => setValue("negativeMin", value)} />
-                <InputNumber value={rule.negativeMax} onChange={(value) => setValue("negativeMax", value)} />
-              </Space.Compact>
-            </Col>
-            <Col xs={24} md={12}>
-              <Typography.Text>Positive range</Typography.Text>
-              <Slider
-                range
-                min={Math.max(0, range.min)}
-                max={range.max}
-                step={0.01}
-                value={[rule.positiveMin ?? 0, rule.positiveMax ?? range.max]}
-                onChange={([positiveMin, positiveMax]) =>
-                  onChange({ ...rule, positiveMin, positiveMax })
-                }
-              />
-              <Space.Compact block>
-                <InputNumber value={rule.positiveMin} onChange={(value) => setValue("positiveMin", value)} />
-                <InputNumber value={rule.positiveMax} onChange={(value) => setValue("positiveMax", value)} />
-              </Space.Compact>
-            </Col>
-          </Row>
-        ) : (
-          <Row gutter={[12, 12]}>
-            <Col xs={24}>
-              <Typography.Text>Value range</Typography.Text>
-              <Slider
-                range
-                min={range.min}
-                max={range.max}
-                step={0.01}
-                value={[rule.min ?? range.min, rule.max ?? range.max]}
-                onChange={([min, max]) =>
-                  onChange({ ...rule, operator: "between", min, max })
-                }
-              />
-            </Col>
-            <Col xs={24} md={12}>
-              <InputNumber
-                value={rule.min}
-                onChange={(value) => setValue("min", value)}
-                style={{ width: "100%" }}
-              />
-            </Col>
-            <Col xs={24} md={12}>
-              <InputNumber
-                value={rule.max}
-                onChange={(value) => setValue("max", value)}
-                style={{ width: "100%" }}
-              />
-            </Col>
-          </Row>
-        )}
-      </Space>
+          </Tooltip>
+          <Tooltip title="Move down">
+            <Button
+              aria-label="Move rule down"
+              icon={<ArrowDownOutlined />}
+              onClick={onMoveDown}
+            />
+          </Tooltip>
+          <Tooltip title="Delete rule">
+            <Button
+              aria-label="Delete rule"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={onDelete}
+            />
+          </Tooltip>
+        </Space>
+      </div>
     </Card>
   );
 }

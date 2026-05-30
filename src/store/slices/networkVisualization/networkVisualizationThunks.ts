@@ -3,9 +3,13 @@ import { DEFAULT_NETWORK_PANEL_LAYOUT } from '@/config/ui'
 import type { MatrixSummary } from '@/types/matrixStore'
 import type { NetworkViewType } from '@/types/networkVisualization'
 import type { AppDispatch, RootState } from '@/types/store'
-import { fetchMatricesByCompoundIds } from '@/store/slices/matrixCache'
+import { selectDatasetData } from '@/store/slices/dataset'
 import {
   addNetworkLayoutItem,
+  removeNetworkLayoutItem,
+} from '@/store/slices/networkLayout'
+import { getDatasetMatrixByCompoundId } from '@/utils/datasetAccessors'
+import {
   addNetworkView,
   mutateNetworkViewTypeLocally,
   patchNetworkControls,
@@ -30,12 +34,10 @@ export const markNetworkViewFormatting = createAsyncThunk<
       return rejectWithValue(payload)
     }
 
-    await dispatch(
-      fetchMatricesByCompoundIds({
-        compoundIds: [target.compoundId],
-      }),
+    const matrix = getDatasetMatrixByCompoundId(
+      selectDatasetData(getState()),
+      target.compoundId,
     )
-    const matrix = getState().matrixCache.byCompoundId[target.compoundId]
     if (!matrix) {
       const payload = { viewId, error: 'Matrix not found in store.' }
       dispatch(setNetworkViewStatus({ ...payload, status: 'error' }))
@@ -134,6 +136,7 @@ export const pruneInvalidNetworkViews = createAsyncThunk<
       if (!view) return
       if (validIds.has(view.compoundId)) return
       dispatch(removeNetworkView({ viewId: view.id }))
+      dispatch(removeNetworkLayoutItem({ viewId: view.id }))
     })
   },
 )

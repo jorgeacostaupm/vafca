@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { AtlasPanelState } from "@/types/visualizationUi";
-import { setAtlasColorFields } from "@/store/slices/atlas";
+import { setAtlasColorFields } from "@/store/slices/atlasUi";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 import { useAppDispatch } from "@/store/hooks";
 import { getDefaultGroupByFields } from "@/utils/atlas/atlasDefinition";

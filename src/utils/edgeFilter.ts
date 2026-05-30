@@ -158,7 +158,7 @@ export const buildNetworkEdgeDomain = (
   dataset: DatasetMeta | null,
   labelIds: string[],
 ): NetworkEdgeDomain | null => {
-  const connectivity = dataset?.connectivity;
+  const connectivity = dataset?.content;
   const firstMatrix = connectivity?.matrices.find((matrix) => matrix.kind !== "reduced");
   if (!connectivity || !firstMatrix) return null;
 
@@ -183,7 +183,7 @@ export const buildNetworkEdgeDomain = (
 export const buildAggregatedEdgeDomain = (
   dataset: DatasetMeta | null,
 ): NetworkEdgeDomain | null => {
-  const matrix = dataset?.connectivity?.matrices.find(
+  const matrix = dataset?.content?.matrices.find(
     (item) => item.kind === "reduced" && item.geometry.roiOrder,
   );
   if (!matrix?.geometry.roiOrder) return null;

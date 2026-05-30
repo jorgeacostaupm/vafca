@@ -1,9 +1,16 @@
-import type { ConnectivityDataState, MatrixRecord, ScaleType } from "@/types/connectivityBundle";
+import type {
+  ConnectivityDataState,
+  ExpectedRange,
+  MatrixRecord,
+  RangeMode,
+  ScaleType,
+} from "@/types/connectivityBundle";
 
 export const EPSILON = 1e-12;
 
 export type MatrixCalculationOperation =
   | "subject_zscore_vs_population"
+  | "subject_difference"
   | "population_reference_zscore"
   | "population_difference"
   | "population_cohens_d"
@@ -18,6 +25,7 @@ export type MatrixCalculationAssociatedOutputId =
 
 export type MatrixCalculationScope =
   | "subject_vs_population"
+  | "subject_vs_subject"
   | "population_vs_population";
 
 export type MatrixCalculationCategory =
@@ -37,13 +45,18 @@ export type MatrixCalculationInputSpec = {
 
 export type MatrixCalculationOutputSpec = {
   statId: string;
+  statLabel: string;
+  statCategory: "comparison" | "derived" | "reduction";
   operator: string;
   comparisonType: string;
   labelSuffix: string;
   units: string | null;
   scaleType: ScaleType;
   center: number | null;
-  rangeMode: string;
+  rangeMode: RangeMode;
+  expectedRange?: ExpectedRange;
+  useDataRange?: boolean;
+  description?: string | null;
 };
 
 export type MatrixCalculationAssociatedOutputSpec = {
@@ -74,11 +87,24 @@ export type MatrixCalculationMethodDefinition = {
   assumptions?: string[];
 };
 
+export type MatrixCalculationMethodContext = {
+  request: MatrixCalculationBatchRequest;
+  state: MatrixCalculationState;
+  result: MatrixCalculationResult;
+  existingIds: Set<string>;
+};
+
+export type MatrixCalculationMethod = {
+  definition: MatrixCalculationMethodDefinition;
+  calculate: (context: MatrixCalculationMethodContext) => void;
+};
+
 export type MatrixCalculationBatchRequest = {
   operations: MatrixCalculationOperation[];
   leftPopulationId?: string;
   rightPopulationId?: string;
   referencePopulationId?: string;
+  rightSubjectId?: string;
   subjectIds?: string[];
   layerIds: string[];
   measureIds: string[];
@@ -94,6 +120,8 @@ export type MatrixCalculationBatchRequest = {
 
 export type CalculationInputRole =
   | "subjectValue"
+  | "leftSubjectValue"
+  | "rightSubjectValue"
   | "targetMean"
   | "referenceMean"
   | "referenceStd"

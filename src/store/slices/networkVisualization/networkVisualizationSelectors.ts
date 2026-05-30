@@ -8,5 +8,3 @@ export const selectNetworkViewsOrder = (state: RootState) =>
   state.networkVisualization.viewsOrder
 export const selectNetworkViewsById = (state: RootState) =>
   state.networkVisualization.viewsById
-export const selectNetworkLayout = (state: RootState) =>
-  state.networkVisualization.layout

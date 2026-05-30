@@ -1,19 +1,10 @@
 import type { ReactNode } from "react";
 import type { LayoutItem } from "react-grid-layout";
 
-export type PanelItem = {
-  id: string;
-  title: string;
-  content: ReactNode;
-  headerStart?: ReactNode;
-  actions?: ReactNode;
-  className?: string;
-};
-
-export type PanelGridLayoutProps = {
-  items: PanelItem[];
+export type NetworkLayoutProps = {
+  panelIds: string[];
   layout: LayoutItem[];
-  onRemove: (id: string) => void;
+  renderPanel: (id: string) => ReactNode;
   setLayout: (newLayout: LayoutItem[]) => void;
   cols?: number;
   rowHeight?: number;

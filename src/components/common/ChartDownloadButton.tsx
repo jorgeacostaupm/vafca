@@ -4,7 +4,7 @@ import { DownloadOutlined } from "@ant-design/icons";
 import { exportSvgElement } from "@/utils/svgExport";
 
 type ChartDownloadButtonProps = {
-  svgRef: RefObject<SVGSVGElement>;
+  svgRef: RefObject<SVGSVGElement | null>;
   fileName: string;
   size?: "small" | "middle" | "large";
 };

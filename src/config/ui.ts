@@ -1,6 +1,7 @@
 import type { UiRangeMode } from '@/types/connectivityBundle'
 import type { NetworkMatrixSelectorMode, NetworkViewType } from '@/types/networkVisualization'
 import type { LinkCollectionRankingMode, RankingTarget, RankingTopN } from '@/types/rankings'
+import { noCompactor } from 'react-grid-layout'
 
 // Shared visualization UI state.
 export const DEFAULT_UI_RANGE_MODE: UiRangeMode = 'logical_default'
@@ -28,9 +29,14 @@ export const DEFAULT_PANEL_GRID_CONFIG = {
   columns: 24,
   rowHeight: 100,
   margin: [10, 10] as [number, number],
+  bottomBufferRows: 4,
 } as const
 
 export const DEFAULT_PANEL_GRID_DRAG_HANDLE = '.panel-card-handle'
+export const DEFAULT_PANEL_GRID_COMPACTOR = {
+  ...noCompactor,
+  preventCollision: true,
+} as const
 
 // Ranking tab and ranking query defaults.
 export const DEFAULT_NETWORK_VISUALIZATION_TAB = 'views'
@@ -56,7 +62,10 @@ export const DEFAULT_NETWORK_EDGE_FILTER_TAB = 'roi'
 
 // Data and calculation modal defaults.
 export const DEFAULT_DATA_MANAGEMENT_TAB = 'load'
+export const DEFAULT_CATALOG_MANAGEMENT_TAB = 'populations'
 export const DEFAULT_DERIVED_MATRIX_CALCULATION_TAB = 'comparison'
+export const DEFAULT_CONNECTIVITY_IMPORT_MODE = 'lenient'
+export const MAX_VISIBLE_IMPORT_ISSUES = 5
 
 // Circular view defaults.
 export const DEFAULT_CIRCULAR_LINK_TENSION = 0.85
@@ -67,6 +76,8 @@ export const CIRCULAR_NODE_HOVER_RADIUS_OFFSET = 2
 export const CIRCULAR_LABEL_FONT_SIZE = 11
 export const CIRCULAR_LABEL_OFFSET = 8
 export const CIRCULAR_LABEL_DY = 4
+export const CIRCULAR_TOOLTIP_OFFSET = 18
+export const CIRCULAR_TOOLTIP_EDGE_PADDING = 10
 
 // Node-link view defaults.
 export const NODE_LINK_NODE_RADIUS = 5

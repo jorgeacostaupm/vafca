@@ -1,107 +1,165 @@
-# Matrix JSON format
+# VAFCA ZIP dataset format
 
-Matrix uploads accept JSON files containing one matrix, an array of matrices, or
-a dataset-like object with a `matrices` array.
+User datasets are imported as a single ZIP file. The ZIP is normalized by the
+application into one debuggable JSON model before the workspace is updated.
 
-## Accepted top-level shapes
+## ZIP structure
 
-Single matrix:
+Minimum:
 
-```json
-{
-  "id": "alpha-power-z-control",
-  "layerId": "alpha",
-  "measureId": "plv",
-  "statId": "z_score",
-  "populationIds": ["control"],
-  "data": [
-    [0, 0.25, -0.1],
-    [0.25, 0, 0.4],
-    [-0.1, 0.4, 0]
-  ]
-}
+```text
+dataset.zip
+  matrices.json
 ```
 
-List of matrices:
+With ROI metadata:
+
+```text
+dataset.zip
+  rois.json
+  matrices.json
+  manifest.json
+  catalogs/
+    layers.json
+    measures.json
+    populations.json
+    stats.json
+```
+
+With one matrix per file:
+
+```text
+dataset.zip
+  rois.json
+  manifest.json
+  matrices/
+    alpha-control.json
+    beta-control.json
+```
+
+Use either `matrices.json` or `matrices/`, not both. File names inside
+`matrices/` are only used in validation messages.
+
+## matrices.json
+
+`matrices.json` contains a list of matrix objects. The only required field per
+matrix is `data`.
 
 ```json
 [
   {
-    "id": "alpha-power-z-control",
-    "layerId": "alpha",
-    "measureId": "plv",
-    "statId": "z_score",
-    "populationIds": ["control"],
+    "id": "alpha-control",
+    "label": "Alpha control",
+    "layer": "alpha",
+    "measure": "plv",
+    "stat": "mean",
+    "population": "control",
+    "layout": "full",
+    "n": 24,
     "data": [
-      [0, 0.25],
-      [0.25, 0]
+      [0, 0.2],
+      [0.2, 0]
     ]
   }
 ]
 ```
 
-Dataset-like payload:
+In `matrices/`, each file may contain the same object shape or a raw matrix
+array:
+
+```json
+[
+  [0, 0.2],
+  [0.2, 0]
+]
+```
+
+`layout` describes how `data` is encoded:
+
+- `full`: square two-dimensional matrix.
+- `upper_triangular`: flat array with the upper triangle, including diagonal.
+- `lower_triangular`: flat array with the lower triangle, including diagonal.
+
+For triangular layouts, `data.length` must be `n * (n + 1) / 2`. The importer
+materializes the missing side internally.
 
 ```json
 {
-  "metadata": {
-    "matrixOrder": [
-      { "id": "roi-1", "label": "ROI 1", "hemisphere": "left", "network": "DMN" },
-      { "id": "roi-2", "label": "ROI 2", "hemisphere": "right", "network": "DMN" }
-    ]
-  },
-  "matrices": [
-    {
-      "id": "alpha-power-z-control",
-      "layerId": "alpha",
-      "measureId": "plv",
-      "statId": "z_score",
-      "populationIds": ["control"],
-      "data": [
-        [0, 0.25],
-        [0.25, 0]
-      ]
-    }
-  ]
+  "layout": "upper_triangular",
+  "data": [0, 0.2, 0.3, 0, 0.4, 0]
 }
 ```
 
-## Required fields
+## rois.json
 
-- `id`: non-empty string that identifies the matrix.
-- `layerId`: non-empty string. It must exist in the current dataset layer catalog.
-- `measureId`: non-empty string. It must exist in the current dataset measure catalog.
-- `statId`: non-empty string. It must exist in the current dataset stat catalog.
-- `populationIds`: non-empty array of strings. Every id must exist in the current dataset population catalog.
-- `data`: square two-dimensional array of finite numbers.
+`rois.json` is optional. If it is missing, VAFCA generates generic labels such
+as `ROI-1`, `ROI-2`, and so on from the matrix size.
 
-When the current dataset defines `metadata.matrixOrder`, `data.length` must
-match the number of ROI entries in that order. Each row must have the same
-length as the number of rows.
+When provided, it must contain ROI objects. `index` is the position in every
+matrix.
 
-## Matrix-derived atlas
+```json
+[
+  {
+    "index": 0,
+    "id": "frontal-l",
+    "label": "Frontal L",
+    "tags": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "network": "DMN"
+    }
+  }
+]
+```
 
-The matrix uploader includes an option to reset the currently loaded atlas.
-When enabled, valid uploaded matrices replace the active atlas with a minimal
-atlas derived from the matrix labels:
+`tags` must contain grouping/filter/color fields. Do not put ROI category
+fields at the top level.
 
-- If the uploaded JSON contains `metadata.matrixOrder` or top-level
-  `matrixOrder`, those ids and labels are used. Extra scalar fields in each
-  order entry, such as `hemisphere`, `lobe`, `region`, or `network`, are copied
-  into the generated ROIs and become available in grouping/filter/color menus.
-- If no matrix order is provided, ROI ids and labels are generated from the
-  first valid matrix size.
-- The generated atlas does not include mesh points or coordinates unless those
-  fields are provided by a separate atlas upload.
+## manifest.json
 
-## Loading behavior
+`manifest.json` is optional in lenient import and required in strict import.
 
-Valid matrices are loaded into the current dataset. Invalid matrix entries are
-skipped, and the interface reports their source file, matrix id when available,
-and validation message.
+```json
+{
+  "formatVersion": "vafca-zip-v1",
+  "name": "Demo dataset",
+  "defaults": {
+    "layer": "alpha",
+    "measure": "connectivity",
+    "stat": "value",
+    "population": "dataset"
+  }
+}
+```
 
-Matrices are stored by the compound key:
+## catalogs/
+
+`catalogs/` is optional and only provides labels or display metadata. Each
+catalog type lives in its own JSON file.
 
 ```text
-layerId::measureId::statId::sortedPopulationIds
+catalogs/
+  layers.json
+  measures.json
+  populations.json
+  stats.json
 ```
+
+Example `catalogs/measures.json`:
+
+```json
+{
+  "plv": { "label": "PLV", "expectedRange": [0, 1] }
+}
+```
+
+Legacy `catalogs.json` is still accepted for compatibility, but do not combine
+it with `catalogs/` in the same ZIP.
+
+## Import modes
+
+Lenient mode loads usable data and records inferred fields as warnings.
+
+Strict mode blocks missing `manifest.json`, missing `rois.json`, missing matrix
+metadata, and generated ids.

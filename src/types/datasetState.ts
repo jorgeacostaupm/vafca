@@ -1,6 +1,14 @@
-import type { ConnectivityCatalogs } from "@/types/catalogs";
-import type { ConnectivityDataState } from "@/types/connectivityBundle";
+import type { EntityState } from "@reduxjs/toolkit";
+import type {
+  Atlas,
+  BundleMetadata,
+  Catalogs,
+  ConnectivityDataState,
+  MatrixRecord,
+} from "@/types/connectivityBundle";
 import type { ConnectivityDataset } from "@/types/datasets";
+
+export type DatasetContent = ConnectivityDataState;
 
 export type MatrixStats = {
   total: number;
@@ -11,10 +19,7 @@ export type MatrixStats = {
 };
 
 export type DatasetMeta = {
-  metadata: ConnectivityDataset["metadata"];
-  catalogs: ConnectivityDataset["catalogs"];
-  matrixStats: MatrixStats;
-  connectivity?: ConnectivityDataState;
+  content: DatasetContent;
 };
 
 export type MatrixUploadError = {
@@ -31,8 +36,21 @@ export type MatrixUploadResult = {
   warnings?: MatrixUploadError[];
 };
 
+export type MatrixUploadRejected = {
+  message: string;
+  result?: MatrixUploadResult;
+};
+
 export type DatasetState = {
-  data: DatasetMeta | null;
+  schemaVersion: DatasetContent["schemaVersion"] | null;
+  loadedBundle: BundleMetadata | null;
+  atlas: Atlas | null;
+  roiOrderHash: string | null;
+  catalogs: Catalogs | null;
+  matrices: EntityState<MatrixRecord, string>;
+};
+
+export type DatasetOperationsState = {
   status: "idle" | "loading" | "ready" | "error";
   error: string | null;
   downloadStatus: "idle" | "loading" | "ready" | "error";
@@ -45,9 +63,9 @@ export type DatasetState = {
 };
 
 export type UpdateCatalogPayload = {
-  catalog: keyof ConnectivityCatalogs;
+  catalog: keyof Catalogs;
   id: string;
-  changes: Partial<ConnectivityCatalogs[keyof ConnectivityCatalogs][string]>;
+  changes: Record<string, unknown>;
 };
 
 export type UpdateMetadataPayload = {

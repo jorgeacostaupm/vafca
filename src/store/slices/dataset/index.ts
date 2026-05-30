@@ -3,14 +3,13 @@ export {
   clearDataset,
   setDataset,
   updateCatalogItem,
-  updateMetadata,
 } from './datasetSlice'
 export {
   computeAggregatedMatrixFromVisualizationGroups,
   computeDerivedMatrices,
   downloadCurrentDataset,
-  loadTestDataset,
-  uploadMatricesIntoDataset,
+  loadInitialDataset,
+  loadDatasetFromUploadedZip,
 } from './datasetThunks'
 export {
   initializeDatasetAndDerivedState,
@@ -18,11 +17,16 @@ export {
 } from './datasetWorkflows'
 export {
   selectDatasetData,
+  selectDatasetContent,
   selectDatasetDownloadError,
   selectDatasetDownloadStatus,
   selectDatasetError,
+  selectDatasetOperationsState,
   selectDatasetState,
   selectDatasetStatus,
+  selectAllDatasetMatrices,
+  selectDatasetMatrixById,
+  selectDatasetMatrixEntities,
   selectDerivedCalculationError,
   selectDerivedCalculationStatus,
 } from './datasetSelectors'

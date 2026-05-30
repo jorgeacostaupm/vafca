@@ -3,7 +3,7 @@ import { useAppDispatch } from "@/store/hooks";
 import {
   setCircularHierarchyCategoryOrder,
   setMatrixHierarchyCategoryOrder,
-} from "@/store/slices/atlas";
+} from "@/store/slices/atlasUi";
 import type { AtlasState } from "@/types/atlas";
 import HierarchyCategoryOrderSection from "@/components/management/components/HierarchyCategoryOrderSection";
 import type { CategoryOrderMap } from "@/components/management/types";

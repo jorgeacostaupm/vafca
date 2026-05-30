@@ -7,6 +7,7 @@ import { Button, Form, Segmented, Select } from "antd";
 import { useMemo } from "react";
 import { createNetworkSegmentedOption } from "@/components/network/segmentedOption";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectDatasetContent } from "@/store/slices/dataset";
 import {
   patchRankingQuery,
   runRankingQuery,
@@ -51,7 +52,7 @@ export default function RankingQueryControls() {
   const dispatch = useAppDispatch();
   const query = useAppSelector((state) => state.rankings.currentQuery);
   const status = useAppSelector((state) => state.rankings.status);
-  const connectivity = useAppSelector((state) => state.dataset.data?.connectivity);
+  const datasetContent = useAppSelector((state) => selectDatasetContent(state));
 
   const metricOptions =
     query.target === "matrices"
@@ -60,20 +61,20 @@ export default function RankingQueryControls() {
         ? linkMetricOptions
         : roiMetricOptions;
   const sourceOptions = useMemo(
-    () => getSourceOptions(connectivity, query),
-    [connectivity, query],
+    () => getSourceOptions(datasetContent, query),
+    [datasetContent, query],
   );
   const measureOptions = useMemo(
-    () => getMeasureOptions(connectivity, query),
-    [connectivity, query],
+    () => getMeasureOptions(datasetContent, query),
+    [datasetContent, query],
   );
   const statisticOptions = useMemo(
-    () => getStatisticOptions(connectivity, query),
-    [connectivity, query],
+    () => getStatisticOptions(datasetContent, query),
+    [datasetContent, query],
   );
   const layerOptions = useMemo(
-    () => getCompatibleLayerOptions(connectivity, query),
-    [connectivity, query],
+    () => getCompatibleLayerOptions(datasetContent, query),
+    [datasetContent, query],
   );
   const isRoiRanking = query.target === "rois";
   const selectableLayerOptions = useMemo(
@@ -91,7 +92,7 @@ export default function RankingQueryControls() {
   const selectedStatisticValue = query.statisticId;
   const selectedLayerValues = query.layerIds ?? [];
   const selectedSingleLayerValue = query.layerIds?.[0];
-  const missingFields = getRankingQueryMissingFields(query, connectivity);
+  const missingFields = getRankingQueryMissingFields(query, datasetContent);
   const canAddRanking = missingFields.length === 0 && status !== "loading";
 
   const updateTarget = (target: RankingTarget) => {
@@ -146,7 +147,7 @@ export default function RankingQueryControls() {
     dispatch(
       patchRankingQuery({
         layerIds: nextLayerIds,
-        ...getRankingLayerSelectionPatch(connectivity, query, nextLayerIds),
+        ...getRankingLayerSelectionPatch(datasetContent, query, nextLayerIds),
         mode: nextLayerIds?.length === 1 ? "singleMatrix" : "matrixCollection",
         matrixId: undefined,
       }),
@@ -158,7 +159,7 @@ export default function RankingQueryControls() {
       patchRankingQuery({
         layerIds: layerId ? [layerId] : [],
         ...getRankingLayerSelectionPatch(
-          connectivity,
+          datasetContent,
           query,
           layerId ? [layerId] : [],
         ),
@@ -195,7 +196,7 @@ export default function RankingQueryControls() {
           <Select
             placeholder="Select a measure..."
             value={selectedMeasureValue}
-            disabled={!connectivity}
+            disabled={!datasetContent}
             options={measureOptions}
             onChange={updateMeasure}
           />
@@ -205,7 +206,7 @@ export default function RankingQueryControls() {
           <Select
             placeholder="Select a statistic..."
             value={selectedStatisticValue}
-            disabled={!connectivity}
+            disabled={!datasetContent}
             options={statisticOptions}
             onChange={updateStatistic}
           />
@@ -225,7 +226,7 @@ export default function RankingQueryControls() {
             <Select
               placeholder="Select one layer..."
               value={selectedSingleLayerValue}
-              disabled={!connectivity}
+              disabled={!datasetContent}
               options={selectableLayerOptions}
               onChange={updateSingleLayer}
             />
@@ -234,7 +235,7 @@ export default function RankingQueryControls() {
               placeholder="Select layers..."
               mode="multiple"
               value={selectedLayerValues}
-              disabled={!connectivity}
+              disabled={!datasetContent}
               options={selectableLayerOptions}
               onChange={updateLayers}
             />

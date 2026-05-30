@@ -1,8 +1,9 @@
 import { Button, Space, Table, Tooltip } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { EyeOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
-import { type ReactNode, useMemo, useState } from 'react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { selectDatasetContent } from '@/store/slices/dataset'
 import { addNetworkViewAndFormat } from '@/store/slices/networkVisualization'
 import { addSelectedLink, removeSelectedLink } from '@/store/slices/visualizationUi'
 import ResizableContainer from '@/components/layout/ResizableContainer'
@@ -58,7 +59,7 @@ export default function RankingResultsTable({ result }: Props) {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 25 })
   const [columnOrder, setColumnOrder] = useState<string[]>([])
   const [draggedColumnKey, setDraggedColumnKey] = useState<string | null>(null)
-  const connectivity = useAppSelector((state) => state.dataset.data?.connectivity)
+  const datasetContent = useAppSelector((state) => selectDatasetContent(state))
   const selectedLinks = useAppSelector((state) => state.visualizationUi.selectedLinks)
   const { handleEnter, handleLeave, handleSelect } = useRankingRowInteractions()
   const scoreColumnTitle = getRankingMetricLabel(result.query)
@@ -91,9 +92,9 @@ export default function RankingResultsTable({ result }: Props) {
   const paginationTotalLabel =
     matrixLinksCountLabel ?? roiIncidentLinksCountLabel
 
-  const createSelectedLink = (row: LinkRankingRow) => {
+  const createSelectedLink = useCallback((row: LinkRankingRow) => {
     const { direct } = getLinkIds(row)
-    const sourceMatrix = connectivity?.matrixIndex[row.bestMatrixId ?? result.query.matrixId ?? '']
+    const sourceMatrix = datasetContent?.matrixIndex[row.bestMatrixId ?? result.query.matrixId ?? '']
     return {
       id: direct,
       rowId: row.sourceId,
@@ -108,18 +109,18 @@ export default function RankingResultsTable({ result }: Props) {
         },
       ],
     }
-  }
+  }, [datasetContent, result.query.matrixId])
 
-  const addLink = (row: LinkRankingRow) => {
+  const addLink = useCallback((row: LinkRankingRow) => {
     const { direct, reverse } = getLinkIds(row)
     if (selectedLinkIds.has(direct) || selectedLinkIds.has(reverse)) {
       dispatch(removeSelectedLink(selectedLinkIds.has(direct) ? direct : reverse))
       return
     }
     dispatch(addSelectedLink(createSelectedLink(row)))
-  }
+  }, [createSelectedLink, dispatch, selectedLinkIds])
 
-  const addRankingLinks = () => {
+  const addRankingLinks = useCallback(() => {
     result.rows
       .filter((row): row is LinkRankingRow => row.type === 'link')
       .forEach((row) => {
@@ -127,9 +128,9 @@ export default function RankingResultsTable({ result }: Props) {
         if (selectedLinkIds.has(direct) || selectedLinkIds.has(reverse)) return
         dispatch(addSelectedLink(createSelectedLink(row)))
       })
-  }
+  }, [createSelectedLink, dispatch, result.rows, selectedLinkIds])
 
-  const removeRankingLinks = () => {
+  const removeRankingLinks = useCallback(() => {
     result.rows
       .filter((row): row is LinkRankingRow => row.type === 'link')
       .forEach((row) => {
@@ -137,9 +138,9 @@ export default function RankingResultsTable({ result }: Props) {
         if (selectedLinkIds.has(direct)) dispatch(removeSelectedLink(direct))
         if (selectedLinkIds.has(reverse)) dispatch(removeSelectedLink(reverse))
       })
-  }
+  }, [dispatch, result.rows, selectedLinkIds])
 
-  const linkActionsTitle = (
+  const linkActionsTitle = useMemo(() => (
     <Space size={4}>
       <Tooltip title="Add all">
         <Button
@@ -164,10 +165,10 @@ export default function RankingResultsTable({ result }: Props) {
         />
       </Tooltip>
     </Space>
-  )
+  ), [addRankingLinks, removeRankingLinks])
 
-  const openMatrixView = (row: MatrixRankingRow) => {
-    const matrix = connectivity?.matrixIndex[row.matrixId]
+  const openMatrixView = useCallback((row: MatrixRankingRow) => {
+    const matrix = datasetContent?.matrixIndex[row.matrixId]
     if (!matrix) return
     void dispatch(
       addNetworkViewAndFormat({
@@ -178,7 +179,7 @@ export default function RankingResultsTable({ result }: Props) {
         statId: row.statisticId ?? matrix.stat.id,
       }),
     )
-  }
+  }, [datasetContent, dispatch])
 
   const moveColumn = (sourceKey: string, targetKey: string, keys: string[]) => {
     if (sourceKey === targetKey) return
@@ -289,7 +290,7 @@ export default function RankingResultsTable({ result }: Props) {
         ...(isAggregatedLinkRanking
           ? layerIds.map((layerId) => ({
               key: `layer-${layerId}`,
-              title: connectivity?.catalogs.layers[layerId]?.label ?? layerId,
+              title: datasetContent?.catalogs.layers[layerId]?.label ?? layerId,
               sorter: (a: RankingRow, b: RankingRow) =>
                 compareNumber(
                   a.type === 'link' ? a.valuesByLayer?.[layerId] : undefined,
@@ -388,7 +389,16 @@ export default function RankingResultsTable({ result }: Props) {
           ),
       },
     ]
-  }, [connectivity, result.query, result.rows, scoreColumnTitle, selectedLinkIds])
+  }, [
+    addLink,
+    datasetContent,
+    linkActionsTitle,
+    openMatrixView,
+    result.query,
+    result.rows,
+    scoreColumnTitle,
+    selectedLinkIds,
+  ])
 
   const columns = useMemo<ColumnsType<RankingRow>>(() => {
     const keys = baseColumns.map((column) => column.key)

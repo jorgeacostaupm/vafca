@@ -15,6 +15,7 @@ import NetworkVisualizationSettingsModal, {
 import { DEFAULT_NETWORK_SETTINGS_TAB } from "@/config/ui";
 import { getAvailableMatrixCalculations } from "@/connectivity/calculations";
 import { useAppSelector } from "@/store/hooks";
+import { selectDatasetContent } from "@/store/slices/dataset";
 
 function DataAction() {
   const [open, setOpen] = useState(false);
@@ -89,19 +90,19 @@ type ComputeActionProps = {
 };
 
 function ComputeAction({ onOpenGroupingSettings }: ComputeActionProps) {
-  const connectivity = useAppSelector(
-    (state) => state.dataset.data?.connectivity,
+  const datasetContent = useAppSelector(
+    (state) => selectDatasetContent(state),
   );
   const [open, setOpen] = useState(false);
   const calculationAvailable =
-    connectivity && getAvailableMatrixCalculations(connectivity).length > 0;
+    datasetContent && getAvailableMatrixCalculations(datasetContent).length > 0;
 
   return (
     <>
       <Tooltip
         title={
           calculationAvailable
-            ? "Compute derived networks from the loaded connectivity data"
+            ? "Compute derived networks from the loaded dataset data"
             : "No derived matrix calculations are available with the currently loaded data."
         }
       >

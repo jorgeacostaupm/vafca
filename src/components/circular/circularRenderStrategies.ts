@@ -11,12 +11,28 @@ import {
 } from "@/config/ui";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 import {
-  buildRoiTooltipLabel,
   LINK_COLOR,
   LINK_NEGATIVE,
   LINK_POSITIVE,
   SELECTED_STROKE,
 } from "@/components/nodelink/nodelinkShared";
+
+const buildCircularNodeTooltipHtml = ({
+  node,
+  degree,
+  labelTitles,
+}: {
+  node: CircularNode;
+  degree: number;
+  labelTitles?: Record<string, string>;
+}) => {
+  const labelId = node.labelId ?? String(node.id);
+  const tooltipLabel = labelTitles?.[labelId] ?? node.label;
+
+  return `<div><strong>${escapeHtml(
+    tooltipLabel,
+  )}</strong></div><div>Links: ${degree}</div>`;
+};
 
 type RenderCircularElementsArgs = {
   root: d3.Selection<SVGGElement, unknown, null, undefined>;
@@ -25,7 +41,6 @@ type RenderCircularElementsArgs = {
   diverging?: boolean;
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  labelAcronyms?: Record<string, string>;
   selectedLinkIds: Set<string>;
   widthScale: d3.ScaleLinear<number, number>;
   circularLinkTension?: number;
@@ -48,6 +63,7 @@ type RenderCircularElementsArgs = {
   getNodeColor: (node: CircularNode) => string;
   valueLabel?: string;
   showTooltip: (html: string, event: MouseEvent | PointerEvent) => void;
+  showNodeTooltip: (html: string, node: CircularNode) => void;
   moveTooltip: (event: MouseEvent | PointerEvent) => void;
   hideTooltip: () => void;
   setLocalHoverActive: (active: boolean) => void;
@@ -60,7 +76,6 @@ export const renderCircularElements = ({
   diverging,
   labelNames,
   labelTitles,
-  labelAcronyms,
   selectedLinkIds,
   widthScale,
   circularLinkTension = DEFAULT_CIRCULAR_LINK_TENSION,
@@ -77,6 +92,7 @@ export const renderCircularElements = ({
   getNodeColor,
   valueLabel = "Value",
   showTooltip,
+  showNodeTooltip,
   moveTooltip,
   hideTooltip,
   setLocalHoverActive,
@@ -159,22 +175,23 @@ export const renderCircularElements = ({
     .attr("r", nodeRadius)
     .attr("fill", (node: CircularNode) => getNodeColor(node))
     .style("cursor", "pointer")
-    .on("mouseenter", (event: MouseEvent, node: CircularNode) => {
+    .on("mouseenter", (_event: MouseEvent, node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);
       const degree = degreeById.get(labelId) ?? 0;
-      const tooltipLabel = buildRoiTooltipLabel(
-        labelTitles?.[labelId] ?? node.label,
-        labelAcronyms?.[labelId] ?? labelId,
-      );
-      showTooltip(
-        `<div><strong>${escapeHtml(
-          tooltipLabel,
-        )}</strong></div><div>Links: ${degree}</div>`,
-        event,
+      showNodeTooltip(
+        buildCircularNodeTooltipHtml({ node, degree, labelTitles }),
+        node,
       );
       onNodeHover?.(labelId);
     })
-    .on("mousemove", (event: MouseEvent) => moveTooltip(event))
+    .on("mousemove", (_event: MouseEvent, node: CircularNode) => {
+      const labelId = node.labelId ?? String(node.id);
+      const degree = degreeById.get(labelId) ?? 0;
+      showNodeTooltip(
+        buildCircularNodeTooltipHtml({ node, degree, labelTitles }),
+        node,
+      );
+    })
     .on("mouseleave", () => {
       hideTooltip();
       onNodeLeave?.();

@@ -1,14 +1,18 @@
 import { Space, Typography } from "antd";
 import { useAppSelector } from "@/store/hooks";
-import { normalizeMatrixOrder } from "@/utils/matrixOrder";
+import { selectDatasetData } from "@/store/slices/dataset";
+import {
+  getDatasetAtlasLabel,
+  getDatasetMatrixOrder,
+} from "@/utils/datasetAccessors";
 
 export default function AtlasMetadataSummary() {
-  const data = useAppSelector((state) => state.dataset.data);
+  const data = useAppSelector((state) => selectDatasetData(state));
 
   if (!data) return null;
 
-  const matrixOrder = normalizeMatrixOrder(data.metadata.matrixOrder);
-  const atlasLabel = data.metadata.atlasId ?? data.metadata.atlas ?? "Unknown";
+  const matrixOrder = getDatasetMatrixOrder(data);
+  const atlasLabel = getDatasetAtlasLabel(data);
 
   return (
     <Space wrap size={16}>

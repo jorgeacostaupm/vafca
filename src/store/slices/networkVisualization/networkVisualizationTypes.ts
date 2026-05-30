@@ -1,12 +1,10 @@
 import type {
   MatrixNetworkViewSettings,
-  NetworkPanelLayoutItem,
   NetworkSelectorControlsState,
   NetworkViewDescriptor,
   NetworkViewType,
   NodeLinkNetworkViewSettings,
 } from '@/types/networkVisualization'
-import type { MatrixFilterDefinition, RuntimeEdgeMask } from '@/types/edgeFilter'
 import {
   DEFAULT_CIRCULAR_BUNDLING_ENABLED,
   DEFAULT_CIRCULAR_LINK_TENSION,
@@ -22,13 +20,8 @@ export type NetworkVisualizationState = {
   controlsByViewType: Partial<Record<NetworkViewType, NetworkSelectorControlsState>>
   viewsOrder: string[]
   viewsById: Record<string, NetworkViewDescriptor>
-  layout: NetworkPanelLayoutItem[]
   matrixSettingsByViewId: Record<string, MatrixNetworkViewSettings>
   nodeLinkSettingsByViewId: Record<string, NodeLinkNetworkViewSettings>
-  activeNetworkFilter: MatrixFilterDefinition | null
-  activeEdgeMask: RuntimeEdgeMask | null
-  activeAggregatedNetworkFilter: MatrixFilterDefinition | null
-  activeAggregatedEdgeMask: RuntimeEdgeMask | null
   nextViewSeq: number
 }
 
@@ -64,12 +57,7 @@ export const initialNetworkVisualizationState: NetworkVisualizationState = {
   },
   viewsOrder: [],
   viewsById: {},
-  layout: [],
   matrixSettingsByViewId: {},
   nodeLinkSettingsByViewId: {},
-  activeNetworkFilter: null,
-  activeEdgeMask: null,
-  activeAggregatedNetworkFilter: null,
-  activeAggregatedEdgeMask: null,
   nextViewSeq: DEFAULT_NETWORK_NEXT_VIEW_SEQ,
 }

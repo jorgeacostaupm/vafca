@@ -2,14 +2,16 @@ import { useCallback, useMemo, useRef, type PointerEvent } from "react";
 import { shallowEqual } from "react-redux";
 import { Button, Space, Typography } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 import {
   selectAtlasDisplayLabelsById,
   selectAtlasEnabledById,
-} from "@/store/slices/atlas";
+} from "@/store/slices/atlasUi";
 import { useAtlasScene } from "./atlasPanelHooks";
 import { VIEWER_MIN_HEIGHT } from "./panelConstants";
+import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
 type AtlasPanelViewerProps = {
   enableMeshPoints: boolean;
@@ -17,7 +19,7 @@ type AtlasPanelViewerProps = {
 
 export function AtlasPanelViewer({ enableMeshPoints }: AtlasPanelViewerProps) {
   const dispatch = useAppDispatch();
-  const dataset = useAppSelector((state) => state.dataset.data);
+  const dataset = useAppSelector((state) => selectDatasetData(state));
   const viewerHeight = useAppSelector(
     (state) => state.visualizationUi.atlasPanel.viewerHeight,
   );
@@ -32,9 +34,7 @@ export function AtlasPanelViewer({ enableMeshPoints }: AtlasPanelViewerProps) {
   );
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const atlasDefinition = useAtlasDefinition(
-    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
-  );
+  const atlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
 
   const enable3d = useMemo(
     () => enableMeshPoints && Boolean(atlasDefinition?.rois?.length),

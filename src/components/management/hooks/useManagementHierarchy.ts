@@ -12,7 +12,7 @@ import {
   setAtlasColorFields,
   setCircularHierarchyCategoryOrder,
   setMatrixHierarchyCategoryOrder,
-} from "@/store/slices/atlas";
+} from "@/store/slices/atlasUi";
 import { PREVIEW_PADDING, PREVIEW_SIZE } from "@/components/management/constants";
 import {
   areCategoryOrdersEqual,

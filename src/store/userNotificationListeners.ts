@@ -6,7 +6,7 @@ import {
 } from "@/store/slices/atlasDefinition";
 import {
   downloadCurrentDataset,
-  uploadMatricesIntoDataset,
+  loadDatasetFromUploadedZip,
 } from "@/store/slices/dataset";
 import { downloadSelectedLinks } from "@/store/slices/visualizationUi";
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
@@ -59,7 +59,7 @@ userNotificationListenerMiddleware.startListening({
   matcher: isAnyOf(
     uploadAtlasDefinitionAndSync.rejected,
     downloadCurrentDataset.rejected,
-    uploadMatricesIntoDataset.rejected,
+    loadDatasetFromUploadedZip.rejected,
     downloadSelectedLinks.rejected,
   ),
   effect: (action, { dispatch }) => {
@@ -73,7 +73,7 @@ userNotificationListenerMiddleware.startListening({
 });
 
 userNotificationListenerMiddleware.startListening({
-  actionCreator: uploadMatricesIntoDataset.fulfilled,
+  actionCreator: loadDatasetFromUploadedZip.fulfilled,
   effect: (action, { dispatch }) => {
     const {
       validMatrices,
@@ -92,10 +92,10 @@ userNotificationListenerMiddleware.startListening({
       enqueueNotification({
         kind:
           invalidMatrices > 0 || atlasCompatibilityWarning ? "warning" : "success",
-        message: "Matrices loaded",
+        message: "Dataset loaded",
         description: `${validMatrices} valid matrix${
           validMatrices === 1 ? "" : "es"
-        } loaded from ${files} file${
+        } loaded from ${files} ZIP file${
           files === 1 ? "" : "s"
         }.${invalidDescription}${
           atlasCompatibilityWarning ? ` ${atlasCompatibilityWarning}` : ""

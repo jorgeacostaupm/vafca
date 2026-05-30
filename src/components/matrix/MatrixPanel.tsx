@@ -12,7 +12,7 @@ type MatrixHeatmapPanelProps = {
   colLabels?: string[];
   compoundId: string;
   matrixLabel: string;
-  svgRef?: RefObject<SVGSVGElement>;
+  svgRef?: RefObject<SVGSVGElement | null>;
   legendMin?: number;
   legendMax?: number;
   invertColorScale?: boolean;

@@ -2,28 +2,28 @@ import { useEffect, useMemo } from "react";
 import { shallowEqual } from "react-redux";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
 import {
   selectAtlasColorFields,
   selectAtlasColorPalette,
   selectAtlasEnabledIds,
   setAtlasColorFields,
-} from "@/store/slices/atlas";
+} from "@/store/slices/atlasUi";
 import type { AtlasColorCategoryItem } from "@/types/atlasPanel";
 import { D3_GROUPING_PALETTES } from "@/config/groupingPalettes";
 import { buildRoiGroupingColorCategories } from "@/utils/groupingColoring";
 import { getCommonRoiFields, humanizeFieldName } from "@/utils/atlas/atlasDefinition";
+import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
 const MIN_COLOR_PREVIEW_ITEMS = 7;
 
 export const useAtlasGroupingSettings = () => {
   const dispatch = useAppDispatch();
-  const dataset = useAppSelector((state) => state.dataset.data);
+  const dataset = useAppSelector((state) => selectDatasetData(state));
   const colorFields = useAppSelector(selectAtlasColorFields);
   const colorPalette = useAppSelector(selectAtlasColorPalette);
   const enabledIds = useAppSelector(selectAtlasEnabledIds, shallowEqual);
-  const atlasDefinition = useAtlasDefinition(
-    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
-  );
+  const atlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
 
   const availableFields = useMemo(
     () => getCommonRoiFields(atlasDefinition),

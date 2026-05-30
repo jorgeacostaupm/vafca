@@ -1,10 +1,14 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type { RootState } from '@/types/store'
-import { syncDatasetDerivedState } from '@/store/slices/dataset'
-import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlas'
+import { selectDatasetData, syncDatasetDerivedState } from '@/store/slices/dataset'
+import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlasUi'
 import { buildMatrixDerivedAtlasSource } from '@/utils/atlas/matrixDerivedAtlas'
 import { checkAtlasMatrixCompatibility } from '@/utils/atlasCompatibility'
 import { normalizeMatrixOrder } from '@/utils/matrixOrder'
+import {
+  getDatasetAtlasId,
+  getDatasetMatrixOrder,
+} from '@/utils/datasetAccessors'
 import { clearUploadedAtlas, setUploadedAtlas } from './atlasDefinitionSlice'
 import {
   loadDefaultAtlasDefinition,
@@ -57,7 +61,7 @@ export const uploadAtlasDefinitionAndSync = createAsyncThunk<
         uploadAtlasDefinitionFromFile({ file }),
       ).unwrap()
 
-      const matrixOrder = getState().dataset.data?.metadata.matrixOrder ?? []
+      const matrixOrder = getDatasetMatrixOrder(selectDatasetData(getState()))
       const compatibility = checkAtlasMatrixCompatibility(matrixOrder, result.atlas)
       if (!compatibility.compatible) {
         const matrixDerivedAtlas = buildMatrixDerivedAtlasSource(matrixOrder)
@@ -88,7 +92,7 @@ export const clearUploadedAtlasAndSync = createAsyncThunk<
   dispatch(clearUploadedAtlas())
 
   const state = getState()
-  const atlasId = state.dataset.data?.metadata.atlasId ?? state.dataset.data?.metadata.atlas
+  const atlasId = getDatasetAtlasId(selectDatasetData(state))
   const status = atlasId
     ? (state.atlasDefinition.defaultStatusById[atlasId] ?? 'idle')
     : 'idle'

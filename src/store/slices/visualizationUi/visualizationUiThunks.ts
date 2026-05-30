@@ -8,9 +8,13 @@ import {
   downloadExportPayload,
   resolveLayerLabel,
 } from '@/components/selected-links/selectedLinksPanel.utils'
-import { fetchMatricesByCompoundIds } from '@/store/slices/matrixCache'
 import type { RootState } from '@/types/store'
+import { selectDatasetData } from '@/store/slices/dataset'
 import { buildMatrixLabel } from '@/utils/matrixViewUtils'
+import {
+  getDatasetCatalogs,
+  getDatasetMatrixByCompoundId,
+} from '@/utils/datasetAccessors'
 
 export type DownloadSelectedLinksResult = {
   mode: DownloadMode
@@ -25,7 +29,7 @@ export const downloadSelectedLinks = createAsyncThunk<
   { state: RootState; rejectValue: string }
 >(
     'visualizationUi/downloadSelectedLinks',
-  async ({ mode, selectedMatrixIds }, { dispatch, getState, rejectWithValue }) => {
+  async ({ mode, selectedMatrixIds }, { getState, rejectWithValue }) => {
     const state = getState()
     const { selectedLinks, atlasLinkIds } = state.visualizationUi
 
@@ -49,20 +53,19 @@ export const downloadSelectedLinks = createAsyncThunk<
       return rejectWithValue('No layers selected for download.')
     }
 
-    await dispatch(
-      fetchMatricesByCompoundIds({
-        compoundIds: layerIds,
-      }),
-    )
-
     const nextState = getState()
-    const matrixCache = nextState.matrixCache.byCompoundId
-    const matrixErrors = nextState.matrixCache.errorByCompoundId
-    const atlasIndex = new Map(nextState.atlas.order.map((id, index) => [id, index]))
+    const dataset = selectDatasetData(nextState)
+    const matrixLookup = Object.fromEntries(
+      layerIds.map((compoundId) => [
+        compoundId,
+        getDatasetMatrixByCompoundId(dataset, compoundId) ?? null,
+      ]),
+    )
+    const atlasIndex = new Map(nextState.atlasUi.order.map((id, index) => [id, index]))
     const matrixLabelMap = buildMatrixLabelMap(
       nextState.matrixSummaries.summaries.map((summary) => ({
         value: summary.compoundId,
-        label: buildMatrixLabel(summary, nextState.dataset.data?.catalogs),
+        label: buildMatrixLabel(summary, getDatasetCatalogs(selectDatasetData(nextState))),
       })),
     )
     const sourceLabelMap = buildSourceLabelMap(linksToDownload)
@@ -72,7 +75,7 @@ export const downloadSelectedLinks = createAsyncThunk<
     const exportLinks = buildExportLinks(
       linksToDownload,
       layerIds,
-      matrixCache,
+      matrixLookup,
       atlasIndex,
     )
     const payload = buildExportPayload(
@@ -84,8 +87,7 @@ export const downloadSelectedLinks = createAsyncThunk<
     downloadExportPayload(payload, mode)
 
     const failedLayerIds = layerIds.filter((compoundId) => {
-      if (matrixErrors[compoundId]) return true
-      return !(compoundId in matrixCache) || matrixCache[compoundId] === null
+      return matrixLookup[compoundId] === null
     })
 
     return {

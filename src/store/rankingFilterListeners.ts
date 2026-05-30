@@ -2,7 +2,7 @@ import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
 import {
   applyNetworkEdgeFilter,
   clearNetworkEdgeFilter,
-} from "@/store/slices/networkVisualization";
+} from "@/store/slices/networkFilters";
 import { recomputeRankingsForActiveFilters } from "@/store/slices/rankings";
 
 export const rankingFilterListenerMiddleware = createListenerMiddleware();

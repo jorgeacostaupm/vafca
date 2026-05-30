@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
 import datasetReducer from '@/store/slices/dataset'
+import datasetOperationsReducer from '@/store/slices/dataset/datasetOperationsSlice'
 import visualizationUiReducer from '@/store/slices/visualizationUi'
 import atlasDefinitionReducer from '@/store/slices/atlasDefinition'
-import atlasReducer from '@/store/slices/atlas'
+import atlasUiReducer from '@/store/slices/atlasUi'
 import networkVisualizationReducer from '@/store/slices/networkVisualization'
+import networkFiltersReducer from '@/store/slices/networkFilters'
+import networkLayoutReducer from '@/store/slices/networkLayout'
 import matrixSummariesReducer from '@/store/slices/matrixSummaries'
-import matrixCacheReducer from '@/store/slices/matrixCache'
 import notificationsReducer from '@/store/slices/notifications'
 import rankingsReducer from '@/store/slices/rankings'
 import { rankingFilterListenerMiddleware } from '@/store/rankingFilterListeners'
@@ -14,12 +16,14 @@ import { userNotificationListenerMiddleware } from '@/store/userNotificationList
 export const store = configureStore({
   reducer: {
     dataset: datasetReducer,
+    datasetOperations: datasetOperationsReducer,
     visualizationUi: visualizationUiReducer,
-    atlas: atlasReducer,
+    atlasUi: atlasUiReducer,
     atlasDefinition: atlasDefinitionReducer,
     networkVisualization: networkVisualizationReducer,
+    networkFilters: networkFiltersReducer,
+    networkLayout: networkLayoutReducer,
     matrixSummaries: matrixSummariesReducer,
-    matrixCache: matrixCacheReducer,
     notifications: notificationsReducer,
     rankings: rankingsReducer,
   },

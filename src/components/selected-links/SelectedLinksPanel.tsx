@@ -1,6 +1,7 @@
 import { Space } from "antd";
 import { useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
 import {
   clearSelectedLinks,
   downloadSelectedLinks,
@@ -12,7 +13,7 @@ import SelectedLinksAtlas from "@/components/selected-links/SelectedLinksAtlas";
 import SelectedLinksControls from "@/components/selected-links/SelectedLinksControls";
 import SelectedLinksTable from "@/components/selected-links/SelectedLinksTable";
 import { useSelectedLinkMatrixSelection } from "@/components/selected-links/useSelectedLinkMatrixSelection";
-import { useSelectedLinkMatrixCache } from "@/components/selected-links/useSelectedLinkMatrixCache";
+import { useSelectedLinkMatrixLookup } from "@/components/selected-links/useSelectedLinkMatrixLookup";
 import type {
   DownloadMode,
   MatrixOption,
@@ -25,6 +26,10 @@ import {
 } from "@/components/selected-links/selectedLinksPanel.utils";
 import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
 import { buildMatrixLabel } from "@/utils/matrixViewUtils";
+import {
+  getDatasetCatalogs,
+  getDatasetMatrixStats,
+} from "@/utils/datasetAccessors";
 
 export default function SelectedLinksPanel() {
   const dispatch = useAppDispatch();
@@ -35,21 +40,23 @@ export default function SelectedLinksPanel() {
   const downloadStatus = useAppSelector(
     (state) => state.visualizationUi.selectedLinksDownloadStatus,
   );
-  const dataset = useAppSelector((state) => state.dataset.data);
-  const atlasOrder = useAppSelector((state) => state.atlas.order);
-  const { summaries, status } = useMatrixSummaries(dataset?.matrixStats.total);
+  const dataset = useAppSelector((state) => selectDatasetData(state));
+  const catalogs = getDatasetCatalogs(dataset);
+  const atlasOrder = useAppSelector((state) => state.atlasUi.order);
+  const matrixStats = getDatasetMatrixStats(dataset);
+  const { summaries, status } = useMatrixSummaries(matrixStats.total);
   const { selectedMatrixIds, setUserSelectedMatrixIds } =
     useSelectedLinkMatrixSelection(links);
-  const { matrixCache, loadingMatrices } = useSelectedLinkMatrixCache(selectedMatrixIds);
+  const { matrixLookup, loadingMatrices } = useSelectedLinkMatrixLookup(selectedMatrixIds);
 
   const matrixOptions = useMemo<MatrixOption[]>(() => {
     return summaries
       .map((summary) => ({
         value: summary.compoundId,
-        label: buildMatrixLabel(summary, dataset?.catalogs),
+        label: buildMatrixLabel(summary, catalogs),
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [summaries, dataset]);
+  }, [summaries, catalogs]);
 
   const matrixLabelMap = useMemo(() => {
     return buildMatrixLabelMap(matrixOptions);
@@ -71,10 +78,10 @@ export default function SelectedLinksPanel() {
     return buildRows({
       links,
       selectedMatrixIds,
-      matrixCache,
+      matrixLookup,
       atlasIndex,
     });
-  }, [links, selectedMatrixIds, matrixCache, atlasIndex]);
+  }, [links, selectedMatrixIds, matrixLookup, atlasIndex]);
 
   const handleDownloadLinks = useCallback(
     (mode: DownloadMode) => {

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Slider,
-  type SliderSingleProps,
 } from "antd";
+import type { SliderRangeProps } from "antd/es/slider";
 
 type RangeValue = [number, number];
 
 type DebouncedRangeSliderProps = Omit<
-  SliderSingleProps,
+  SliderRangeProps,
   "range" | "value" | "onChange"
 > & {
   range?: boolean;
@@ -37,8 +37,8 @@ function DebouncedRangeSlider({
     };
   }, []);
 
-  const handleChange = (nextValue: number | [number, number]) => {
-    if (!Array.isArray(nextValue)) return;
+  const handleChange = (nextValue: number[]) => {
+    if (nextValue.length < 2) return;
     const normalized: RangeValue = [nextValue[0], nextValue[1]];
     setInternalValue(normalized);
 
@@ -52,10 +52,10 @@ function DebouncedRangeSlider({
 
   return (
     <Slider
-      {...(sliderProps as any)}
+      {...sliderProps}
       range
-      value={internalValue as any}
-      onChange={handleChange as any}
+      value={internalValue}
+      onChange={handleChange}
     />
   );
 }

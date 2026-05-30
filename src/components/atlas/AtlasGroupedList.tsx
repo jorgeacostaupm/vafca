@@ -3,7 +3,7 @@ import { Button, Collapse, List, Space, Typography } from "antd";
 import type { GroupTreeEntry, RoiTreeNode } from "./panelTypes";
 import { AtlasRoiListItem } from "./AtlasRoiListItem";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setLabelsEnabled } from "@/store/slices/atlas";
+import { setLabelsEnabled } from "@/store/slices/atlasUi";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 
 type AtlasGroupedListProps = {

@@ -79,7 +79,7 @@
   color: #fff;
 }
 
-.network-panel-view-type-option {
+.network-view-type-option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -124,14 +124,14 @@
   padding: var(--space-2) 0;
 }
 
-.network-panel-card--range-filter-source {
+.network-view-card--range-filter-source {
   border-color: var(--color-primary);
   box-shadow:
     0 0 0 2px rgba(var(--color-primary-rgb), 0.18),
     var(--shadow-md);
 }
 
-.network-panel-card--range-filter-source .ant-card-head {
+.network-view-card--range-filter-source .ant-card-head {
   background: rgba(var(--color-primary-rgb), 0.08);
 }
 

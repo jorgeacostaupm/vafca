@@ -1,22 +1,28 @@
 import { Card, Divider, Input, Space, Switch, Typography } from "antd";
-import { useAppSelector } from "@/store/hooks";
+import type { StatCatalogEntry } from "@/types/connectivityBundle";
 import { isEnabled } from "@/components/management/utils/catalogValues";
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 
-function StatCatalogSection() {
+type StatCatalogSectionProps = {
+  title: string;
+  stats: Array<StatCatalogEntry & { description?: string | null; enabled?: boolean }>;
+  emptyMessage: string;
+};
+
+function StatCatalogSection({ title, stats, emptyMessage }: StatCatalogSectionProps) {
   const updateItem = useCatalogItemUpdater();
-  const stats = useAppSelector(
-    (state) => state.dataset.data?.catalogs.stats ?? {},
-  );
 
   return (
     <>
       <Divider style={{ margin: "8px 0" }} />
 
       <div>
-        <Typography.Text strong>Statistics</Typography.Text>
+        <Typography.Text strong>{title}</Typography.Text>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          {Object.values(stats).map((stat) => (
+          {stats.length === 0 ? (
+            <Typography.Text type="secondary">{emptyMessage}</Typography.Text>
+          ) : null}
+          {stats.map((stat) => (
             <Card key={stat.id} size="small" style={{ width: 300 }}>
               <Space direction="vertical" size={8} style={{ width: "100%" }}>
                 <Space wrap size={8} align="start">

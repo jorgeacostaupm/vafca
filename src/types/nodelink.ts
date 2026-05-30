@@ -12,7 +12,7 @@ export type NodeLinkPanelCommonProps = {
   labels?: string[];
   compoundId: string;
   matrixLabel: string;
-  svgRef?: RefObject<SVGSVGElement>;
+  svgRef?: RefObject<SVGSVGElement | null>;
   valueFilters?: NodeLinkValueFilters;
   selectedZoomLabels?: string[];
   linkWidthRange?: [number, number];

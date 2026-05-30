@@ -62,6 +62,10 @@ const populationMethods: MatrixCalculationOperation[] = [
   "population_two_sample_z_test",
   "population_welch_t",
 ];
+const subjectMethods: MatrixCalculationOperation[] = [
+  "subject_zscore_vs_population",
+  "subject_difference",
+];
 
 const first = (values: string[]) => values[0] ?? "";
 
@@ -72,17 +76,17 @@ export default function DerivedMatrixCalculationModal({
 }: Props) {
   const dispatch = useAppDispatch();
   const dataset = useAppSelector(selectDatasetData);
-  const atlasState = useAppSelector((state) => state.atlas);
+  const atlasState = useAppSelector((state) => state.atlasUi);
   const selectedViewType = useAppSelector(
     (state) => state.networkVisualization.controls.viewType,
   );
   const calculationStatus = useAppSelector(selectDerivedCalculationStatus);
   const calculationError = useAppSelector(selectDerivedCalculationError);
-  const connectivity = dataset?.connectivity;
+  const datasetContent = dataset?.content;
   const methods = useMemo(() => getMatrixCalculationMethodDefinitions(), []);
   const available = useMemo(
-    () => (connectivity ? getAvailableMatrixCalculations(connectivity) : []),
-    [connectivity],
+    () => (datasetContent ? getAvailableMatrixCalculations(datasetContent) : []),
+    [datasetContent],
   );
   const availableIds = useMemo(
     () => new Set(available.map((method) => method.id)),
@@ -90,20 +94,20 @@ export default function DerivedMatrixCalculationModal({
   );
 
   const populationIds = useMemo(
-    () => Object.keys(connectivity?.catalogs.populations ?? {}),
-    [connectivity],
+    () => Object.keys(datasetContent?.catalogs.populations ?? {}),
+    [datasetContent],
   );
   const subjectIds = useMemo(
-    () => Object.keys(connectivity?.catalogs.subjects ?? {}),
-    [connectivity],
+    () => Object.keys(datasetContent?.catalogs.subjects ?? {}),
+    [datasetContent],
   );
   const layerIds = useMemo(
-    () => Object.keys(connectivity?.catalogs.layers ?? {}),
-    [connectivity],
+    () => Object.keys(datasetContent?.catalogs.layers ?? {}),
+    [datasetContent],
   );
   const measureIds = useMemo(
-    () => Object.keys(connectivity?.catalogs.measures ?? {}),
-    [connectivity],
+    () => Object.keys(datasetContent?.catalogs.measures ?? {}),
+    [datasetContent],
   );
 
   const [operations, setOperations] = useState<MatrixCalculationOperation[]>(
@@ -120,6 +124,9 @@ export default function DerivedMatrixCalculationModal({
   );
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>(
     subjectIds.slice(0, 1),
+  );
+  const [rightSubjectId, setRightSubjectId] = useState(
+    subjectIds[1] ?? first(subjectIds),
   );
   const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>(
     layerIds.slice(0, 1),
@@ -151,6 +158,8 @@ export default function DerivedMatrixCalculationModal({
   const effectiveSubjectIds = selectedSubjectIds.length
     ? selectedSubjectIds
     : subjectIds.slice(0, 1);
+  const effectiveRightSubjectId =
+    rightSubjectId || subjectIds[1] || first(subjectIds);
   const effectiveLayerIds = selectedLayerIds.length
     ? selectedLayerIds
     : layerIds.slice(0, 1);
@@ -161,6 +170,7 @@ export default function DerivedMatrixCalculationModal({
   const hasSubjectOperation = operations.includes(
     "subject_zscore_vs_population",
   );
+  const hasSubjectComparisonOperation = operations.includes("subject_difference");
   const hasPopulationOperation = operations.some((operation) =>
     populationMethods.includes(operation),
   );
@@ -171,6 +181,7 @@ export default function DerivedMatrixCalculationModal({
       leftPopulationId: effectiveLeftPopulationId,
       rightPopulationId: effectiveRightPopulationId,
       referencePopulationId: effectiveReferencePopulationId,
+      rightSubjectId: effectiveRightSubjectId,
       subjectIds: effectiveSubjectIds,
       layerIds: effectiveLayerIds,
       measureIds: effectiveMeasureIds,
@@ -183,17 +194,17 @@ export default function DerivedMatrixCalculationModal({
       effectiveMeasureIds,
       effectiveReferencePopulationId,
       effectiveRightPopulationId,
+      effectiveRightSubjectId,
       effectiveSubjectIds,
       operations,
     ],
   );
 
   const previewRows = useMemo<PreviewRow[]>(() => {
-    if (!connectivity) return [];
+    if (!datasetContent) return [];
     return operations.flatMap((operation) => {
       const definition = methods.find((method) => method.id === operation);
-      const subjects =
-        operation === "subject_zscore_vs_population"
+      const subjects = subjectMethods.includes(operation)
           ? effectiveSubjectIds
           : [undefined];
       return subjects.flatMap((subjectId) =>
@@ -201,25 +212,30 @@ export default function DerivedMatrixCalculationModal({
           effectiveMeasureIds.map((measureId) => {
             const resolved = resolveCalculationInputsForLayerMeasure(
               { ...request, operation },
-              connectivity,
+              datasetContent,
               layerId,
               measureId,
               subjectId,
             );
-            const layer = connectivity.catalogs.layers[layerId]?.label ?? layerId;
+            const layer = datasetContent.catalogs.layers[layerId]?.label ?? layerId;
             const measure =
-              connectivity.catalogs.measures[measureId]?.label ?? measureId;
+              datasetContent.catalogs.measures[measureId]?.label ?? measureId;
             const left = subjectId
-              ? (connectivity.catalogs.subjects[subjectId]?.label ?? subjectId)
-              : (connectivity.catalogs.populations[effectiveLeftPopulationId]
+              ? (datasetContent.catalogs.subjects[subjectId]?.label ?? subjectId)
+              : (datasetContent.catalogs.populations[effectiveLeftPopulationId]
                   ?.label ?? effectiveLeftPopulationId);
-            const rightId =
-              operation === "population_reference_zscore" ||
-              operation === "subject_zscore_vs_population"
-                ? effectiveReferencePopulationId
-                : effectiveRightPopulationId;
             const right =
-              connectivity.catalogs.populations[rightId]?.label ?? rightId;
+              operation === "subject_difference"
+                ? (datasetContent.catalogs.subjects[effectiveRightSubjectId]?.label ??
+                  effectiveRightSubjectId)
+                : (() => {
+                    const rightId =
+                      operation === "population_reference_zscore" ||
+                      operation === "subject_zscore_vs_population"
+                        ? effectiveReferencePopulationId
+                        : effectiveRightPopulationId;
+                    return datasetContent.catalogs.populations[rightId]?.label ?? rightId;
+                  })();
             return {
               key: `${operation}:${subjectId ?? "pop"}:${layerId}:${measureId}`,
               method: definition?.shortLabel ?? operation,
@@ -239,12 +255,13 @@ export default function DerivedMatrixCalculationModal({
       );
     });
   }, [
-    connectivity,
+    datasetContent,
     effectiveLayerIds,
     effectiveLeftPopulationId,
     effectiveMeasureIds,
     effectiveReferencePopulationId,
     effectiveRightPopulationId,
+    effectiveRightSubjectId,
     effectiveSubjectIds,
     methods,
     operations,
@@ -288,31 +305,31 @@ export default function DerivedMatrixCalculationModal({
   );
   const aggregationBaseMatrices = useMemo(
     () =>
-      (connectivity?.matrices ?? []).filter((matrix) =>
+      (datasetContent?.matrices ?? []).filter((matrix) =>
         ["subject", "aggregate", "comparison"].includes(matrix.kind),
       ),
-    [connectivity?.matrices],
+    [datasetContent?.matrices],
   );
   const groupPreview = useMemo(() => {
-    if (!connectivity || !groupConfig) return null;
+    if (!datasetContent || !groupConfig) return null;
     return buildRoiGroupsFromTags({
-      atlas: connectivity.atlas,
+      atlas: datasetContent.atlas,
       fields: groupConfig.fields,
       categoryOrder: groupConfig.categoryOrder,
       activeRoiIds: new Set(activeRoiIds),
       missingTagPolicy: groupConfig.missingTagPolicy,
     });
-  }, [activeRoiIds, connectivity, groupConfig]);
+  }, [activeRoiIds, datasetContent, groupConfig]);
   const staleReducedCount = useMemo(() => {
-    if (!connectivity) return 0;
+    if (!datasetContent) return 0;
     const currentHash = hashRoiSet(activeRoiIds);
-    return connectivity.matrices.filter(
+    return datasetContent.matrices.filter(
       (matrix) =>
         matrix.kind === "reduced" &&
         matrix.reduction?.activeRoiSetHash &&
         matrix.reduction.activeRoiSetHash !== currentHash,
     ).length;
-  }, [activeRoiIds, connectivity]);
+  }, [activeRoiIds, datasetContent]);
   const canAggregate =
     Boolean(groupConfig) &&
     baseMatrixIds.length > 0 &&
@@ -486,7 +503,7 @@ export default function DerivedMatrixCalculationModal({
                               options={populationIds.map((id) => ({
                                 value: id,
                                 label:
-                                  connectivity?.catalogs.populations[id]
+                                  datasetContent?.catalogs.populations[id]
                                     ?.label ?? id,
                               }))}
                             />
@@ -502,7 +519,7 @@ export default function DerivedMatrixCalculationModal({
                               options={populationIds.map((id) => ({
                                 value: id,
                                 label:
-                                  connectivity?.catalogs.populations[id]
+                                  datasetContent?.catalogs.populations[id]
                                     ?.label ?? id,
                               }))}
                             />
@@ -524,9 +541,9 @@ export default function DerivedMatrixCalculationModal({
                         </>
                       ) : null}
 
-                      {hasSubjectOperation ? (
+                      {hasSubjectOperation || hasSubjectComparisonOperation ? (
                         <>
-                          <Form.Item label="Subjects">
+                          <Form.Item label={hasSubjectComparisonOperation ? "Left subjects" : "Subjects"}>
                             <Select
                               mode="multiple"
                               style={{ width: 260 }}
@@ -535,11 +552,15 @@ export default function DerivedMatrixCalculationModal({
                               options={subjectIds.map((id) => ({
                                 value: id,
                                 label:
-                                  connectivity?.catalogs.subjects[id]?.label ??
+                                  datasetContent?.catalogs.subjects[id]?.label ??
                                   id,
                               }))}
                             />
                           </Form.Item>
+                        </>
+                      ) : null}
+                      {hasSubjectOperation ? (
+                        <>
                           <Form.Item label="Reference population">
                             <Select
                               style={{ width: 220 }}
@@ -548,10 +569,38 @@ export default function DerivedMatrixCalculationModal({
                               options={populationIds.map((id) => ({
                                 value: id,
                                 label:
-                                  connectivity?.catalogs.populations[id]
+                                  datasetContent?.catalogs.populations[id]
                                     ?.label ?? id,
                               }))}
                             />
+                          </Form.Item>
+                        </>
+                      ) : null}
+                      {hasSubjectComparisonOperation ? (
+                        <>
+                          <Form.Item label="Right / control subject">
+                            <Select
+                              style={{ width: 220 }}
+                              value={effectiveRightSubjectId}
+                              onChange={setRightSubjectId}
+                              options={subjectIds.map((id) => ({
+                                value: id,
+                                label:
+                                  datasetContent?.catalogs.subjects[id]?.label ??
+                                  id,
+                              }))}
+                            />
+                          </Form.Item>
+                          <Form.Item label="Direction">
+                            <Button
+                              icon={<SwapOutlined />}
+                              onClick={() => {
+                                setSelectedSubjectIds([effectiveRightSubjectId]);
+                                setRightSubjectId(effectiveSubjectIds[0] ?? effectiveRightSubjectId);
+                              }}
+                            >
+                              Swap direction
+                            </Button>
                           </Form.Item>
                         </>
                       ) : null}
@@ -567,7 +616,7 @@ export default function DerivedMatrixCalculationModal({
                           options={layerIds.map((id) => ({
                             value: id,
                             label:
-                              connectivity?.catalogs.layers[id]?.label ?? id,
+                              datasetContent?.catalogs.layers[id]?.label ?? id,
                           }))}
                         />
                       </Form.Item>
@@ -580,7 +629,7 @@ export default function DerivedMatrixCalculationModal({
                           options={measureIds.map((id) => ({
                             value: id,
                             label:
-                              connectivity?.catalogs.measures[id]?.label ?? id,
+                              datasetContent?.catalogs.measures[id]?.label ?? id,
                           }))}
                         />
                       </Form.Item>

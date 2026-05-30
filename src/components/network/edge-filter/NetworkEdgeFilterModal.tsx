@@ -1,28 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Modal, Space, Statistic, Tabs, Typography } from "antd";
+import { Alert, Button, Modal, Space, Tag, Tabs, Typography } from "antd";
 import { DEFAULT_NETWORK_EDGE_FILTER_TAB } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
 import {
-  applyAggregatedNetworkEdgeFilter,
-  applyNetworkEdgeFilter,
+  applyNetworkFilterFromDefinition,
   clearAggregatedNetworkEdgeFilter,
   clearNetworkEdgeFilter,
-} from "@/store/slices/networkVisualization";
+  resolveNetworkFilterRuntime,
+  type NetworkEdgeFilterMode,
+} from "@/store/slices/networkFilters";
 import {
-  buildAggregatedEdgeDomain,
-  buildNetworkEdgeDomain,
   cloneMatrixFilterDefinition,
   createEmptyMatrixFilterDefinition,
-  createRuntimeEdgeMask,
-  normalizeMatrixFilterDefinitionForRanges,
-  validateMatrixFilterDefinition,
 } from "@/utils/edgeFilter";
 import MatrixFilterGroupEditor from "./MatrixFilterGroupEditor";
 import { formatMatrixKindLabel, formatNetworkMatrixLabel } from "./edgeFilterLabels";
 import type { MatrixFilterDefinition } from "@/types/edgeFilter";
-import { normalizeMatrixOrder } from "@/utils/matrixOrder";
-
-export type NetworkEdgeFilterMode = "roi" | "aggregated";
 
 type NetworkEdgeFilterModalProps = {
   open: boolean;
@@ -34,8 +28,8 @@ export default function NetworkEdgeFilterModal({
   onClose,
 }: NetworkEdgeFilterModalProps) {
   const dispatch = useAppDispatch();
-  const dataset = useAppSelector((state) => state.dataset.data);
-  const network = useAppSelector((state) => state.networkVisualization);
+  const dataset = useAppSelector((state) => selectDatasetData(state));
+  const networkFilters = useAppSelector((state) => state.networkFilters);
   const globalRangeMode = useAppSelector((state) => state.visualizationUi.uiRangeMode);
   const [selectedMode, setSelectedMode] =
     useState<NetworkEdgeFilterMode | null>(null);
@@ -49,27 +43,13 @@ export default function NetworkEdgeFilterModal({
   const mode = selectedMode ?? DEFAULT_NETWORK_EDGE_FILTER_TAB;
   const isAggregated = mode === "aggregated";
   const activeMask = isAggregated
-    ? network.activeAggregatedEdgeMask
-    : network.activeEdgeMask;
+    ? networkFilters.activeAggregatedEdgeMask
+    : networkFilters.activeEdgeMask;
   const draft = drafts[mode];
 
   const matrices = useMemo(
-    () => dataset?.connectivity?.matrices ?? [],
-    [dataset?.connectivity?.matrices],
-  );
-  const matrixIndex = useMemo(
-    () => dataset?.connectivity?.matrixIndex ?? {},
-    [dataset?.connectivity?.matrixIndex],
-  );
-  const edgeDomain = useMemo(
-    () =>
-      isAggregated
-        ? buildAggregatedEdgeDomain(dataset)
-        : buildNetworkEdgeDomain(
-            dataset,
-            normalizeMatrixOrder(dataset?.metadata.matrixOrder).map((item) => item.id),
-          ),
-    [dataset, isAggregated],
+    () => dataset?.content?.matrices ?? [],
+    [dataset?.content?.matrices],
   );
 
   useEffect(() => {
@@ -77,15 +57,15 @@ export default function NetworkEdgeFilterModal({
     // Initialize editable drafts whenever the modal is opened.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDrafts({
-      roi: network.activeNetworkFilter
+      roi: networkFilters.activeNetworkFilter
         ? {
-            ...cloneMatrixFilterDefinition(network.activeNetworkFilter),
+            ...cloneMatrixFilterDefinition(networkFilters.activeNetworkFilter),
             uiRangeMode: globalRangeMode,
           }
         : createEmptyMatrixFilterDefinition(globalRangeMode),
-      aggregated: network.activeAggregatedNetworkFilter
+      aggregated: networkFilters.activeAggregatedNetworkFilter
         ? {
-            ...cloneMatrixFilterDefinition(network.activeAggregatedNetworkFilter),
+            ...cloneMatrixFilterDefinition(networkFilters.activeAggregatedNetworkFilter),
             uiRangeMode: globalRangeMode,
           }
         : createEmptyMatrixFilterDefinition(globalRangeMode),
@@ -93,8 +73,8 @@ export default function NetworkEdgeFilterModal({
   }, [
     globalRangeMode,
     open,
-    network.activeAggregatedNetworkFilter,
-    network.activeNetworkFilter,
+    networkFilters.activeAggregatedNetworkFilter,
+    networkFilters.activeNetworkFilter,
   ]);
 
   const setCurrentDraft = (nextDraft: MatrixFilterDefinition) => {
@@ -110,7 +90,7 @@ export default function NetworkEdgeFilterModal({
       .filter((matrix) => (isAggregated ? matrix.kind === "reduced" : matrix.kind !== "reduced"))
       .forEach((matrix) => {
         const group = formatMatrixKindLabel(matrix);
-        const label = formatNetworkMatrixLabel(matrix, dataset?.connectivity?.catalogs);
+        const label = formatNetworkMatrixLabel(matrix, dataset?.content?.catalogs);
         const option = {
           value: matrix.id,
           label,
@@ -121,46 +101,29 @@ export default function NetworkEdgeFilterModal({
     return ["Population", "Subject", "Comparison", "Aggregated"]
       .filter((label) => groups.has(label))
       .map((label) => ({ label, options: groups.get(label) ?? [] }));
-  }, [dataset?.connectivity?.catalogs, isAggregated, matrices]);
+  }, [dataset?.content?.catalogs, isAggregated, matrices]);
 
-  const normalizedDraft = useMemo(
+  const runtime = useMemo(
     () =>
-      normalizeMatrixFilterDefinitionForRanges(
-        draft,
-        matrixIndex,
-        dataset?.connectivity?.catalogs,
-        globalRangeMode,
-      ),
-    [dataset?.connectivity?.catalogs, draft, globalRangeMode, matrixIndex],
+      resolveNetworkFilterRuntime({
+        mode,
+        definition: draft,
+        dataset,
+        uiRangeMode: globalRangeMode,
+      }),
+    [dataset, draft, globalRangeMode, mode],
   );
-
-  const validation = useMemo(
-    () =>
-      edgeDomain
-        ? validateMatrixFilterDefinition(normalizedDraft, matrixIndex, edgeDomain)
-        : {
-            valid: false,
-            errors: [{ id: "missing-domain", severity: "error" as const, message: "The network edge domain is not available." }],
-            warnings: [],
-          },
-    [edgeDomain, matrixIndex, normalizedDraft],
-  );
-
-  const preview = useMemo(() => {
-    if (!edgeDomain || !validation.valid) return null;
-    return createRuntimeEdgeMask(normalizedDraft, matrixIndex, edgeDomain);
-  }, [edgeDomain, matrixIndex, normalizedDraft, validation.valid]);
+  const validation = runtime.validation;
+  const preview = runtime.mask;
 
   const handleApply = () => {
-    if (!edgeDomain || !validation.valid) return;
-    setSelectedMode(null);
+    if (!runtime.edgeDomain || !validation.valid) return;
     dispatch(
-      (isAggregated ? applyAggregatedNetworkEdgeFilter : applyNetworkEdgeFilter)({
-        filter: normalizedDraft,
-        mask: createRuntimeEdgeMask(normalizedDraft, matrixIndex, edgeDomain),
+      applyNetworkFilterFromDefinition({
+        mode,
+        definition: draft,
       }),
     );
-    onClose();
   };
 
   const closeModal = () => {
@@ -217,27 +180,12 @@ export default function NetworkEdgeFilterModal({
           ]}
         />
 
-        <Typography.Paragraph type="secondary">
-          {isAggregated
-            ? "Combine conditions on compatible reduced matrix values to select which group-to-group edges remain visible."
-            : "Combine conditions on loaded matrix values to select which network edges remain visible."}
-        </Typography.Paragraph>
-
-        <div className="edge-filter-modal__context">
-          <Statistic title="Edge domain" value={edgeDomain?.label ?? "Unavailable"} />
-          <Space wrap>
-            <Typography.Text>
-              Range mode: {globalRangeMode === "observed" ? "Observed" : "Logical default"}
-            </Typography.Text>
-          </Space>
-        </div>
-
         <MatrixFilterGroupEditor
           group={draft.root}
           isRoot
           matrices={matrices}
           matrixGroups={matrixGroups}
-          catalogs={dataset?.connectivity?.catalogs}
+          catalogs={dataset?.content?.catalogs}
           uiRangeMode={globalRangeMode}
           onChange={(root) =>
             setCurrentDraft({
@@ -246,6 +194,20 @@ export default function NetworkEdgeFilterModal({
             })
           }
         />
+
+        {preview ? (
+          <Space size={8} wrap className="edge-filter-modal__status">
+            <Tag color={activeMask ? "success" : "default"}>
+              {activeMask ? "Active filter" : "No active filter"}
+            </Tag>
+            <Typography.Text type="secondary">
+              Draft matches {preview.selectedCount} / {preview.totalCount} links
+              {preview.totalCount > 0
+                ? ` (${((preview.selectedCount / preview.totalCount) * 100).toFixed(1)}%)`
+                : ""}
+            </Typography.Text>
+          </Space>
+        ) : null}
 
         {validation.errors.length > 0 ? (
           <Alert
@@ -265,17 +227,6 @@ export default function NetworkEdgeFilterModal({
             description={validation.warnings.map((issue) => (
               <div key={issue.id}>{issue.message}</div>
             ))}
-          />
-        ) : null}
-        {preview ? (
-          <Alert
-            type="success"
-            showIcon
-            message={`${preview.selectedCount} / ${preview.totalCount} edges selected (${
-              preview.totalCount > 0
-                ? ((preview.selectedCount / preview.totalCount) * 100).toFixed(1)
-                : "0.0"
-            }%)`}
           />
         ) : null}
       </Space>

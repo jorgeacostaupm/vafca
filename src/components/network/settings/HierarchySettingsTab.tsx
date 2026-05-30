@@ -1,9 +1,11 @@
 import { Alert } from "antd";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
 import { useManagementHierarchy } from "@/components/management/hooks/useManagementHierarchy";
 import HierarchySettingsContent from "./hierarchy/HierarchySettingsContent";
 import type { HierarchySettingsMode } from "./hierarchy/hierarchySettingsTypes";
+import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
 type HierarchySettingsTabProps = {
   mode: HierarchySettingsMode;
@@ -16,11 +18,9 @@ export default function HierarchySettingsTab({
   circularLinkTension,
   circularBundlingEnabled,
 }: HierarchySettingsTabProps) {
-  const dataset = useAppSelector((state) => state.dataset.data);
-  const atlas = useAppSelector((state) => state.atlas);
-  const atlasDefinition = useAtlasDefinition(
-    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
-  );
+  const dataset = useAppSelector((state) => selectDatasetData(state));
+  const atlas = useAppSelector((state) => state.atlasUi);
+  const atlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
 
   const hierarchy = useManagementHierarchy({
     atlas,

@@ -1,5 +1,5 @@
 import { Alert, Card, Space, Tabs } from "antd";
-import NetworkVisualizationSelector from "@/components/network/NetworkVisualizationSelector";
+import NetworkVisualizationWorkspace from "@/components/network/NetworkVisualizationWorkspace";
 import RankingQueryControls from "@/components/rankings/RankingQueryControls";
 import SelectorControls from "@/components/selectors/SelectorControls";
 import NetworkFilterStatus from "@/components/selectors/NetworkFilterStatus";
@@ -49,7 +49,7 @@ export default function NetworkVisualizationTab() {
           ]}
         />
       </Card>
-      <NetworkVisualizationSelector />
+      <NetworkVisualizationWorkspace />
     </div>
   );
 }

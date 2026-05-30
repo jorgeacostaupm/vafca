@@ -43,34 +43,104 @@
   overflow: auto;
 }
 
-.edge-filter-modal__context {
+.edge-filter-modal__status {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  justify-content: space-between;
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: #fafafa;
+  padding-inline: var(--space-1);
 }
 
-.edge-filter-group {
-  border-left: 4px solid var(--color-primary);
+.edge-filter-group > .ant-card-head {
+  min-height: 42px;
+}
+
+.edge-filter-group__actions .ant-btn,
+.edge-filter-rule__actions .ant-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
 }
 
 .edge-filter-group .edge-filter-group {
   margin-left: var(--space-3);
-  border-left-color: #52c41a;
 }
 
-.edge-filter-rule {
-  border-left: 4px solid #faad14;
+.edge-filter-rule__actions {
+  width: auto;
+  justify-content: flex-end;
 }
 
-.edge-filter-rule__metadata {
+.edge-filter-rule__controls {
   display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) auto auto;
+  column-gap: var(--space-5);
+  row-gap: var(--space-2);
+  align-items: center;
+}
+
+.edge-filter-rule__matrix-select {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
   gap: var(--space-2);
-  padding: var(--space-2);
-  border-radius: var(--radius-sm);
-  background: #f6ffed;
+  align-items: center;
+}
+
+.edge-filter-rule__field-label {
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.edge-filter-rule > .ant-card-body,
+.edge-filter-group > .ant-card-body {
+  padding: var(--space-3);
+}
+
+.edge-filter-rule__ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.edge-filter-rule__range-row {
+  display: grid;
+  grid-template-columns: 54px 150px;
+  gap: var(--space-2);
+  align-items: center;
+  padding-left: var(--space-3);
+}
+
+.edge-filter-rule__range-label {
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.edge-filter-rule__number-pair {
+  width: 150px;
+}
+
+.edge-filter-rule__number-pair .ant-input-number {
+  width: 75px;
+}
+
+@media (max-width: 720px) {
+  .edge-filter-rule__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .edge-filter-rule__actions {
+    justify-content: flex-start;
+  }
+
+  .edge-filter-rule__matrix-select {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+
+  .edge-filter-rule__range-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+
+  .edge-filter-rule__number-pair,
+  .edge-filter-rule__number-pair .ant-input-number {
+    width: 100%;
+  }
 }

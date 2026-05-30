@@ -1,16 +1,13 @@
 import type { DatasetState } from '@/types/datasetState'
+import { matricesAdapter } from './matricesAdapter'
 
 export type DatasetSliceState = DatasetState
 
 export const initialDatasetState: DatasetSliceState = {
-  data: null,
-  status: 'idle',
-  error: null,
-  downloadStatus: 'idle',
-  downloadError: null,
-  matrixUploadStatus: 'idle',
-  matrixUploadError: null,
-  lastMatrixUpload: null,
-  derivedCalculationStatus: 'idle',
-  derivedCalculationError: null,
+  schemaVersion: null,
+  loadedBundle: null,
+  atlas: null,
+  roiOrderHash: null,
+  catalogs: null,
+  matrices: matricesAdapter.getInitialState(),
 }

@@ -1,4 +1,4 @@
-import type { NetworkPanelLayoutItem } from "@/types/networkVisualization";
+import type { NetworkLayoutItem } from "@/types/networkVisualization";
 
 export type RankingTarget = "matrices" | "links" | "rois";
 export type MatrixKindForRanking = "original" | "aggregated" | "comparison";
@@ -105,7 +105,7 @@ export type RankingUiState = {
   queriesByTarget: Partial<Record<RankingTarget, RankingQuery>>;
   resultsOrder: string[];
   resultsById: Record<string, RankingResult>;
-  layout: NetworkPanelLayoutItem[];
+  layout: NetworkLayoutItem[];
   hoveredItem?: RankingHighlightItem;
   selectedItem?: RankingHighlightItem;
   status: "idle" | "loading" | "ready" | "error";

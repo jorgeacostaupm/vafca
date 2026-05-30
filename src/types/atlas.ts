@@ -41,7 +41,10 @@ export type AtlasSource = {
 export type AtlasLabel = {
   id: string;
   label: string;
+  name?: string;
   acronym?: string;
+  tags?: Record<string, AtlasTagValue>;
+  metadata?: Record<string, unknown>;
   enabled: boolean;
 };
 

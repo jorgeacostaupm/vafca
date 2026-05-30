@@ -16,7 +16,7 @@ export type ConnectivityMetadata = {
 export type LayerCatalogItem = {
   id: string
   label?: string
-  description?: string
+  description?: string | null
   enabled?: boolean
 }
 
@@ -26,20 +26,21 @@ export type MeasureCatalogItem = {
   min?: number
   max?: number
   expectedRange?: ExpectedRange
-  description?: string
+  description?: string | null
   enabled?: boolean
 }
 
 export type StatCatalogItem = {
   id: string
   label: string
+  category?: string
   min?: number
   max?: number
   scaleType?: ScaleType
   center?: number | null
   rangeMode?: RangeMode
   expectedRange?: ExpectedRange
-  description?: string
+  description?: string | null
   enabled?: boolean
   useDataRange?: boolean
 }
@@ -47,7 +48,7 @@ export type StatCatalogItem = {
 export type PopulationCatalogItem = {
   id: string
   label: string
-  description?: string
+  description?: string | null
   enabled?: boolean
 }
 

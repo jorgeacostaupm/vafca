@@ -3,15 +3,15 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   clearAggregatedNetworkEdgeFilter,
   clearNetworkEdgeFilter,
-} from "@/store/slices/networkVisualization";
+} from "@/store/slices/networkFilters";
 
 export default function NetworkFilterStatus() {
   const dispatch = useAppDispatch();
   const activeMask = useAppSelector(
-    (state) => state.networkVisualization.activeEdgeMask,
+    (state) => state.networkFilters.activeEdgeMask,
   );
   const activeAggregatedMask = useAppSelector(
-    (state) => state.networkVisualization.activeAggregatedEdgeMask,
+    (state) => state.networkFilters.activeAggregatedEdgeMask,
   );
 
   if (!activeMask && !activeAggregatedMask) return null;

@@ -77,6 +77,7 @@ export const generateDerivedMatrixLabel = (params: {
   rightPopulationId?: string;
   referencePopulationId?: string;
   subjectId?: string;
+  rightSubjectId?: string;
   layerId: string | null;
   measureId: string;
   suffix: string;
@@ -89,8 +90,11 @@ export const generateDerivedMatrixLabel = (params: {
     params.catalogs,
     params.referencePopulationId ?? params.rightPopulationId,
   );
+  const rightLabel = params.rightSubjectId
+    ? subjectLabel(params.catalogs, params.rightSubjectId)
+    : right;
   const separator = params.useMinus ? " - " : " vs ";
-  return `${left}${separator}${right} · ${layerLabel(params.catalogs, params.layerId)} · ${measureLabel(params.catalogs, params.measureId)} · ${params.suffix}`;
+  return `${left}${separator}${rightLabel} · ${layerLabel(params.catalogs, params.layerId)} · ${measureLabel(params.catalogs, params.measureId)} · ${params.suffix}`;
 };
 
 export const outputValueDomain = (output: MatrixCalculationOutputSpec): MatrixValueDomain => {
@@ -154,6 +158,7 @@ export const buildProvenanceParameters = (params: {
   rightPopulationId?: string;
   referencePopulationId?: string;
   subjectId?: string;
+  rightSubjectId?: string;
   formula: string;
   methodId: MatrixCalculationOperation;
   extra?: Record<string, unknown>;
@@ -165,6 +170,7 @@ export const buildProvenanceParameters = (params: {
   rightPopulationId: params.rightPopulationId,
   referencePopulationId: params.referencePopulationId,
   subjectId: params.subjectId,
+  rightSubjectId: params.rightSubjectId,
   directionLabel:
     params.leftPopulationId && (params.rightPopulationId ?? params.referencePopulationId)
       ? `${params.leftPopulationId} - ${params.rightPopulationId ?? params.referencePopulationId}`

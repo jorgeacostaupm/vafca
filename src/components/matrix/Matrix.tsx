@@ -87,8 +87,6 @@ function MatrixHeatmap({
   const brushCbRef = useRef(onBrushZoom);
   const labelToggleCbRef = useRef(onLabelToggle);
 
-  selectedCellsRef.current = selectedCells;
-
   const positionTooltipForCell = (
     colX: number,
     rowY: number,
@@ -135,6 +133,10 @@ function MatrixHeatmap({
     brushCbRef.current = onBrushZoom;
     labelToggleCbRef.current = onLabelToggle;
   }, [onCellHover, onCellLeave, onCellSelect, onBrushZoom, onLabelToggle]);
+
+  useEffect(() => {
+    selectedCellsRef.current = selectedCells;
+  }, [selectedCells]);
 
   const normalized = useMemo(
     () => buildNormalizedMatrix(data),

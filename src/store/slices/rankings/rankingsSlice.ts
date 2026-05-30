@@ -3,7 +3,10 @@ import type {
   RankingHighlightItem,
   RankingQuery,
 } from "@/types/rankings";
-import { DEFAULT_RANKING_PANEL_LAYOUT } from "@/config/ui";
+import {
+  DEFAULT_PANEL_GRID_CONFIG,
+  DEFAULT_RANKING_PANEL_LAYOUT,
+} from "@/config/ui";
 import {
   createDefaultRankingQueryForTarget,
   initialRankingsState,
@@ -78,18 +81,28 @@ const rankingsSlice = createSlice({
         state.nextResultSeq += 1;
         state.resultsOrder.unshift(action.payload.id);
         state.resultsById[action.payload.id] = action.payload;
+        const panelsPerRow = Math.max(
+          1,
+          Math.floor(
+            DEFAULT_PANEL_GRID_CONFIG.columns / DEFAULT_RANKING_PANEL_LAYOUT.width,
+          ),
+        );
+        const x =
+          DEFAULT_RANKING_PANEL_LAYOUT.initialX +
+          (state.layout.length % panelsPerRow) * DEFAULT_RANKING_PANEL_LAYOUT.width;
+        const y =
+          DEFAULT_RANKING_PANEL_LAYOUT.initialY +
+          Math.floor(state.layout.length / panelsPerRow) *
+            DEFAULT_RANKING_PANEL_LAYOUT.height;
         state.layout = [
           {
             i: action.payload.id,
-            x: DEFAULT_RANKING_PANEL_LAYOUT.initialX,
-            y: DEFAULT_RANKING_PANEL_LAYOUT.initialY,
+            x,
+            y,
             w: DEFAULT_RANKING_PANEL_LAYOUT.width,
             h: DEFAULT_RANKING_PANEL_LAYOUT.height,
           },
-          ...state.layout.map((entry) => ({
-            ...entry,
-            y: entry.y + DEFAULT_RANKING_PANEL_LAYOUT.height,
-          })),
+          ...state.layout,
         ];
       })
       .addCase(runRankingQuery.rejected, (state, action) => {

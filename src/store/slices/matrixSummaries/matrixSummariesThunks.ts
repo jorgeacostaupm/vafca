@@ -1,12 +1,17 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import { getAllMatrixSummaries } from '@/utils/matrixStore'
 import type { MatrixSummary } from '@/types/matrixStore'
 import type { RootState } from '@/types/store'
+import { selectDatasetData } from '@/store/slices/dataset'
+import { getDatasetMatrixSummaries } from '@/utils/datasetAccessors'
 
-export const loadMatrixSummaries = createAsyncThunk<MatrixSummary[]>(
+export const loadMatrixSummaries = createAsyncThunk<
+  MatrixSummary[],
+  void,
+  { state: RootState }
+>(
   'matrixSummaries/loadMatrixSummaries',
-  async () => {
-    return getAllMatrixSummaries()
+  async (_, { getState }) => {
+    return getDatasetMatrixSummaries(selectDatasetData(getState()))
   },
 )
 

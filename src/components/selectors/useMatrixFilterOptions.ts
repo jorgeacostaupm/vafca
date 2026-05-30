@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { DatasetState } from "@/types/datasetState";
+import type { DatasetMeta } from "@/types/datasetState";
 import type { AtlasState } from "@/types/atlas";
 import type { AtlasDefinition } from "@/types/atlas";
 import type { MatrixSummary } from "@/types/matrixStore";
@@ -12,16 +12,20 @@ import {
   isEnabled,
   normalizePopulationKey,
 } from "@/utils/matrixViewUtils";
+import {
+  getDatasetCatalogs,
+  getDatasetMatrixOrder,
+} from "@/utils/datasetAccessors";
 
 type Option = { value: string; label: string };
 
 type LabelFormatter = (args: {
   summary: MatrixSummary;
-  dataset: DatasetState["data"];
+  dataset: DatasetMeta | null;
 }) => string;
 
 type UseMatrixFilterOptionsArgs = {
-  dataset: DatasetState["data"];
+  dataset: DatasetMeta | null;
   atlas: AtlasState;
   summaries: MatrixSummary[];
   populationKey: string;
@@ -34,7 +38,7 @@ type UseMatrixFilterOptionsArgs = {
 };
 
 const defaultLabelFormatter: LabelFormatter = ({ summary, dataset }) =>
-  buildMatrixLabel(summary, dataset?.catalogs);
+  buildMatrixLabel(summary, getDatasetCatalogs(dataset));
 
 export const useMatrixFilterOptions = ({
   dataset,
@@ -48,8 +52,9 @@ export const useMatrixFilterOptions = ({
   useMatrixHierarchyOrder = false,
   labelFormatter = defaultLabelFormatter,
 }: UseMatrixFilterOptionsArgs) => {
+  const catalogs = getDatasetCatalogs(dataset);
   const matrixOrderEntries = useMemo(
-    () => normalizeMatrixOrder(dataset?.metadata.matrixOrder),
+    () => normalizeMatrixOrder(getDatasetMatrixOrder(dataset)),
     [dataset],
   );
 
@@ -99,7 +104,7 @@ export const useMatrixFilterOptions = ({
         .filter((summary) =>
           hasOnlyEnabledPopulations(
             summary.populationIds,
-            dataset?.catalogs.populations,
+            catalogs?.populations,
           ),
         )
         .map((summary) => normalizePopulationKey(summary.populationIds)),
@@ -109,9 +114,9 @@ export const useMatrixFilterOptions = ({
       .sort()
       .map((key) => ({
         value: key,
-        label: formatPopulationSetLabel(key.split("+"), dataset?.catalogs),
+        label: formatPopulationSetLabel(key.split("+"), catalogs),
       }));
-  }, [summaries, dataset]);
+  }, [summaries, catalogs]);
 
   const measures = useMemo<Option[]>(() => {
     const filtered = summaries.filter((summary) => {
@@ -127,13 +132,13 @@ export const useMatrixFilterOptions = ({
     const ids = new Set(filtered.map((summary) => summary.measureId));
 
     return Array.from(ids)
-      .filter((id) => isEnabled(dataset?.catalogs.measures[id]))
+      .filter((id) => isEnabled(catalogs?.measures[id]))
       .sort()
       .map((id) => ({
         value: id,
-        label: dataset?.catalogs.measures[id]?.label ?? id,
+        label: catalogs?.measures[id]?.label ?? id,
       }));
-  }, [summaries, populationKey, dataset]);
+  }, [summaries, populationKey, catalogs]);
 
   const statOptions = useMemo<Option[]>(() => {
     const filtered = summaries.filter((summary) => {
@@ -148,13 +153,13 @@ export const useMatrixFilterOptions = ({
     });
 
     return Array.from(new Set(filtered.map((summary) => summary.statId)))
-      .filter((id) => isEnabled(dataset?.catalogs.stats[id]))
+      .filter((id) => isEnabled(catalogs?.stats[id]))
       .sort()
       .map((id) => ({
         value: id,
-        label: dataset?.catalogs.stats[id]?.label ?? id,
+        label: catalogs?.stats[id]?.label ?? id,
       }));
-  }, [summaries, populationKey, measureId, dataset]);
+  }, [summaries, populationKey, measureId, catalogs]);
 
   const layerOptions = useMemo<Option[]>(() => {
     const filtered = summaries.filter((summary) => {
@@ -170,30 +175,30 @@ export const useMatrixFilterOptions = ({
     });
 
     return Array.from(new Set(filtered.map((summary) => summary.layerId)))
-      .filter((id) => isEnabled(dataset?.catalogs.layers[id]))
+      .filter((id) => isEnabled(catalogs?.layers[id]))
       .sort()
       .map((id) => ({
         value: id,
-        label: dataset?.catalogs.layers[id]?.label ?? id,
+        label: catalogs?.layers[id]?.label ?? id,
       }));
-  }, [summaries, populationKey, measureId, statId, dataset]);
+  }, [summaries, populationKey, measureId, statId, catalogs]);
 
   const selectableMatrixSummaries = useMemo(() => {
     return summaries.filter((summary) => {
-      if (!isEnabled(dataset?.catalogs.measures[summary.measureId])) return false;
-      if (!isEnabled(dataset?.catalogs.layers[summary.layerId])) return false;
-      if (!isEnabled(dataset?.catalogs.stats[summary.statId])) return false;
+      if (!isEnabled(catalogs?.measures[summary.measureId])) return false;
+      if (!isEnabled(catalogs?.layers[summary.layerId])) return false;
+      if (!isEnabled(catalogs?.stats[summary.statId])) return false;
       if (
         !hasOnlyEnabledPopulations(
           summary.populationIds,
-          dataset?.catalogs.populations,
+          catalogs?.populations,
         )
       ) {
         return false;
       }
       return true;
     });
-  }, [summaries, dataset]);
+  }, [summaries, catalogs]);
 
   const matches = useMemo(() => {
     return selectableMatrixSummaries.filter((summary) => {

@@ -59,6 +59,7 @@ export type LayerCatalogEntry = {
   id: string;
   label: string;
   description?: string | null;
+  enabled?: boolean;
 };
 
 export type MatrixValueDomain = {
@@ -73,6 +74,9 @@ export type MeasureCatalogEntry = {
   label: string;
   description?: string | null;
   expectedRange: ExpectedRange;
+  min?: number;
+  max?: number;
+  enabled?: boolean;
   valueDomain?: MatrixValueDomain;
   symmetric: boolean;
   directed: boolean;
@@ -82,10 +86,15 @@ export type StatCatalogEntry = {
   id: string;
   label: string;
   category: string;
+  description?: string | null;
   scaleType: ScaleType;
   center: number | null;
   rangeMode: RangeMode;
   expectedRange?: ExpectedRange;
+  min?: number;
+  max?: number;
+  enabled?: boolean;
+  useDataRange?: boolean;
 };
 
 export type PopulationCatalogEntry = {
@@ -93,6 +102,7 @@ export type PopulationCatalogEntry = {
   label: string;
   description?: string | null;
   n?: number;
+  enabled?: boolean;
   metadata: Record<string, unknown>;
 };
 

@@ -4,8 +4,10 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ConvexGeometry } from "three/examples/jsm/geometries/ConvexGeometry.js";
 import { useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
+import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
 const buildRoiColor = (index: number) => {
   const hue = (index * 0.61803398875) % 1;
@@ -16,12 +18,10 @@ const buildHighlightColor = (base: THREE.Color) =>
   base.clone().lerp(new THREE.Color("#ffffff"), 0.28);
 
 export default function SelectedLinksAtlas() {
-  const dataset = useAppSelector((state) => state.dataset.data);
+  const dataset = useAppSelector((state) => selectDatasetData(state));
   const selectedLinks = useAppSelector((state) => state.visualizationUi.selectedLinks);
   const atlasLinkIds = useAppSelector((state) => state.visualizationUi.atlasLinkIds);
-  const atlasDefinition = useAtlasDefinition(
-    dataset?.metadata.atlasId ?? dataset?.metadata.atlas,
-  );
+  const atlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);

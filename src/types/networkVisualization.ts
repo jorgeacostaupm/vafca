@@ -58,7 +58,7 @@ export type NetworkViewDescriptor = {
   error?: string;
 };
 
-export type NetworkPanelLayoutItem = {
+export type NetworkLayoutItem = {
   i: string;
   x: number;
   y: number;

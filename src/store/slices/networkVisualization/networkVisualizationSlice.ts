@@ -1,13 +1,10 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import {
   DEFAULT_NETWORK_NEXT_VIEW_SEQ,
-  DEFAULT_NETWORK_PANEL_LAYOUT,
-  DEFAULT_PANEL_GRID_CONFIG,
 } from '@/config/ui'
 import { areZoomSelectionsEqual } from '@/utils/matrixViewUtils'
 import type {
   MatrixNetworkViewSettings,
-  NetworkPanelLayoutItem,
   NetworkSelectorControlsState,
   NetworkViewType,
   NodeLinkNetworkViewSettings,
@@ -15,7 +12,6 @@ import type {
   ZoomSelection,
 } from '@/types/networkVisualization'
 import type { StatRangeValue } from '@/types/matrixView'
-import type { MatrixFilterDefinition, RuntimeEdgeMask } from '@/types/edgeFilter'
 import {
   initialNetworkControls,
   initialNetworkVisualizationState,
@@ -228,14 +224,12 @@ const networkVisualizationSlice = createSlice({
       const { viewId } = action.payload
       delete state.viewsById[viewId]
       state.viewsOrder = state.viewsOrder.filter((id) => id !== viewId)
-      state.layout = state.layout.filter((item) => item.i !== viewId)
       delete state.matrixSettingsByViewId[viewId]
       delete state.nodeLinkSettingsByViewId[viewId]
     },
     clearNetworkViews(state) {
       state.viewsOrder = []
       state.viewsById = {}
-      state.layout = []
       state.matrixSettingsByViewId = {}
       state.nodeLinkSettingsByViewId = {}
       state.nextViewSeq = DEFAULT_NETWORK_NEXT_VIEW_SEQ
@@ -442,76 +436,6 @@ const networkVisualizationSlice = createSlice({
       const settings = ensureSettingsEntry(state, viewId, descriptor.type)
       settings.zoomLabelSelection = []
     },
-    setNetworkLayout(state, action: PayloadAction<NetworkPanelLayoutItem[]>) {
-      state.layout = action.payload.map((entry) => ({ ...entry }))
-    },
-    addNetworkLayoutItem(
-      state,
-      action: PayloadAction<{
-        viewId: string
-        defaultW?: number
-        defaultH?: number
-        initialX?: number
-        initialY?: number
-        yOffset?: number
-      }>,
-    ) {
-      const { viewId } = action.payload
-      const defaultW = action.payload.defaultW ?? DEFAULT_NETWORK_PANEL_LAYOUT.width
-      const defaultH = action.payload.defaultH ?? DEFAULT_NETWORK_PANEL_LAYOUT.height
-      const initialX =
-        action.payload.initialX ?? DEFAULT_NETWORK_PANEL_LAYOUT.initialX
-      const initialY =
-        action.payload.initialY ?? DEFAULT_NETWORK_PANEL_LAYOUT.initialY
-      const yOffset = action.payload.yOffset ?? defaultH
-      const panelsPerRow = Math.max(
-        1,
-        Math.floor(DEFAULT_PANEL_GRID_CONFIG.columns / defaultW),
-      )
-      const x = initialX + (state.layout.length % panelsPerRow) * defaultW
-
-      state.layout = [
-        { i: viewId, x, y: initialY, w: defaultW, h: defaultH },
-        ...state.layout.map((entry) => ({
-          ...entry,
-          y: entry.y + yOffset,
-        })),
-      ]
-    },
-    removeNetworkLayoutItem(
-      state,
-      action: PayloadAction<{ viewId: string }>,
-    ) {
-      state.layout = state.layout.filter((entry) => entry.i !== action.payload.viewId)
-    },
-    applyNetworkEdgeFilter(
-      state,
-      action: PayloadAction<{
-        filter: MatrixFilterDefinition
-        mask: RuntimeEdgeMask
-      }>,
-    ) {
-      state.activeNetworkFilter = action.payload.filter
-      state.activeEdgeMask = action.payload.mask
-    },
-    clearNetworkEdgeFilter(state) {
-      state.activeNetworkFilter = null
-      state.activeEdgeMask = null
-    },
-    applyAggregatedNetworkEdgeFilter(
-      state,
-      action: PayloadAction<{
-        filter: MatrixFilterDefinition
-        mask: RuntimeEdgeMask
-      }>,
-    ) {
-      state.activeAggregatedNetworkFilter = action.payload.filter
-      state.activeAggregatedEdgeMask = action.payload.mask
-    },
-    clearAggregatedNetworkEdgeFilter(state) {
-      state.activeAggregatedNetworkFilter = null
-      state.activeAggregatedEdgeMask = null
-    },
   },
 })
 
@@ -534,13 +458,6 @@ export const {
   stepNetworkZoomHistory,
   toggleNetworkZoomLabelSelection,
   resetNetworkZoomLabelSelection,
-  setNetworkLayout,
-  addNetworkLayoutItem,
-  removeNetworkLayoutItem,
-  applyNetworkEdgeFilter,
-  clearNetworkEdgeFilter,
-  applyAggregatedNetworkEdgeFilter,
-  clearAggregatedNetworkEdgeFilter,
 } = networkVisualizationSlice.actions
 
 export default networkVisualizationSlice.reducer

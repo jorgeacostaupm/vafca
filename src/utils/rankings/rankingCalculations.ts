@@ -115,14 +115,14 @@ const isEligibleEdge = (
 };
 
 type CalculationContext = {
-  connectivity: ConnectivityDataState;
+  datasetContent: ConnectivityDataState;
   query: RankingQuery;
   activeRois: Set<string> | null;
   activeFilterMask: boolean[][] | null;
 };
 
 export const computeMatrixRanking = ({
-  connectivity,
+  datasetContent: connectivity,
   query,
   activeRois,
   activeFilterMask,
@@ -176,7 +176,7 @@ export const computeMatrixRanking = ({
 const getLinkKey = (a: string, b: string) => [a, b].sort().join("__");
 
 export const computeLinkRanking = ({
-  connectivity,
+  datasetContent: connectivity,
   query,
   activeRois,
   activeFilterMask,
@@ -301,7 +301,7 @@ export const computeLinkRanking = ({
 };
 
 export const computeRoiRanking = ({
-  connectivity,
+  datasetContent: connectivity,
   query,
   activeRois,
   activeFilterMask,

@@ -153,7 +153,6 @@ export const resolveMatrixUiRange = (
 ): ResolvedUiRange => {
   const {
     uiRangeMode = "logical_default",
-    target,
     observedDivergingMode = "symmetric",
   } = options;
   const measureId = getMeasureId(matrix);
@@ -192,7 +191,7 @@ export const resolveMatrixUiRange = (
   }
 
   if (stat.rangeMode === "inherit_measure") {
-    const range = target === "colorLegend" ? measureExpected ?? observed : observed;
+    const range = measureExpected ?? observed;
     return withRange(
       range,
       center,

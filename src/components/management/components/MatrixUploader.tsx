@@ -1,17 +1,27 @@
-import { Alert, Space, Spin, Typography, Upload } from "antd";
+import { Alert, Radio, Space, Spin, Typography, Upload } from "antd";
 import type { UploadProps } from "antd";
+import { useState } from "react";
+import {
+  DEFAULT_CONNECTIVITY_IMPORT_MODE,
+  MAX_VISIBLE_IMPORT_ISSUES,
+} from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { uploadMatricesIntoDataset } from "@/store/slices/dataset";
+import {
+  selectDatasetOperationsState,
+  loadDatasetFromUploadedZip,
+} from "@/store/slices/dataset";
 import { loadMatrixSummaries } from "@/store/slices/matrixSummaries";
+import type { ConnectivityImportMode } from "@/utils/import/types";
 
 const { Dragger } = Upload;
 
-const MAX_VISIBLE_ERRORS = 5;
-
 function MatrixUploader() {
   const dispatch = useAppDispatch();
+  const [mode, setMode] = useState<ConnectivityImportMode>(
+    DEFAULT_CONNECTIVITY_IMPORT_MODE,
+  );
   const { matrixUploadStatus, matrixUploadError, lastMatrixUpload } =
-    useAppSelector((state) => state.dataset);
+    useAppSelector(selectDatasetOperationsState);
 
   const beforeUpload: UploadProps["beforeUpload"] = async (file, fileList) => {
     if (file.uid !== fileList[0]?.uid) {
@@ -19,7 +29,7 @@ function MatrixUploader() {
     }
 
     try {
-      await dispatch(uploadMatricesIntoDataset({ files: [file] })).unwrap();
+      await dispatch(loadDatasetFromUploadedZip({ files: [file], mode })).unwrap();
       await dispatch(loadMatrixSummaries());
     } catch {
       // The notification listener and local alert expose upload failures.
@@ -36,18 +46,29 @@ function MatrixUploader() {
 
   return (
     <Space direction="vertical" size={12} style={{ width: "100%" }}>
+      <Radio.Group
+        optionType="button"
+        buttonStyle="solid"
+        value={mode}
+        disabled={isValidating}
+        onChange={(event) => setMode(event.target.value as ConnectivityImportMode)}
+        options={[
+          { label: "Lenient", value: "lenient" },
+          { label: "Strict", value: "strict" },
+        ]}
+      />
+
       <Dragger
         className="matrix-uploader__dropzone"
-        accept=".json,application/json"
+        accept=".zip,application/zip,application/x-zip-compressed"
         showUploadList={false}
         multiple={false}
         beforeUpload={beforeUpload}
         disabled={isValidating}
       >
-        <p className="ant-upload-text">Drag and drop one fc-connectivity-v1.0 JSON bundle here</p>
+        <p className="ant-upload-text">Drag and drop one VAFCA ZIP dataset here</p>
         <p className="ant-upload-hint">
-          The bundle is loaded atomically and validated against the current
-          fc-connectivity-v1.0 format.
+          The ZIP is loaded atomically and normalized before it reaches the workspace.
         </p>
       </Dragger>
 
@@ -67,7 +88,7 @@ function MatrixUploader() {
           showIcon
           message={
             hasValidationErrors
-              ? "Data loaded with validation errors"
+              ? "Data could not be loaded"
               : "Data loaded successfully"
           }
           description={
@@ -80,7 +101,7 @@ function MatrixUploader() {
                   {lastMatrixUpload.invalidMatrices === 1 ? "" : "s"} found.
                 </Typography.Text>
                 {lastMatrixUpload.errors
-                  .slice(0, MAX_VISIBLE_ERRORS)
+                  .slice(0, MAX_VISIBLE_IMPORT_ISSUES)
                   .map((error, index) => (
                     <Typography.Text key={`${error.source}-${index}`} type="secondary">
                       {error.source}
@@ -93,7 +114,7 @@ function MatrixUploader() {
               <Space direction="vertical" size={4}>
                 <Typography.Text>File loaded with warnings.</Typography.Text>
                 {lastMatrixUpload.warnings
-                  ?.slice(0, MAX_VISIBLE_ERRORS)
+                  ?.slice(0, MAX_VISIBLE_IMPORT_ISSUES)
                   .map((warning, index) => (
                     <Typography.Text key={`${warning.source}-${index}`} type="secondary">
                       {warning.source}: {warning.message}

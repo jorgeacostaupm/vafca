@@ -1,83 +1,190 @@
-import { Card, Divider, Input, InputNumber, Space, Switch, Typography } from "antd";
+import { useEffect, useMemo, useState } from "react";
+import { Button, Card, Divider, Input, InputNumber, Space, Switch, Typography } from "antd";
+import type { MeasureCatalogEntry } from "@/types/connectivityBundle";
 import { useAppSelector } from "@/store/hooks";
+import { selectDatasetContent } from "@/store/slices/dataset";
 import {
   isEnabled,
   normalizeNumber,
 } from "@/components/management/utils/catalogValues";
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 
+type MeasureDraft = {
+  id: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  min?: number;
+  max?: number;
+};
+
+type EditableMeasure = MeasureCatalogEntry & { enabled?: boolean };
+
+const toDraft = (measure: EditableMeasure): MeasureDraft => ({
+  id: measure.id,
+  label: measure.label ?? "",
+  description: measure.description ?? "",
+  enabled: isEnabled(measure),
+  min: measure.expectedRange?.[0] ?? measure.valueDomain?.min ?? undefined,
+  max: measure.expectedRange?.[1] ?? measure.valueDomain?.max ?? undefined,
+});
+
+const toDrafts = (measures: Record<string, EditableMeasure>) =>
+  Object.fromEntries(
+    Object.values(measures).map((measure) => [measure.id, toDraft(measure)]),
+  );
+
+const draftsAreEqual = (
+  draft: MeasureDraft | undefined,
+  measure: EditableMeasure,
+) => {
+  if (!draft) return false;
+  const baseline = toDraft(measure);
+  return (
+    draft.label === baseline.label &&
+    draft.description === baseline.description &&
+    draft.enabled === baseline.enabled &&
+    draft.min === baseline.min &&
+    draft.max === baseline.max
+  );
+};
+
+const hasInvalidRange = (draft: MeasureDraft) =>
+  draft.min !== undefined && draft.max !== undefined && draft.min > draft.max;
+
 function MeasureCatalogSection() {
   const updateItem = useCatalogItemUpdater();
   const measures = useAppSelector(
-    (state) => state.dataset.data?.catalogs.measures ?? {},
+    (state) => selectDatasetContent(state)?.catalogs.measures ?? {},
   );
+  const [drafts, setDrafts] = useState<Record<string, MeasureDraft>>(() =>
+    toDrafts(measures),
+  );
+
+  useEffect(() => {
+    setDrafts(toDrafts(measures));
+  }, [measures]);
+
+  const measureItems = useMemo(() => Object.values(measures), [measures]);
+  const dirtyMeasures = measureItems.filter(
+    (measure) => !draftsAreEqual(drafts[measure.id], measure),
+  );
+  const invalidRange = Object.values(drafts).some(hasInvalidRange);
+  const canSave = dirtyMeasures.length > 0 && !invalidRange;
+
+  const updateDraft = (id: string, changes: Partial<MeasureDraft>) => {
+    setDrafts((current) => ({
+      ...current,
+      [id]: {
+        ...current[id],
+        ...changes,
+      },
+    }));
+  };
+
+  const handleSave = () => {
+    dirtyMeasures.forEach((measure) => {
+      const draft = drafts[measure.id];
+      if (!draft) return;
+      updateItem("measures", measure.id, {
+        label: draft.label,
+        description: draft.description,
+        enabled: draft.enabled,
+        min: draft.min,
+        max: draft.max,
+        expectedRange:
+          draft.min !== undefined && draft.max !== undefined
+            ? [draft.min, draft.max]
+            : null,
+      });
+    });
+  };
 
   return (
     <>
       <Divider style={{ margin: "8px 0" }} />
 
       <div>
-        <Typography.Text strong>Measures</Typography.Text>
+        <Space align="center" style={{ marginBottom: 8 }}>
+          <Typography.Text strong>Measures</Typography.Text>
+          <Button
+            size="small"
+            type="primary"
+            disabled={!canSave}
+            onClick={handleSave}
+          >
+            Save
+          </Button>
+          {invalidRange ? (
+            <Typography.Text type="danger">
+              Min must be less than or equal to max.
+            </Typography.Text>
+          ) : null}
+        </Space>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          {Object.values(measures).map((measure) => (
-            <Card key={measure.id} size="small" style={{ width: 300 }}>
-              <Space direction="vertical" size={8} style={{ width: "100%" }}>
-                <Space wrap size={12} align="start">
-                  <Input
+          {measureItems.map((measure) => {
+            const draft = drafts[measure.id] ?? toDraft(measure);
+
+            return (
+              <Card key={measure.id} size="small" style={{ width: 300 }}>
+                <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                  <Space wrap size={12} align="start">
+                    <Input
+                      size="small"
+                      placeholder="Measure label"
+                      value={draft.label}
+                      style={{ width: 160 }}
+                      onChange={(event) =>
+                        updateDraft(measure.id, {
+                          label: event.target.value,
+                        })
+                      }
+                    />
+                    <Switch
+                      checked={draft.enabled}
+                      onChange={(checked) =>
+                        updateDraft(measure.id, {
+                          enabled: checked,
+                        })
+                      }
+                    />
+                    <InputNumber
+                      size="small"
+                      placeholder="Min"
+                      value={draft.min ?? null}
+                      onChange={(value) =>
+                        updateDraft(measure.id, {
+                          min: normalizeNumber(value),
+                        })
+                      }
+                    />
+                    <InputNumber
+                      size="small"
+                      placeholder="Max"
+                      value={draft.max ?? null}
+                      onChange={(value) =>
+                        updateDraft(measure.id, {
+                          max: normalizeNumber(value),
+                        })
+                      }
+                    />
+                  </Space>
+
+                  <Input.TextArea
                     size="small"
-                    placeholder="Measure label"
-                    value={measure.label ?? ""}
-                    style={{ width: 160 }}
+                    placeholder="Description"
+                    value={draft.description}
                     onChange={(event) =>
-                      updateItem("measures", measure.id, {
-                        label: event.target.value,
+                      updateDraft(measure.id, {
+                        description: event.target.value,
                       })
                     }
-                  />
-                  <Switch
-                    checked={isEnabled(measure)}
-                    onChange={(checked) =>
-                      updateItem("measures", measure.id, {
-                        enabled: checked,
-                      })
-                    }
-                  />
-                  <InputNumber
-                    size="small"
-                    placeholder="Min"
-                    value={measure.min ?? null}
-                    onChange={(value) =>
-                      updateItem("measures", measure.id, {
-                        min: normalizeNumber(value),
-                      })
-                    }
-                  />
-                  <InputNumber
-                    size="small"
-                    placeholder="Max"
-                    value={measure.max ?? null}
-                    onChange={(value) =>
-                      updateItem("measures", measure.id, {
-                        max: normalizeNumber(value),
-                      })
-                    }
+                    style={{ resize: "vertical" }}
                   />
                 </Space>
-
-                <Input.TextArea
-                  size="small"
-                  placeholder="Description"
-                  value={measure.description ?? ""}
-                  onChange={(event) =>
-                    updateItem("measures", measure.id, {
-                      description: event.target.value,
-                    })
-                  }
-                  style={{ resize: "vertical" }}
-                />
-              </Space>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       </div>
     </>

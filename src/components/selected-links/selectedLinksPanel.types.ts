@@ -19,19 +19,19 @@ export type LinkRow = {
 
 export type DownloadMode = "all" | "viewer";
 
-export type MatrixCache = Record<string, ConnectivityMatrix | null>;
+export type MatrixLookup = Record<string, ConnectivityMatrix | null>;
 
 export type BuildLinkValuesParams = {
   link: SelectedLink;
   layerIds: string[];
-  matrixCache: MatrixCache;
+  matrixLookup: MatrixLookup;
   atlasIndex: Map<string, number>;
 };
 
 export type BuildRowsParams = {
   links: SelectedLink[];
   selectedMatrixIds: string[];
-  matrixCache: MatrixCache;
+  matrixLookup: MatrixLookup;
   atlasIndex: Map<string, number>;
 };
 

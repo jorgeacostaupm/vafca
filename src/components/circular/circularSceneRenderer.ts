@@ -5,8 +5,13 @@ import {
   NODELINK_TOOLTIP_OFFSET,
 } from "@/components/nodelink/nodelinkShared";
 import { positionTooltipForPointer } from "@/components/nodelink/tooltipPosition";
+import { positionCircularTooltipForNode } from "@/components/circular/circularTooltipPosition";
 import { renderCircularElements } from "@/components/circular/circularRenderStrategies";
-import { CIRCULAR_NODE_RADIUS } from "@/config/ui";
+import {
+  CIRCULAR_NODE_RADIUS,
+  CIRCULAR_TOOLTIP_EDGE_PADDING,
+  CIRCULAR_TOOLTIP_OFFSET,
+} from "@/config/ui";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 
 type CircularLinkSelection = d3.Selection<SVGPathElement, CircularLink, SVGGElement, unknown>;
@@ -22,7 +27,6 @@ type CircularSceneRenderArgs = {
   labels?: string[];
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  labelAcronyms?: Record<string, string>;
   nodes: CircularNode[];
   links: CircularLink[];
   degreeById: Map<string, number>;
@@ -84,10 +88,16 @@ const createWidthScale = ({
 const createTooltipHandlers = ({
   wrapperElement,
   tooltipElement,
+  width,
+  height,
+  zoomTransformRef,
   setLocalHoverActive,
 }: {
   wrapperElement: HTMLDivElement | null;
   tooltipElement: HTMLDivElement | null;
+  width: number;
+  height: number;
+  zoomTransformRef: MutableRefObject<d3.ZoomTransform>;
   setLocalHoverActive: (active: boolean) => void;
 }) => {
   const showTooltip = (html: string, event: MouseEvent | PointerEvent) => {
@@ -103,6 +113,38 @@ const createTooltipHandlers = ({
       wrapperRect,
       tooltipRect,
       offset: NODELINK_TOOLTIP_OFFSET,
+    });
+    tooltipElement.style.left = `${left}px`;
+    tooltipElement.style.top = `${top}px`;
+  };
+
+  const showNodeTooltip = (html: string, node: CircularNode) => {
+    if (!tooltipElement || !wrapperElement) return;
+    tooltipElement.innerHTML = html;
+    tooltipElement.style.opacity = "1";
+    setLocalHoverActive(true);
+
+    const wrapperRect = wrapperElement.getBoundingClientRect();
+    const tooltipRect = tooltipElement.getBoundingClientRect();
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const [anchorX, anchorY] = (zoomTransformRef.current ?? d3.zoomIdentity).apply([
+      centerX + node.x,
+      centerY + node.y,
+    ]);
+    const [screenCenterX, screenCenterY] = (zoomTransformRef.current ?? d3.zoomIdentity).apply([
+      centerX,
+      centerY,
+    ]);
+    const { left, top } = positionCircularTooltipForNode({
+      anchorX,
+      anchorY,
+      centerX: screenCenterX,
+      centerY: screenCenterY,
+      wrapperRect,
+      tooltipRect,
+      offset: CIRCULAR_TOOLTIP_OFFSET,
+      edgePadding: CIRCULAR_TOOLTIP_EDGE_PADDING,
     });
     tooltipElement.style.left = `${left}px`;
     tooltipElement.style.top = `${top}px`;
@@ -129,7 +171,7 @@ const createTooltipHandlers = ({
     setLocalHoverActive(false);
   };
 
-  return { showTooltip, moveTooltip, hideTooltip };
+  return { showTooltip, showNodeTooltip, moveTooltip, hideTooltip };
 };
 
 const applyZoomBehavior = ({
@@ -243,7 +285,6 @@ export const renderCircularScene = ({
   labels,
   labelNames,
   labelTitles,
-  labelAcronyms,
   nodes,
   links,
   degreeById,
@@ -287,9 +328,12 @@ export const renderCircularScene = ({
     .attr("class", "node-link-root")
     .attr("transform", `translate(${centerX}, ${centerY})`);
 
-  const { showTooltip, moveTooltip, hideTooltip } = createTooltipHandlers({
+  const { showTooltip, showNodeTooltip, moveTooltip, hideTooltip } = createTooltipHandlers({
     wrapperElement,
     tooltipElement,
+    width,
+    height,
+    zoomTransformRef,
     setLocalHoverActive,
   });
 
@@ -305,7 +349,6 @@ export const renderCircularScene = ({
     diverging,
     labelNames,
     labelTitles,
-    labelAcronyms,
     selectedLinkIds,
     widthScale,
     circularLinkTension,
@@ -322,6 +365,7 @@ export const renderCircularScene = ({
     getNodeColor,
     valueLabel,
     showTooltip,
+    showNodeTooltip,
     moveTooltip,
     hideTooltip,
     setLocalHoverActive,

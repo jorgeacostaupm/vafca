@@ -3,17 +3,21 @@ import type { AtlasDefinition } from '@/types/atlas'
 import type { InitialDataConfig } from '@/config/initialData'
 import type { MatrixOrderEntry } from '@/types/matrixOrder'
 import type { RootState } from '@/types/store'
-import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlas'
+import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlasUi'
 import {
   clearUploadedAtlas,
   loadDefaultAtlasDefinition,
   setUploadedAtlas,
 } from '@/store/slices/atlasDefinition'
 import { buildMatrixDerivedAtlasSource } from '@/utils/atlas/matrixDerivedAtlas'
-import { clearMatrices } from '@/utils/matrixStore'
 import { normalizeMatrixOrder } from '@/utils/matrixOrder'
-import { loadTestDataset } from './datasetThunks'
+import {
+  getDatasetAtlasId,
+  getDatasetMatrixOrder,
+} from '@/utils/datasetAccessors'
+import { loadInitialDataset } from './datasetThunks'
 import { clearDataset } from './datasetSlice'
+import { selectDatasetData } from './datasetSelectors'
 
 const buildAtlasOrder = (
   matrixOrder: MatrixOrderEntry[],
@@ -33,8 +37,11 @@ const buildAtlasOrder = (
     if (!roi) return entry
     return {
       ...entry,
+      name: roi.name ?? entry.name ?? entry.label,
       label: roi.name ?? entry.label,
       acronym: roi.label ?? entry.label,
+      tags: roi.tags,
+      metadata: roi.metadata,
     }
   })
 }
@@ -53,7 +60,10 @@ const buildAtlasOrderFromDefinition = (
   atlasDefinition.rois.map((roi) => ({
     id: String(roi.id),
     label: roi.name ?? roi.label ?? String(roi.id),
+    name: roi.name ?? roi.label ?? String(roi.id),
     acronym: roi.label ?? roi.name ?? String(roi.id),
+    tags: roi.tags,
+    metadata: roi.metadata,
   }))
 
 const getInitialDataFileName = (path: string, fallback: string) =>
@@ -65,16 +75,16 @@ export const syncDatasetDerivedState = createAsyncThunk<
   { state: RootState }
 >('dataset/syncDatasetDerivedState', async (_, { dispatch, getState }) => {
   const state = getState()
-  const data = state.dataset.data
+  const data = selectDatasetData(state)
   if (!data) return
 
-  const matrixOrder = normalizeMatrixOrder(data.metadata.matrixOrder)
+  const matrixOrder = normalizeMatrixOrder(getDatasetMatrixOrder(data))
   if (matrixOrder.length === 0) return
 
-  const atlasId = data.metadata.atlasId ?? data.metadata.atlas
+  const atlasId = getDatasetAtlasId(data)
   const atlasDefinition = resolveAtlasDefinition(state, atlasId)
   const atlasOrder = buildAtlasOrder(matrixOrder, atlasDefinition)
-  dispatch(setAtlasLabels(buildAtlasState(atlasOrder, state.atlas)))
+  dispatch(setAtlasLabels(buildAtlasState(atlasOrder, state.atlasUi)))
 })
 
 export const initializeDatasetAndDerivedState = createAsyncThunk<
@@ -84,11 +94,10 @@ export const initializeDatasetAndDerivedState = createAsyncThunk<
 >(
   'dataset/initializeDatasetAndDerivedState',
   async (config, { dispatch, getState }) => {
-    if (config.loadTestDataset) {
-      await dispatch(loadTestDataset({ path: config.testDatasetFile.path }))
+    if (config.loadInitialDataset) {
+      await dispatch(loadInitialDataset({ path: config.initialDatasetFile.path }))
     } else {
       dispatch(clearDataset())
-      await clearMatrices()
     }
 
     let loadedTestAtlas: AtlasDefinition | null = null
@@ -117,11 +126,11 @@ export const initializeDatasetAndDerivedState = createAsyncThunk<
     }
 
     const state = getState()
-    const data = state.dataset.data
+    const data = selectDatasetData(state)
 
     if (data) {
       if (!config.loadTestAtlas) {
-        const atlasSource = buildMatrixDerivedAtlasSource(data.metadata.matrixOrder)
+        const atlasSource = buildMatrixDerivedAtlasSource(getDatasetMatrixOrder(data))
         if (atlasSource) {
           dispatch(setUploadedAtlas(atlasSource))
         }

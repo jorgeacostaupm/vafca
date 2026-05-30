@@ -2,8 +2,8 @@ import { createSlice } from '@reduxjs/toolkit'
 import {
   clearDataset,
   computeDerivedMatrices,
-  loadTestDataset,
-  uploadMatricesIntoDataset,
+  loadInitialDataset,
+  loadDatasetFromUploadedZip,
 } from '@/store/slices/dataset'
 import { loadMatrixSummaries } from './matrixSummariesThunks'
 import { initialMatrixSummariesState } from './matrixSummariesTypes'
@@ -19,12 +19,12 @@ const matrixSummariesSlice = createSlice({
         state.status = 'idle'
         state.error = null
       })
-      .addCase(loadTestDataset.pending, (state) => {
+      .addCase(loadInitialDataset.pending, (state) => {
         state.summaries = []
         state.status = 'idle'
         state.error = null
       })
-      .addCase(uploadMatricesIntoDataset.fulfilled, (state) => {
+      .addCase(loadDatasetFromUploadedZip.fulfilled, (state) => {
         state.summaries = []
         state.status = 'idle'
         state.error = null

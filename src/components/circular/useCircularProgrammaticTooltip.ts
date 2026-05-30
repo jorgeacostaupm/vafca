@@ -3,7 +3,12 @@ import * as d3 from "d3";
 import type { MutableRefObject, RefObject } from "react";
 import { NODELINK_TOOLTIP_OFFSET } from "@/components/nodelink/nodelinkShared";
 import { positionTooltipForCoordinates } from "@/components/nodelink/tooltipPosition";
+import { positionCircularTooltipForNode } from "@/components/circular/circularTooltipPosition";
 import { syncCircularProgrammaticTooltip } from "@/components/circular/circularVisualEffects";
+import {
+  CIRCULAR_TOOLTIP_EDGE_PADDING,
+  CIRCULAR_TOOLTIP_OFFSET,
+} from "@/config/ui";
 import type { CircularLink, CircularNode } from "@/types/nodelink";
 
 type UseCircularProgrammaticTooltipArgs = {
@@ -19,7 +24,6 @@ type UseCircularProgrammaticTooltipArgs = {
   hoveredNodeId?: string | null;
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  labelAcronyms?: Record<string, string>;
   valueLabel: string;
   zoomTransformRef: MutableRefObject<d3.ZoomTransform>;
 };
@@ -37,7 +41,6 @@ export const useCircularProgrammaticTooltip = ({
   hoveredNodeId,
   labelNames,
   labelTitles,
-  labelAcronyms,
   valueLabel,
   zoomTransformRef,
 }: UseCircularProgrammaticTooltipArgs) => {
@@ -64,6 +67,26 @@ export const useCircularProgrammaticTooltip = ({
       tooltipEl.style.left = `${left}px`;
       tooltipEl.style.top = `${top}px`;
     };
+    const positionNodeTooltip = (node: CircularNode, wrapperRect: DOMRect) => {
+      const tooltipRect = tooltipEl.getBoundingClientRect();
+      const transform = zoomTransformRef.current ?? d3.zoomIdentity;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const [anchorX, anchorY] = transform.apply([centerX + node.x, centerY + node.y]);
+      const [screenCenterX, screenCenterY] = transform.apply([centerX, centerY]);
+      const { left, top } = positionCircularTooltipForNode({
+        anchorX,
+        anchorY,
+        centerX: screenCenterX,
+        centerY: screenCenterY,
+        wrapperRect,
+        tooltipRect,
+        offset: CIRCULAR_TOOLTIP_OFFSET,
+        edgePadding: CIRCULAR_TOOLTIP_EDGE_PADDING,
+      });
+      tooltipEl.style.left = `${left}px`;
+      tooltipEl.style.top = `${top}px`;
+    };
 
     syncCircularProgrammaticTooltip({
       tooltipEl,
@@ -75,12 +98,12 @@ export const useCircularProgrammaticTooltip = ({
       hoveredNodeId,
       labelNames,
       labelTitles,
-      labelAcronyms,
       valueLabel,
       width,
       height,
       zoomTransform: zoomTransformRef.current ?? d3.zoomIdentity,
       positionTooltip,
+      positionNodeTooltip,
     });
   }, [
     tooltipRef,
@@ -95,7 +118,6 @@ export const useCircularProgrammaticTooltip = ({
     hoveredNodeId,
     labelNames,
     labelTitles,
-    labelAcronyms,
     valueLabel,
     zoomTransformRef,
   ]);
