@@ -1,6 +1,6 @@
-import type { ConnectivityMatrix } from "@/types/matrix";
+import type { MatrixViewData } from "@/types/connectivityBundle";
 
-export type StoredMatrix = ConnectivityMatrix & { compoundId: string };
+export type StoredMatrix = MatrixViewData & { compoundId: string };
 
 export type MatrixSummary = {
   compoundId: string;
@@ -9,4 +9,5 @@ export type MatrixSummary = {
   statId: string;
   populationIds: string[];
   size: number;
+  symmetric: boolean;
 };

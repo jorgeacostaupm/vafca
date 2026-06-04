@@ -1,9 +1,10 @@
-import { useEffect } from "react";
 import { notification as antdNotification } from "antd";
 import type {
   NotificationInstance,
   NotificationPlacement,
 } from "antd/es/notification/interface";
+import { useEffect } from "react";
+
 import type { UserNotification } from "@/store/slices/notifications";
 
 type UserNotificationPresenterProps = {

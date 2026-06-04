@@ -1,5 +1,10 @@
-import type { ConnectivityCatalogs } from "@/types/catalogs";
-import type { ConnectivityDataState, MatrixLayout } from "@/types/connectivityBundle";
+import type {
+  ConnectivityDataState,
+  ExpectedRange,
+  MatrixLayout,
+  RangeMode,
+  ScaleType,
+} from "@/types/connectivityBundle";
 import type { MatrixOrderEntry } from "@/types/matrixOrder";
 
 export const NORMALIZED_DATASET_SCHEMA_VERSION = "vafca-normalized-dataset-v1" as const;
@@ -29,6 +34,52 @@ export type RawConnectivityZipPackage = {
   warnings: ConnectivityImportIssue[];
 };
 
+export type ImportLayerCatalogItem = {
+  id: string;
+  label?: string;
+  description?: string | null;
+  enabled?: boolean;
+};
+
+export type ImportMeasureCatalogItem = {
+  id: string;
+  label: string;
+  min?: number;
+  max?: number;
+  expectedRange?: ExpectedRange;
+  description?: string | null;
+  enabled?: boolean;
+};
+
+export type ImportStatCatalogItem = {
+  id: string;
+  label: string;
+  category?: string;
+  min?: number;
+  max?: number;
+  scaleType?: ScaleType;
+  center?: number | null;
+  rangeMode?: RangeMode;
+  expectedRange?: ExpectedRange;
+  description?: string | null;
+  enabled?: boolean;
+  useDataRange?: boolean;
+};
+
+export type ImportPopulationCatalogItem = {
+  id: string;
+  label: string;
+  description?: string | null;
+  enabled?: boolean;
+};
+
+export type ImportCatalogs = {
+  layers: Record<string, ImportLayerCatalogItem>;
+  measures: Record<string, ImportMeasureCatalogItem>;
+  stats: Record<string, ImportStatCatalogItem>;
+  populations: Record<string, ImportPopulationCatalogItem>;
+};
+
 export type NormalizedRoi = {
   index: number;
   id: string;
@@ -41,12 +92,13 @@ export type NormalizedRoi = {
 export type NormalizedMatrix = {
   id: string;
   label: string;
-  kind: "population" | "comparison";
+  kind: "population" | "subject" | "comparison";
   layout: MatrixLayout;
   layerId: string;
   measureId: string;
   statId: string;
   populationIds: string[];
+  subjectId?: string;
   comparison?: {
     left: string;
     right: string;
@@ -67,7 +119,7 @@ export type NormalizedImportInference = {
   generatedRois: boolean;
   generatedRoiIds: string[];
   generatedMatrixIds: string[];
-  defaultedFields: Array<{
+  inferredFields: Array<{
     source: string;
     field: string;
     value: string;
@@ -88,7 +140,7 @@ export type NormalizedConnectivityDataset = {
     name: string;
     rois: NormalizedRoi[];
   };
-  catalogs: ConnectivityCatalogs;
+  catalogs: ImportCatalogs;
   matrices: NormalizedMatrix[];
   inference: NormalizedImportInference;
   issues: {

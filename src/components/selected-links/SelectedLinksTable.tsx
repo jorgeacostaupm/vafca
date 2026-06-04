@@ -1,7 +1,8 @@
 import { DeleteOutlined } from "@ant-design/icons";
+import type { TableColumnsType } from "antd";
 import { Button, Table, Typography } from "antd";
 import { useMemo } from "react";
-import type { TableColumnsType } from "antd";
+
 import type {
   LinkRow,
   MatrixColumn,

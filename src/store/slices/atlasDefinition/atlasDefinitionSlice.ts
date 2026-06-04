@@ -1,10 +1,12 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+
 import type { AtlasSource } from '@/types/atlas'
+
+import { initialAtlasDefinitionState } from './atlasDefinitionTypes'
 import {
   loadDefaultAtlasDefinition,
   uploadAtlasDefinitionFromFile,
-} from './atlasDefinitionThunks'
-import { initialAtlasDefinitionState } from './atlasDefinitionTypes'
+} from './thunks'
 
 const DEFAULT_ATLAS_STATUS_ID = '__default_atlas__'
 

@@ -1,7 +1,8 @@
 import { NumberOutlined } from "@ant-design/icons";
 import { Form, Segmented } from "antd";
-import { topNOptions } from "@/components/rankings/rankingOptions";
+
 import { createNetworkSegmentedOption } from "@/components/network/segmentedOption";
+import { topNOptions } from "@/components/rankings/rankingOptions";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { patchRankingQuery } from "@/store/slices/rankings";
 import type { RankingTopN } from "@/types/rankings";

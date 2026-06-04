@@ -1,10 +1,12 @@
-import { useCallback } from "react";
 import type { ComponentType } from "react";
+import { useCallback } from "react";
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   removeNotification,
   selectQueuedNotifications,
 } from "@/store/slices/notifications";
+
 import {
   AntdNotificationPresenter,
   type UserNotificationPresenterProps,

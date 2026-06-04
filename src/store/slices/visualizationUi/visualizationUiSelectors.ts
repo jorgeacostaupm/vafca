@@ -12,4 +12,8 @@ export const selectSelectedLinksDownloadStatus = (state: RootState) =>
 export const selectSelectedLinksDownloadError = (state: RootState) =>
   state.visualizationUi.selectedLinksDownloadError
 export const selectUiRangeMode = (state: RootState) => state.visualizationUi.uiRangeMode
+export const selectAppliedMatrixColorSettings = (state: RootState) =>
+  state.visualizationUi.matrixColorSettings.applied
+export const selectDraftMatrixColorSettings = (state: RootState) =>
+  state.visualizationUi.matrixColorSettings.draft
 export const selectAtlasPanelState = (state: RootState) => state.visualizationUi.atlasPanel

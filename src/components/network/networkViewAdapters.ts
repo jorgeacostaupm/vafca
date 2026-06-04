@@ -1,4 +1,3 @@
-import { filterMatrixByLabels, filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
 import type { MatrixValueRange } from "@/types/matrixView";
 import type {
   AdaptedMatrixViewData,
@@ -6,6 +5,7 @@ import type {
   CanonicalMatrixData,
   NetworkViewType,
 } from "@/types/networkVisualization";
+import { filterIsolatedMatrixEntries,filterMatrixByLabels } from "@/utils/matrixFiltering";
 
 export const buildCanonicalMatrixData = ({
   matrixData,

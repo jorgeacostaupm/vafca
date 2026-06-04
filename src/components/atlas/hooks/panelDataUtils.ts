@@ -1,10 +1,11 @@
 import type { AtlasDefinition } from "@/types/atlas";
 import type { GroupedRow } from "@/types/atlasPanel";
 import {
-  UNKNOWN_GROUP,
   getRoiFieldValue,
   normalizeRoiFieldValue,
+  UNKNOWN_GROUP,
 } from "@/utils/atlas/atlasDefinition";
+
 import { ALL_FILTER } from "../panelConstants";
 
 export type SelectOption = { value: string; label: string };

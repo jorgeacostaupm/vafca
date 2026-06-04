@@ -1,4 +1,4 @@
-import type { MatrixRecord, UiRangeMode } from "@/types/connectivityBundle";
+import type { ConnectivityMatrix, UiRangeMode } from "@/types/connectivityBundle";
 
 export type LogicalOperator = "AND" | "OR";
 
@@ -62,7 +62,7 @@ export type NetworkEdgeDomain = {
   labelIds: string[];
 };
 
-export type MatrixIndex = Record<string, MatrixRecord>;
+export type MatrixIndex = Record<string, ConnectivityMatrix>;
 
 export type MatrixFilterValidationIssue = {
   id: string;

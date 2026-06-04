@@ -1,3 +1,9 @@
+export {
+  selectNetworkControls,
+  selectNetworkViewsById,
+  selectNetworkViewsOrder,
+  selectNetworkVisualizationState,
+} from './networkVisualizationSelectors'
 export { default } from './networkVisualizationSlice'
 export {
   addNetworkView,
@@ -7,11 +13,13 @@ export {
   patchNetworkControls,
   patchNetworkMatrixSettings,
   patchNetworkNodeLinkSettings,
+  pruneNetworkSelectionForDisabledCatalogItem,
   removeNetworkView,
   resetNetworkControls,
   resetNetworkViewSettings,
   resetNetworkZoomLabelSelection,
   setNetworkCircularBundlingEnabled,
+  setNetworkCircularEdgeSettings,
   setNetworkCircularLinkTension,
   setNetworkHideIsolatedNodes,
   setNetworkViewStatus,
@@ -19,21 +27,15 @@ export {
   toggleNetworkZoomLabelSelection,
   updateNetworkViewStatRange,
 } from './networkVisualizationSlice'
+export type {
+  NetworkViewFormattingError,
+  NetworkVisualizationState,
+  SetNetworkViewStatusPayload,
+} from './networkVisualizationTypes'
 export {
   addNetworkViewAndFormat,
   markNetworkViewFormatting,
   mutateNetworkViewType,
   pruneInvalidNetworkViews,
   syncNetworkSelectedCompoundId,
-} from './networkVisualizationThunks'
-export {
-  selectNetworkControls,
-  selectNetworkViewsById,
-  selectNetworkViewsOrder,
-  selectNetworkVisualizationState,
-} from './networkVisualizationSelectors'
-export type {
-  NetworkViewFormattingError,
-  NetworkVisualizationState,
-  SetNetworkViewStatusPayload,
-} from './networkVisualizationTypes'
+} from './thunks'

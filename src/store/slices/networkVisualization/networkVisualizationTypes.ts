@@ -1,3 +1,17 @@
+import {
+  DEFAULT_CIRCULAR_NEGATIVE_LINK_COLOR,
+  DEFAULT_CIRCULAR_POSITIVE_LINK_COLOR,
+} from '@/config/matrixColorScales'
+import {
+  DEFAULT_CIRCULAR_BUNDLING_ENABLED,
+  DEFAULT_CIRCULAR_LINK_TENSION,
+  DEFAULT_NETWORK_HIDE_ISOLATED_NODES,
+  DEFAULT_NETWORK_MATRIX_SELECTOR_MODE,
+  DEFAULT_NETWORK_NEXT_VIEW_SEQ,
+  DEFAULT_NETWORK_PERCENT_ZOOM_INCLUDE_AUTOCONNECTIONS,
+  DEFAULT_NETWORK_SYNC_ZOOM,
+  DEFAULT_NETWORK_VIEW_TYPE,
+} from '@/config/ui'
 import type {
   MatrixNetworkViewSettings,
   NetworkSelectorControlsState,
@@ -5,15 +19,6 @@ import type {
   NetworkViewType,
   NodeLinkNetworkViewSettings,
 } from '@/types/networkVisualization'
-import {
-  DEFAULT_CIRCULAR_BUNDLING_ENABLED,
-  DEFAULT_CIRCULAR_LINK_TENSION,
-  DEFAULT_NETWORK_HIDE_ISOLATED_NODES,
-  DEFAULT_NETWORK_MATRIX_SELECTOR_MODE,
-  DEFAULT_NETWORK_NEXT_VIEW_SEQ,
-  DEFAULT_NETWORK_SYNC_ZOOM,
-  DEFAULT_NETWORK_VIEW_TYPE,
-} from '@/config/ui'
 
 export type NetworkVisualizationState = {
   controls: NetworkSelectorControlsState
@@ -48,6 +53,10 @@ export const initialNetworkControls: NetworkSelectorControlsState = {
   hideIsolatedNodes: DEFAULT_NETWORK_HIDE_ISOLATED_NODES,
   circularLinkTension: DEFAULT_CIRCULAR_LINK_TENSION,
   circularBundlingEnabled: DEFAULT_CIRCULAR_BUNDLING_ENABLED,
+  circularPositiveLinkColor: DEFAULT_CIRCULAR_POSITIVE_LINK_COLOR,
+  circularNegativeLinkColor: DEFAULT_CIRCULAR_NEGATIVE_LINK_COLOR,
+  percentZoomIncludeAutoconnections:
+    DEFAULT_NETWORK_PERCENT_ZOOM_INCLUDE_AUTOCONNECTIONS,
 }
 
 export const initialNetworkVisualizationState: NetworkVisualizationState = {

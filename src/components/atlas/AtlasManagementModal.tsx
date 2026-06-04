@@ -1,4 +1,5 @@
 import { Divider, Modal, Space } from "antd";
+
 import AtlasMetadataSummary from "@/components/atlas/AtlasMetadataSummary";
 import AtlasUploader from "@/components/atlas/AtlasUploader";
 

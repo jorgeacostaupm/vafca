@@ -1,0 +1,14 @@
+{
+  "study": {
+    "label": "Study",
+    "description": "some description"
+  },
+  "control": {
+    "label": "Control",
+    "description": "some description"
+  },
+  "zscore": {
+    "label": "Z-Score",
+    "description": "some description"
+  }
+}

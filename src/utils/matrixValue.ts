@@ -4,5 +4,5 @@ export const resolveMatrixValue = (
   col: number,
 ) => {
   const value = data[row]?.[col];
-  return Number.isFinite(value) ? (value as number) : 0;
+  return Number.isFinite(value) ? (value as number) : Number.NaN;
 };

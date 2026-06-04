@@ -1,5 +1,6 @@
-import { type MutableRefObject } from "react";
 import * as d3 from "d3";
+import { type MutableRefObject } from "react";
+
 import type { HeatmapProps } from "@/types/matrixHeatmap";
 
 export const renderHeatmapBrush = (args: {
@@ -7,22 +8,34 @@ export const renderHeatmapBrush = (args: {
   size: number;
   rows: number;
   cols: number;
+  data: number[][];
   xScale: d3.ScaleBand<number>;
   yScale: d3.ScaleBand<number>;
   resolvedRowLabels?: string[];
   resolvedColLabels?: string[];
   brushCbRef: MutableRefObject<HeatmapProps["onBrushZoom"] | undefined>;
+  brushSelectLinksCbRef: MutableRefObject<
+    HeatmapProps["onBrushSelectLinks"] | undefined
+  >;
+  brushDeselectLinksCbRef: MutableRefObject<
+    HeatmapProps["onBrushDeselectLinks"] | undefined
+  >;
+  brushMode: NonNullable<HeatmapProps["brushMode"]>;
 }) => {
   const {
     root,
     size,
     rows,
     cols,
+    data,
     xScale,
     yScale,
     resolvedRowLabels,
     resolvedColLabels,
     brushCbRef,
+    brushSelectLinksCbRef,
+    brushDeselectLinksCbRef,
+    brushMode,
   } = args;
 
   const brushLayer = root.append("g").attr("class", "heatmap-brush");
@@ -70,12 +83,39 @@ export const renderHeatmapBrush = (args: {
           ? selectedCols.map((col) => resolvedColLabels[col] ?? String(col))
           : selectedCols.map((col) => String(col));
 
-      brushCbRef.current?.({
+      const cells = selectedRows.flatMap((row, rowIndex) => {
+        const rowLabel = rowLabels[rowIndex] ?? String(row);
+        return selectedCols.flatMap((col, colIndex) => {
+          const value = data[row]?.[col];
+          if (!Number.isFinite(value)) return [];
+          const finiteValue = value as number;
+          return [
+            {
+              row,
+              col,
+              rowLabel,
+              colLabel: colLabels[colIndex] ?? String(col),
+              value: finiteValue,
+            },
+          ];
+        });
+      });
+
+      const payload = {
         rows: selectedRows,
         cols: selectedCols,
         rowLabels,
         colLabels,
-      });
+        cells,
+      };
+
+      if (brushMode === "selectLinks") {
+        brushSelectLinksCbRef.current?.(payload);
+      } else if (brushMode === "deselectLinks") {
+        brushDeselectLinksCbRef.current?.(payload);
+      } else {
+        brushCbRef.current?.(payload);
+      }
 
       brushLayer.call(brush.move, null);
     });

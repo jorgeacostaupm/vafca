@@ -1,17 +1,22 @@
 import * as d3 from "d3";
+
+import { computeForceLayout } from "@/components/nodelink/forceLayout";
+import {
+  buildDegreeByLabelId,
+  buildFilteredUndirectedLinks,
+} from "@/components/nodelink/graphModel";
+import {
+  DEFAULT_LINK_WIDTH_RANGE,
+  NODE_LINK_LAYOUT_MARGIN,
+  NODE_LINK_NODE_RADIUS,
+} from "@/config/ui";
 import type {
   ClassicLink,
   ClassicNode,
   NodeLinkValueFilters,
   UndirectedLink,
 } from "@/types/nodelink";
-import { DEFAULT_LINK_WIDTH_RANGE } from "@/components/nodelink/nodelinkShared";
-import { NODE_LINK_LAYOUT_MARGIN, NODE_LINK_NODE_RADIUS } from "@/config/ui";
-import { computeForceLayout } from "@/components/nodelink/forceLayout";
-import {
-  buildDegreeByLabelId,
-  buildFilteredUndirectedLinks,
-} from "@/components/nodelink/graphModel";
+import type { ResolvedValueDomain } from "@/types/valueDomain";
 
 export const DEFAULT_NODE_RADIUS = NODE_LINK_NODE_RADIUS;
 export const DEFAULT_MARGIN = NODE_LINK_LAYOUT_MARGIN;
@@ -24,6 +29,7 @@ type BuildClassicSceneModelArgs = {
   hideIsolatedNodes: boolean;
   selectedZoomLabels?: string[];
   linkWidthRange?: [number, number];
+  valueDomain?: ResolvedValueDomain;
   width: number;
   height: number;
 };
@@ -110,16 +116,19 @@ const remapVisibleGraph = (args: {
 const buildWidthScale = (args: {
   links: ClassicLink[];
   linkWidthRange?: [number, number];
+  valueDomain?: ResolvedValueDomain;
 }) => {
-  const { links, linkWidthRange } = args;
+  const { links, linkWidthRange, valueDomain } = args;
   const widthRange = linkWidthRange ?? DEFAULT_LINK_WIDTH_RANGE;
   const extent = d3.extent(links, (link) => Math.abs(link.value));
-  const extentMin = Number.isFinite(extent[0]) ? (extent[0] as number) : 0;
   const extentMax = Number.isFinite(extent[1]) ? (extent[1] as number) : 1;
+  const domainMax = valueDomain
+    ? Math.max(Math.abs(valueDomain.min), Math.abs(valueDomain.max))
+    : extentMax;
 
   return d3
     .scaleLinear<number, number>()
-    .domain(extentMin === extentMax ? [0, extentMax || 1] : [extentMin, extentMax])
+    .domain([0, domainMax || extentMax || 1])
     .range(widthRange)
     .clamp(true);
 };
@@ -132,6 +141,7 @@ export const buildClassicSceneModel = ({
   hideIsolatedNodes,
   selectedZoomLabels,
   linkWidthRange,
+  valueDomain,
   width,
   height,
 }: BuildClassicSceneModelArgs): ClassicSceneModel => {
@@ -168,7 +178,7 @@ export const buildClassicSceneModel = ({
   const clampY = (value: number | undefined) =>
     Math.max(DEFAULT_MARGIN, Math.min(height - DEFAULT_MARGIN, value ?? height / 2));
 
-  const widthScale = buildWidthScale({ links, linkWidthRange });
+  const widthScale = buildWidthScale({ links, linkWidthRange, valueDomain });
   const zoomLabelSet =
     selectedZoomLabels && selectedZoomLabels.length > 0
       ? new Set(selectedZoomLabels)

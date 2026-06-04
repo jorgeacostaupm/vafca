@@ -1,15 +1,17 @@
 import { useEffect } from "react";
-import type { AtlasPanelState } from "@/types/visualizationUi";
+
+import { DEFAULT_ATLAS_PANEL_GROUP_BY_FIELDS } from "@/config/ui";
+import { useAppDispatch } from "@/store/hooks";
 import { setAtlasColorFields } from "@/store/slices/atlasUi";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
-import { useAppDispatch } from "@/store/hooks";
-import { getDefaultGroupByFields } from "@/utils/atlas/atlasDefinition";
+import type { AtlasPanelState } from "@/types/visualizationUi";
+
+import { VIEWER_MIN_HEIGHT } from "../panelConstants";
 import {
   areStringArraysEqual,
   areStringMapsEqual,
   normalizeUniqueFieldList,
 } from "../panelFieldUtils";
-import { VIEWER_MIN_HEIGHT } from "../panelConstants";
 
 type UseAtlasPanelNormalizationArgs = {
   colorFields: string[];
@@ -34,11 +36,21 @@ export const useAtlasPanelNormalization = ({
   }, [availableGroupFields, colorFields, dispatch]);
 
   useEffect(() => {
-    const defaults = getDefaultGroupByFields(availableGroupFields);
-    const nextGroupByFields =
-      atlasPanel.groupByFields.length > 0
-        ? normalizeUniqueFieldList(atlasPanel.groupByFields, availableGroupFields)
-        : defaults;
+    const normalizedGroupByFields = normalizeUniqueFieldList(
+      atlasPanel.groupByFields,
+      availableGroupFields,
+    );
+    const shouldApplyInitialDefaults =
+      !atlasPanel.groupByFieldsInitialized &&
+      atlasPanel.groupByFields.length === 0 &&
+      availableGroupFields.length > 0;
+    const nextGroupByFields = shouldApplyInitialDefaults
+      ? [...DEFAULT_ATLAS_PANEL_GROUP_BY_FIELDS]
+      : normalizedGroupByFields;
+    const nextGroupByFieldsInitialized =
+      atlasPanel.groupByFieldsInitialized ||
+      availableGroupFields.length > 0 ||
+      atlasPanel.groupByFields.length > 0;
 
     const nextSelectedFilters = Object.fromEntries(
       Object.entries(atlasPanel.selectedFilters).filter(([field]) =>
@@ -60,11 +72,21 @@ export const useAtlasPanelNormalization = ({
       atlasPanel.selectedFilters,
     );
     const viewerHeightChanged = atlasPanel.viewerHeight !== normalizedViewerHeight;
-    if (!groupByChanged && !filtersChanged && !viewerHeightChanged) return;
+    const initializedChanged =
+      atlasPanel.groupByFieldsInitialized !== nextGroupByFieldsInitialized;
+    if (
+      !groupByChanged &&
+      !filtersChanged &&
+      !viewerHeightChanged &&
+      !initializedChanged
+    ) {
+      return;
+    }
 
     dispatch(
       setAtlasPanelState({
         groupByFields: nextGroupByFields,
+        groupByFieldsInitialized: nextGroupByFieldsInitialized,
         selectedFilters: nextSelectedFilters,
         ...(groupByChanged || filtersChanged ? { collapsedGroups: [] } : {}),
         viewerHeight: normalizedViewerHeight,
@@ -72,6 +94,7 @@ export const useAtlasPanelNormalization = ({
     );
   }, [
     atlasPanel.groupByFields,
+    atlasPanel.groupByFieldsInitialized,
     atlasPanel.selectedFilters,
     atlasPanel.viewerHeight,
     availableGroupFields,

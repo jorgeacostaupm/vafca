@@ -1,20 +1,24 @@
+import * as d3 from "d3";
 import {
+  type RefObject,
   useCallback,
   useEffect,
   useRef,
   useState,
-  type RefObject,
 } from "react";
-import * as d3 from "d3";
+
 import { renderClassicScene } from "@/components/nodelink/sceneRenderer";
 import { useClassicProgrammaticTooltip } from "@/components/nodelink/useProgrammaticTooltip";
 import { useClassicSelectionStyles } from "@/components/nodelink/useSelectionStyles";
+import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type {
   ClassicLink,
   ClassicNode,
+  NodeLinkBrushLink,
   NodeLinkInteractionProps,
   NodeLinkValueFilters,
 } from "@/types/nodelink";
+import type { ResolvedValueDomain } from "@/types/valueDomain";
 
 type UseClassicNodeLinkSceneArgs = NodeLinkInteractionProps & {
   data: number[][];
@@ -28,17 +32,18 @@ type UseClassicNodeLinkSceneArgs = NodeLinkInteractionProps & {
   valueFilters?: NodeLinkValueFilters;
   selectedZoomLabels?: string[];
   linkWidthRange?: [number, number];
+  valueDomain?: ResolvedValueDomain;
   brushEnabled?: boolean;
+  brushMode?: MatrixBrushMode;
   geometricZoomEnabled?: boolean;
   hideIsolatedNodes?: boolean;
-  diverging?: boolean;
   onLabelToggle?: (label: string) => void;
   onBrushZoom?: (payload: { labels: string[] }) => void;
+  onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
+  onBrushDeselectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   getNodeColor: (node: ClassicNode) => string;
   valueLabel: string;
 };
-
-const HOVER_NODE_COLOR = "#d64545";
 
 export const useClassicNodeLinkScene = ({
   data,
@@ -52,13 +57,14 @@ export const useClassicNodeLinkScene = ({
   valueFilters,
   selectedZoomLabels,
   linkWidthRange,
+  valueDomain,
   brushEnabled = false,
+  brushMode = "zoom",
   geometricZoomEnabled = false,
   hideIsolatedNodes = true,
-  diverging,
   selectedLinkIds,
-  hoveredCell,
-  hoveredNodeId,
+  visualStyle,
+  linkColorResolver,
   onLabelToggle,
   onLinkSelect,
   onLinkHover,
@@ -66,6 +72,8 @@ export const useClassicNodeLinkScene = ({
   onNodeHover,
   onNodeLeave,
   onBrushZoom,
+  onBrushSelectLinks,
+  onBrushDeselectLinks,
   getNodeColor,
   valueLabel,
 }: UseClassicNodeLinkSceneArgs) => {
@@ -122,11 +130,14 @@ export const useClassicNodeLinkScene = ({
       valueFilters,
       selectedZoomLabels,
       linkWidthRange,
+      valueDomain,
       brushEnabled,
+      brushMode,
       geometricZoomEnabled,
       hideIsolatedNodes,
-      diverging,
       selectedLinkIds,
+      visualStyle,
+      linkColorResolver,
       onLabelToggle,
       onLinkSelect,
       onLinkHover,
@@ -134,6 +145,8 @@ export const useClassicNodeLinkScene = ({
       onNodeHover,
       onNodeLeave,
       onBrushZoom,
+      onBrushSelectLinks,
+      onBrushDeselectLinks,
       getNodeColor,
       valueLabel,
       resetLocalHoverActive,
@@ -169,11 +182,14 @@ export const useClassicNodeLinkScene = ({
     valueFilters,
     selectedZoomLabels,
     linkWidthRange,
+    valueDomain,
     brushEnabled,
+    brushMode,
     geometricZoomEnabled,
     hideIsolatedNodes,
-    diverging,
     selectedLinkIds,
+    visualStyle,
+    linkColorResolver,
     onLabelToggle,
     onLinkSelect,
     onLinkHover,
@@ -181,6 +197,8 @@ export const useClassicNodeLinkScene = ({
     onNodeHover,
     onNodeLeave,
     onBrushZoom,
+    onBrushSelectLinks,
+    onBrushDeselectLinks,
     getNodeColor,
     valueLabel,
     resetLocalHoverActive,
@@ -196,11 +214,10 @@ export const useClassicNodeLinkScene = ({
     widthScaleRef,
     zoomLabelSetRef,
     nodeRadiusRef,
-    hoveredCell,
-    hoveredNodeId,
     selectedLinkIds,
+    visualStyle,
+    linkColorResolver,
     getNodeColor,
-    hoverNodeColor: HOVER_NODE_COLOR,
   });
 
   useClassicProgrammaticTooltip({
@@ -213,8 +230,6 @@ export const useClassicNodeLinkScene = ({
     nodesRef,
     linksRef,
     degreeByIdRef,
-    hoveredCell,
-    hoveredNodeId,
     labelNames,
     labelTitles,
     labelAcronyms,

@@ -1,20 +1,26 @@
 import * as d3 from "d3";
+
 import {
-  NODE_LINK_LAYOUT_MAX_LINK_DISTANCE,
-  NODE_LINK_LAYOUT_MIN_LINK_DISTANCE,
   NODE_LINK_LABEL_DY,
   NODE_LINK_LABEL_OFFSET,
+  NODE_LINK_LABEL_SELECTION_BACKGROUND_PADDING_X,
+  NODE_LINK_LABEL_SELECTION_BACKGROUND_PADDING_Y,
+  NODE_LINK_LAYOUT_MAX_LINK_DISTANCE,
+  NODE_LINK_LAYOUT_MIN_LINK_DISTANCE,
 } from "@/config/ui";
 import type { ClassicLink, ClassicNode } from "@/types/nodelink";
 
 type LinkSelection = d3.Selection<SVGLineElement, ClassicLink, SVGGElement, unknown>;
 type NodeSelection = d3.Selection<SVGCircleElement, ClassicNode, SVGGElement, unknown>;
 type LabelSelection = d3.Selection<SVGTextElement, ClassicNode, SVGGElement, unknown>;
+type LabelBackgroundSelection = d3.Selection<SVGRectElement, ClassicNode, SVGGElement, unknown>;
 
 type ConfigureDraggableNodesArgs = {
   linkSelection: LinkSelection;
+  linkHitSelection?: LinkSelection;
   nodeSelection: NodeSelection;
   labelSelection: LabelSelection;
+  labelBackgroundSelection?: LabelBackgroundSelection;
   simNodes: ClassicNode[];
   simLinks: ClassicLink[];
   width: number;
@@ -123,13 +129,22 @@ const syncLinkPositions = (args: {
 
 const syncLabelPositions = (args: {
   labelSelection: LabelSelection;
+  labelBackgroundSelection?: LabelBackgroundSelection;
   width: number;
   height: number;
   defaultMargin: number;
   clampX: (value: number | undefined) => number;
   clampY: (value: number | undefined) => number;
 }) => {
-  const { labelSelection, width, height, defaultMargin, clampX, clampY } = args;
+  const {
+    labelSelection,
+    labelBackgroundSelection,
+    width,
+    height,
+    defaultMargin,
+    clampX,
+    clampY,
+  } = args;
   labelSelection
     .attr("x", (node) => clampX(node.x))
     .attr("y", (node) => clampY(node.y))
@@ -164,13 +179,33 @@ const syncLabelPositions = (args: {
     }
     text.attr("x", x).attr("y", y);
   });
+
+  labelBackgroundSelection?.each(function (node) {
+    const textNode = labelSelection.filter((item) => item.id === node.id).node();
+    if (!textNode) return;
+
+    const box = textNode.getBBox();
+    d3.select(this)
+      .attr("x", box.x - NODE_LINK_LABEL_SELECTION_BACKGROUND_PADDING_X)
+      .attr("y", box.y - NODE_LINK_LABEL_SELECTION_BACKGROUND_PADDING_Y)
+      .attr(
+        "width",
+        box.width + NODE_LINK_LABEL_SELECTION_BACKGROUND_PADDING_X * 2,
+      )
+      .attr(
+        "height",
+        box.height + NODE_LINK_LABEL_SELECTION_BACKGROUND_PADDING_Y * 2,
+      );
+  });
 };
 
 export const syncNodeLinkPositions = (args: SyncNodeLinkPositionsArgs) => {
   const {
     linkSelection,
+    linkHitSelection,
     nodeSelection,
     labelSelection,
+    labelBackgroundSelection,
     simNodes,
     width,
     height,
@@ -180,14 +215,27 @@ export const syncNodeLinkPositions = (args: SyncNodeLinkPositionsArgs) => {
   } = args;
 
   syncLinkPositions({ linkSelection, simNodes, clampX, clampY });
+  if (linkHitSelection) {
+    syncLinkPositions({ linkSelection: linkHitSelection, simNodes, clampX, clampY });
+  }
   nodeSelection.attr("cx", (node) => clampX(node.x)).attr("cy", (node) => clampY(node.y));
-  syncLabelPositions({ labelSelection, width, height, defaultMargin, clampX, clampY });
+  syncLabelPositions({
+    labelSelection,
+    labelBackgroundSelection,
+    width,
+    height,
+    defaultMargin,
+    clampX,
+    clampY,
+  });
 };
 
 export const configureDraggableNodes = ({
   linkSelection,
+  linkHitSelection,
   nodeSelection,
   labelSelection,
+  labelBackgroundSelection,
   simNodes,
   simLinks,
   width,
@@ -209,8 +257,10 @@ export const configureDraggableNodes = ({
   const syncPositions = () =>
     syncNodeLinkPositions({
       linkSelection,
+      linkHitSelection,
       nodeSelection,
       labelSelection,
+      labelBackgroundSelection,
       simNodes,
       width,
       height,

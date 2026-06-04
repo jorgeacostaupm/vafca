@@ -1,12 +1,13 @@
 import { Typography } from "antd";
 import * as d3 from "d3";
+
+import { PREVIEW_SIZE } from "@/components/management/constants";
 import {
-  DEFAULT_CIRCULAR_LINK_TENSION,
   type CircularBundlePathPoint,
   type CircularHierarchyLayoutPoint,
   type CircularPreviewLink,
+  DEFAULT_CIRCULAR_LINK_TENSION,
 } from "@/types/circular";
-import { PREVIEW_SIZE } from "@/components/management/constants";
 
 type CircularHierarchyPreviewProps = {
   layout: CircularHierarchyLayoutPoint[];
@@ -17,6 +18,7 @@ type CircularHierarchyPreviewProps = {
   linkTension?: number;
   bundlingEnabled?: boolean;
   displayWidth?: number;
+  linkColor?: string;
 };
 
 const buildFallbackPath = (
@@ -38,6 +40,7 @@ function CircularHierarchyPreview({
   linkTension = DEFAULT_CIRCULAR_LINK_TENSION,
   bundlingEnabled = true,
   displayWidth = PREVIEW_SIZE,
+  linkColor = "var(--color-primary)",
 }: CircularHierarchyPreviewProps) {
   const layoutByLabelId = new Map(layout.map((node) => [node.labelId, node] as const));
   const bundledLine = d3
@@ -104,7 +107,7 @@ function CircularHierarchyPreview({
                 key={link.id}
                 d={path}
                 fill="none"
-                stroke="var(--color-primary)"
+                stroke={linkColor}
                 strokeOpacity={0.28}
                 strokeWidth={1.4}
               />

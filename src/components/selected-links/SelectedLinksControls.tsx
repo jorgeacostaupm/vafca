@@ -1,6 +1,7 @@
+import type { MenuProps } from "antd";
 import { Button, Dropdown, Select, Space, Typography } from "antd";
 import { useMemo } from "react";
-import type { MenuProps } from "antd";
+
 import type {
   DownloadMode,
   MatrixOption,

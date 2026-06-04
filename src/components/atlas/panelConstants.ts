@@ -1,2 +1,4 @@
-export const ALL_FILTER = "__all__";
-export const VIEWER_MIN_HEIGHT = 420;
+export {
+  ATLAS_PANEL_ALL_FILTER as ALL_FILTER,
+  ATLAS_PANEL_VIEWER_MIN_HEIGHT as VIEWER_MIN_HEIGHT,
+} from "@/config/ui";

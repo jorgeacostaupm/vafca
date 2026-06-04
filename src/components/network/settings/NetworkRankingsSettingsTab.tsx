@@ -1,4 +1,5 @@
 import { Space } from "antd";
+
 import LinkRankingModeSetting from "@/components/network/settings/LinkRankingModeSetting";
 import RankingAutoconnectionsSettings from "@/components/network/settings/RankingAutoconnectionsSettings";
 import RankingTopNSetting from "@/components/network/settings/RankingTopNSetting";

@@ -1,8 +1,8 @@
-import type { Catalogs, MatrixRecord } from "@/types/connectivityBundle";
+import type { Catalogs, ConnectivityMatrix } from "@/types/connectivityBundle";
 import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
 
 export const formatMatrixSourceLabel = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   catalogs?: Catalogs,
 ) => {
   if (matrix.source.level === "subject") {
@@ -11,8 +11,8 @@ export const formatMatrixSourceLabel = (
   if (matrix.source.level === "population") {
     return formatPopulationSetLabel(matrix.source.populationIds, catalogs);
   }
-  if (matrix.source.level === "reduction") {
-    return `Reduced from ${matrix.source.baseMatrixId}`;
+  if (matrix.source.level === "aggregation") {
+    return `Aggregated from ${matrix.source.baseMatrixId}`;
   }
   const left =
     matrix.source.left.label ??
@@ -31,15 +31,15 @@ export const formatMatrixSourceLabel = (
   return `${left} vs ${right}`;
 };
 
-export const formatMatrixKindLabel = (matrix: MatrixRecord) => {
-  if (matrix.kind === "reduced") return "Aggregated";
+export const formatMatrixKindLabel = (matrix: ConnectivityMatrix) => {
+  if (matrix.kind === "aggregated") return "Aggregated";
   if (matrix.source.level === "population") return "Population";
   if (matrix.source.level === "subject") return "Subject";
   return "Comparison";
 };
 
 export const formatNetworkMatrixLabel = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   catalogs?: Catalogs,
 ) => {
   const source = formatMatrixSourceLabel(matrix, catalogs);

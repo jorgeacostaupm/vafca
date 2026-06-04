@@ -1,7 +1,12 @@
+import { createSelector } from '@reduxjs/toolkit'
+
+import type { ConnectivityMatrix } from '@/types/connectivityBundle'
+import type { DatasetContent, DatasetMeta } from '@/types/datasetState'
+import type { StoredMatrix } from '@/types/matrixStore'
 import type { RootState } from '@/types/store'
-import type { MatrixRecord } from '@/types/connectivityBundle'
-import type { DatasetContent } from '@/types/datasetState'
-import { matricesAdapter } from './matricesAdapter'
+import { toStoredMatrix } from '@/utils/datasetAccessors'
+
+import { matricesAdapter } from './utils/matricesAdapter'
 
 export const selectDatasetState = (state: RootState) => state.dataset
 const matrixSelectors = matricesAdapter.getSelectors(
@@ -12,36 +17,58 @@ export const selectAllDatasetMatrices = matrixSelectors.selectAll
 export const selectDatasetMatrixById = matrixSelectors.selectById
 export const selectDatasetMatrixEntities = matrixSelectors.selectEntities
 
-export const selectDatasetContent = (
-  state: RootState,
-): DatasetContent | null => {
-  const dataset = state.dataset
-  if (
-    dataset.schemaVersion === null ||
-    dataset.loadedBundle === null ||
-    dataset.atlas === null ||
-    dataset.catalogs === null ||
-    dataset.roiOrderHash === null
-  ) {
-    return null
-  }
+export const selectDatasetContent = createSelector(
+  [
+    selectDatasetState,
+    selectAllDatasetMatrices,
+    selectDatasetMatrixEntities,
+  ],
+  (dataset, matrices, matrixEntities): DatasetContent | null => {
+    if (
+      dataset.schemaVersion === null ||
+      dataset.loadedBundle === null ||
+      dataset.atlas === null ||
+      dataset.catalogs === null ||
+      dataset.roiOrderHash === null
+    ) {
+      return null
+    }
 
-  const matrices = selectAllDatasetMatrices(state)
-  return {
-    schemaVersion: dataset.schemaVersion,
-    loadedBundle: dataset.loadedBundle,
-    atlas: dataset.atlas,
-    roiOrderHash: dataset.roiOrderHash,
-    catalogs: dataset.catalogs,
-    matrices,
-    matrixIndex: dataset.matrices.entities as Record<string, MatrixRecord>,
-  }
-}
+    return {
+      schemaVersion: dataset.schemaVersion,
+      loadedBundle: dataset.loadedBundle,
+      atlas: dataset.atlas,
+      roiOrderHash: dataset.roiOrderHash,
+      catalogs: dataset.catalogs,
+      matrices,
+      matrixIndex: matrixEntities as Record<string, ConnectivityMatrix>,
+    }
+  },
+)
 
-export const selectDatasetData = (state: RootState) => {
-  const content = selectDatasetContent(state)
-  return content ? { content } : null
-}
+export const selectDatasetData = createSelector(
+  [selectDatasetContent],
+  (content): DatasetMeta | null => (content ? { content } : null),
+)
+
+const selectMatrixByCompoundId = createSelector(
+  [selectAllDatasetMatrices],
+  (matrices) =>
+    Object.fromEntries(
+      matrices.map((matrix) => {
+        const stored = toStoredMatrix(matrix)
+        return [stored.compoundId, stored]
+      }),
+    ) as Record<string, StoredMatrix>,
+)
+
+export const selectDatasetViewData = createSelector(
+  [selectDatasetData, selectMatrixByCompoundId],
+  (dataset, matrixByCompoundId) => ({
+    dataset,
+    matrixByCompoundId,
+  }),
+)
 export const selectDatasetOperationsState = (state: RootState) =>
   state.datasetOperations
 export const selectDatasetStatus = (state: RootState) =>

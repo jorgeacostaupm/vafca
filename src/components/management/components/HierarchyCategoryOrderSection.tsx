@@ -1,5 +1,6 @@
 import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
 import { Button, Space, Typography } from "antd";
+
 import type {
   CategoryOrderEditor,
   CategoryOrderMap,

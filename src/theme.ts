@@ -13,11 +13,22 @@ export const appColors = {
   textSecondary: "#5c6c7c",
   success: "#1f8f6f",
   warning: "#b97a1c",
+  visualHighlight: "#f0b429",
+  visualSelection: "#d64545",
+  networkLink: "#386f99",
+  networkLinkPositive: "#2f6f99",
+  networkLinkNegative: "#d64545",
   error: "#c53a3a",
   primarySoft: "#eef2f8",
   primarySubtle: "#f3f6fb",
   primaryRgb: "43, 93, 155",
 } as const;
+
+export const VISUAL_HIGHLIGHT_COLOR = appColors.visualHighlight;
+export const VISUAL_SELECTION_COLOR = appColors.visualSelection;
+export const NETWORK_LINK_COLOR = appColors.networkLink;
+export const NETWORK_LINK_POSITIVE_COLOR = appColors.networkLinkPositive;
+export const NETWORK_LINK_NEGATIVE_COLOR = appColors.networkLinkNegative;
 
 export const appShadows = {
   sm: "0 1px 2px rgba(15, 24, 36, 0.06)",
@@ -62,6 +73,11 @@ export const appCssVariables = {
   "--color-text-muted": appColors.textSecondary,
   "--color-success": appColors.success,
   "--color-warning": appColors.warning,
+  "--color-visual-highlight": VISUAL_HIGHLIGHT_COLOR,
+  "--color-visual-selection": VISUAL_SELECTION_COLOR,
+  "--color-network-link": NETWORK_LINK_COLOR,
+  "--color-network-link-positive": NETWORK_LINK_POSITIVE_COLOR,
+  "--color-network-link-negative": NETWORK_LINK_NEGATIVE_COLOR,
   "--color-error": appColors.error,
   "--shadow-sm": appShadows.sm,
   "--shadow-md": appShadows.md,

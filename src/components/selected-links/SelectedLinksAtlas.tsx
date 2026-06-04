@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef } from "react";
 import { Button, Space, Typography } from "antd";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ConvexGeometry } from "three/examples/jsm/geometries/ConvexGeometry.js";
+
+import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
-import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
 import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 

@@ -1,4 +1,5 @@
 import { Form, Segmented } from 'antd'
+
 import { networkViewTypeOptions } from '@/components/network/networkViewTypeOptions'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { patchNetworkControls, selectNetworkControls } from '@/store/slices/networkVisualization'

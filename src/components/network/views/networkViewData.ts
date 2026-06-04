@@ -1,21 +1,28 @@
-import { adaptDataByViewType } from "@/components/network/networkViewAdapters";
 import { applyLinkMask, applyNodeMask } from "@/components/network/networkFormatting";
-import { filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
-import type { ComputedView, NetworkViewType } from "@/types/networkVisualization";
+import { adaptDataByViewType } from "@/components/network/networkViewAdapters";
 import type { NetworkViewValueFilters } from "@/types/networkViews";
+import type { ComputedView, NetworkViewType } from "@/types/networkVisualization";
+import { filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
 
 type AllowedSet = Set<string> | null;
+
+const getZoomAllowedLinkIds = (computed: ComputedView): AllowedSet =>
+  computed.zoomState.current?.linkIds
+    ? new Set(computed.zoomState.current.linkIds)
+    : null;
 
 const buildMaskedMatrixData = ({
   computed,
   valueFilters,
   allowedNodeIds,
   allowedLinkIds,
+  zoomAllowedLinkIds,
 }: {
   computed: ComputedView;
   valueFilters: NetworkViewValueFilters;
   allowedNodeIds: AllowedSet;
   allowedLinkIds: AllowedSet;
+  zoomAllowedLinkIds: AllowedSet;
 }) => {
   let maskedMatrix = computed.hideIsolatedNodes
     ? filterIsolatedMatrixEntries(
@@ -51,6 +58,19 @@ const buildMaskedMatrixData = ({
     };
   }
 
+  if (zoomAllowedLinkIds) {
+    maskedMatrix = {
+      ...maskedMatrix,
+      data: applyLinkMask({
+        data: maskedMatrix.data,
+        rowLabels: maskedMatrix.rowLabels ?? [],
+        colLabels: maskedMatrix.colLabels ?? [],
+        allowedLinkIds: zoomAllowedLinkIds,
+        preserveDiagonal: false,
+      }),
+    };
+  }
+
   if (computed.hideIsolatedNodes) {
     maskedMatrix = filterIsolatedMatrixEntries(
       maskedMatrix.data,
@@ -67,10 +87,12 @@ const buildMaskedNodeLinkData = ({
   computed,
   allowedNodeIds,
   allowedLinkIds,
+  zoomAllowedLinkIds,
 }: {
   computed: ComputedView;
   allowedNodeIds: AllowedSet;
   allowedLinkIds: AllowedSet;
+  zoomAllowedLinkIds: AllowedSet;
 }) => {
   let maskedNodeLink = {
     data: computed.data,
@@ -102,6 +124,19 @@ const buildMaskedNodeLinkData = ({
     };
   }
 
+  if (zoomAllowedLinkIds) {
+    maskedNodeLink = {
+      ...maskedNodeLink,
+      data: applyLinkMask({
+        data: maskedNodeLink.data,
+        rowLabels: maskedNodeLink.rowLabels,
+        colLabels: maskedNodeLink.rowLabels,
+        allowedLinkIds: zoomAllowedLinkIds,
+        preserveDiagonal: false,
+      }),
+    };
+  }
+
   return maskedNodeLink;
 };
 
@@ -118,12 +153,15 @@ export const buildAdaptedNetworkViewData = ({
   allowedNodeIds: AllowedSet;
   allowedLinkIds: AllowedSet;
 }) => {
+  const zoomAllowedLinkIds = getZoomAllowedLinkIds(computed);
+
   if (viewType === "matrix") {
     const maskedMatrix = buildMaskedMatrixData({
       computed,
       valueFilters,
       allowedNodeIds,
       allowedLinkIds,
+      zoomAllowedLinkIds,
     });
     return adaptDataByViewType("matrix", {
       data: maskedMatrix.data,
@@ -136,6 +174,7 @@ export const buildAdaptedNetworkViewData = ({
     computed,
     allowedNodeIds,
     allowedLinkIds,
+    zoomAllowedLinkIds,
   });
   return adaptDataByViewType(viewType, {
     data: maskedNodeLink.data,

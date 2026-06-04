@@ -1,9 +1,13 @@
-import { useMemo, type RefObject } from "react";
-import MatrixHeatmap from "@/components/matrix/Matrix";
+import { type RefObject,useMemo } from "react";
+
 import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
-import { useMatrixHeatmapController } from "@/components/matrix/useMatrixController";
 import ViewPanelTemplate from "@/components/layout/ViewPanelTemplate";
+import MatrixHeatmap from "@/components/matrix/Matrix";
+import { useMatrixHeatmapController } from "@/components/matrix/useMatrixController";
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
+import { useMatrixColorEncoding } from "@/hooks/useMatrixColorEncoding";
+import type { MatrixBrushMode } from "@/types/matrixHeatmap";
+import type { ResolvedValueDomain } from "@/types/valueDomain";
 
 type MatrixHeatmapPanelProps = {
   data: number[][];
@@ -12,17 +16,20 @@ type MatrixHeatmapPanelProps = {
   colLabels?: string[];
   compoundId: string;
   matrixLabel: string;
+  symmetric: boolean;
   svgRef?: RefObject<SVGSVGElement | null>;
   legendMin?: number;
   legendMax?: number;
-  invertColorScale?: boolean;
+  valueDomain?: ResolvedValueDomain;
   valueFilters?: {
     measure?: [number, number] | null;
     stat?: [number, number] | Array<[number, number]> | null;
   };
   brushEnabled?: boolean;
+  brushMode?: MatrixBrushMode;
   showAllLabels?: boolean;
   selectedZoomLabels?: string[];
+  selectionVisible?: boolean;
   onLabelToggle?: (label: string) => void;
   onBrushZoom?: (payload: {
     rowLabels: string[];
@@ -37,29 +44,35 @@ export default function MatrixHeatmapPanel({
   colLabels,
   compoundId,
   matrixLabel,
+  symmetric,
   svgRef,
   legendMin,
   legendMax,
-  invertColorScale,
+  valueDomain,
   valueFilters,
   brushEnabled,
+  brushMode,
   showAllLabels,
   selectedZoomLabels,
+  selectionVisible = true,
   onLabelToggle,
   onBrushZoom,
 }: MatrixHeatmapPanelProps) {
   const {
     labelNames,
     labelTitles,
-    labelAcronyms,
     nodeColors: labelColors,
   } = useAtlasLabelPresentation();
+  const { scaleType, scaleSettings, visualStyle } =
+    useMatrixColorEncoding(valueDomain);
   const {
-    hoveredCell,
     selectedCells,
     handleHover,
     handleLeave,
+    handleLabelHover,
     handleSelect,
+    handleBrushSelectLinks,
+    handleBrushDeselectLinks,
   } = useMatrixHeatmapController({
     data,
     labels,
@@ -68,6 +81,7 @@ export default function MatrixHeatmapPanel({
     labelNames,
     compoundId,
     matrixLabel,
+    symmetric,
   });
 
   const valueLabel = useMemo(
@@ -83,28 +97,35 @@ export default function MatrixHeatmapPanel({
           width={width}
           height={height}
           labels={labels}
+          symmetric={symmetric}
           rowLabels={rowLabels}
           colLabels={colLabels}
           labelNames={labelNames}
           valueLabel={valueLabel}
           labelTitles={labelTitles}
-          labelAcronyms={labelAcronyms}
           labelColors={labelColors}
           svgRef={svgRef}
-          selectedZoomLabels={selectedZoomLabels}
+          selectedZoomLabels={selectionVisible ? selectedZoomLabels : undefined}
           legendMin={legendMin}
           legendMax={legendMax}
-          invertColorScale={invertColorScale}
+          scaleType={scaleType}
+          scaleCenter={valueDomain?.center ?? null}
+          colorScaleSettings={scaleSettings}
+          visualStyle={visualStyle}
           valueFilters={valueFilters}
-          hoveredCell={hoveredCell}
-          selectedCells={selectedCells}
+          selectedCells={selectionVisible ? selectedCells : []}
           onCellHover={handleHover}
           onCellLeave={handleLeave}
+          onLabelHover={handleLabelHover}
+          onLabelLeave={handleLeave}
           onCellSelect={handleSelect}
           brushEnabled={brushEnabled}
+          brushMode={brushMode}
           showAllLabels={showAllLabels}
           onLabelToggle={onLabelToggle}
           onBrushZoom={onBrushZoom}
+          onBrushSelectLinks={handleBrushSelectLinks}
+          onBrushDeselectLinks={handleBrushDeselectLinks}
         />
       )}
     </ViewPanelTemplate>

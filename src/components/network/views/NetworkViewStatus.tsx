@@ -1,5 +1,6 @@
-import { Button, Spin, Typography } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
+import { Button, Spin, Typography } from "antd";
+
 import { useAppDispatch } from "@/store/hooks";
 import { markNetworkViewFormatting } from "@/store/slices/networkVisualization";
 

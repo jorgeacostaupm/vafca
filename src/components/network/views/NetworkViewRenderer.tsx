@@ -1,24 +1,24 @@
-import MatrixHeatmapPanel from "@/components/matrix/MatrixPanel";
 import type { RefObject } from "react";
+import { memo, useCallback } from "react";
+
 import Circulas from "@/components/circular/Circulas";
+import MatrixHeatmapPanel from "@/components/matrix/MatrixPanel";
+import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
+import type { buildAdaptedNetworkViewData } from "@/components/network/views/networkViewData";
+import { NetworkViewStatusContent } from "@/components/network/views/NetworkViewStatus";
 import NodeLinkPanel from "@/components/nodelink/NodeLinkPanel";
+import { useAppDispatch } from "@/store/hooks";
 import {
   applyNetworkZoom,
   toggleNetworkZoomLabelSelection,
 } from "@/store/slices/networkVisualization";
-import { useAppDispatch } from "@/store/hooks";
-import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
-import { NetworkViewStatusContent } from "@/components/network/views/NetworkViewStatus";
 import type { ComputedView } from "@/types/networkVisualization";
-import type { ResolvedUiRange } from "@/utils/matrixUiRange";
-import type { buildAdaptedNetworkViewData } from "@/components/network/views/networkViewData";
 
 type NetworkViewRendererProps = {
   view: ComputedView["view"];
   computed: ComputedView;
   adapted: ReturnType<typeof buildAdaptedNetworkViewData>;
   isMatrixView: boolean;
-  matrixLegendRange?: ResolvedUiRange;
   svgRef: RefObject<SVGSVGElement | null>;
   valueFilters: {
     measure: null;
@@ -26,27 +26,61 @@ type NetworkViewRendererProps = {
   };
 };
 
-export default function NetworkViewRenderer({
+function NetworkViewRenderer({
   view,
   computed,
   adapted,
   isMatrixView,
-  matrixLegendRange,
   svgRef,
   valueFilters,
 }: NetworkViewRendererProps) {
   const dispatch = useAppDispatch();
   const zoomTargetsByType = useNetworkZoomTargets();
 
-  const handleLabelToggle = (label: string) => {
-    dispatch(
-      toggleNetworkZoomLabelSelection({
-        viewId: view.id,
-        label,
-        orderedLabels: computed.availableLabels,
-      }),
-    );
-  };
+  const handleLabelToggle = useCallback(
+    (label: string) => {
+      dispatch(
+        toggleNetworkZoomLabelSelection({
+          viewId: view.id,
+          label,
+          orderedLabels: computed.availableLabels,
+        }),
+      );
+    },
+    [computed.availableLabels, dispatch, view.id],
+  );
+  const handleMatrixBrushZoom = useCallback(
+    (payload: { rowLabels: string[]; colLabels: string[] }) => {
+      if (payload.rowLabels.length === 0 || payload.colLabels.length === 0) {
+        return;
+      }
+      dispatch(
+        applyNetworkZoom({
+          targetViewIds: zoomTargetsByType(view.id),
+          selection: {
+            rows: payload.rowLabels,
+            cols: payload.colLabels,
+          },
+        }),
+      );
+    },
+    [dispatch, view.id, zoomTargetsByType],
+  );
+  const handleNodeLinkBrushZoom = useCallback(
+    (payload: { labels: string[] }) => {
+      if (payload.labels.length === 0) return;
+      dispatch(
+        applyNetworkZoom({
+          targetViewIds: zoomTargetsByType(view.id),
+          selection: {
+            rows: payload.labels,
+            cols: payload.labels,
+          },
+        }),
+      );
+    },
+    [dispatch, view.id, zoomTargetsByType],
+  );
 
   if (view.status !== "ready") {
     return (
@@ -75,29 +109,19 @@ export default function NetworkViewRenderer({
         colLabels={adapted.payload.colLabels}
         compoundId={view.compoundId}
         matrixLabel={view.label}
+        symmetric={computed.symmetric}
         svgRef={svgRef}
-        legendMin={matrixLegendRange?.min}
-        legendMax={matrixLegendRange?.max}
-        invertColorScale={view.statId === "p_value" || view.statId === "t_value"}
+        legendMin={computed.valueDomain.min}
+        legendMax={computed.valueDomain.max}
+        valueDomain={computed.valueDomain}
         valueFilters={valueFilters}
         brushEnabled={computed.brushEnabled}
+        brushMode={computed.brushMode}
         showAllLabels={Boolean(computed.zoomState.current)}
         selectedZoomLabels={computed.zoomLabelSelection}
+        selectionVisible={computed.selectionVisible}
         onLabelToggle={handleLabelToggle}
-        onBrushZoom={(payload) => {
-          if (payload.rowLabels.length === 0 || payload.colLabels.length === 0) {
-            return;
-          }
-          dispatch(
-            applyNetworkZoom({
-              targetViewIds: zoomTargetsByType(view.id),
-              selection: {
-                rows: payload.rowLabels,
-                cols: payload.colLabels,
-              },
-            }),
-          );
-        }}
+        onBrushZoom={handleMatrixBrushZoom}
       />
     );
   }
@@ -120,24 +144,15 @@ export default function NetworkViewRenderer({
     svgRef,
     valueFilters,
     selectedZoomLabels: computed.zoomLabelSelection,
+    selectionVisible: computed.selectionVisible,
     linkWidthRange: computed.linkWidthRange,
+    valueDomain: computed.valueDomain,
     brushEnabled: computed.brushEnabled,
+    brushMode: computed.brushMode,
     geometricZoomEnabled: computed.geometricZoomEnabled,
     hideIsolatedNodes: computed.hideIsolatedNodes,
-    diverging: computed.hasNegativeRange,
     onLabelToggle: handleLabelToggle,
-    onBrushZoom: (payload: { labels: string[] }) => {
-      if (payload.labels.length === 0) return;
-      dispatch(
-        applyNetworkZoom({
-          targetViewIds: zoomTargetsByType(view.id),
-          selection: {
-            rows: payload.labels,
-            cols: payload.labels,
-          },
-        }),
-      );
-    },
+    onBrushZoom: handleNodeLinkBrushZoom,
   };
 
   if (view.type === "circular") {
@@ -146,8 +161,12 @@ export default function NetworkViewRenderer({
         {...commonNodeLinkProps}
         circularLinkTension={computed.circularLinkTension}
         circularBundlingEnabled={computed.circularBundlingEnabled}
+        circularPositiveLinkColor={computed.circularPositiveLinkColor}
+        circularNegativeLinkColor={computed.circularNegativeLinkColor}
       />
     );
   }
   return <NodeLinkPanel {...commonNodeLinkProps} />;
 }
+
+export default memo(NetworkViewRenderer);

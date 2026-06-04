@@ -1,5 +1,15 @@
 import * as d3 from "d3";
+
 import type { HeatmapLegendRange } from "@/components/matrix/components/matrixTypes";
+import { createMatrixColorResolver } from "@/config/matrixColorScales";
+import {
+  MATRIX_COLOR_LEGEND_THICKNESS,
+  MATRIX_COLOR_LEGEND_VERTICAL_OFFSET,
+} from "@/config/ui";
+import type { ScaleType } from "@/types/connectivityBundle";
+import type { MatrixColorScaleSettings } from "@/types/visualizationUi";
+
+type HeatmapLegendOrientation = "vertical" | "horizontal";
 
 const uniqueSortedTicks = (values: number[]) => {
   const sorted = values
@@ -16,7 +26,33 @@ const getLegendCenterValue = (legendRange: HeatmapLegendRange) => {
   return (legendRange.min + legendRange.max) / 2;
 };
 
-const buildLegendTicks = (legendRange: HeatmapLegendRange) => {
+const normalizeDiscreteSteps = (steps?: number | null) => {
+  if (!Number.isFinite(steps) || !steps || steps <= 1) return null;
+  return Math.max(2, Math.round(steps));
+};
+
+const buildDiscreteBoundaryTicks = (
+  legendRange: HeatmapLegendRange,
+  steps: number,
+) => {
+  const { min, max } = legendRange;
+  return uniqueSortedTicks(
+    d3.range(0, steps + 1).map((index) => {
+      const t = index / steps;
+      return min + (max - min) * t;
+    }),
+  );
+};
+
+const buildLegendTicks = (
+  legendRange: HeatmapLegendRange,
+  discreteSteps?: number | null,
+) => {
+  const normalizedDiscreteSteps = normalizeDiscreteSteps(discreteSteps);
+  if (normalizedDiscreteSteps) {
+    return buildDiscreteBoundaryTicks(legendRange, normalizedDiscreteSteps);
+  }
+
   const { min, max } = legendRange;
   return uniqueSortedTicks([min, getLegendCenterValue(legendRange), max]);
 };
@@ -30,63 +66,65 @@ const buildLegendTickFormatter = (legendRange: HeatmapLegendRange) => {
   return d3.format(".3~g");
 };
 
-export const createHeatmapColorResolver = (
-  legendRange: HeatmapLegendRange,
-  invertColorScale = false,
-) => {
-  const isDiverging = legendRange.min < 0 && legendRange.max > 0;
-
-  if (isDiverging) {
-    const diverging = d3
-      .scaleDiverging(d3.interpolateRdBu)
-      .domain(
-        invertColorScale
-          ? [legendRange.max, 0, legendRange.min]
-          : [legendRange.min, 0, legendRange.max],
-      )
-      .clamp(true);
-    return (value: number) => diverging(value);
-  }
-
-  const sequential = d3
-    .scaleSequential(d3.interpolateYlGnBu)
-    .domain(
-      invertColorScale
-        ? [legendRange.max, legendRange.min]
-        : [legendRange.min, legendRange.max],
-    )
-    .clamp(true);
-
-  return (value: number) => sequential(value);
-};
+export const createHeatmapColorResolver = (args: {
+  legendRange: HeatmapLegendRange;
+  scaleType: ScaleType;
+  scaleCenter: number | null;
+  colorScaleSettings: MatrixColorScaleSettings;
+}) =>
+  createMatrixColorResolver({
+    type: args.scaleType,
+    domain: {
+      min: args.legendRange.min,
+      max: args.legendRange.max,
+      center: args.scaleCenter,
+    },
+    settings: args.colorScaleSettings,
+  });
 
 export const renderHeatmapLegend = (args: {
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
   root: d3.Selection<SVGGElement, unknown, null, undefined>;
-  size: number;
+  length: number;
   legendRange: HeatmapLegendRange;
   colorResolver: (value: number) => string;
-  invertColorScale?: boolean;
+  discreteSteps?: number | null;
+  orientation?: HeatmapLegendOrientation;
+  thickness?: number;
+  origin?: { x: number; y: number };
+  plotOffset?: number;
 }) => {
-  const { svg, root, size, legendRange, colorResolver, invertColorScale = false } = args;
+  const {
+    svg,
+    root,
+    length,
+    legendRange,
+    colorResolver,
+    discreteSteps,
+    orientation = "vertical",
+    thickness = MATRIX_COLOR_LEGEND_THICKNESS,
+    origin = { x: 0, y: 0 },
+    plotOffset = orientation === "vertical" ? MATRIX_COLOR_LEGEND_VERTICAL_OFFSET : 0,
+  } = args;
 
-  const legendHeight = Math.max(size, 0);
-  const legendWidth = 10;
-  const legendX = size + 16;
-  const legendY = 0;
+  const legendLength = Math.max(length, 0);
+  const legendThickness = Math.max(thickness, 1);
+  const isHorizontal = orientation === "horizontal";
+  const legendWidth = isHorizontal ? legendLength : legendThickness;
+  const legendHeight = isHorizontal ? legendThickness : legendLength;
+  const legendX = origin.x + (isHorizontal ? 0 : legendLength + plotOffset);
+  const legendY = origin.y;
 
   const legendScale = d3
     .scaleLinear()
-    .domain(
-      invertColorScale
-        ? [legendRange.max, legendRange.min]
-        : [legendRange.min, legendRange.max],
-    )
-    .range([legendHeight, 0]);
+    .domain([legendRange.min, legendRange.max])
+    .range(isHorizontal ? [0, legendWidth] : [legendHeight, 0]);
+  const normalizedDiscreteSteps = normalizeDiscreteSteps(discreteSteps);
 
-  const legendAxis = d3
-    .axisRight(legendScale)
-    .tickValues(buildLegendTicks(legendRange))
+  const legendAxis = (isHorizontal
+    ? d3.axisBottom(legendScale)
+    : d3.axisRight(legendScale))
+    .tickValues(buildLegendTicks(legendRange, normalizedDiscreteSteps))
     .tickFormat(buildLegendTickFormatter(legendRange));
 
   const legendGradientId = `legend-${Math.random().toString(36).slice(2)}`;
@@ -94,21 +132,33 @@ export const renderHeatmapLegend = (args: {
   const linearGradient = defs
     .append("linearGradient")
     .attr("id", legendGradientId)
-    .attr("x1", "0%")
-    .attr("y1", "100%")
-    .attr("x2", "0%")
-    .attr("y2", "0%");
+    .attr("x1", isHorizontal ? "0%" : "0%")
+    .attr("y1", isHorizontal ? "0%" : "100%")
+    .attr("x2", isHorizontal ? "100%" : "0%")
+    .attr("y2", isHorizontal ? "0%" : "0%");
 
-  const stops = d3.range(0, 1.01, 0.1);
-  stops.forEach((stop) => {
-    const value = invertColorScale
-      ? legendRange.max - (legendRange.max - legendRange.min) * stop
-      : legendRange.min + (legendRange.max - legendRange.min) * stop;
+  const addStop = (offset: number, value: number) => {
     linearGradient
       .append("stop")
-      .attr("offset", `${stop * 100}%`)
+      .attr("offset", `${offset * 100}%`)
       .attr("stop-color", colorResolver(value));
-  });
+  };
+
+  if (normalizedDiscreteSteps) {
+    d3.range(0, normalizedDiscreteSteps).forEach((index) => {
+      const start = index / normalizedDiscreteSteps;
+      const end = (index + 1) / normalizedDiscreteSteps;
+      const mid = (index + 0.5) / normalizedDiscreteSteps;
+      const value = legendRange.min + (legendRange.max - legendRange.min) * mid;
+      addStop(start, value);
+      addStop(end, value);
+    });
+  } else {
+    d3.range(0, 1.01, 0.1).forEach((stop) => {
+      const value = legendRange.min + (legendRange.max - legendRange.min) * stop;
+      addStop(stop, value);
+    });
+  }
 
   root
     .append("rect")
@@ -121,7 +171,12 @@ export const renderHeatmapLegend = (args: {
   root
     .append("g")
     .attr("class", "heatmap-legend-axis")
-    .attr("transform", `translate(${legendX + legendWidth}, ${legendY})`)
+    .attr(
+      "transform",
+      isHorizontal
+        ? `translate(${legendX}, ${legendY + legendHeight})`
+        : `translate(${legendX + legendWidth}, ${legendY})`,
+    )
     .call(legendAxis)
     .call((axisRoot) => {
       axisRoot.select(".domain").attr("stroke", "#7a8794");

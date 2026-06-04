@@ -1,12 +1,17 @@
 import { Tabs } from "antd";
+import { useMemo } from "react";
+
+import LayerCatalogSection from "@/components/management/components/catalogs/LayerCatalogSection";
+import MeasureCatalogSection from "@/components/management/components/catalogs/MeasureCatalogSection";
+import PopulationCatalogSection from "@/components/management/components/catalogs/PopulationCatalogSection";
+import {
+  buildStatUsageById,
+  classifyStatCatalogItemWithUsage,
+} from "@/components/management/components/catalogs/statCatalogGroups";
+import StatCatalogSection from "@/components/management/components/catalogs/StatCatalogSection";
 import { DEFAULT_CATALOG_MANAGEMENT_TAB } from "@/config/ui";
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetContent } from "@/store/slices/dataset";
-import PopulationCatalogSection from "@/components/management/components/catalogs/PopulationCatalogSection";
-import MeasureCatalogSection from "@/components/management/components/catalogs/MeasureCatalogSection";
-import StatCatalogSection from "@/components/management/components/catalogs/StatCatalogSection";
-import LayerCatalogSection from "@/components/management/components/catalogs/LayerCatalogSection";
-import { classifyStatCatalogItem } from "@/components/management/components/catalogs/statCatalogGroups";
 
 function CatalogManagementSections() {
   const stats = useAppSelector(
@@ -15,12 +20,28 @@ function CatalogManagementSections() {
   const matrices = useAppSelector(
     (state) => selectDatasetContent(state)?.matrices ?? [],
   );
-  const statItems = Object.values(stats);
-  const matrixStats = statItems.filter(
-    (stat) => classifyStatCatalogItem(stat, matrices) === "matrix",
-  );
-  const comparisonStats = statItems.filter(
-    (stat) => classifyStatCatalogItem(stat, matrices) === "comparison",
+  const statUsageById = useMemo(() => buildStatUsageById(matrices), [matrices]);
+  const { matrixStats, comparisonStats } = useMemo(
+    () =>
+      Object.values(stats).reduce(
+        (groups, stat) => {
+          const group = classifyStatCatalogItemWithUsage(
+            stat,
+            statUsageById[stat.id],
+          );
+          if (group === "comparison") {
+            groups.comparisonStats.push(stat);
+          } else {
+            groups.matrixStats.push(stat);
+          }
+          return groups;
+        },
+        {
+          matrixStats: [] as typeof stats[keyof typeof stats][],
+          comparisonStats: [] as typeof stats[keyof typeof stats][],
+        },
+      ),
+    [statUsageById, stats],
   );
 
   const items = [

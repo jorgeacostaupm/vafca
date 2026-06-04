@@ -1,15 +1,11 @@
 import { useCallback } from "react";
+
+import { setSharedHoverState } from "@/components/hover/sharedHover";
 import { useAppDispatch } from "@/store/hooks";
 import {
   setHoveredRankingItem,
   setSelectedRankingItem,
 } from "@/store/slices/rankings";
-import {
-  clearHoveredCell,
-  clearHoveredNode,
-  setHoveredCell,
-  setHoveredNode,
-} from "@/store/slices/visualizationUi";
 import type { RankingHighlightItem, RankingRow } from "@/types/rankings";
 
 export const getRankingHighlightItem = (
@@ -32,21 +28,22 @@ export const useRankingRowInteractions = () => {
   const applySharedHover = useCallback(
     (item: RankingHighlightItem | undefined) => {
       if (!item) {
-        dispatch(clearHoveredCell());
-        dispatch(clearHoveredNode());
+        setSharedHoverState(null);
         return;
       }
       if (item.type === "link") {
-        dispatch(setHoveredCell({ rowId: item.sourceId, colId: item.targetId }));
-        dispatch(clearHoveredNode());
+        setSharedHoverState({
+          type: "cell",
+          rowId: item.sourceId,
+          colId: item.targetId,
+        });
         return;
       }
       if (item.type === "roi") {
-        dispatch(setHoveredNode(item.roiId));
-        dispatch(clearHoveredCell());
+        setSharedHoverState({ type: "node", nodeId: item.roiId });
       }
     },
-    [dispatch],
+    [],
   );
 
   const handleEnter = useCallback(

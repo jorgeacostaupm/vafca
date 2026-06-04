@@ -1,11 +1,12 @@
 import { Space, Typography } from "antd";
+
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
-import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
 import {
   getDatasetCatalogs,
   getDatasetMatrixStats,
 } from "@/utils/datasetAccessors";
+import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
 
 function MatrixSummarySection() {
   const data = useAppSelector((state) => selectDatasetData(state));

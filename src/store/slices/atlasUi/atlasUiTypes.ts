@@ -1,11 +1,11 @@
+import {
+  type D3GroupingPaletteKey,
+  DEFAULT_D3_GROUPING_PALETTE,
+} from '@/config/groupingPalettes'
 import type {
   AtlasLabel,
   AtlasState,
 } from '@/types/atlas'
-import {
-  DEFAULT_D3_GROUPING_PALETTE,
-  type D3GroupingPaletteKey,
-} from '@/config/groupingPalettes'
 
 export type AtlasUiSliceState = AtlasState
 

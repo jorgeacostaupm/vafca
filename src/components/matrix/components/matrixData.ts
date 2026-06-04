@@ -1,10 +1,10 @@
-import { resolveMatrixValue } from "@/utils/matrixValue";
-import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
-import type { MatrixValueRange } from "@/types/matrixView";
 import type {
   HeatmapCellDatum,
   HeatmapLegendRange,
 } from "@/components/matrix/components/matrixTypes";
+import type { MatrixValueRange } from "@/types/matrixView";
+import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
+import { resolveMatrixValue } from "@/utils/matrixValue";
 
 type HeatmapValueFilters = {
   measure?: [number, number] | null;

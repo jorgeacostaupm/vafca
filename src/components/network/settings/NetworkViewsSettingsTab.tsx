@@ -1,4 +1,5 @@
 import { Form, Space, Switch } from "antd";
+
 import NetworkRangeControls from "@/components/network/NetworkRangeControls";
 import NetworkSelectorModeSetting from "@/components/network/settings/NetworkSelectorModeSetting";
 import NetworkViewTypeSetting from "@/components/network/settings/NetworkViewTypeSetting";
@@ -34,13 +35,25 @@ export default function NetworkViewsSettingsTab() {
               }
             />
           </Form.Item>
-          <Form.Item label="Hide isolated nodes" style={{ marginBottom: 0 }}>
+          <Form.Item label="Hide isolated nodes">
             <Switch
               checked={networkControls.hideIsolatedNodes}
               onChange={(value) =>
                 dispatch(
                   setNetworkHideIsolatedNodes({
                     value,
+                  }),
+                )
+              }
+            />
+          </Form.Item>
+          <Form.Item label="Self-links in % zooms" style={{ marginBottom: 0 }}>
+            <Switch
+              checked={networkControls.percentZoomIncludeAutoconnections}
+              onChange={(value) =>
+                dispatch(
+                  patchNetworkControls({
+                    percentZoomIncludeAutoconnections: value,
                   }),
                 )
               }

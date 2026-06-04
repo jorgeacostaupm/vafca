@@ -1,21 +1,28 @@
 import * as d3 from "d3";
-import { escapeHtml } from "@/utils/html";
-import {
-  DEFAULT_CIRCULAR_LINK_TENSION,
-  type CircularBundlePathPoint,
-} from "@/types/circular";
+
 import {
   CIRCULAR_LABEL_DY,
   CIRCULAR_LABEL_FONT_SIZE,
   CIRCULAR_LABEL_OFFSET,
+  CIRCULAR_LABEL_SELECTION_BACKGROUND_PADDING_X,
+  CIRCULAR_LABEL_SELECTION_BACKGROUND_PADDING_Y,
+  CIRCULAR_LABEL_SELECTION_BACKGROUND_RADIUS,
+  CIRCULAR_LINK_OPACITY,
+  NETWORK_LINK_SELECTED_MIN_STROKE,
+  NETWORK_LINK_SELECTED_OPACITY,
 } from "@/config/ui";
-import type { CircularLink, CircularNode } from "@/types/nodelink";
 import {
-  LINK_COLOR,
-  LINK_NEGATIVE,
-  LINK_POSITIVE,
-  SELECTED_STROKE,
-} from "@/components/nodelink/nodelinkShared";
+  type CircularBundlePathPoint,
+  DEFAULT_CIRCULAR_LINK_TENSION,
+} from "@/types/circular";
+import type {
+  CircularLink,
+  CircularNode,
+  NetworkLinkColorResolver,
+} from "@/types/nodelink";
+import type { MatrixVisualStyle } from "@/types/visualizationUi";
+import { getReadableTextColor } from "@/utils/groupingColoring";
+import { escapeHtml } from "@/utils/html";
 
 const buildCircularNodeTooltipHtml = ({
   node,
@@ -34,14 +41,78 @@ const buildCircularNodeTooltipHtml = ({
   )}</strong></div><div>Links: ${degree}</div>`;
 };
 
+const getCircularNodeLabelId = (node: CircularNode) =>
+  node.labelId ?? String(node.id);
+
+const isCircularNodeSelected = (
+  node: CircularNode,
+  zoomLabelSet: Set<string> | null,
+) => node.labelId !== undefined && zoomLabelSet?.has(node.labelId);
+
+const resolveCircularLabelFill = ({
+  node,
+  zoomLabelSet,
+  selectedColor,
+}: {
+  node: CircularNode;
+  zoomLabelSet: Set<string> | null;
+  selectedColor: string;
+}) => {
+  if (isCircularNodeSelected(node, zoomLabelSet)) {
+    return getReadableTextColor(selectedColor);
+  }
+
+  return "#394b59";
+};
+
+const applyCircularLabelSelectionBackground = (
+  labelGroups: d3.Selection<SVGGElement, CircularNode, SVGGElement, unknown>,
+  zoomLabelSet: Set<string> | null,
+  selectionColor: string,
+) => {
+  labelGroups.each(function (node) {
+    const textNode = d3.select(this).select<SVGTextElement>("text").node();
+    const rect = d3.select(this).select<SVGRectElement>("rect");
+    const isSelected = isCircularNodeSelected(node, zoomLabelSet);
+
+    if (!textNode || !isSelected) {
+      rect
+        .attr("fill", "transparent")
+        .attr("stroke", "none")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 0)
+        .attr("height", 0);
+      return;
+    }
+
+    const box = textNode.getBBox();
+
+    rect
+      .attr("fill", selectionColor)
+      .attr("stroke", "none")
+      .attr("x", box.x - CIRCULAR_LABEL_SELECTION_BACKGROUND_PADDING_X)
+      .attr("y", box.y - CIRCULAR_LABEL_SELECTION_BACKGROUND_PADDING_Y)
+      .attr(
+        "width",
+        box.width + CIRCULAR_LABEL_SELECTION_BACKGROUND_PADDING_X * 2,
+      )
+      .attr(
+        "height",
+        box.height + CIRCULAR_LABEL_SELECTION_BACKGROUND_PADDING_Y * 2,
+      );
+  });
+};
+
 type RenderCircularElementsArgs = {
   root: d3.Selection<SVGGElement, unknown, null, undefined>;
   nodes: CircularNode[];
   links: CircularLink[];
-  diverging?: boolean;
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
   selectedLinkIds: Set<string>;
+  visualStyle: MatrixVisualStyle;
+  linkColorResolver: NetworkLinkColorResolver;
   widthScale: d3.ScaleLinear<number, number>;
   circularLinkTension?: number;
   circularBundlingEnabled?: boolean;
@@ -73,10 +144,11 @@ export const renderCircularElements = ({
   root,
   nodes,
   links,
-  diverging,
   labelNames,
   labelTitles,
   selectedLinkIds,
+  visualStyle,
+  linkColorResolver,
   widthScale,
   circularLinkTension = DEFAULT_CIRCULAR_LINK_TENSION,
   circularBundlingEnabled = true,
@@ -100,10 +172,36 @@ export const renderCircularElements = ({
   const isSelectedLink = (link: CircularLink) =>
     selectedLinkIds.has(`${link.rowId}::${link.colId}`) ||
     selectedLinkIds.has(`${link.colId}::${link.rowId}`);
-  const linkOpacity = (link: CircularLink) => (isSelectedLink(link) ? 0.9 : 0.6);
+  const linkOpacity = (link: CircularLink) =>
+    isSelectedLink(link) ? NETWORK_LINK_SELECTED_OPACITY : CIRCULAR_LINK_OPACITY;
   const linkStrokeWidth = (link: CircularLink) => {
     const base = widthScale(Math.abs(link.value));
-    return isSelectedLink(link) ? Math.max(base, SELECTED_STROKE) : base;
+    return isSelectedLink(link) ? Math.max(base, NETWORK_LINK_SELECTED_MIN_STROKE) : base;
+  };
+  const showNodeInteractionTooltip = (node: CircularNode) => {
+    const labelId = getCircularNodeLabelId(node);
+    const degree = degreeById.get(labelId) ?? 0;
+    showNodeTooltip(
+      buildCircularNodeTooltipHtml({ node, degree, labelTitles }),
+      node,
+    );
+  };
+  const handleNodeMouseEnter = (_event: MouseEvent, node: CircularNode) => {
+    const labelId = getCircularNodeLabelId(node);
+    showNodeInteractionTooltip(node);
+    onNodeHover?.(labelId);
+  };
+  const handleNodeMouseMove = (_event: MouseEvent, node: CircularNode) => {
+    showNodeInteractionTooltip(node);
+  };
+  const handleNodeMouseLeave = () => {
+    hideTooltip();
+    onNodeLeave?.();
+  };
+  const handleNodeClick = (event: MouseEvent, node: CircularNode) => {
+    if (!onLabelToggle || !node.labelId) return;
+    event.stopPropagation();
+    onLabelToggle(node.labelId);
   };
   const bundledLine = d3
     .lineRadial<CircularBundlePathPoint>()
@@ -129,10 +227,11 @@ export const renderCircularElements = ({
       return path.toString();
     })
     .attr("fill", "none")
-    .attr("stroke", (link: CircularLink) => {
-      if (!diverging) return LINK_COLOR;
-      return link.value >= 0 ? LINK_POSITIVE : LINK_NEGATIVE;
-    })
+    .attr("stroke", (link: CircularLink) =>
+      isSelectedLink(link)
+        ? visualStyle.selectionColor
+        : linkColorResolver(link.value),
+    )
     .attr("stroke-opacity", (link: CircularLink) => linkOpacity(link))
     .attr("stroke-width", (link: CircularLink) => linkStrokeWidth(link))
     .style("cursor", "pointer")
@@ -151,6 +250,7 @@ export const renderCircularElements = ({
     .on("mouseenter", (event: MouseEvent, link: CircularLink) => {
       const rowLabel = labelNames?.[link.rowId] ?? link.rowId;
       const colLabel = labelNames?.[link.colId] ?? link.colId;
+      setLocalHoverActive(true);
       showTooltip(
         `<div><strong>${escapeHtml(
           `${rowLabel} ↔ ${colLabel}`,
@@ -162,8 +262,10 @@ export const renderCircularElements = ({
     .on("mousemove", (event: MouseEvent) => moveTooltip(event))
     .on("mouseleave", () => {
       hideTooltip();
+      setLocalHoverActive(false);
       onLinkLeave?.();
     });
+  linkSelection.filter((link: CircularLink) => isSelectedLink(link)).raise();
 
   const nodeSelection = root
     .append("g")
@@ -173,35 +275,22 @@ export const renderCircularElements = ({
     .attr("cx", (node: CircularNode) => node.x)
     .attr("cy", (node: CircularNode) => node.y)
     .attr("r", nodeRadius)
-    .attr("fill", (node: CircularNode) => getNodeColor(node))
+    .attr("fill", (node: CircularNode) =>
+      isCircularNodeSelected(node, zoomLabelSet)
+        ? visualStyle.selectionColor
+        : getNodeColor(node),
+    )
     .style("cursor", "pointer")
-    .on("mouseenter", (_event: MouseEvent, node: CircularNode) => {
-      const labelId = node.labelId ?? String(node.id);
-      const degree = degreeById.get(labelId) ?? 0;
-      showNodeTooltip(
-        buildCircularNodeTooltipHtml({ node, degree, labelTitles }),
-        node,
-      );
-      onNodeHover?.(labelId);
-    })
-    .on("mousemove", (_event: MouseEvent, node: CircularNode) => {
-      const labelId = node.labelId ?? String(node.id);
-      const degree = degreeById.get(labelId) ?? 0;
-      showNodeTooltip(
-        buildCircularNodeTooltipHtml({ node, degree, labelTitles }),
-        node,
-      );
-    })
-    .on("mouseleave", () => {
-      hideTooltip();
-      onNodeLeave?.();
-    });
+    .on("mouseenter", handleNodeMouseEnter)
+    .on("mousemove", handleNodeMouseMove)
+    .on("mouseleave", handleNodeMouseLeave)
+    .on("click", handleNodeClick);
 
-  const labelSelection = root
+  const labelGroups = root
     .append("g")
-    .selectAll("text")
+    .selectAll<SVGGElement, CircularNode>("g")
     .data(nodes)
-    .join("text")
+    .join("g")
     .attr("transform", (node: CircularNode) => {
       const angle = (node.angle * 180) / Math.PI;
       const normalizedAngle = ((angle % 360) + 360) % 360;
@@ -209,6 +298,23 @@ export const renderCircularElements = ({
       const rotation = shouldFlip ? angle + 180 : angle;
       return `translate(${node.x}, ${node.y}) rotate(${rotation})`;
     })
+    .style("cursor", onLabelToggle ? "pointer" : "default")
+    .on("mouseenter", handleNodeMouseEnter)
+    .on("mousemove", handleNodeMouseMove)
+    .on("mouseleave", handleNodeMouseLeave)
+    .on("click", handleNodeClick);
+
+  labelGroups
+    .selectAll("rect")
+    .data((node) => [node])
+    .join("rect")
+    .attr("rx", CIRCULAR_LABEL_SELECTION_BACKGROUND_RADIUS)
+    .attr("ry", CIRCULAR_LABEL_SELECTION_BACKGROUND_RADIUS);
+
+  const labelSelection = labelGroups
+    .selectAll<SVGTextElement, CircularNode>("text")
+    .data((node) => [node])
+    .join("text")
     .attr("x", (node: CircularNode) => {
       const angle = (node.angle * 180) / Math.PI;
       const normalizedAngle = ((angle % 360) + 360) % 360;
@@ -224,27 +330,22 @@ export const renderCircularElements = ({
     })
     .attr("font-size", CIRCULAR_LABEL_FONT_SIZE)
     .attr("fill", (node: CircularNode) =>
-      node.labelId && zoomLabelSet?.has(node.labelId) ? "#1b2b38" : "#394b59",
+      resolveCircularLabelFill({
+        node,
+        zoomLabelSet,
+        selectedColor: visualStyle.selectionColor,
+      }),
     )
     .attr("font-weight", (node: CircularNode) =>
-      node.labelId && zoomLabelSet?.has(node.labelId) ? 700 : 400,
+      isCircularNodeSelected(node, zoomLabelSet) ? 700 : 400,
     )
-    .style("cursor", onLabelToggle ? "pointer" : "default")
-    .text((node: CircularNode) => node.label)
-    .on("mouseenter", (_event: MouseEvent, node: CircularNode) => {
-      const labelId = node.labelId ?? String(node.id);
-      setLocalHoverActive(true);
-      onNodeHover?.(labelId);
-    })
-    .on("mouseleave", () => {
-      setLocalHoverActive(false);
-      onNodeLeave?.();
-    })
-    .on("click", (event: MouseEvent, node: CircularNode) => {
-      if (!onLabelToggle || !node.labelId) return;
-      event.stopPropagation();
-      onLabelToggle(node.labelId);
-    });
+    .text((node: CircularNode) => node.label);
+
+  applyCircularLabelSelectionBackground(
+    labelGroups,
+    zoomLabelSet,
+    visualStyle.selectionColor,
+  );
 
   return { linkSelection, nodeSelection, labelSelection };
 };

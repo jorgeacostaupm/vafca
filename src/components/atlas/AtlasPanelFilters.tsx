@@ -1,10 +1,12 @@
-import { useCallback } from "react";
+import { SettingOutlined } from "@ant-design/icons";
 import { Button, Col, Input, Row, Select, Space, Typography } from "antd";
-import { ALL_FILTER } from "./panelConstants";
-import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
-import { useAppDispatch } from "@/store/hooks";
-import { setAllLabels } from "@/store/slices/atlasUi";
+import { useCallback } from "react";
+
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
+import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
+
+import { ALL_FILTER } from "./panelConstants";
 
 const { Search } = Input;
 
@@ -16,6 +18,7 @@ type AtlasPanelFiltersProps = {
   totalCount: number;
   allEnabled: boolean;
   allDisabled: boolean;
+  onOpenSettings: () => void;
 };
 
 export function AtlasPanelFilters({
@@ -26,8 +29,10 @@ export function AtlasPanelFilters({
   totalCount,
   allEnabled,
   allDisabled,
+  onOpenSettings,
 }: AtlasPanelFiltersProps) {
   const dispatch = useAppDispatch();
+  const atlasOrder = useAppSelector((state) => state.atlasUi.order);
 
   const handleQueryChange = useCallback(
     (query: string) => {
@@ -79,16 +84,39 @@ export function AtlasPanelFilters({
         <Typography.Text type="secondary">Selection</Typography.Text>
         <Space wrap>
           <Button
-            onClick={() => dispatch(setAllLabels(true))}
+            onClick={() =>
+              dispatch(
+                setAtlasPanelState({
+                  roiVisibilityDraft: Object.fromEntries(
+                    atlasOrder.map((id) => [id, true]),
+                  ),
+                }),
+              )
+            }
             disabled={allEnabled || totalCount === 0}
           >
             Select All
           </Button>
           <Button
-            onClick={() => dispatch(setAllLabels(false))}
+            onClick={() =>
+              dispatch(
+                setAtlasPanelState({
+                  roiVisibilityDraft: Object.fromEntries(
+                    atlasOrder.map((id) => [id, false]),
+                  ),
+                }),
+              )
+            }
             disabled={allDisabled || totalCount === 0}
           >
             Clear All
+          </Button>
+          <Button
+            icon={<SettingOutlined />}
+            onClick={onOpenSettings}
+            aria-label="Open atlas settings"
+          >
+            Settings
           </Button>
         </Space>
       </Col>

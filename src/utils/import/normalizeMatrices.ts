@@ -1,22 +1,22 @@
+import type { MatrixLayout } from "@/types/connectivityBundle";
+import { isNonEmptyString, isRecord, toSlug } from "@/utils/import/guards";
+import { parseMatrixImportRecord } from "@/utils/import/schemas/matrixSchema";
 import type {
   ConnectivityImportIssue,
   NormalizedImportInference,
   NormalizedMatrix,
   RawZipMatrixFile,
 } from "@/utils/import/types";
-import type { MatrixLayout } from "@/types/connectivityBundle";
-import { isNonEmptyString, isRecord, toSlug } from "@/utils/import/guards";
 
-type MatrixDefaults = {
-  layer: string;
-  measure: string;
-  stat: string;
-  population: string;
+const UNKNOWN_IMPORT_METADATA = "Unknown";
+
+type MatrixMetadataFallbacks = {
+  symmetric: boolean;
 };
 
 type NormalizeMatricesArgs = {
   matrixFiles: RawZipMatrixFile[];
-  defaults: MatrixDefaults;
+  fallbacks: MatrixMetadataFallbacks;
   errors: ConnectivityImportIssue[];
   warnings: ConnectivityImportIssue[];
   inference: NormalizedImportInference;
@@ -46,10 +46,17 @@ const getPopulationIds = (
   return [population ?? fallback];
 };
 
+const getSubjectId = (
+  record: Record<string, unknown>,
+  fallback: string,
+) => getOptionalString(record, ["subject", "subjectId"]) ?? fallback;
+
 const getMatrixKind = (record: Record<string, unknown>) =>
-  record.kind === "comparison" || isRecord(record.comparison)
-    ? "comparison"
-    : "population";
+  record.kind === "subject"
+    ? "subject"
+    : record.kind === "comparison" || isRecord(record.comparison)
+      ? "comparison"
+      : "population";
 
 const getComparison = (
   record: Record<string, unknown>,
@@ -114,6 +121,7 @@ const materializeTriangularData = (
   values: (number | null)[],
   size: number,
   layout: Exclude<MatrixLayout, "full">,
+  symmetric: boolean,
 ) => {
   const data = Array.from({ length: size }, () =>
     Array.from<number | null>({ length: size }).fill(null),
@@ -125,7 +133,7 @@ const materializeTriangularData = (
       for (let column = row; column < size; column += 1) {
         const value = values[valueIndex];
         data[row][column] = value;
-        data[column][row] = value;
+        if (symmetric) data[column][row] = value;
         valueIndex += 1;
       }
     }
@@ -136,7 +144,7 @@ const materializeTriangularData = (
     for (let column = 0; column <= row; column += 1) {
       const value = values[valueIndex];
       data[row][column] = value;
-      data[column][row] = value;
+      if (symmetric) data[column][row] = value;
       valueIndex += 1;
     }
   }
@@ -146,6 +154,7 @@ const materializeTriangularData = (
 const normalizeMatrixData = (
   data: unknown,
   layout: MatrixLayout,
+  symmetric: boolean,
   source: string,
   errors: ConnectivityImportIssue[],
 ) => {
@@ -186,7 +195,7 @@ const normalizeMatrixData = (
       if (cell === undefined) return null;
       values.push(cell);
     }
-    return materializeTriangularData(values, size, layout);
+    return materializeTriangularData(values, size, layout, symmetric);
   }
 
   const size = data.length;
@@ -237,7 +246,7 @@ const computeValueDomain = (data: (number | null)[][]) => {
   };
 };
 
-const isSymmetric = (data: (number | null)[][]) => {
+const hasSymmetricValues = (data: (number | null)[][]) => {
   const tolerance = 1e-6;
   for (let row = 0; row < data.length; row += 1) {
     for (let column = row + 1; column < data.length; column += 1) {
@@ -250,18 +259,18 @@ const isSymmetric = (data: (number | null)[][]) => {
   return true;
 };
 
-const addDefaultedField = (
+const addInferredField = (
   inference: NormalizedImportInference,
   source: string,
   field: string,
   value: string,
 ) => {
-  inference.defaultedFields.push({ source, field, value });
+  inference.inferredFields.push({ source, field, value });
 };
 
 export const normalizeMatrices = ({
   matrixFiles,
-  defaults,
+  fallbacks,
   errors,
   warnings,
   inference,
@@ -271,24 +280,16 @@ export const normalizeMatrices = ({
 
   return matrixFiles.flatMap((file, index) => {
     const source = file.source;
-    const payload = file.payload;
-    const record = Array.isArray(payload)
-      ? { data: payload }
-      : isRecord(payload)
-        ? payload
-        : null;
+    const mode = strict ? "strict" : "lenient";
+    const record = parseMatrixImportRecord(file.payload, mode, source, errors);
 
     if (!record) {
-      errors.push({
-        source,
-        path: source,
-        message: "Matrix file must contain a matrix object or a raw matrix array.",
-      });
       return [];
     }
 
     const layout = getMatrixLayout(record);
-    const data = normalizeMatrixData(record.data, layout, source, errors);
+    const symmetric = fallbacks.symmetric;
+    const data = normalizeMatrixData(record.data, layout, symmetric, source, errors);
     if (!data) return [];
     if ("rois" in record) {
       warnings.push({
@@ -305,7 +306,7 @@ export const normalizeMatrices = ({
 
     if (!idSource) {
       inference.generatedMatrixIds.push(id);
-      addDefaultedField(inference, source, "id", id);
+      addInferredField(inference, source, "id", id);
       if (strict) {
         errors.push({
           source,
@@ -319,25 +320,28 @@ export const normalizeMatrices = ({
     }
     usedIds.add(id);
 
-    const layerId = getOptionalString(record, ["layer", "layerId"]) ?? defaults.layer;
-    const measureId = getOptionalString(record, ["measure", "measureId"]) ?? defaults.measure;
-    const statId = getOptionalString(record, ["stat", "statId"]) ?? defaults.stat;
-    const populationIds = getPopulationIds(record, defaults.population);
+    const inferredLayerId = `layer-${index + 1}`;
+    const layerId = getOptionalString(record, ["layer", "layerId"]) ?? inferredLayerId;
+    const measureId = getOptionalString(record, ["measure", "measureId"]) ??
+      UNKNOWN_IMPORT_METADATA;
+    const statId = getOptionalString(record, ["stat", "statId"]) ??
+      UNKNOWN_IMPORT_METADATA;
+    const populationIds = getPopulationIds(record, UNKNOWN_IMPORT_METADATA);
     const kind = getMatrixKind(record);
+    const subjectId = kind === "subject" ? getSubjectId(record, id) : undefined;
 
     if (!getOptionalString(record, ["layer", "layerId"])) {
-      addDefaultedField(inference, source, "layer", layerId);
+      addInferredField(inference, source, "layer", layerId);
     }
     if (!getOptionalString(record, ["measure", "measureId"])) {
-      addDefaultedField(inference, source, "measure", measureId);
+      addInferredField(inference, source, "measure", measureId);
     }
     if (!getOptionalString(record, ["stat", "statId"])) {
-      addDefaultedField(inference, source, "stat", statId);
+      addInferredField(inference, source, "stat", statId);
     }
     if (!getOptionalString(record, ["population", "populationId"]) && !Array.isArray(record.populationIds)) {
-      addDefaultedField(inference, source, "population", populationIds.join("+"));
+      addInferredField(inference, source, "population", populationIds.join("+"));
     }
-
     if (strict) {
       for (const field of ["layer", "measure", "stat", "population"] as const) {
         const keys = field === "population" ? ["population", "populationId"] : [field, `${field}Id`];
@@ -349,11 +353,15 @@ export const normalizeMatrices = ({
           });
         }
       }
-    } else if (!isSymmetric(data)) {
+    } else if (
+      symmetric &&
+      layout === "full" &&
+      !hasSymmetricValues(data)
+    ) {
       warnings.push({
         source,
         path: `${source}.data`,
-        message: "Matrix is not symmetric.",
+        message: "Matrix is declared symmetric but contains asymmetric values.",
       });
     }
 
@@ -366,12 +374,13 @@ export const normalizeMatrices = ({
       measureId: toSlug(measureId, "connectivity"),
       statId: toSlug(statId, "value"),
       populationIds: populationIds.map((value) => toSlug(value, "dataset")),
+      subjectId: subjectId ? toSlug(subjectId, id) : undefined,
       comparison: kind === "comparison" ? getComparison(record, populationIds) : undefined,
       n: typeof record.n === "number" && Number.isInteger(record.n) && record.n > 0
         ? record.n
         : undefined,
       data,
-      symmetric: isSymmetric(data),
+      symmetric,
       valueDomain: computeValueDomain(data),
       source,
     }];

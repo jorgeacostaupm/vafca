@@ -2,6 +2,7 @@ import { type RefObject, useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ConvexGeometry } from "three/examples/jsm/geometries/ConvexGeometry.js";
+
 import { useAppDispatch } from "@/store/hooks";
 import { setLabelEnabled } from "@/store/slices/atlasUi";
 import type { AtlasDefinition } from "@/types/atlas";

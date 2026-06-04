@@ -1,5 +1,5 @@
-import type { DatasetMeta } from "@/types/datasetState";
 import type { UiRangeMode } from "@/types/connectivityBundle";
+import type { DatasetMeta } from "@/types/datasetState";
 import type {
   MatrixFilterDefinition,
   MatrixFilterValidationResult,
@@ -14,6 +14,7 @@ import {
   validateMatrixFilterDefinition,
 } from "@/utils/edgeFilter";
 import { normalizeMatrixOrder } from "@/utils/matrixOrder";
+
 import type {
   NetworkEdgeFilterMode,
   NetworkFilterRuntime,

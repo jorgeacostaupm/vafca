@@ -1,5 +1,7 @@
 import { useMemo } from "react";
+
 import type { AtlasDefinition } from "@/types/atlas";
+
 import {
   buildFieldOptionsByField,
   buildGroupedRows,

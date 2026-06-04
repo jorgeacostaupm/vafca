@@ -1,11 +1,12 @@
 import { useCallback, useMemo } from "react";
 import type { LayoutItem } from "react-grid-layout";
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { removeNetworkView } from "@/store/slices/networkVisualization";
 import {
   removeNetworkLayoutItem,
   setNetworkLayout,
 } from "@/store/slices/networkLayout";
+import { removeNetworkView } from "@/store/slices/networkVisualization";
 import {
   removeRankingResult,
   setRankingLayout,
@@ -19,13 +20,29 @@ const toStoredLayoutItem = ({ i, x, y, w, h }: LayoutItem) => ({
   h,
 });
 
+type StoredLayoutItem = ReturnType<typeof toStoredLayoutItem>;
+
+const areLayoutItemsEqual = (
+  current: StoredLayoutItem[],
+  next: StoredLayoutItem[],
+) =>
+  current.length === next.length &&
+  current.every((item, index) => {
+    const nextItem = next[index];
+    return (
+      nextItem &&
+      item.i === nextItem.i &&
+      item.x === nextItem.x &&
+      item.y === nextItem.y &&
+      item.w === nextItem.w &&
+      item.h === nextItem.h
+    );
+  });
+
 export const useNetworkWorkspaceLayout = () => {
   const dispatch = useAppDispatch();
   const networkLayout = useAppSelector((state) => state.networkLayout.layout);
   const rankingLayout = useAppSelector((state) => state.rankings.layout);
-  const networkViewsById = useAppSelector(
-    (state) => state.networkVisualization.viewsById,
-  );
   const networkViewsOrder = useAppSelector(
     (state) => state.networkVisualization.viewsOrder,
   );
@@ -41,23 +58,26 @@ export const useNetworkWorkspaceLayout = () => {
     () => [...networkViewsOrder, ...rankingResultsOrder],
     [networkViewsOrder, rankingResultsOrder],
   );
+  const networkIds = useMemo(() => new Set(networkViewsOrder), [networkViewsOrder]);
+  const rankingIds = useMemo(
+    () => new Set(rankingResultsOrder),
+    [rankingResultsOrder],
+  );
 
   const removePanel = useCallback(
     (id: string) => {
-      if (networkViewsById[id]) {
+      if (networkIds.has(id)) {
         dispatch(removeNetworkView({ viewId: id }));
         dispatch(removeNetworkLayoutItem({ viewId: id }));
         return;
       }
       dispatch(removeRankingResult({ resultId: id }));
     },
-    [dispatch, networkViewsById],
+    [dispatch, networkIds],
   );
 
   const updateLayout = useCallback(
     (nextLayout: LayoutItem[]) => {
-      const networkIds = new Set(networkViewsOrder);
-      const rankingIds = new Set(rankingResultsOrder);
       const nextNetworkLayout = nextLayout
         .filter((entry) => networkIds.has(entry.i))
         .map(toStoredLayoutItem);
@@ -65,17 +85,22 @@ export const useNetworkWorkspaceLayout = () => {
         .filter((entry) => rankingIds.has(entry.i))
         .map(toStoredLayoutItem);
 
-      dispatch(setNetworkLayout(nextNetworkLayout));
-      dispatch(setRankingLayout(nextRankingLayout));
+      if (!areLayoutItemsEqual(networkLayout, nextNetworkLayout)) {
+        dispatch(setNetworkLayout(nextNetworkLayout));
+      }
+      if (!areLayoutItemsEqual(rankingLayout, nextRankingLayout)) {
+        dispatch(setRankingLayout(nextRankingLayout));
+      }
     },
-    [dispatch, networkViewsOrder, rankingResultsOrder],
+    [dispatch, networkIds, networkLayout, rankingIds, rankingLayout],
   );
+  const isNetworkView = useCallback((id: string) => networkIds.has(id), [networkIds]);
 
   return {
     panelIds,
     combinedLayout,
     removePanel,
     updateLayout,
-    isNetworkView: (id: string) => Boolean(networkViewsById[id]),
+    isNetworkView,
   };
 };

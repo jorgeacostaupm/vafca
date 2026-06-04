@@ -1,3 +1,5 @@
+import type { ConnectivityMatrix } from "@/types/connectivityBundle";
+import type { Catalogs } from "@/types/connectivityBundle";
 import type { DatasetMeta } from "@/types/datasetState";
 import type {
   LogicalOperator,
@@ -13,10 +15,8 @@ import type {
   RuntimeEdgeMask,
   RuntimeEdgeMaskOptions,
 } from "@/types/edgeFilter";
-import type { MatrixRecord } from "@/types/connectivityBundle";
 import { getMatrixValue } from "@/utils/connectivityMatrix";
-import { resolveMatrixUiRange } from "@/utils/matrixUiRange";
-import type { Catalogs } from "@/types/connectivityBundle";
+import { resolveValueDomain } from "@/utils/valueDomain";
 
 export const MAX_MATRIX_FILTER_DEPTH = 5;
 
@@ -47,14 +47,14 @@ export const createEmptyMatrixFilterGroup = (
 });
 
 export const createEmptyMatrixFilterDefinition = (
-  uiRangeMode: MatrixFilterDefinition["uiRangeMode"] = "logical_default",
+  uiRangeMode: MatrixFilterDefinition["uiRangeMode"] = "view_observed",
 ): MatrixFilterDefinition => ({
   root: createEmptyMatrixFilterGroup("AND"),
   uiRangeMode,
 });
 
 export const createDraftMatrixFilterRule = (
-  matrix?: MatrixRecord,
+  matrix?: ConnectivityMatrix,
 ): MatrixFilterRule => {
   return {
     type: "rule",
@@ -81,9 +81,10 @@ const normalizeRuleForRange = (
   const matrix = matrixIndex[rule.matrixId];
   if (!matrix) return { ...rule, operator: "between" };
 
-  const range = resolveMatrixUiRange(matrix, catalogs, {
-    uiRangeMode,
-    target: "slider",
+  const range = resolveValueDomain({
+    matrix,
+    catalogs,
+    mode: uiRangeMode,
   });
   if (range.scaleType === "diverging") {
     return {
@@ -159,7 +160,7 @@ export const buildNetworkEdgeDomain = (
   labelIds: string[],
 ): NetworkEdgeDomain | null => {
   const connectivity = dataset?.content;
-  const firstMatrix = connectivity?.matrices.find((matrix) => matrix.kind !== "reduced");
+  const firstMatrix = connectivity?.matrices.find((matrix) => matrix.kind !== "aggregated");
   if (!connectivity || !firstMatrix) return null;
 
   const [rows, cols] = firstMatrix.geometry.shape;
@@ -184,7 +185,7 @@ export const buildAggregatedEdgeDomain = (
   dataset: DatasetMeta | null,
 ): NetworkEdgeDomain | null => {
   const matrix = dataset?.content?.matrices.find(
-    (item) => item.kind === "reduced" && item.geometry.roiOrder,
+    (item) => item.kind === "aggregated" && item.geometry.roiOrder,
   );
   if (!matrix?.geometry.roiOrder) return null;
   const [rows, cols] = matrix.geometry.shape;
@@ -245,8 +246,8 @@ const validateRule = (
   if (rule.matrixId && !matrix) {
     addIssue(errors, "error", "The selected matrix is not available.", rule.id);
   }
-  if (matrix && edgeDomain.kind === "roi" && matrix.kind === "reduced") {
-    addIssue(errors, "error", "Reduced matrices require Filter aggregated edges.", rule.id);
+  if (matrix && edgeDomain.kind === "roi" && matrix.kind === "aggregated") {
+    addIssue(errors, "error", "Aggregated matrices require Filter aggregated edges.", rule.id);
   }
   if (matrix && edgeDomain.kind === "aggregated") {
     const sameShape =
@@ -256,7 +257,7 @@ const validateRule = (
       Array.isArray(matrix.geometry.roiOrder) &&
       matrix.geometry.roiOrder.length === edgeDomain.labelIds.length &&
       matrix.geometry.roiOrder.every((id, index) => id === edgeDomain.labelIds[index]);
-    if (matrix.kind !== "reduced" || !sameShape || !sameOrder) {
+    if (matrix.kind !== "aggregated" || !sameShape || !sameOrder) {
       addIssue(
         errors,
         "error",

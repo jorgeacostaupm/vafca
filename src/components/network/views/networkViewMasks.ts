@@ -2,8 +2,8 @@ import {
   buildRuntimeMaskLinkSet,
   intersectAllowedSets,
 } from "@/components/network/networkFormatting";
-import type { RuntimeEdgeMask } from "@/types/edgeFilter";
 import type { DatasetMeta } from "@/types/datasetState";
+import type { RuntimeEdgeMask } from "@/types/edgeFilter";
 
 export const buildRuntimeAllowedLinkIds = ({
   mask,
@@ -31,7 +31,7 @@ export const buildRuntimeAggregatedAllowedLinkIds = ({
     mask
       ? Object.values(dataset?.content?.matrixIndex ?? {}).find(
           (matrix) =>
-            matrix.kind === "reduced" &&
+            matrix.kind === "aggregated" &&
             matrix.geometry.roiOrder?.length === mask.values.length,
         )?.geometry.roiOrder ?? []
       : [],

@@ -1,20 +1,25 @@
-import { type MutableRefObject } from "react";
 import * as d3 from "d3";
-import { renderColumnLabels, renderRowLabels } from "@/components/matrix/components/matrixLabels";
-import { renderHeatmapCells } from "@/components/matrix/components/matrixCells";
+import { type MutableRefObject } from "react";
+
 import { renderHeatmapBrush } from "@/components/matrix/components/matrixBrush";
+import { renderHeatmapCells } from "@/components/matrix/components/matrixCells";
+import { renderColumnLabels, renderRowLabels } from "@/components/matrix/components/matrixLabels";
+import type { HeatmapLayout } from "@/components/matrix/components/matrixLayout";
 import {
   createHeatmapColorResolver,
   renderHeatmapLegend,
 } from "@/components/matrix/components/matrixLegend";
 import { createHighlightLayer } from "@/components/matrix/components/matrixOverlays";
-import { HIGHLIGHT_COLOR } from "@/components/matrix/components/matrixConstants";
-import type { HeatmapLayout } from "@/components/matrix/components/matrixLayout";
 import type {
   HeatmapHighlightSelections,
   HeatmapLegendRange,
 } from "@/components/matrix/components/matrixTypes";
+import type { ScaleType } from "@/types/connectivityBundle";
 import type { HeatmapProps } from "@/types/matrixHeatmap";
+import type {
+  MatrixColorScaleSettings,
+  MatrixVisualStyle,
+} from "@/types/visualizationUi";
 
 type RenderHeatmapSceneArgs = {
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
@@ -22,22 +27,33 @@ type RenderHeatmapSceneArgs = {
   layout: HeatmapLayout;
   data: number[][];
   legendRange: HeatmapLegendRange;
-  invertColorScale?: boolean;
+  scaleType: ScaleType;
+  scaleCenter: number | null;
+  colorScaleSettings: MatrixColorScaleSettings;
+  visualStyle: MatrixVisualStyle;
   title?: string;
   valueLabel: string;
   resolvedRowLabels?: string[];
   resolvedColLabels?: string[];
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  labelAcronyms?: Record<string, string>;
   labelColors?: Record<string, string>;
   selectedZoomLabels?: string[];
   brushEnabled: boolean;
+  brushMode: NonNullable<HeatmapProps["brushMode"]>;
   hoverCbRef: MutableRefObject<HeatmapProps["onCellHover"] | undefined>;
   leaveCbRef: MutableRefObject<HeatmapProps["onCellLeave"] | undefined>;
   selectCbRef: MutableRefObject<HeatmapProps["onCellSelect"] | undefined>;
   brushCbRef: MutableRefObject<HeatmapProps["onBrushZoom"] | undefined>;
+  brushSelectLinksCbRef: MutableRefObject<
+    HeatmapProps["onBrushSelectLinks"] | undefined
+  >;
+  brushDeselectLinksCbRef: MutableRefObject<
+    HeatmapProps["onBrushDeselectLinks"] | undefined
+  >;
   labelToggleCbRef: MutableRefObject<HeatmapProps["onLabelToggle"] | undefined>;
+  labelHoverCbRef: MutableRefObject<HeatmapProps["onLabelHover"] | undefined>;
+  labelLeaveCbRef: MutableRefObject<HeatmapProps["onLabelLeave"] | undefined>;
   positionTooltipForCell: (
     colX: number,
     rowY: number,
@@ -69,12 +85,14 @@ const renderTitle = (args: {
     .text(title);
 };
 
-const applyHighlightColor = (highlights: HeatmapHighlightSelections) => {
-  highlights.cell.attr("stroke", HIGHLIGHT_COLOR);
-  highlights.rowTop.attr("stroke", HIGHLIGHT_COLOR);
-  highlights.rowBottom.attr("stroke", HIGHLIGHT_COLOR);
-  highlights.colLeft.attr("stroke", HIGHLIGHT_COLOR);
-  highlights.colRight.attr("stroke", HIGHLIGHT_COLOR);
+const applyHighlightColor = (
+  highlights: HeatmapHighlightSelections,
+  visualStyle: MatrixVisualStyle,
+) => {
+  highlights.rowTop.attr("stroke", visualStyle.highlightColor);
+  highlights.rowBottom.attr("stroke", visualStyle.highlightColor);
+  highlights.colLeft.attr("stroke", visualStyle.highlightColor);
+  highlights.colRight.attr("stroke", visualStyle.highlightColor);
 };
 
 export const renderHeatmapScene = ({
@@ -83,29 +101,41 @@ export const renderHeatmapScene = ({
   layout,
   data,
   legendRange,
-  invertColorScale = false,
+  scaleType,
+  scaleCenter,
+  colorScaleSettings,
+  visualStyle,
   title,
   valueLabel,
   resolvedRowLabels,
   resolvedColLabels,
   labelNames,
   labelTitles,
-  labelAcronyms,
   labelColors,
   selectedZoomLabels,
   brushEnabled,
+  brushMode,
   hoverCbRef,
   leaveCbRef,
   selectCbRef,
   brushCbRef,
+  brushSelectLinksCbRef,
+  brushDeselectLinksCbRef,
   labelToggleCbRef,
+  labelHoverCbRef,
+  labelLeaveCbRef,
   positionTooltipForCell,
   positionTooltipForPointer,
 }: RenderHeatmapSceneArgs): RenderHeatmapSceneResult => {
   const rows = data.length;
   const cols = rows > 0 ? (data[0]?.length ?? 0) : 0;
 
-  const colorResolver = createHeatmapColorResolver(legendRange, invertColorScale);
+  const colorResolver = createHeatmapColorResolver({
+    legendRange,
+    scaleType,
+    scaleCenter,
+    colorScaleSettings,
+  });
 
   const root = svg
     .append("g")
@@ -113,7 +143,7 @@ export const renderHeatmapScene = ({
 
   renderTitle({ root, title });
 
-  const highlights = createHighlightLayer({ root });
+  const highlights = createHighlightLayer({ root, visualStyle });
 
   renderHeatmapCells({
     root,
@@ -126,6 +156,7 @@ export const renderHeatmapScene = ({
     resolvedRowLabels,
     resolvedColLabels,
     labelNames,
+    labelTitles,
     hoverCbRef,
     leaveCbRef,
     selectCbRef,
@@ -137,14 +168,17 @@ export const renderHeatmapScene = ({
       root,
       tooltip,
       labels: resolvedColLabels,
+      data,
       xScale: layout.xScale,
       colLabelFontSize: layout.colLabelFontSize,
       labelNames,
       labelTitles,
-      labelAcronyms,
       labelColors,
+      visualStyle,
       selectedZoomLabels,
       labelToggleCbRef,
+      labelHoverCbRef,
+      labelLeaveCbRef,
       positionTooltipForPointer,
     });
   }
@@ -154,14 +188,17 @@ export const renderHeatmapScene = ({
       root,
       tooltip,
       labels: resolvedRowLabels,
+      data,
       yScale: layout.yScale,
       rowLabelFontSize: layout.rowLabelFontSize,
       labelNames,
       labelTitles,
-      labelAcronyms,
       labelColors,
+      visualStyle,
       selectedZoomLabels,
       labelToggleCbRef,
+      labelHoverCbRef,
+      labelLeaveCbRef,
       positionTooltipForPointer,
     });
   }
@@ -169,10 +206,12 @@ export const renderHeatmapScene = ({
   renderHeatmapLegend({
     svg,
     root,
-    size: layout.size,
+    length: layout.size,
     legendRange,
     colorResolver,
-    invertColorScale,
+    discreteSteps: colorScaleSettings.discretize
+      ? colorScaleSettings.discreteSteps
+      : null,
   });
 
   if (brushEnabled) {
@@ -181,11 +220,15 @@ export const renderHeatmapScene = ({
       size: layout.size,
       rows,
       cols,
+      data,
       xScale: layout.xScale,
       yScale: layout.yScale,
       resolvedRowLabels,
       resolvedColLabels,
       brushCbRef,
+      brushSelectLinksCbRef,
+      brushDeselectLinksCbRef,
+      brushMode,
     });
   }
 
@@ -193,7 +236,7 @@ export const renderHeatmapScene = ({
 
   root.selectAll(".heatmap-highlight").raise();
   selectedLayer.raise();
-  applyHighlightColor(highlights);
+  applyHighlightColor(highlights, visualStyle);
 
   return {
     selectedLayer,

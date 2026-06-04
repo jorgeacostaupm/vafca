@@ -1,12 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit'
-import {
-  computeAggregatedMatrixFromVisualizationGroups,
-  computeDerivedMatrices,
-  downloadCurrentDataset,
-  loadInitialDataset,
-  loadDatasetFromUploadedZip,
-} from './datasetThunks'
+
 import { initialDatasetOperationsState } from './datasetOperationsTypes'
+import { computeAggregatedMatrixFromVisualizationGroups } from './thunks/computeAggregatedMatrices'
+import { computeDerivedMatrices } from './thunks/computeDerivedMatrices'
+import { downloadCurrentDataset } from './thunks/exportDataset'
+import { loadInitialDataset } from './thunks/loadInitialDataset'
+import { loadDatasetFromUploadedZip } from './thunks/uploadDataset'
 
 const datasetOperationsSlice = createSlice({
   name: 'datasetOperations',
@@ -48,8 +47,7 @@ const datasetOperationsSlice = createSlice({
       })
       .addCase(downloadCurrentDataset.rejected, (state, action) => {
         state.downloadStatus = 'error'
-        state.downloadError =
-          action.payload ?? action.error.message ?? 'Failed to export dataset.'
+        state.downloadError = action.payload ?? action.error.message ?? 'Failed to export dataset.'
       })
       .addCase(loadDatasetFromUploadedZip.pending, (state) => {
         state.matrixUploadStatus = 'loading'
@@ -72,9 +70,7 @@ const datasetOperationsSlice = createSlice({
       .addCase(loadDatasetFromUploadedZip.rejected, (state, action) => {
         state.matrixUploadStatus = 'error'
         state.matrixUploadError =
-          action.payload?.message ??
-          action.error.message ??
-          'Failed to upload matrices.'
+          action.payload?.message ?? action.error.message ?? 'Failed to upload matrices.'
         state.lastMatrixUpload = action.payload?.result ?? null
       })
       .addCase(computeDerivedMatrices.pending, (state) => {

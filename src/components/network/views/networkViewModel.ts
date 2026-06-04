@@ -1,28 +1,39 @@
-import { buildLabelState } from "@/components/selectors/labelSelection";
-import { getZoomState } from "@/components/selectors/useViewSettingsState";
 import {
   toMatrixStatFilter,
   toNodeLinkStatFilter,
 } from "@/components/network/networkFormatting";
 import { buildCanonicalMatrixData } from "@/components/network/networkViewAdapters";
-import { DEFAULT_LINK_WIDTH_RANGE } from "@/utils/matrixViewUtils";
-import { resolveMatrixUiRange } from "@/utils/matrixUiRange";
-import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
+import { buildLabelState } from "@/components/selectors/labelSelection";
+import { getZoomState } from "@/components/selectors/useViewSettingsState";
+import {
+  DEFAULT_CIRCULAR_NEGATIVE_LINK_COLOR,
+  DEFAULT_CIRCULAR_POSITIVE_LINK_COLOR,
+} from "@/config/matrixColorScales";
+import {
+  DEFAULT_LINK_WIDTH_RANGE,
+  DEFAULT_MATRIX_BRUSH_MODE,
+  DEFAULT_NETWORK_PERCENT_ZOOM_PERCENT,
+  DEFAULT_NETWORK_SELECTION_VISIBLE,
+} from "@/config/ui";
 import {
   DEFAULT_CIRCULAR_BUNDLING_ENABLED,
   DEFAULT_CIRCULAR_LINK_TENSION,
 } from "@/types/circular";
-import { getDatasetCatalogs } from "@/utils/datasetAccessors";
+import type { RoiGroup, UiRangeMode } from "@/types/connectivityBundle";
 import type { DatasetMeta } from "@/types/datasetState";
+import type { StoredMatrix } from "@/types/matrixStore";
 import type {
   ComputedView,
   MatrixNetworkViewSettings,
   NetworkViewDescriptor,
   NodeLinkNetworkViewSettings,
 } from "@/types/networkVisualization";
-import type { RoiGroup, UiRangeMode } from "@/types/connectivityBundle";
-import type { StatRangeValue } from "@/types/matrixView";
-import type { StoredMatrix } from "@/types/matrixStore";
+import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
+import { getDatasetCatalogs } from "@/utils/datasetAccessors";
+import {
+  buildSplitRangeFromDomain,
+  resolveValueDomain,
+} from "@/utils/valueDomain";
 
 type ViewSettings =
   | MatrixNetworkViewSettings
@@ -44,7 +55,7 @@ type ResolveComputedNetworkViewArgs = {
   uiRangeMode: UiRangeMode;
 };
 
-const sortReducedGroupsByCategoryOrder = (
+const sortAggregatedGroupsByCategoryOrder = (
   groups: RoiGroup[],
   fields: string[],
   categoryOrder: Record<string, string[]>,
@@ -77,20 +88,6 @@ const sortReducedGroupsByCategoryOrder = (
     return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
   });
 
-const buildRangeFallback = (
-  bounds?: [number, number],
-): StatRangeValue | undefined => {
-  if (!bounds) return undefined;
-  const [min, max] = bounds;
-  if (min < 0 && max > 0) {
-    return {
-      negative: [min, 0],
-      positive: [0, max],
-    };
-  }
-  return [min, max];
-};
-
 export const resolveComputedNetworkView = ({
   view,
   matrix,
@@ -107,33 +104,37 @@ export const resolveComputedNetworkView = ({
 }: ResolveComputedNetworkViewArgs): ComputedView => {
   const catalogs = getDatasetCatalogs(dataset);
   const sourceMatrix = dataset?.content?.matrixIndex[matrix.id] ?? matrix;
-  const storedReducedLabels =
+  const sourceSymmetric =
+    "encoding" in sourceMatrix ? sourceMatrix.encoding.symmetric : matrix.symmetric;
+  const matrixSettings =
+    view.type === "matrix" ? (settings as MatrixNetworkViewSettings | undefined) : undefined;
+  const storedAggregatedLabels =
     "kind" in sourceMatrix &&
-    sourceMatrix.kind === "reduced" &&
+    sourceMatrix.kind === "aggregated" &&
     sourceMatrix.geometry.roiOrder
       ? sourceMatrix.geometry.roiOrder
       : null;
-  const orderedReducedLabels =
+  const orderedAggregatedLabels =
     "kind" in sourceMatrix &&
-    sourceMatrix.kind === "reduced" &&
-    sourceMatrix.reduction
-      ? sortReducedGroupsByCategoryOrder(
-          sourceMatrix.reduction.groups,
-          sourceMatrix.reduction.fields,
+    sourceMatrix.kind === "aggregated" &&
+    sourceMatrix.aggregation
+      ? sortAggregatedGroupsByCategoryOrder(
+          sourceMatrix.aggregation.groups,
+          sourceMatrix.aggregation.fields,
           view.type === "matrix"
             ? matrixHierarchyCategoryOrder
             : circularHierarchyCategoryOrder,
         ).map((group) => group.id)
-      : storedReducedLabels;
+      : storedAggregatedLabels;
   const zoomState = getZoomState(settings);
   const viewActiveLabelIds =
     view.type === "matrix" ? matrixActiveLabelIds : activeLabelIds;
-  const viewMatrixOrderIds = storedReducedLabels ?? matrixOrderIds;
-  const activeIdsForView = orderedReducedLabels ?? viewActiveLabelIds;
+  const viewMatrixOrderIds = storedAggregatedLabels ?? matrixOrderIds;
+  const activeIdsForView = orderedAggregatedLabels ?? viewActiveLabelIds;
   const labelState = buildLabelState({
     matrixOrderIds: viewMatrixOrderIds,
-    atlasOrderLength: storedReducedLabels
-      ? storedReducedLabels.length
+    atlasOrderLength: storedAggregatedLabels
+      ? storedAggregatedLabels.length
       : atlasOrderLength,
     activeLabelIds: activeIdsForView,
     labels: settings?.labels,
@@ -144,11 +145,6 @@ export const resolveComputedNetworkView = ({
     view.type === "matrix"
       ? toMatrixStatFilter(settings?.statRange)
       : toNodeLinkStatFilter(settings?.statRange);
-  const sliderRange = resolveMatrixUiRange(sourceMatrix, catalogs, {
-    uiRangeMode,
-    target: "slider",
-  });
-  const measureBounds: [number, number] = [sliderRange.min, sliderRange.max];
   const canonical = buildCanonicalMatrixData({
     matrixData: matrix.data,
     labels: labelState.labels,
@@ -156,12 +152,19 @@ export const resolveComputedNetworkView = ({
     colLabelSelection: labelState.colLabelSelection,
     hideIsolatedNodes: false,
   });
+  const valueDomain = resolveValueDomain({
+    matrix: sourceMatrix,
+    catalogs,
+    mode: uiRangeMode,
+    observedData: canonical.data,
+  });
 
   return {
     view,
     data: canonical.data,
     rowLabels: canonical.rowLabels,
     colLabels: canonical.colLabels,
+    symmetric: sourceSymmetric,
     settings,
     zoomState,
     availableLabels: labelState.availableLabels,
@@ -172,6 +175,10 @@ export const resolveComputedNetworkView = ({
     measureRange: null,
     hideIsolatedNodes: settings?.hideIsolatedNodes ?? true,
     brushEnabled: settings?.brushEnabled ?? false,
+    brushMode:
+      view.type === "matrix"
+        ? matrixSettings?.brushMode ?? DEFAULT_MATRIX_BRUSH_MODE
+        : nodeLinkSettings?.brushMode ?? DEFAULT_MATRIX_BRUSH_MODE,
     geometricZoomEnabled: nodeLinkSettings?.geometricZoomEnabled ?? false,
     linkWidthRange: nodeLinkSettings?.linkWidthRange ?? DEFAULT_LINK_WIDTH_RANGE,
     circularLinkTension:
@@ -179,14 +186,29 @@ export const resolveComputedNetworkView = ({
     circularBundlingEnabled:
       nodeLinkSettings?.circularBundlingEnabled ??
       DEFAULT_CIRCULAR_BUNDLING_ENABLED,
+    circularPositiveLinkColor:
+      nodeLinkSettings?.circularPositiveLinkColor ??
+      DEFAULT_CIRCULAR_POSITIVE_LINK_COLOR,
+    circularNegativeLinkColor:
+      nodeLinkSettings?.circularNegativeLinkColor ??
+      DEFAULT_CIRCULAR_NEGATIVE_LINK_COLOR,
+    selectionVisible:
+      settings?.selectionVisible ?? DEFAULT_NETWORK_SELECTION_VISIBLE,
+    zoomLinkPercent:
+      settings?.zoomLinkPercent ?? DEFAULT_NETWORK_PERCENT_ZOOM_PERCENT,
     useAsNodeFilter: settings?.useAsNodeFilter ?? false,
     useAsLinkFilter: settings?.useAsLinkFilter ?? false,
     isRangeFilterSource:
       Boolean(settings?.useAsNodeFilter) || Boolean(settings?.useAsLinkFilter),
-    statSliderMin: measureBounds[0],
-    statSliderMax: measureBounds[1],
-    hasNegativeRange: measureBounds[0] < 0 && measureBounds[1] > 0,
+    valueDomain,
+    statSliderMin: valueDomain.min,
+    statSliderMax: valueDomain.max,
+    hasNegativeRange:
+      valueDomain.scaleType === "diverging" &&
+      valueDomain.center !== null &&
+      valueDomain.min < valueDomain.center &&
+      valueDomain.max > valueDomain.center,
     uiRangeMode,
-    statRangeValue: settings?.statRange ?? buildRangeFallback(measureBounds),
+    statRangeValue: settings?.statRange ?? buildSplitRangeFromDomain(valueDomain),
   };
 };

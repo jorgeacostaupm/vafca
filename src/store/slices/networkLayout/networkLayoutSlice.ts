@@ -1,9 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+
 import {
   DEFAULT_NETWORK_PANEL_LAYOUT,
   DEFAULT_PANEL_GRID_CONFIG,
 } from "@/config/ui";
 import type { NetworkLayoutItem } from "@/types/networkVisualization";
+
 import { initialNetworkLayoutState } from "./networkLayoutTypes";
 
 const networkLayoutSlice = createSlice({
@@ -49,6 +51,10 @@ const networkLayoutSlice = createSlice({
     removeNetworkLayoutItem(state, action: PayloadAction<{ viewId: string }>) {
       state.layout = state.layout.filter((entry) => entry.i !== action.payload.viewId);
     },
+    removeNetworkLayoutItems(state, action: PayloadAction<{ viewIds: string[] }>) {
+      const viewIds = new Set(action.payload.viewIds);
+      state.layout = state.layout.filter((entry) => !viewIds.has(entry.i));
+    },
     clearNetworkLayout(state) {
       state.layout = [];
     },
@@ -59,6 +65,7 @@ export const {
   setNetworkLayout,
   addNetworkLayoutItem,
   removeNetworkLayoutItem,
+  removeNetworkLayoutItems,
   clearNetworkLayout,
 } = networkLayoutSlice.actions;
 

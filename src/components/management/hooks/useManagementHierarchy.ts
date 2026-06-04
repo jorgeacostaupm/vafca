@@ -1,18 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useAppDispatch } from "@/store/hooks";
-import type { AtlasDefinition, AtlasState } from "@/types/atlas";
-import type { CircularPreviewLink } from "@/types/circular";
-import { buildRoiGroupingColorById } from "@/utils/groupingColoring";
-import { getCommonRoiFields } from "@/utils/atlas/atlasDefinition";
-import {
-  buildCircularHierarchyBundleLayout,
-  buildCircularHierarchyLayout,
-} from "@/utils/circular/hierarchy";
-import {
-  setAtlasColorFields,
-  setCircularHierarchyCategoryOrder,
-  setMatrixHierarchyCategoryOrder,
-} from "@/store/slices/atlasUi";
+
 import { PREVIEW_PADDING, PREVIEW_SIZE } from "@/components/management/constants";
 import {
   areCategoryOrdersEqual,
@@ -20,10 +7,27 @@ import {
   toCleanCategoryOrderMap,
 } from "@/components/management/utils/hierarchyOrder";
 import { CIRCULAR_PREVIEW_FAKE_LINK_DENSITY } from "@/config/ui";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  setAtlasColorFields,
+  setCircularHierarchyCategoryOrder,
+  setMatrixHierarchyCategoryOrder,
+} from "@/store/slices/atlasUi";
+import type { AtlasDefinition, AtlasState } from "@/types/atlas";
+import type { CircularPreviewLink } from "@/types/circular";
+import { getCommonRoiFields } from "@/utils/atlas/atlasDefinition";
+import {
+  buildCircularHierarchyBundleLayout,
+  buildCircularHierarchyLayout,
+} from "@/utils/circular/hierarchy";
+import { buildRoiGroupingColorById } from "@/utils/groupingColoring";
 
 type UseManagementHierarchyArgs = {
   atlas: AtlasState;
   atlasDefinition: AtlasDefinition | null;
+  previewColorFields?: string[];
+  previewColorPalette?: AtlasState["colorPalette"];
+  syncCategoryOrder?: boolean;
 };
 
 const hashPreviewPair = (sourceIndex: number, targetIndex: number) => {
@@ -68,8 +72,13 @@ const buildPreviewLinks = (
 export const useManagementHierarchy = ({
   atlas,
   atlasDefinition,
+  previewColorFields,
+  previewColorPalette,
+  syncCategoryOrder = true,
 }: UseManagementHierarchyArgs) => {
   const dispatch = useAppDispatch();
+  const hierarchyFields = previewColorFields ?? atlas.colorFields;
+  const colorPalette = previewColorPalette ?? atlas.colorPalette;
 
   const availableHierarchyFields = useMemo(
     () => getCommonRoiFields(atlasDefinition),
@@ -89,14 +98,14 @@ export const useManagementHierarchy = ({
         labelIds: activeRoiIds.slice(0, 220),
         radius: previewRadius,
         atlasDefinition,
-        hierarchyFields: atlas.colorFields,
+        hierarchyFields,
         categoryOrder: atlas.circularHierarchyCategoryOrder,
       }),
     [
       activeRoiIds,
       previewRadius,
       atlasDefinition,
-      atlas.colorFields,
+      hierarchyFields,
       atlas.circularHierarchyCategoryOrder,
     ],
   );
@@ -118,13 +127,13 @@ export const useManagementHierarchy = ({
         labelIds: activeRoiIds.slice(0, 220),
         radius: 1,
         atlasDefinition,
-        hierarchyFields: atlas.colorFields,
+        hierarchyFields,
         categoryOrder: atlas.matrixHierarchyCategoryOrder,
       }),
     [
       activeRoiIds,
       atlasDefinition,
-      atlas.colorFields,
+      hierarchyFields,
       atlas.matrixHierarchyCategoryOrder,
     ],
   );
@@ -141,23 +150,23 @@ export const useManagementHierarchy = ({
     () =>
       buildRoiGroupingColorById({
         atlasDefinition,
-        groupingFields: atlas.colorFields,
-        colorPalette: atlas.colorPalette,
+        groupingFields: hierarchyFields,
+        colorPalette,
       }),
-    [atlasDefinition, atlas.colorFields, atlas.colorPalette],
+    [atlasDefinition, hierarchyFields, colorPalette],
   );
 
   const circularCategoryOrderEditors = useMemo(
     () =>
       buildCategoryOrderEditors({
         atlasDefinition,
-        hierarchyFields: atlas.colorFields,
+        hierarchyFields,
         categoryOrder: atlas.circularHierarchyCategoryOrder,
         sourceIds: activeRoiIds,
       }),
     [
       atlasDefinition,
-      atlas.colorFields,
+      hierarchyFields,
       atlas.circularHierarchyCategoryOrder,
       activeRoiIds,
     ],
@@ -167,19 +176,20 @@ export const useManagementHierarchy = ({
     () =>
       buildCategoryOrderEditors({
         atlasDefinition,
-        hierarchyFields: atlas.colorFields,
+        hierarchyFields,
         categoryOrder: atlas.matrixHierarchyCategoryOrder,
         sourceIds: activeRoiIds,
       }),
     [
       atlasDefinition,
-      atlas.colorFields,
+      hierarchyFields,
       atlas.matrixHierarchyCategoryOrder,
       activeRoiIds,
     ],
   );
 
   useEffect(() => {
+    if (!syncCategoryOrder) return;
     if (!atlasDefinition?.rois?.length) return;
     const valid = atlas.colorFields.filter((field) =>
       availableHierarchyFields.includes(field),
@@ -187,21 +197,33 @@ export const useManagementHierarchy = ({
     if (valid.length !== atlas.colorFields.length) {
       dispatch(setAtlasColorFields(valid));
     }
-  }, [atlasDefinition, availableHierarchyFields, atlas.colorFields, dispatch]);
+  }, [atlasDefinition, availableHierarchyFields, atlas.colorFields, dispatch, syncCategoryOrder]);
 
   useEffect(() => {
+    if (!syncCategoryOrder) return;
     const cleaned = toCleanCategoryOrderMap(circularCategoryOrderEditors);
     if (!areCategoryOrdersEqual(atlas.circularHierarchyCategoryOrder, cleaned)) {
       dispatch(setCircularHierarchyCategoryOrder(cleaned));
     }
-  }, [circularCategoryOrderEditors, atlas.circularHierarchyCategoryOrder, dispatch]);
+  }, [
+    circularCategoryOrderEditors,
+    atlas.circularHierarchyCategoryOrder,
+    dispatch,
+    syncCategoryOrder,
+  ]);
 
   useEffect(() => {
+    if (!syncCategoryOrder) return;
     const cleaned = toCleanCategoryOrderMap(matrixCategoryOrderEditors);
     if (!areCategoryOrdersEqual(atlas.matrixHierarchyCategoryOrder, cleaned)) {
       dispatch(setMatrixHierarchyCategoryOrder(cleaned));
     }
-  }, [matrixCategoryOrderEditors, atlas.matrixHierarchyCategoryOrder, dispatch]);
+  }, [
+    matrixCategoryOrderEditors,
+    atlas.matrixHierarchyCategoryOrder,
+    dispatch,
+    syncCategoryOrder,
+  ]);
 
   return {
     activeRoiIds,

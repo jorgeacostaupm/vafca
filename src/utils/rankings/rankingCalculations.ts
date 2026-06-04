@@ -1,19 +1,10 @@
-import { iterateMatrixEdges } from "@/utils/connectivityMatrix";
 import {
   DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS,
   DEFAULT_ROI_RANKING_ALLOW_AUTOCONNECTIONS,
 } from "@/config/ui";
-import {
-  getMatrixLabel,
-  getMatrixAggregationGroupingKey,
-  getMatrixSource,
-  resolveRankingMatrixCollection,
-  resolveMatrixEndpointIds,
-  toRankingMatrixKind,
-} from "@/utils/rankings/rankingMatrixMetadata";
 import type {
   ConnectivityDataState,
-  MatrixRecord,
+  ConnectivityMatrix,
 } from "@/types/connectivityBundle";
 import type {
   LinkRankingRow,
@@ -22,6 +13,14 @@ import type {
   RankingResult,
   RoiRankingRow,
 } from "@/types/rankings";
+import { iterateMatrixEdges } from "@/utils/connectivityMatrix";
+import {
+  getMatrixAggregationGroupingKey,
+  getMatrixLabel,
+  getMatrixSource,
+  resolveMatrixEndpointIds,
+  resolveRankingMatrixCollection,
+} from "@/utils/rankings/rankingMatrixMetadata";
 
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
@@ -77,9 +76,9 @@ const scoreValues = (values: number[], metric?: string, threshold = 0) => {
 const getEndpointLabel = (
   connectivity: ConnectivityDataState,
   id: string,
-  matrix?: MatrixRecord,
+  matrix?: ConnectivityMatrix,
 ) =>
-  matrix?.reduction?.groups.find((group) => group.id === id)?.label ??
+  matrix?.aggregation?.groups.find((group) => group.id === id)?.label ??
   connectivity.atlas.rois.find((roi) => roi.id === id)?.label ??
   connectivity.atlas.rois.find((roi) => String(roi.atlasId) === id)?.label ??
   id;
@@ -93,7 +92,7 @@ const getEndpointGroup = (connectivity: ConnectivityDataState, id: string) => {
 const getActiveRoiIds = (activeLabels: Set<string> | null) => activeLabels;
 
 const isEligibleEdge = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   connectivity: ConnectivityDataState,
   i: number,
   j: number,
@@ -104,11 +103,11 @@ const isEligibleEdge = (
   const sourceId = ids[i];
   const targetId = ids[j];
   if (!sourceId || !targetId) return false;
-  if (matrix.kind !== "reduced") {
+  if (matrix.kind !== "aggregated") {
     const active = getActiveRoiIds(activeRois);
     if (active && (!active.has(sourceId) || !active.has(targetId))) return false;
   }
-  if (activeFilterMask && matrix.kind !== "reduced") {
+  if (activeFilterMask && matrix.kind !== "aggregated") {
     return Boolean(activeFilterMask[i]?.[j] ?? activeFilterMask[j]?.[i]);
   }
   return true;
@@ -156,7 +155,7 @@ export const computeMatrixRanking = ({
         label: getMatrixLabel(matrix, connectivity),
         sourceType: source.sourceType,
         sourceId: source.sourceId,
-        matrixKind: toRankingMatrixKind(matrix.kind),
+        matrixKind: matrix.kind,
         aggregationGroupingKey: getMatrixAggregationGroupingKey(matrix),
         measureId: matrix.context.measureId,
         statisticId: matrix.stat.id,
@@ -230,7 +229,7 @@ export const computeLinkRanking = ({
           rank: 0,
           sourceId,
           targetId,
-          endpointType: matrix.kind === "reduced" ? "group" : "roi",
+          endpointType: matrix.kind === "aggregated" ? "group" : "roi",
           sourceLabel: getEndpointLabel(connectivity, sourceId, matrix),
           targetLabel: getEndpointLabel(connectivity, targetId, matrix),
           score,
@@ -276,7 +275,7 @@ export const computeLinkRanking = ({
         rank: 0,
         sourceId: group.sourceId,
         targetId: group.targetId,
-        endpointType: matrices[0]?.kind === "reduced" ? "group" : "roi",
+        endpointType: matrices[0]?.kind === "aggregated" ? "group" : "roi",
         sourceLabel: getEndpointLabel(connectivity, group.sourceId, matrices[0]),
         targetLabel: getEndpointLabel(connectivity, group.targetId, matrices[0]),
         score,
@@ -307,7 +306,7 @@ export const computeRoiRanking = ({
   activeFilterMask,
 }: CalculationContext): Omit<RankingResult, "id" | "createdAt"> => {
   const matrices = resolveRankingMatrixCollection(connectivity, query).filter(
-    (matrix) => matrix.kind !== "reduced",
+    (matrix) => matrix.kind !== "aggregated",
   );
   const allowAutoconnections =
     query.allowRoiRankingAutoconnections ??

@@ -1,56 +1,92 @@
 import { useMemo } from "react";
+import { shallowEqual } from "react-redux";
+
 import { resolveViewVisibility } from "@/components/network/views/networkViewVisibility";
+import {
+  type NetworkViewComputationContext,
+  resolveNetworkViewWithContext,
+} from "@/components/network/views/useNetworkViewResolver";
+import { useAppSelector } from "@/store/hooks";
 import type {
-  ComputedView,
-  NetworkViewDescriptor,
+  NodeLinkNetworkViewSettings,
   ViewVisibility,
 } from "@/types/networkVisualization";
 
+const emptySourceFilters = {
+  nodeFilterContributors: [],
+  linkFilterContributors: [],
+  visibilityByViewId: {} as Record<string, ViewVisibility>,
+};
+
 export const useNetworkViewSourceFilters = ({
   targetViewId,
-  targetIsReduced,
+  targetIsAggregated,
   targetIsFilterSource,
-  views,
-  resolveView,
+  context,
 }: {
   targetViewId: string;
-  targetIsReduced: boolean;
+  targetIsAggregated: boolean;
   targetIsFilterSource: boolean;
-  views: NetworkViewDescriptor[];
-  resolveView: (view: NetworkViewDescriptor) => ComputedView | null;
-}) =>
-  useMemo(() => {
-    if (targetIsReduced || targetIsFilterSource) {
-      return {
-        nodeFilterContributors: [],
-        linkFilterContributors: [],
-        visibilityByViewId: {} as Record<string, ViewVisibility>,
-      };
+  context: NetworkViewComputationContext;
+}) => {
+  const source = useAppSelector((state) => {
+    if (targetIsAggregated || targetIsFilterSource) {
+      return null;
     }
 
-    const source = views.find((view) => {
-      if (view.id === targetViewId) return false;
-      const computed = resolveView(view);
-      return Boolean(computed?.useAsNodeFilter || computed?.useAsLinkFilter);
-    });
-    const computed = source ? resolveView(source) : null;
+    for (const viewId of state.networkVisualization.viewsOrder) {
+      if (viewId === targetViewId) continue;
+      const view = state.networkVisualization.viewsById[viewId];
+      if (!view) continue;
+
+      const matrixSettings =
+        state.networkVisualization.matrixSettingsByViewId[viewId];
+      const nodeLinkSettings =
+        state.networkVisualization.nodeLinkSettingsByViewId[viewId];
+      const settings =
+        view.type === "matrix" ? matrixSettings : nodeLinkSettings;
+
+      if (settings?.useAsNodeFilter || settings?.useAsLinkFilter) {
+        return { view, settings, nodeLinkSettings };
+      }
+    }
+
+    return null;
+  }, shallowEqual);
+
+  return useMemo(() => {
+    if (targetIsAggregated || targetIsFilterSource) return emptySourceFilters;
+    const matrix = source
+      ? context.matrixByCompoundId[source.view.compoundId] ?? null
+      : null;
+    const computed =
+      source && matrix
+        ? resolveNetworkViewWithContext({
+            view: source.view,
+            matrix,
+            settings: source.settings,
+            nodeLinkSettings:
+              source.view.type === "matrix"
+                ? undefined
+                : (source.nodeLinkSettings as NodeLinkNetworkViewSettings),
+            context,
+          })
+        : null;
+
     if (!source || !computed) {
-      return {
-        nodeFilterContributors: [],
-        linkFilterContributors: [],
-        visibilityByViewId: {} as Record<string, ViewVisibility>,
-      };
+      return emptySourceFilters;
     }
 
     return {
       nodeFilterContributors: computed.useAsNodeFilter
-        ? [{ viewId: source.id }]
+        ? [{ viewId: source.view.id }]
         : [],
       linkFilterContributors: computed.useAsLinkFilter
-        ? [{ viewId: source.id }]
+        ? [{ viewId: source.view.id }]
         : [],
       visibilityByViewId: {
-        [source.id]: resolveViewVisibility(computed),
+        [source.view.id]: resolveViewVisibility(computed),
       },
     };
-  }, [resolveView, targetIsFilterSource, targetIsReduced, targetViewId, views]);
+  }, [context, source, targetIsFilterSource, targetIsAggregated]);
+};

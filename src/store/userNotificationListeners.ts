@@ -1,5 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
-import { enqueueNotification } from "@/store/slices/notifications";
+
 import {
   clearUploadedAtlasAndSync,
   uploadAtlasDefinitionAndSync,
@@ -8,6 +8,7 @@ import {
   downloadCurrentDataset,
   loadDatasetFromUploadedZip,
 } from "@/store/slices/dataset";
+import { enqueueNotification } from "@/store/slices/notifications";
 import { downloadSelectedLinks } from "@/store/slices/visualizationUi";
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
 

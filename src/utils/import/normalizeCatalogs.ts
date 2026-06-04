@@ -1,15 +1,14 @@
-import type { ConnectivityCatalogs } from "@/types/catalogs";
+import { isRecord, toLabel, toSlug } from "@/utils/import/guards";
+import { parseCatalogsImportRecord } from "@/utils/import/schemas/catalogSchema";
+import { parseManifestImportRecord } from "@/utils/import/schemas/manifestSchema";
 import type {
   ConnectivityImportIssue,
+  ImportCatalogs,
   NormalizedMatrix,
 } from "@/utils/import/types";
-import { isRecord, toLabel, toSlug } from "@/utils/import/guards";
 
-type CatalogDefaults = {
-  layer: string;
-  measure: string;
-  stat: string;
-  population: string;
+export type ImportMetadataFallbacks = {
+  symmetric: boolean;
 };
 
 const readCatalogLabel = (
@@ -95,38 +94,17 @@ const getCatalogRecord = (
   errors: ConnectivityImportIssue[],
 ) => {
   if (payload === null) return null;
-  if (isRecord(payload)) return payload;
-  errors.push({
-    source: "catalogs.json",
-    path: "catalogs.json",
-    message: "catalogs.json must contain an object.",
-  });
-  return null;
+  return parseCatalogsImportRecord(payload, "catalogs.json", errors);
 };
 
-export const getDefaultsFromManifest = (
+export const getImportMetadataFallbacks = (
   manifestPayload: unknown,
-): CatalogDefaults => {
-  const fallback = {
-    layer: "default",
-    measure: "connectivity",
-    stat: "value",
-    population: "dataset",
-  };
-  if (!isRecord(manifestPayload) || !isRecord(manifestPayload.defaults)) {
-    return fallback;
-  }
-
-  const defaults = manifestPayload.defaults;
-  return {
-    layer: typeof defaults.layer === "string" ? defaults.layer : fallback.layer,
-    measure: typeof defaults.measure === "string" ? defaults.measure : fallback.measure,
-    stat: typeof defaults.stat === "string" ? defaults.stat : fallback.stat,
-    population:
-      typeof defaults.population === "string"
-        ? defaults.population
-        : fallback.population,
-  };
+): ImportMetadataFallbacks => {
+  const directedNetworks =
+    isRecord(manifestPayload) && typeof manifestPayload.directedNetworks === "boolean"
+      ? manifestPayload.directedNetworks
+      : false;
+  return { symmetric: !directedNetworks };
 };
 
 export const normalizeManifest = (
@@ -139,28 +117,24 @@ export const normalizeManifest = (
     const issue = {
       source: "manifest.json",
       path: "manifest.json",
-      message: "manifest.json is missing; using import defaults.",
+      message: "manifest.json is missing; using internal import fallbacks.",
     };
     if (strict) errors.push(issue);
     else warnings.push(issue);
     return {};
   }
-  if (!isRecord(manifestPayload)) {
-    errors.push({
-      source: "manifest.json",
-      path: "manifest.json",
-      message: "manifest.json must contain an object.",
-    });
+  const manifest = parseManifestImportRecord(manifestPayload, "manifest.json", errors);
+  if (!manifest) {
     return {};
   }
-  if (strict && manifestPayload.formatVersion !== "vafca-zip-v1") {
+  if (strict && manifest.formatVersion !== "vafca-zip-v1") {
     errors.push({
       source: "manifest.json",
       path: "manifest.json.formatVersion",
       message: "Strict import requires formatVersion='vafca-zip-v1'.",
     });
   }
-  return manifestPayload;
+  return manifest;
 };
 
 export const normalizeCatalogs = (
@@ -168,18 +142,13 @@ export const normalizeCatalogs = (
   catalogFiles: Record<string, unknown>,
   matrices: NormalizedMatrix[],
   errors: ConnectivityImportIssue[],
-): ConnectivityCatalogs => {
+): ImportCatalogs => {
   const sourceCatalogs = {
     ...(getCatalogRecord(catalogsPayload, errors) ?? {}),
     ...Object.fromEntries(
       Object.entries(catalogFiles).filter(([, value]) => {
-        if (value === null || isRecord(value)) return true;
-        errors.push({
-          source: "catalogs",
-          path: "catalogs",
-          message: "Catalog files must contain JSON objects.",
-        });
-        return false;
+        return value === null ||
+          parseCatalogsImportRecord(value, "catalogs", errors) !== null;
       }),
     ),
   };

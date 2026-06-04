@@ -1,23 +1,34 @@
 import { useEffect, useMemo } from "react";
 import { shallowEqual } from "react-redux";
+
+import {
+  D3_GROUPING_PALETTES,
+  type D3GroupingPaletteKey,
+} from "@/config/groupingPalettes";
+import { MIN_GROUPING_COLOR_PREVIEW_ITEMS } from "@/config/ui";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { selectDatasetData } from "@/store/slices/dataset";
 import {
   selectAtlasColorFields,
   selectAtlasColorPalette,
   selectAtlasEnabledIds,
   setAtlasColorFields,
 } from "@/store/slices/atlasUi";
+import { selectDatasetData } from "@/store/slices/dataset";
 import type { AtlasColorCategoryItem } from "@/types/atlasPanel";
-import { D3_GROUPING_PALETTES } from "@/config/groupingPalettes";
-import { buildRoiGroupingColorCategories } from "@/utils/groupingColoring";
 import { getCommonRoiFields, humanizeFieldName } from "@/utils/atlas/atlasDefinition";
 import { getDatasetAtlasId } from "@/utils/datasetAccessors";
+import { buildRoiGroupingColorCategories } from "@/utils/groupingColoring";
 
-const MIN_COLOR_PREVIEW_ITEMS = 7;
+type AtlasGroupingSettingsOptions = {
+  previewColorFields?: string[];
+  previewColorPalette?: D3GroupingPaletteKey;
+};
 
-export const useAtlasGroupingSettings = () => {
+export const useAtlasGroupingSettings = ({
+  previewColorFields,
+  previewColorPalette,
+}: AtlasGroupingSettingsOptions = {}) => {
   const dispatch = useAppDispatch();
   const dataset = useAppSelector((state) => selectDatasetData(state));
   const colorFields = useAppSelector(selectAtlasColorFields);
@@ -30,9 +41,12 @@ export const useAtlasGroupingSettings = () => {
     [atlasDefinition],
   );
 
+  const effectiveColorFields = previewColorFields ?? colorFields;
+  const effectiveColorPalette = previewColorPalette ?? colorPalette;
+
   const selectableColorFields = useMemo(
-    () => availableFields.filter((field) => !colorFields.includes(field)),
-    [availableFields, colorFields],
+    () => availableFields.filter((field) => !effectiveColorFields.includes(field)),
+    [availableFields, effectiveColorFields],
   );
 
   useEffect(() => {
@@ -49,25 +63,31 @@ export const useAtlasGroupingSettings = () => {
 
     return buildRoiGroupingColorCategories({
       atlasDefinition,
-      groupingFields: colorFields,
-      colorPalette,
+      groupingFields: effectiveColorFields,
+      colorPalette: effectiveColorPalette,
       includedIds,
     }).map((entry) => ({
       key: entry.key,
-      label: colorFields
+      label: effectiveColorFields
         .map((field, index) => `${humanizeFieldName(field)}: ${entry.values[index]}`)
         .join(" · "),
       count: entry.count,
       color: entry.color,
     }));
-  }, [atlasDefinition, colorFields, colorPalette, enabledIds]);
+  }, [atlasDefinition, effectiveColorFields, effectiveColorPalette, enabledIds]);
 
   const colorPreviewItems = useMemo<AtlasColorCategoryItem[]>(() => {
-    if (colorCategories.length >= MIN_COLOR_PREVIEW_ITEMS) return colorCategories;
+    if (colorCategories.length >= MIN_GROUPING_COLOR_PREVIEW_ITEMS) {
+      return colorCategories;
+    }
 
-    const palette = D3_GROUPING_PALETTES[colorPalette].palette;
+    const palette = D3_GROUPING_PALETTES[effectiveColorPalette].palette;
     const padded = [...colorCategories];
-    for (let index = colorCategories.length; index < MIN_COLOR_PREVIEW_ITEMS; index += 1) {
+    for (
+      let index = colorCategories.length;
+      index < MIN_GROUPING_COLOR_PREVIEW_ITEMS;
+      index += 1
+    ) {
       padded.push({
         key: `palette-slot-${index + 1}`,
         label: `Palette slot ${index + 1}`,
@@ -76,7 +96,7 @@ export const useAtlasGroupingSettings = () => {
       });
     }
     return padded;
-  }, [colorCategories, colorPalette]);
+  }, [colorCategories, effectiveColorPalette]);
 
   return {
     colorFields,

@@ -1,4 +1,5 @@
 import { Divider, Form, Space, Switch, Typography } from "antd";
+
 import DebouncedRangeSlider from "@/components/common/DebouncedRangeSlider";
 import type {
   MatrixNetworkViewSettings,
@@ -10,6 +11,7 @@ type NetworkFilterRolePopoverProps = {
     | MatrixNetworkViewSettings["statRange"]
     | NodeLinkNetworkViewSettings["statRange"];
   hasNegativeRange: boolean;
+  statCenter: number;
   statSliderMin: number;
   statSliderMax: number;
   onStatRangeChange: (
@@ -25,6 +27,7 @@ type NetworkFilterRolePopoverProps = {
 export default function NetworkFilterRolePopover({
   statRangeValue,
   hasNegativeRange,
+  statCenter,
   statSliderMin,
   statSliderMax,
   onStatRangeChange,
@@ -43,12 +46,12 @@ export default function NetworkFilterRolePopover({
               <DebouncedRangeSlider
                 range
                 min={statSliderMin}
-                max={0}
+                max={statCenter}
                 step={0.001}
                 value={
                   statRangeValue && !Array.isArray(statRangeValue)
                     ? statRangeValue.negative
-                    : [statSliderMin, 0]
+                    : [statSliderMin, statCenter]
                 }
                 onChange={(value) => {
                   if (Array.isArray(value)) {
@@ -61,13 +64,13 @@ export default function NetworkFilterRolePopover({
             <Form.Item label="Positive range">
               <DebouncedRangeSlider
                 range
-                min={0}
-                max={Math.max(statSliderMax, 0)}
+                min={statCenter}
+                max={statSliderMax}
                 step={0.001}
                 value={
                   statRangeValue && !Array.isArray(statRangeValue)
                     ? statRangeValue.positive
-                    : [0, Math.max(statSliderMax, 0)]
+                    : [statCenter, statSliderMax]
                 }
                 onChange={(value) => {
                   if (Array.isArray(value)) {
@@ -83,7 +86,7 @@ export default function NetworkFilterRolePopover({
             <DebouncedRangeSlider
               range
               min={statSliderMin}
-              max={Math.max(statSliderMax, 0)}
+              max={statSliderMax}
               step={0.001}
               value={
                 statRangeValue && Array.isArray(statRangeValue)

@@ -1,72 +1,61 @@
 import { useMemo, useState } from "react";
 import { shallowEqual } from "react-redux";
+
 import { useAppSelector } from "@/store/hooks";
-import { selectDatasetData } from "@/store/slices/dataset";
-import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
-import { getCommonRoiFields } from "@/utils/atlas/atlasDefinition";
-import { useAtlasPanelData } from "./atlasPanelHooks";
-import { AtlasPanelLayout } from "./AtlasPanelLayout";
-import { useAtlasPanelNormalization } from "./hooks/useAtlasPanelNormalization";
-import { useAtlasPanelDerivedData } from "./hooks/useAtlasPanelDerivedData";
 import {
   selectAtlasColorFields,
-  selectAtlasEnabledIds,
   selectAtlasLabelsById,
   selectAtlasLabelSearchTextById,
   selectAtlasOrder,
 } from "@/store/slices/atlasUi";
+import { getCommonRoiFields } from "@/utils/atlas/atlasDefinition";
+import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
+
+import AtlasManagementModal from "./AtlasManagementModal";
 import { AtlasPanelControls } from "./AtlasPanelControls";
 import { AtlasPanelFilters } from "./AtlasPanelFilters";
+import { useAtlasPanelData } from "./atlasPanelHooks";
+import { AtlasPanelLayout } from "./AtlasPanelLayout";
 import { AtlasPanelList } from "./AtlasPanelList";
-import { AtlasPanelViewer } from "./AtlasPanelViewer";
-import AtlasManagementModal from "./AtlasManagementModal";
+import AtlasPanelSettingsModal from "./AtlasPanelSettingsModal";
 import AtlasPanelToolbar from "./AtlasPanelToolbar";
-import type { AtlasDefinition, AtlasMeshMode } from "@/types/atlas";
+import { AtlasPanelViewer } from "./AtlasPanelViewer";
+import { useActiveAtlasDefinition } from "./hooks/useActiveAtlasDefinition";
+import { useAtlasPanelDerivedData } from "./hooks/useAtlasPanelDerivedData";
+import { useAtlasPanelNormalization } from "./hooks/useAtlasPanelNormalization";
 import {
-  getDatasetAtlasId,
-  getDatasetAtlasLabel,
-} from "@/utils/datasetAccessors";
+  buildEffectiveRoiEnabledMap,
+  countEnabledRois,
+} from "./roiVisibilityDraft";
 
 const EXPANDED_GROUPS = new Set<string>();
 
 export default function AtlasPanel() {
-  const [meshMode, setMeshMode] = useState<AtlasMeshMode>("with_mesh_points");
   const [managementOpen, setManagementOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const atlasOrder = useAppSelector(selectAtlasOrder);
-  const labelsById = useAppSelector(selectAtlasLabelsById, shallowEqual);
+  const labelsById = useAppSelector(selectAtlasLabelsById);
   const colorFields = useAppSelector(selectAtlasColorFields);
-  const enabledIds = useAppSelector(selectAtlasEnabledIds, shallowEqual);
   const labelSearchTextById = useAppSelector(
     selectAtlasLabelSearchTextById,
     shallowEqual,
   );
-  const dataset = useAppSelector((state) => selectDatasetData(state));
-  const datasetAtlasId = getDatasetAtlasId(dataset);
-  const datasetAtlasLabel = getDatasetAtlasLabel(dataset);
   const atlasPanel = useAppSelector((state) => state.visualizationUi.atlasPanel);
-
-  const atlasDefinition = useAtlasDefinition(datasetAtlasId);
-  const stateAtlasDefinition = useMemo<AtlasDefinition | null>(() => {
-    if (atlasDefinition || atlasOrder.length === 0) return atlasDefinition;
-
-    return {
-      id: datasetAtlasId ?? "active-atlas",
-      name: datasetAtlasLabel,
-      rois: atlasOrder.map((id, index) => {
-        const label = labelsById[id];
-        return {
-          index,
-          id,
-          atlasId: id,
-          name: label?.name ?? label?.label ?? id,
-          label: label?.acronym ?? label?.label ?? id,
-          tags: label?.tags ?? {},
-          metadata: label?.metadata ?? {},
-          coords: null,
-        };
+  const effectiveEnabledById = useMemo(
+    () =>
+      buildEffectiveRoiEnabledMap({
+        order: atlasOrder,
+        labelsById,
+        draft: atlasPanel.roiVisibilityDraft,
       }),
-    };
-  }, [atlasDefinition, atlasOrder, datasetAtlasId, datasetAtlasLabel, labelsById]);
+    [atlasOrder, atlasPanel.roiVisibilityDraft, labelsById],
+  );
+  const effectiveEnabledCount = useMemo(
+    () => countEnabledRois(effectiveEnabledById),
+    [effectiveEnabledById],
+  );
+
+  const stateAtlasDefinition = useActiveAtlasDefinition();
 
   const availableGroupFields = useMemo(
     () => getCommonRoiFields(stateAtlasDefinition),
@@ -74,8 +63,10 @@ export default function AtlasPanel() {
   );
 
   const has3d = useMemo(
-    () => meshMode === "with_mesh_points" && Boolean(stateAtlasDefinition?.rois?.length),
-    [stateAtlasDefinition, meshMode],
+    () =>
+      atlasPanel.is3dAvailable &&
+      atlasSupports3d(stateAtlasDefinition),
+    [atlasPanel.is3dAvailable, stateAtlasDefinition],
   );
 
   useAtlasPanelNormalization({
@@ -99,12 +90,11 @@ export default function AtlasPanel() {
     groupByFields: atlasPanel.groupByFields,
     selectedFilters: atlasPanel.selectedFilters,
     collapsedGroups: EXPANDED_GROUPS,
-    enabledCount: enabledIds.length,
+    enabledCount: effectiveEnabledCount,
   });
 
   const {
     groupedEntries,
-    selectableGroupFields,
     columnSections,
     useColumns,
   } = useAtlasPanelDerivedData({
@@ -119,8 +109,6 @@ export default function AtlasPanel() {
         has3d={has3d}
         toolbar={
           <AtlasPanelToolbar
-            meshMode={meshMode}
-            onMeshModeChange={setMeshMode}
             onOpenManagement={() => setManagementOpen(true)}
           />
         }
@@ -128,8 +116,6 @@ export default function AtlasPanel() {
           <AtlasPanelControls
             totalCount={totalCount}
             enabledCount={enabledCount}
-            groupByFields={atlasPanel.groupByFields}
-            selectableGroupFields={selectableGroupFields}
           />
         }
         filters={
@@ -141,6 +127,7 @@ export default function AtlasPanel() {
             totalCount={totalCount}
             allEnabled={allEnabled}
             allDisabled={allDisabled}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
         }
         list={
@@ -150,12 +137,16 @@ export default function AtlasPanel() {
             useColumns={useColumns}
           />
         }
-        viewer={<AtlasPanelViewer enableMeshPoints={meshMode === "with_mesh_points"} />}
+        viewer={<AtlasPanelViewer enableMeshPoints />}
       />
 
       <AtlasManagementModal
         open={managementOpen}
         onClose={() => setManagementOpen(false)}
+      />
+      <AtlasPanelSettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
       />
     </>
   );

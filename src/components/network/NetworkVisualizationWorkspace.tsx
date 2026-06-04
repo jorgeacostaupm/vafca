@@ -1,7 +1,10 @@
+import { useCallback } from "react";
+
 import NetworkLayout from "@/components/layout/NetworkLayout";
+import { useNetworkWorkspaceModel } from "@/components/network/useNetworkWorkspaceModel";
+import { NetworkViewComputationProvider } from "@/components/network/views/NetworkViewComputationProvider";
 import NetworkViewContainer from "@/components/network/views/NetworkViewContainer";
 import RankingResultPanelContainer from "@/components/rankings/RankingResultPanelContainer";
-import { useNetworkWorkspaceModel } from "@/components/network/useNetworkWorkspaceModel";
 
 export default function NetworkVisualizationWorkspace() {
   const {
@@ -11,19 +14,24 @@ export default function NetworkVisualizationWorkspace() {
     updateLayout,
     isNetworkView,
   } = useNetworkWorkspaceModel();
+  const renderWorkspaceView = useCallback(
+    (id: string) =>
+      isNetworkView(id) ? (
+        <NetworkViewContainer viewId={id} onRemove={removePanel} />
+      ) : (
+        <RankingResultPanelContainer resultId={id} onRemove={removePanel} />
+      ),
+    [isNetworkView, removePanel],
+  );
 
   return (
-    <NetworkLayout
-      panelIds={panelIds}
-      layout={combinedLayout}
-      renderPanel={(id) =>
-        isNetworkView(id) ? (
-          <NetworkViewContainer viewId={id} onRemove={removePanel} />
-        ) : (
-          <RankingResultPanelContainer resultId={id} onRemove={removePanel} />
-        )
-      }
-      setLayout={updateLayout}
-    />
+    <NetworkViewComputationProvider>
+      <NetworkLayout
+        panelIds={panelIds}
+        layout={combinedLayout}
+        renderPanel={renderWorkspaceView}
+        setLayout={updateLayout}
+      />
+    </NetworkViewComputationProvider>
   );
 }

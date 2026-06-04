@@ -69,7 +69,49 @@
   min-width: 0;
 }
 
+.network-zoom-modes {
+  width: 240px;
+}
+
+.network-zoom-modes__percent {
+  display: grid;
+  grid-template-columns: 1fr 96px;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.network-zoom-modes__label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.network-zoom-modes__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.network-zoom-modes__grid .ant-btn {
+  justify-content: flex-start;
+}
+
 .panel-grid-item {
   display: flex;
   flex-direction: column;
+}
+
+.resizable-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.network-layout-grid--interacting.react-grid-layout,
+.network-layout-grid--interacting .react-grid-item,
+.network-layout-grid--interacting .react-grid-item.cssTransforms {
+  transition: none;
+}
+
+.network-layout-grid--interacting .react-grid-item {
+  will-change: transform, width, height;
 }

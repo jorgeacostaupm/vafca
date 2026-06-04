@@ -1,4 +1,9 @@
 import { Button, Modal, Space, Tabs, Typography } from "antd";
+
+import CatalogManagementSections from "@/components/management/components/catalogs/CatalogManagementSections";
+import DatasetSummaryHeader from "@/components/management/components/DatasetSummaryHeader";
+import MatrixSummarySection from "@/components/management/components/MatrixSummarySection";
+import MatrixUploader from "@/components/management/components/MatrixUploader";
 import { DEFAULT_DATA_MANAGEMENT_TAB } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -8,10 +13,6 @@ import {
   selectDatasetError,
   selectDatasetStatus,
 } from "@/store/slices/dataset";
-import CatalogManagementSections from "@/components/management/components/catalogs/CatalogManagementSections";
-import DatasetSummaryHeader from "@/components/management/components/DatasetSummaryHeader";
-import MatrixSummarySection from "@/components/management/components/MatrixSummarySection";
-import MatrixUploader from "@/components/management/components/MatrixUploader";
 import { getDatasetCatalogs } from "@/utils/datasetAccessors";
 
 interface DataManagementModalProps {

@@ -1,66 +1,192 @@
-import { Card, Divider, Input, Space, Switch, Typography } from "antd";
-import type { StatCatalogEntry } from "@/types/connectivityBundle";
-import { isEnabled } from "@/components/management/utils/catalogValues";
+import { Button, Card, Divider, Input, InputNumber, Space, Switch, Typography } from "antd";
+import { useEffect, useMemo, useState } from "react";
+
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
+import {
+  isEnabled,
+  normalizeNumber,
+} from "@/components/management/utils/catalogValues";
+import type { StatCatalogEntry } from "@/types/connectivityBundle";
+
+type StatDraft = {
+  id: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  min?: number;
+  max?: number;
+};
+
+type EditableStat = StatCatalogEntry & {
+  description?: string | null;
+  enabled?: boolean;
+};
 
 type StatCatalogSectionProps = {
   title: string;
-  stats: Array<StatCatalogEntry & { description?: string | null; enabled?: boolean }>;
+  stats: EditableStat[];
   emptyMessage: string;
 };
 
+const toDraft = (stat: EditableStat): StatDraft => ({
+  id: stat.id,
+  label: stat.label ?? "",
+  description: stat.description ?? "",
+  enabled: isEnabled(stat),
+  min: stat.expectedRange?.[0] ?? stat.min ?? undefined,
+  max: stat.expectedRange?.[1] ?? stat.max ?? undefined,
+});
+
+const toDrafts = (stats: EditableStat[]) =>
+  Object.fromEntries(stats.map((stat) => [stat.id, toDraft(stat)]));
+
+const draftsAreEqual = (
+  draft: StatDraft | undefined,
+  stat: EditableStat,
+) => {
+  if (!draft) return false;
+  const baseline = toDraft(stat);
+  return (
+    draft.label === baseline.label &&
+    draft.description === baseline.description &&
+    draft.enabled === baseline.enabled &&
+    draft.min === baseline.min &&
+    draft.max === baseline.max
+  );
+};
+
+const hasInvalidRange = (draft: StatDraft) =>
+  draft.min !== undefined && draft.max !== undefined && draft.min > draft.max;
+
 function StatCatalogSection({ title, stats, emptyMessage }: StatCatalogSectionProps) {
   const updateItem = useCatalogItemUpdater();
+  const [drafts, setDrafts] = useState<Record<string, StatDraft>>(() =>
+    toDrafts(stats),
+  );
+
+  useEffect(() => {
+    setDrafts(toDrafts(stats));
+  }, [stats]);
+
+  const dirtyStats = useMemo(
+    () => stats.filter((stat) => !draftsAreEqual(drafts[stat.id], stat)),
+    [drafts, stats],
+  );
+  const invalidRange = Object.values(drafts).some(hasInvalidRange);
+  const canSave = dirtyStats.length > 0 && !invalidRange;
+
+  const updateDraft = (id: string, changes: Partial<StatDraft>) => {
+    setDrafts((current) => ({
+      ...current,
+      [id]: {
+        ...current[id],
+        ...changes,
+      },
+    }));
+  };
+
+  const handleSave = () => {
+    dirtyStats.forEach((stat) => {
+      const draft = drafts[stat.id];
+      if (!draft) return;
+      updateItem("stats", stat.id, {
+        label: draft.label,
+        description: draft.description,
+        enabled: draft.enabled,
+        min: draft.min,
+        max: draft.max,
+      });
+    });
+  };
 
   return (
     <>
       <Divider style={{ margin: "8px 0" }} />
 
       <div>
-        <Typography.Text strong>{title}</Typography.Text>
+        <Space align="center" style={{ marginBottom: 8 }}>
+          <Typography.Text strong>{title}</Typography.Text>
+          <Button
+            size="small"
+            type="primary"
+            disabled={!canSave}
+            onClick={handleSave}
+          >
+            Save
+          </Button>
+          {invalidRange ? (
+            <Typography.Text type="danger">
+              Min must be less than or equal to max.
+            </Typography.Text>
+          ) : null}
+        </Space>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
           {stats.length === 0 ? (
             <Typography.Text type="secondary">{emptyMessage}</Typography.Text>
           ) : null}
-          {stats.map((stat) => (
-            <Card key={stat.id} size="small" style={{ width: 300 }}>
-              <Space direction="vertical" size={8} style={{ width: "100%" }}>
-                <Space wrap size={8} align="start">
-                  <Input
+          {stats.map((stat) => {
+            const draft = drafts[stat.id] ?? toDraft(stat);
+
+            return (
+              <Card key={stat.id} size="small" style={{ width: 300 }}>
+                <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                  <Space wrap size={8} align="start">
+                    <Input
+                      size="small"
+                      placeholder="Statistic label"
+                      value={draft.label}
+                      style={{ width: 160 }}
+                      onChange={(event) =>
+                        updateDraft(stat.id, {
+                          label: event.target.value,
+                        })
+                      }
+                    />
+                    <Switch
+                      checked={draft.enabled}
+                      onChange={(checked) =>
+                        updateDraft(stat.id, {
+                          enabled: checked,
+                        })
+                      }
+                    />
+                    <InputNumber
+                      size="small"
+                      placeholder="Min"
+                      value={draft.min ?? null}
+                      onChange={(value) =>
+                        updateDraft(stat.id, {
+                          min: normalizeNumber(value),
+                        })
+                      }
+                    />
+                    <InputNumber
+                      size="small"
+                      placeholder="Max"
+                      value={draft.max ?? null}
+                      onChange={(value) =>
+                        updateDraft(stat.id, {
+                          max: normalizeNumber(value),
+                        })
+                      }
+                    />
+                  </Space>
+
+                  <Input.TextArea
                     size="small"
-                    placeholder="Statistic label"
-                    value={stat.label ?? ""}
-                    style={{ width: 160 }}
+                    placeholder="Description"
+                    value={draft.description}
                     onChange={(event) =>
-                      updateItem("stats", stat.id, {
-                        label: event.target.value,
+                      updateDraft(stat.id, {
+                        description: event.target.value,
                       })
                     }
-                  />
-                  <Switch
-                    checked={isEnabled(stat)}
-                    onChange={(checked) =>
-                      updateItem("stats", stat.id, {
-                        enabled: checked,
-                      })
-                    }
+                    style={{ resize: "vertical" }}
                   />
                 </Space>
-
-                <Input.TextArea
-                  size="small"
-                  placeholder="Description"
-                  value={stat.description ?? ""}
-                  onChange={(event) =>
-                    updateItem("stats", stat.id, {
-                      description: event.target.value,
-                    })
-                  }
-                  style={{ resize: "vertical" }}
-                />
-              </Space>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       </div>
     </>

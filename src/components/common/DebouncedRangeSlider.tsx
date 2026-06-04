@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import {
   Slider,
 } from "antd";
 import type { SliderRangeProps } from "antd/es/slider";
+import { useEffect, useRef, useState } from "react";
 
 type RangeValue = [number, number];
 

@@ -1,10 +1,14 @@
 import * as d3 from "d3";
 import type { MutableRefObject } from "react";
-import {
-  NODELINK_TOOLTIP_OFFSET,
-} from "@/components/nodelink/nodelinkShared";
+
 import { positionTooltipForPointer } from "@/components/nodelink/tooltipPosition";
-import type { ClassicNode } from "@/types/nodelink";
+import { NODELINK_TOOLTIP_OFFSET } from "@/config/ui";
+import type { MatrixBrushMode } from "@/types/matrixHeatmap";
+import type {
+  ClassicLink,
+  ClassicNode,
+  NodeLinkBrushLink,
+} from "@/types/nodelink";
 
 type TooltipHandlersArgs = {
   wrapperEl: HTMLDivElement | null;
@@ -115,12 +119,39 @@ type ConfigureClassicBrushArgs = {
   width: number;
   height: number;
   labels?: string[];
+  labelNames?: Record<string, string>;
   simNodes: ClassicNode[];
+  linkSelection: d3.Selection<SVGLineElement, ClassicLink, SVGGElement, unknown>;
   clampX: (value: number | undefined) => number;
   clampY: (value: number | undefined) => number;
   zoomTransformRef: MutableRefObject<d3.ZoomTransform>;
+  brushMode: MatrixBrushMode;
   onBrushZoom?: (payload: { labels: string[] }) => void;
+  onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
+  onBrushDeselectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   hideTooltip: () => void;
+};
+
+const lineIntersectsBounds = (
+  line: SVGLineElement,
+  bounds: { minX: number; minY: number; maxX: number; maxY: number },
+) => {
+  const x1 = Number(line.getAttribute("x1"));
+  const y1 = Number(line.getAttribute("y1"));
+  const x2 = Number(line.getAttribute("x2"));
+  const y2 = Number(line.getAttribute("y2"));
+  if (![x1, y1, x2, y2].every(Number.isFinite)) return false;
+
+  const steps = 32;
+  for (let step = 0; step <= steps; step += 1) {
+    const t = step / steps;
+    const x = x1 + (x2 - x1) * t;
+    const y = y1 + (y2 - y1) * t;
+    if (x >= bounds.minX && x <= bounds.maxX && y >= bounds.minY && y <= bounds.maxY) {
+      return true;
+    }
+  }
+  return false;
 };
 
 export const configureClassicBrush = ({
@@ -128,11 +159,16 @@ export const configureClassicBrush = ({
   width,
   height,
   labels,
+  labelNames,
   simNodes,
+  linkSelection,
   clampX,
   clampY,
   zoomTransformRef,
+  brushMode,
   onBrushZoom,
+  onBrushSelectLinks,
+  onBrushDeselectLinks,
   hideTooltip,
 }: ConfigureClassicBrushArgs) => {
   const brushLayer = svg.append("g").attr("class", "node-link-brush");
@@ -153,6 +189,7 @@ export const configureClassicBrush = ({
       const transform = zoomTransformRef.current ?? d3.zoomIdentity;
       const [minX, minY] = transform.invert([Math.min(x0, x1), Math.min(y0, y1)]);
       const [maxX, maxY] = transform.invert([Math.max(x0, x1), Math.max(y0, y1)]);
+      const bounds = { minX, minY, maxX, maxY };
 
       const selectedIds: string[] = [];
       simNodes.forEach((node) => {
@@ -163,14 +200,32 @@ export const configureClassicBrush = ({
         }
       });
 
-      const selectedSet = new Set(selectedIds);
-      const orderedSelection =
-        labels && labels.length > 0
-          ? labels.filter((label) => selectedSet.has(label))
-          : selectedIds;
+      const selectedLinks: NodeLinkBrushLink[] = [];
+      linkSelection.each(function collectBrushedLinks(link) {
+        if (!lineIntersectsBounds(this, bounds)) return;
+        selectedLinks.push({
+          rowId: link.rowId,
+          colId: link.colId,
+          value: link.value,
+          rowLabel: labelNames?.[link.rowId] ?? link.rowId,
+          colLabel: labelNames?.[link.colId] ?? link.colId,
+        });
+      });
 
-      if (orderedSelection.length > 0) {
-        onBrushZoom?.({ labels: orderedSelection });
+      if (brushMode === "selectLinks") {
+        if (selectedLinks.length > 0) onBrushSelectLinks?.({ links: selectedLinks });
+      } else if (brushMode === "deselectLinks") {
+        if (selectedLinks.length > 0) onBrushDeselectLinks?.({ links: selectedLinks });
+      } else {
+        const selectedSet = new Set(selectedIds);
+        const orderedSelection =
+          labels && labels.length > 0
+            ? labels.filter((label) => selectedSet.has(label))
+            : selectedIds;
+
+        if (orderedSelection.length > 0) {
+          onBrushZoom?.({ labels: orderedSelection });
+        }
       }
 
       brushLayer.call(brush.move, null);

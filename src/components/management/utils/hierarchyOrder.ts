@@ -1,11 +1,11 @@
-import { getRoiFieldValue, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
-import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
 import type {
   BuildCategoryOrderEditorsArgs,
   CategoryOrderEditor,
   CategoryOrderMap,
   MoveDirection,
 } from "@/components/management/types";
+import { getRoiFieldValue, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
+import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
 
 const moveItem = (
   values: string[],

@@ -1,0 +1,18 @@
+{
+  "plv": {
+    "label": "PLV",
+    "description": "some description",
+    "expectedRange": [
+      0,
+      1
+    ]
+  },
+  "ciplv": {
+    "label": "ciPLV",
+    "description": "some descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome description",
+    "expectedRange": [
+      -1,
+      1
+    ]
+  }
+}

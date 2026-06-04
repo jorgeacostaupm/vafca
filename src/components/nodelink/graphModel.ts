@@ -1,5 +1,5 @@
-import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
 import type { NodeLinkValueFilters, UndirectedLink } from "@/types/nodelink";
+import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
 
 
 export const buildFilteredUndirectedLinks = (args: {

@@ -1,28 +1,34 @@
 import { useMemo, useRef } from "react";
-import { useAppSelector } from "@/store/hooks";
+
 import { resolveAllowedSet } from "@/components/network/networkFormatting";
+import { useNetworkViewComputationContext } from "@/components/network/views/networkViewComputationContext";
 import {
   buildAdaptedNetworkViewData,
 } from "@/components/network/views/networkViewData";
-import { buildComparableMatrixLegendRange } from "@/components/network/views/networkViewLegend";
-import { buildNetworkViewValueFilters } from "@/components/network/views/networkViewVisibility";
 import {
   buildRuntimeAggregatedAllowedLinkIds,
   buildRuntimeAllowedLinkIds,
   combineAllowedLinkIds,
 } from "@/components/network/views/networkViewMasks";
+import { buildNetworkViewValueFilters } from "@/components/network/views/networkViewVisibility";
 import {
-  useNetworkViewResolver,
-  useNetworkViews,
+  resolveNetworkViewWithContext,
 } from "@/components/network/views/useNetworkViewResolver";
 import { useNetworkViewSourceFilters } from "@/components/network/views/useNetworkViewSourceFilters";
-import { getDatasetMatrixByCompoundId } from "@/utils/datasetAccessors";
+import { useAppSelector } from "@/store/hooks";
+import { getDatasetCatalogs } from "@/utils/datasetAccessors";
+import { resolveValueDomain } from "@/utils/valueDomain";
 
 export const useNetworkViewModel = (viewId: string) => {
   const svgRef = useRef<SVGSVGElement>(null);
-  const views = useNetworkViews();
   const view = useAppSelector(
     (state) => state.networkVisualization.viewsById[viewId],
+  );
+  const matrixSettings = useAppSelector(
+    (state) => state.networkVisualization.matrixSettingsByViewId[viewId],
+  );
+  const nodeLinkSettings = useAppSelector(
+    (state) => state.networkVisualization.nodeLinkSettingsByViewId[viewId],
   );
   const activeEdgeMask = useAppSelector(
     (state) => state.networkFilters.activeEdgeMask,
@@ -30,24 +36,38 @@ export const useNetworkViewModel = (viewId: string) => {
   const activeAggregatedEdgeMask = useAppSelector(
     (state) => state.networkFilters.activeAggregatedEdgeMask,
   );
-  const resolver = useNetworkViewResolver();
-  const matrixRecord = view
-    ? getDatasetMatrixByCompoundId(resolver.dataset, view.compoundId)
-    : null;
-  const computed = view ? resolver.resolve(view) : null;
+  const context = useNetworkViewComputationContext();
+  const matrixRecord = useMemo(
+    () => (view ? context.matrixByCompoundId[view.compoundId] ?? null : null),
+    [context.matrixByCompoundId, view],
+  );
+  const settings = view?.type === "matrix" ? matrixSettings : nodeLinkSettings;
+  const computed = useMemo(
+    () =>
+      view && matrixRecord
+        ? resolveNetworkViewWithContext({
+            view,
+            matrix: matrixRecord,
+            settings,
+            nodeLinkSettings:
+              view.type === "matrix" ? undefined : nodeLinkSettings,
+            context,
+          })
+        : null,
+    [context, matrixRecord, nodeLinkSettings, settings, view],
+  );
   const sourceMatrix = matrixRecord
-    ? resolver.dataset?.content?.matrixIndex[matrixRecord.id]
+    ? context.dataset?.content?.matrixIndex[matrixRecord.id]
     : undefined;
-  const isReducedMatrix = sourceMatrix?.kind === "reduced";
+  const isAggregatedMatrix = sourceMatrix?.kind === "aggregated";
   const targetIsFilterSource = Boolean(
     computed?.useAsNodeFilter || computed?.useAsLinkFilter,
   );
   const sourceFilters = useNetworkViewSourceFilters({
     targetViewId: viewId,
-    targetIsReduced: Boolean(isReducedMatrix),
+    targetIsAggregated: Boolean(isAggregatedMatrix),
     targetIsFilterSource,
-    views,
-    resolveView: resolver.resolve,
+    context,
   });
 
   return useMemo(() => {
@@ -69,15 +89,15 @@ export const useNetworkViewModel = (viewId: string) => {
       "linkIds",
       sourceFilters.visibilityByViewId,
     );
-    const runtimeAllowedLinkIds = isReducedMatrix
+    const runtimeAllowedLinkIds = isAggregatedMatrix
       ? buildRuntimeAggregatedAllowedLinkIds({
           mask: activeAggregatedEdgeMask,
-          dataset: resolver.dataset,
+          dataset: context.dataset,
         })
       : buildRuntimeAllowedLinkIds({
           mask: activeEdgeMask,
-          matrixOrderIds: resolver.matrixOrderIds,
-          activeLabelIds: resolver.activeLabelIds,
+          matrixOrderIds: context.matrixOrderIds,
+          activeLabelIds: context.activeLabelIds,
         });
     const allowedLinkIds = combineAllowedLinkIds(
       crossViewAllowedLinkIds,
@@ -90,17 +110,20 @@ export const useNetworkViewModel = (viewId: string) => {
       allowedNodeIds,
       allowedLinkIds,
     });
-    const matrixByCompoundId = Object.fromEntries(
-      views.map((item) => [
-        item.compoundId,
-        getDatasetMatrixByCompoundId(resolver.dataset, item.compoundId) ?? null,
-      ]),
-    );
-
+    const adaptedData = adapted.payload.data;
+    const valueDomain = resolveValueDomain({
+      matrix: sourceMatrix ?? matrixRecord,
+      catalogs: getDatasetCatalogs(context.dataset),
+      mode: context.uiRangeMode,
+      observedData: adaptedData,
+    });
     return {
       kind: "ready" as const,
       view,
-      computed,
+      computed: {
+        ...computed,
+        valueDomain,
+      },
       adapted,
       matrixRecord,
       svgRef,
@@ -109,25 +132,18 @@ export const useNetworkViewModel = (viewId: string) => {
       className: computed.isRangeFilterSource
         ? "network-view-card--range-filter-source"
         : undefined,
-      matrixLegendRange: buildComparableMatrixLegendRange({
-        view,
-        views,
-        matrixByCompoundId,
-        dataset: resolver.dataset,
-        uiRangeMode: resolver.uiRangeMode,
-      }),
     };
   }, [
     activeAggregatedEdgeMask,
     activeEdgeMask,
     computed,
-    isReducedMatrix,
+    context,
+    isAggregatedMatrix,
     matrixRecord,
-    resolver,
+    sourceMatrix,
     sourceFilters,
     svgRef,
     view,
     viewId,
-    views,
   ]);
 };

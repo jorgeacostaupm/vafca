@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+
 import ResizableContainer from "@/components/layout/ResizableContainer";
 
 type ViewPanelTemplateProps = {

@@ -1,5 +1,6 @@
 import CircularHierarchyPreview from "@/components/management/components/CircularHierarchyPreview";
 import MatrixHierarchyPreview from "@/components/management/components/MatrixHierarchyPreview";
+
 import {
   CIRCULAR_PREVIEW_WIDTH,
   MATRIX_PREVIEW_HEIGHT,
@@ -15,6 +16,7 @@ type HierarchySettingsPreviewProps = {
   hierarchy: HierarchySettingsModel;
   circularLinkTension?: number;
   circularBundlingEnabled?: boolean;
+  circularLinkColor?: string;
 };
 
 export default function HierarchySettingsPreview({
@@ -22,6 +24,7 @@ export default function HierarchySettingsPreview({
   hierarchy,
   circularLinkTension,
   circularBundlingEnabled,
+  circularLinkColor,
 }: HierarchySettingsPreviewProps) {
   if (mode === "circular") {
     return (
@@ -33,6 +36,7 @@ export default function HierarchySettingsPreview({
         nodeColors={hierarchy.previewNodeColors}
         linkTension={circularLinkTension}
         bundlingEnabled={circularBundlingEnabled}
+        linkColor={circularLinkColor}
         displayWidth={CIRCULAR_PREVIEW_WIDTH}
       />
     );

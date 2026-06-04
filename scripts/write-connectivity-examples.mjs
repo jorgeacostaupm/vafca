@@ -69,7 +69,10 @@ const createAal90Atlas = () => ({
     atlasId: index,
     name: `AAL 90 ROI ${String(index + 1).padStart(3, "0")}`,
     label: `ROI ${index + 1}`,
-    tags: { hemisphere: index % 2 === 0 ? "left" : "right", lobule: ["Frontal", "Parietal", "Temporal", "Occipital"][index % 4], network: null },
+    tags: {
+      hemisphere: index % 2 === 0 ? "left" : "right",
+      lobule: ["Frontal", "Parietal", "Temporal", "Occipital"][index % 4],
+    },
     coords: null,
     metadata: {},
   })),
@@ -138,8 +141,8 @@ const studyStd = createStdMatrix(90, 202);
 const subject = createSubjectMatrixFromMean(controlMean, 301);
 const population = (id, n) => ({ level: "population", populationIds: [id], n });
 const b01 = bundle("bundle_control_population", "Control population demo", createCatalogs({ stats: ["mean", "std"], populations: { p_control: 10 } }), [
-  matrix({ id: "m_p_control_alpha_plv_mean", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), data: controlMean }),
-  matrix({ id: "m_p_control_alpha_plv_std", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "std", source: population("p_control", 10), data: controlStd }),
+  matrix({ id: "m_p_control_alpha_plv_mean", kind: "population", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), data: controlMean }),
+  matrix({ id: "m_p_control_alpha_plv_std", kind: "population", layerId: "alpha", measureId: "plv", statId: "std", source: population("p_control", 10), data: controlStd }),
 ]);
 const swappedAtlas = createAal90Atlas();
 [swappedAtlas.rois[0].index, swappedAtlas.rois[1].index] = [swappedAtlas.rois[1].index, swappedAtlas.rois[0].index];
@@ -149,12 +152,12 @@ const files = {
     matrix({ id: "m_s001_alpha_plv_value", kind: "subject", layerId: "alpha", measureId: "plv", statId: "value", source: { level: "subject", subjectId: "s001", populationIds: ["p_study"] }, data: subject }),
   ]),
   "03_population_and_subject.json": bundle("bundle_population_and_subject", "Population and subject demo", createCatalogs({ stats: ["value", "mean", "std"], populations: { p_control: 10 }, subjects: { s001: ["p_control"] } }), [...b01.matrices, matrix({ id: "m_s001_alpha_plv_value", kind: "subject", layerId: "alpha", measureId: "plv", statId: "value", source: { level: "subject", subjectId: "s001", populationIds: ["p_control"] }, data: subject })]),
-  "04_two_populations.json": bundle("bundle_two_populations", "Two populations demo", createCatalogs({ stats: ["mean", "std"], populations: { p_control: 10, p_study: 20 } }), [...b01.matrices, matrix({ id: "m_p_study_alpha_plv_mean", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_study", 20), data: studyMean }), matrix({ id: "m_p_study_alpha_plv_std", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "std", source: population("p_study", 20), data: studyStd })]),
-  "05_different_layer_warning.json": bundle("bundle_beta_study", "Beta layer study demo", createCatalogs({ layers: ["beta"], stats: ["mean", "std"], populations: { p_study: 10 } }), [matrix({ id: "m_p_study_beta_plv_mean", kind: "aggregate", layerId: "beta", measureId: "plv", statId: "mean", source: population("p_study", 10), data: studyMean }), matrix({ id: "m_p_study_beta_plv_std", kind: "aggregate", layerId: "beta", measureId: "plv", statId: "std", source: population("p_study", 10), data: studyStd })]),
-  "06_different_measure_warning.json": bundle("bundle_ciplv_study", "ciPLV study demo", createCatalogs({ measures: ["ciplv"], stats: ["mean", "std"], populations: { p_study: 10 } }), [matrix({ id: "m_p_study_alpha_ciplv_mean", kind: "aggregate", layerId: "alpha", measureId: "ciplv", statId: "mean", source: population("p_study", 10), data: studyMean }), matrix({ id: "m_p_study_alpha_ciplv_std", kind: "aggregate", layerId: "alpha", measureId: "ciplv", statId: "std", source: population("p_study", 10), data: studyStd })]),
+  "04_two_populations.json": bundle("bundle_two_populations", "Two populations demo", createCatalogs({ stats: ["mean", "std"], populations: { p_control: 10, p_study: 20 } }), [...b01.matrices, matrix({ id: "m_p_study_alpha_plv_mean", kind: "population", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_study", 20), data: studyMean }), matrix({ id: "m_p_study_alpha_plv_std", kind: "population", layerId: "alpha", measureId: "plv", statId: "std", source: population("p_study", 20), data: studyStd })]),
+  "05_different_layer_warning.json": bundle("bundle_beta_study", "Beta layer study demo", createCatalogs({ layers: ["beta"], stats: ["mean", "std"], populations: { p_study: 10 } }), [matrix({ id: "m_p_study_beta_plv_mean", kind: "population", layerId: "beta", measureId: "plv", statId: "mean", source: population("p_study", 10), data: studyMean }), matrix({ id: "m_p_study_beta_plv_std", kind: "population", layerId: "beta", measureId: "plv", statId: "std", source: population("p_study", 10), data: studyStd })]),
+  "06_different_measure_warning.json": bundle("bundle_ciplv_study", "ciPLV study demo", createCatalogs({ measures: ["ciplv"], stats: ["mean", "std"], populations: { p_study: 10 } }), [matrix({ id: "m_p_study_alpha_ciplv_mean", kind: "population", layerId: "alpha", measureId: "ciplv", statId: "mean", source: population("p_study", 10), data: studyMean }), matrix({ id: "m_p_study_alpha_ciplv_std", kind: "population", layerId: "alpha", measureId: "ciplv", statId: "std", source: population("p_study", 10), data: studyStd })]),
   "07_incompatible_roi_order_error.json": bundle("bundle_swapped_roi_order", "Swapped ROI order demo", b01.catalogs, b01.matrices, swappedAtlas),
-  "08_upper_triangular_layout.json": bundle("bundle_upper_triangular", "Upper triangular demo", createCatalogs({ stats: ["mean"], populations: { p_control: 10 } }), [matrix({ id: "m_p_control_alpha_plv_mean_upper", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), layout: "upper_triangular", data: toUpperTriangularData(controlMean) })]),
-  "09_lower_triangular_layout.json": bundle("bundle_lower_triangular", "Lower triangular demo", createCatalogs({ stats: ["mean"], populations: { p_control: 10 } }), [matrix({ id: "m_p_control_alpha_plv_mean_lower", kind: "aggregate", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), layout: "lower_triangular", data: toLowerTriangularData(controlMean) })]),
+  "08_upper_triangular_layout.json": bundle("bundle_upper_triangular", "Upper triangular demo", createCatalogs({ stats: ["mean"], populations: { p_control: 10 } }), [matrix({ id: "m_p_control_alpha_plv_mean_upper", kind: "population", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), layout: "upper_triangular", data: toUpperTriangularData(controlMean) })]),
+  "09_lower_triangular_layout.json": bundle("bundle_lower_triangular", "Lower triangular demo", createCatalogs({ stats: ["mean"], populations: { p_control: 10 } }), [matrix({ id: "m_p_control_alpha_plv_mean_lower", kind: "population", layerId: "alpha", measureId: "plv", statId: "mean", source: population("p_control", 10), layout: "lower_triangular", data: toLowerTriangularData(controlMean) })]),
   "10_invalid_old_format.json": { matrices: [{ id: "old_matrix", layerId: "alpha", measureId: "plv", statId: "mean", populationIds: ["p_control"], size: 90, matrix: controlMean }] },
   "11_invalid_shape.json": { ...b01, bundle: { ...b01.bundle, id: "bundle_invalid_shape" }, matrices: [{ ...b01.matrices[0], geometry: { ...b01.matrices[0].geometry, shape: [89, 89] } }] },
   "12_invalid_data_length.json": { ...b01, bundle: { ...b01.bundle, id: "bundle_invalid_data_length" }, matrices: [{ ...b01.matrices[0], data: controlMean.slice(0, 89) }] },

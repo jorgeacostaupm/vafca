@@ -1,28 +1,40 @@
+export { downloadSelectedLinks } from './thunks/downloadSelectedLinks'
+export {
+  selectAppliedMatrixColorSettings,
+  selectAtlasLinkIds,
+  selectAtlasPanelState,
+  selectDraftMatrixColorSettings,
+  selectHoveredCell,
+  selectHoveredNodeId,
+  selectSelectedLinks,
+  selectSelectedLinksDownloadError,
+  selectSelectedLinksDownloadStatus,
+  selectUiRangeMode,
+  selectVisualizationUiState,
+} from './visualizationUiSelectors'
 export { default } from './visualizationUiSlice'
 export {
   addSelectedLink,
+  addSelectedLinks,
+  applyMatrixColorSettings,
   clearAtlasLinkIds,
   clearHoveredCell,
   clearHoveredNode,
   clearSelectedLinks,
+  pruneSelectedLinksForDisabledCatalogItem,
   removeSelectedLink,
+  removeSelectedLinks,
+  resetDraftMatrixColorSettings,
   setAtlasLinkIds,
   setAtlasPanelState,
+  setDraftMatrixColorDiscreteSteps,
+  setDraftMatrixColorDiscretize,
+  setDraftMatrixColorInvert,
+  setDraftMatrixColorScale,
+  setDraftMatrixInteractionColor,
   setHoveredCell,
   setHoveredNode,
   setUiRangeMode,
   toggleAtlasLinkId,
 } from './visualizationUiSlice'
-export {
-  selectAtlasLinkIds,
-  selectAtlasPanelState,
-  selectHoveredCell,
-  selectHoveredNodeId,
-  selectSelectedLinksDownloadError,
-  selectSelectedLinksDownloadStatus,
-  selectSelectedLinks,
-  selectUiRangeMode,
-  selectVisualizationUiState,
-} from './visualizationUiSelectors'
-export { downloadSelectedLinks } from './visualizationUiThunks'
 export type { VisualizationUiSliceState } from './visualizationUiTypes'

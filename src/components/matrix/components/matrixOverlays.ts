@@ -1,64 +1,110 @@
 import * as d3 from "d3";
+
 import {
+  HIGHLIGHT_AXIS_STROKE,
   HIGHLIGHT_GAP,
-  SELECTED_COLOR,
+  SELECTED_INSET,
   SELECTED_STROKE,
 } from "@/components/matrix/components/matrixConstants";
-import { formatHeatmapTooltipHtml } from "@/components/matrix/matrixTooltip";
+import type { MatrixSelectionBlock } from "@/components/matrix/components/matrixSelectionBlocks";
+import { buildSelectionOverlayBlocks } from "@/components/matrix/components/matrixSelectionBlocks";
 import type { HeatmapHighlightSelections } from "@/components/matrix/components/matrixTypes";
+import {
+  formatHeatmapTooltipHtml,
+  resolveHeatmapTooltipLabel,
+} from "@/components/matrix/matrixTooltip";
+import type { MatrixVisualStyle } from "@/types/visualizationUi";
 
 const hideHighlight = (highlights: HeatmapHighlightSelections) => {
   highlights.rowTop.attr("visibility", "hidden");
   highlights.rowBottom.attr("visibility", "hidden");
   highlights.colLeft.attr("visibility", "hidden");
   highlights.colRight.attr("visibility", "hidden");
-  highlights.cell.attr("visibility", "hidden");
 };
 
 const showHighlight = (args: {
   highlights: HeatmapHighlightSelections;
-  colX: number;
-  rowY: number;
-  bandwidthX: number;
-  bandwidthY: number;
+  colX?: number;
+  rowY?: number;
+  bandwidthX?: number;
+  bandwidthY?: number;
   size: number;
 }) => {
-  const { highlights, colX, rowY, bandwidthX, bandwidthY, size } = args;
+  const {
+    highlights,
+    colX,
+    rowY,
+    bandwidthX,
+    bandwidthY,
+    size,
+  } = args;
+  const hasRow = rowY !== undefined && bandwidthY !== undefined;
+  const hasCol = colX !== undefined && bandwidthX !== undefined;
 
-  highlights.cell
-    .attr("x", colX)
-    .attr("y", rowY)
-    .attr("width", bandwidthX)
-    .attr("height", bandwidthY)
-    .attr("visibility", "visible");
+  if (hasRow) {
+    highlights.rowTop
+      .attr("x1", 0)
+      .attr("x2", size)
+      .attr("y1", rowY - HIGHLIGHT_GAP)
+      .attr("y2", rowY - HIGHLIGHT_GAP)
+      .attr("visibility", "visible");
 
-  highlights.rowTop
-    .attr("x1", 0)
-    .attr("x2", size)
-    .attr("y1", rowY - HIGHLIGHT_GAP)
-    .attr("y2", rowY - HIGHLIGHT_GAP)
-    .attr("visibility", "visible");
+    highlights.rowBottom
+      .attr("x1", 0)
+      .attr("x2", size)
+      .attr("y1", rowY + bandwidthY + HIGHLIGHT_GAP)
+      .attr("y2", rowY + bandwidthY + HIGHLIGHT_GAP)
+      .attr("visibility", "visible");
+  } else {
+    highlights.rowTop.attr("visibility", "hidden");
+    highlights.rowBottom.attr("visibility", "hidden");
+  }
 
-  highlights.rowBottom
-    .attr("x1", 0)
-    .attr("x2", size)
-    .attr("y1", rowY + bandwidthY + HIGHLIGHT_GAP)
-    .attr("y2", rowY + bandwidthY + HIGHLIGHT_GAP)
-    .attr("visibility", "visible");
+  if (hasCol) {
+    highlights.colLeft
+      .attr("y1", 0)
+      .attr("y2", size)
+      .attr("x1", colX - HIGHLIGHT_GAP)
+      .attr("x2", colX - HIGHLIGHT_GAP)
+      .attr("visibility", "visible");
 
-  highlights.colLeft
-    .attr("y1", 0)
-    .attr("y2", size)
-    .attr("x1", colX - HIGHLIGHT_GAP)
-    .attr("x2", colX - HIGHLIGHT_GAP)
-    .attr("visibility", "visible");
+    highlights.colRight
+      .attr("y1", 0)
+      .attr("y2", size)
+      .attr("x1", colX + bandwidthX + HIGHLIGHT_GAP)
+      .attr("x2", colX + bandwidthX + HIGHLIGHT_GAP)
+      .attr("visibility", "visible");
+  } else {
+    highlights.colLeft.attr("visibility", "hidden");
+    highlights.colRight.attr("visibility", "hidden");
+  }
+};
 
-  highlights.colRight
-    .attr("y1", 0)
-    .attr("y2", size)
-    .attr("x1", colX + bandwidthX + HIGHLIGHT_GAP)
-    .attr("x2", colX + bandwidthX + HIGHLIGHT_GAP)
-    .attr("visibility", "visible");
+const buildSelectionPath = (args: {
+  blocks: MatrixSelectionBlock[];
+  xScale: d3.ScaleBand<number>;
+  yScale: d3.ScaleBand<number>;
+  inset: number;
+  width: number;
+  height: number;
+}) => {
+  const { blocks, xScale, yScale, inset, width, height } = args;
+
+  return blocks
+    .map((block) => {
+      const x = (xScale(block.col) ?? 0) + inset;
+      const y = (yScale(block.row) ?? 0) + inset;
+      const blockWidth = Math.max(
+        width * block.colSpan + inset * 2 * (block.colSpan - 1),
+        0,
+      );
+      const blockHeight = Math.max(
+        height * block.rowSpan + inset * 2 * (block.rowSpan - 1),
+        0,
+      );
+      return `M${x},${y}h${blockWidth}v${blockHeight}h${-blockWidth}Z`;
+    })
+    .join("");
 };
 
 export const updateSelectedCellsOverlay = (args: {
@@ -66,12 +112,24 @@ export const updateSelectedCellsOverlay = (args: {
   xScale: d3.ScaleBand<number>;
   yScale: d3.ScaleBand<number>;
   dataShape: { rows: number; cols: number };
+  visibleData?: number[][];
+  symmetric: boolean;
   selectedCells?: Array<{ row: number; col: number }>;
+  visualStyle: MatrixVisualStyle;
 }) => {
-  const { selectedLayer, xScale, yScale, dataShape, selectedCells } = args;
+  const {
+    selectedLayer,
+    xScale,
+    yScale,
+    dataShape,
+    visibleData,
+    symmetric,
+    selectedCells,
+    visualStyle,
+  } = args;
   const { rows, cols } = dataShape;
 
-  const inset = 0.6;
+  const inset = SELECTED_INSET;
   const width = Math.max(xScale.bandwidth() - inset * 2, 0);
   const height = Math.max(yScale.bandwidth() - inset * 2, 0);
 
@@ -86,29 +144,42 @@ export const updateSelectedCellsOverlay = (args: {
         cell.col < cols,
     ) ?? [];
 
+  const blocks = buildSelectionOverlayBlocks({
+    cells: points,
+    visibleData,
+    symmetric,
+  });
+  const path = buildSelectionPath({
+    blocks,
+    xScale,
+    yScale,
+    inset,
+    width,
+    height,
+  });
+
   selectedLayer
-    .selectAll<SVGRectElement, { row: number; col: number }>("rect")
-    .data(points, (point) => `${point.row}:${point.col}`)
+    .selectAll<SVGPathElement, string>("path")
+    .data(path ? [path] : [])
     .join(
-      (enter) => enter.append("rect"),
+      (enter) => enter.append("path"),
       (update) => update,
       (exit) => exit.remove(),
     )
-    .attr("x", (point) => (xScale(point.col) ?? 0) + inset)
-    .attr("y", (point) => (yScale(point.row) ?? 0) + inset)
-    .attr("width", width)
-    .attr("height", height)
+    .attr("d", (value) => value)
     .attr("fill", "none")
-    .attr("stroke", SELECTED_COLOR)
+    .attr("stroke", visualStyle.selectionColor)
     .attr("stroke-width", SELECTED_STROKE)
     .attr("pointer-events", "none");
 };
 
 export const syncHoveredCellOverlay = (args: {
   hoveredCell?: { rowId: string; colId: string } | null;
+  hoveredNodeId?: string | null;
   rowLabels?: string[];
   colLabels?: string[];
   labelNames?: Record<string, string>;
+  labelTitles?: Record<string, string>;
   normalizedData: number[][];
   xScale: d3.ScaleBand<number>;
   yScale: d3.ScaleBand<number>;
@@ -125,9 +196,11 @@ export const syncHoveredCellOverlay = (args: {
 }) => {
   const {
     hoveredCell,
+    hoveredNodeId,
     rowLabels,
     colLabels,
     labelNames,
+    labelTitles,
     normalizedData,
     xScale,
     yScale,
@@ -138,7 +211,34 @@ export const syncHoveredCellOverlay = (args: {
     positionTooltipForCell,
   } = args;
 
-  if (!hoveredCell || !rowLabels || !colLabels) {
+  if (!rowLabels || !colLabels) {
+    tooltip.style("opacity", "0");
+    hideHighlight(highlights);
+    return;
+  }
+
+  if (hoveredNodeId && !hoveredCell) {
+    const rowIndex = rowLabels.indexOf(hoveredNodeId);
+    const colIndex = colLabels.indexOf(hoveredNodeId);
+    if (rowIndex === -1 && colIndex === -1) {
+      tooltip.style("opacity", "0");
+      hideHighlight(highlights);
+      return;
+    }
+
+    tooltip.style("opacity", "0");
+    showHighlight({
+      highlights,
+      rowY: rowIndex >= 0 ? yScale(rowIndex) : undefined,
+      colX: colIndex >= 0 ? xScale(colIndex) : undefined,
+      bandwidthX: colIndex >= 0 ? xScale.bandwidth() : undefined,
+      bandwidthY: rowIndex >= 0 ? yScale.bandwidth() : undefined,
+      size,
+    });
+    return;
+  }
+
+  if (!hoveredCell) {
     tooltip.style("opacity", "0");
     hideHighlight(highlights);
     return;
@@ -169,8 +269,8 @@ export const syncHoveredCellOverlay = (args: {
 
   const rowId = rowLabels[rowIndex] ?? String(rowIndex);
   const colId = colLabels[colIndex] ?? String(colIndex);
-  const rowLabel = labelNames?.[rowId] ?? rowId;
-  const colLabel = labelNames?.[colId] ?? colId;
+  const rowLabel = resolveHeatmapTooltipLabel(rowId, labelNames, labelTitles);
+  const colLabel = resolveHeatmapTooltipLabel(colId, labelNames, labelTitles);
   const value = normalizedData[rowIndex]?.[colIndex] ?? Number.NaN;
 
   if (!Number.isFinite(value)) {
@@ -188,44 +288,37 @@ export const syncHoveredCellOverlay = (args: {
 
 export const createHighlightLayer = (args: {
   root: d3.Selection<SVGGElement, unknown, null, undefined>;
+  visualStyle: MatrixVisualStyle;
 }) => {
-  const { root } = args;
+  const { root, visualStyle } = args;
 
   const highlightLayer = root.append("g").attr("class", "heatmap-highlight");
 
-  const cell = highlightLayer
-    .append("rect")
-    .attr("fill", "none")
-    .attr("stroke", "#f0b429")
-    .attr("stroke-width", 2)
-    .attr("visibility", "hidden");
-
   const rowTop = highlightLayer
     .append("line")
-    .attr("stroke", "#f0b429")
-    .attr("stroke-width", 1.6)
+    .attr("stroke", visualStyle.highlightColor)
+    .attr("stroke-width", HIGHLIGHT_AXIS_STROKE)
     .attr("visibility", "hidden");
 
   const rowBottom = highlightLayer
     .append("line")
-    .attr("stroke", "#f0b429")
-    .attr("stroke-width", 1.6)
+    .attr("stroke", visualStyle.highlightColor)
+    .attr("stroke-width", HIGHLIGHT_AXIS_STROKE)
     .attr("visibility", "hidden");
 
   const colLeft = highlightLayer
     .append("line")
-    .attr("stroke", "#f0b429")
-    .attr("stroke-width", 1.6)
+    .attr("stroke", visualStyle.highlightColor)
+    .attr("stroke-width", HIGHLIGHT_AXIS_STROKE)
     .attr("visibility", "hidden");
 
   const colRight = highlightLayer
     .append("line")
-    .attr("stroke", "#f0b429")
-    .attr("stroke-width", 1.6)
+    .attr("stroke", visualStyle.highlightColor)
+    .attr("stroke-width", HIGHLIGHT_AXIS_STROKE)
     .attr("visibility", "hidden");
 
   return {
-    cell,
     rowTop,
     rowBottom,
     colLeft,

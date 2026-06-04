@@ -1,5 +1,7 @@
-import ReactGridLayout, { bottom, useContainerWidth } from "react-grid-layout";
+import { memo, useCallback, useMemo, useState } from "react";
 import type { Layout } from "react-grid-layout";
+import ReactGridLayout, { bottom, useContainerWidth } from "react-grid-layout";
+
 import {
   DEFAULT_PANEL_GRID_COMPACTOR,
   DEFAULT_PANEL_GRID_CONFIG,
@@ -18,7 +20,7 @@ function getLayoutMinHeight(
   return rowCount * rowHeight + (rowCount + 1) * margin[1];
 }
 
-export default function NetworkLayout({
+function NetworkLayout({
   panelIds,
   layout,
   renderPanel,
@@ -28,21 +30,45 @@ export default function NetworkLayout({
   margin = DEFAULT_PANEL_GRID_CONFIG.margin,
   dragHandleClass = DEFAULT_PANEL_GRID_DRAG_HANDLE,
 }: NetworkLayoutProps) {
-  const { width, containerRef, mounted } = useContainerWidth();
-  const layoutMinHeight = getLayoutMinHeight(layout, rowHeight, margin);
-  const handleLayoutUpdate = (nextLayout: Layout) => {
+  const [isInteracting, setIsInteracting] = useState(false);
+  const { width, containerRef, mounted } = useContainerWidth({
+    measureBeforeMount: true,
+  });
+  const layoutMinHeight = useMemo(
+    () => getLayoutMinHeight(layout, rowHeight, margin),
+    [layout, margin, rowHeight],
+  );
+  const gridClassName = isInteracting
+    ? "network-layout-grid network-layout-grid--interacting"
+    : "network-layout-grid";
+  const handleInteractionStart = useCallback(() => {
+    setIsInteracting(true);
+  }, []);
+  const handleLayoutCommit = useCallback((nextLayout: Layout) => {
+    setIsInteracting(false);
     setLayout(nextLayout.map((entry) => ({ ...entry })));
-  };
+  }, [setLayout]);
+  const panelElements = useMemo(
+    () =>
+      panelIds.map((id) => (
+        <div key={id} className="panel-grid-item">
+          {renderPanel(id)}
+        </div>
+      )),
+    [panelIds, renderPanel],
+  );
 
   return (
     <div ref={containerRef}>
       {mounted && (
         <ReactGridLayout
           width={width}
+          className={gridClassName}
           layout={layout}
-          onLayoutChange={handleLayoutUpdate}
-          onDrag={handleLayoutUpdate}
-          onResize={handleLayoutUpdate}
+          onDragStart={handleInteractionStart}
+          onDragStop={handleLayoutCommit}
+          onResizeStart={handleInteractionStart}
+          onResizeStop={handleLayoutCommit}
           compactor={DEFAULT_PANEL_GRID_COMPACTOR}
           gridConfig={{
             cols,
@@ -55,13 +81,11 @@ export default function NetworkLayout({
           }}
           style={{ minHeight: layoutMinHeight }}
         >
-          {panelIds.map((id) => (
-            <div key={id} className="panel-grid-item">
-              {renderPanel(id)}
-            </div>
-          ))}
+          {panelElements}
         </ReactGridLayout>
       )}
     </div>
   );
 }
+
+export default memo(NetworkLayout);

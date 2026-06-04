@@ -61,6 +61,11 @@
   background: var(--color-surface-2);
 }
 
+.atlas-panel__settings-stack,
+.atlas-panel__settings-select {
+  width: 100%;
+}
+
 .atlas-panel__color-preview {
   height: 210px;
   overflow: auto;

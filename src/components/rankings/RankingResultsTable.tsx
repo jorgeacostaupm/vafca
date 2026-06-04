@@ -1,16 +1,17 @@
+import { EyeOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Space, Table, Tooltip } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EyeOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
+
+import ResizableContainer from '@/components/layout/ResizableContainer'
+import { getRankingMetricLabel } from '@/components/rankings/rankingOptions'
+import { useRankingRowInteractions } from '@/components/rankings/useRankingRowInteractions'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectDatasetContent } from '@/store/slices/dataset'
 import { addNetworkViewAndFormat } from '@/store/slices/networkVisualization'
 import { addSelectedLink, removeSelectedLink } from '@/store/slices/visualizationUi'
-import ResizableContainer from '@/components/layout/ResizableContainer'
-import { getMatrixCompoundId } from '@/utils/rankings/rankingMatrixMetadata'
-import { getRankingMetricLabel } from '@/components/rankings/rankingOptions'
-import { useRankingRowInteractions } from '@/components/rankings/useRankingRowInteractions'
 import type { LinkRankingRow, MatrixRankingRow, RankingResult, RankingRow } from '@/types/rankings'
+import { getMatrixCompoundId } from '@/utils/rankings/rankingMatrixMetadata'
 
 type Props = {
   result: RankingResult

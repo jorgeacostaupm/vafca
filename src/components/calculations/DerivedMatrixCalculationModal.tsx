@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import { InfoCircleOutlined, SwapOutlined } from "@ant-design/icons";
 import {
   Alert,
@@ -9,40 +8,48 @@ import {
   Modal,
   Select,
   Space,
-  Tabs,
   Table,
+  Tabs,
   Tooltip,
   Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { useCallback, useMemo, useState } from "react";
+
 import { DEFAULT_DERIVED_MATRIX_CALCULATION_TAB } from "@/config/ui";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  computeAggregatedMatrixFromVisualizationGroups,
-  computeDerivedMatrices,
-  selectDerivedCalculationError,
-  selectDerivedCalculationStatus,
-  selectDatasetData,
-} from "@/store/slices/dataset";
 import {
   type AggregatedMatrixOrderMode,
   buildRoiGroupsFromTags,
   getCurrentVisualizationGrouping,
-  hashRoiSet,
-} from "@/connectivity/aggregation/roiGroupAggregation";
+  hashGroupOrder,
+} from "@/networkDerivation/aggregation/roiGroupAggregation";
 import {
   getAvailableMatrixCalculations,
   getMatrixCalculationMethodDefinitions,
-  resolveCalculationInputsForLayerMeasure,
   type MatrixCalculationAssociatedOutputId,
   type MatrixCalculationOperation,
-} from "@/connectivity/calculations";
+  resolveCalculationInputsForLayerMeasure,
+} from "@/networkDerivation/calculations";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  computeAggregatedMatrixFromVisualizationGroups,
+  computeDerivedMatrices,
+  removeDatasetMatrices,
+  selectDatasetData,
+  selectDerivedCalculationError,
+  selectDerivedCalculationStatus,
+} from "@/store/slices/dataset";
+import { pruneInvalidNetworkViews } from "@/store/slices/networkVisualization";
+import { getMatrixCompoundId } from "@/utils/rankings/rankingMatrixMetadata";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   onOpenGroupingSettings?: () => void;
+  initialTab?: DerivedMatrixCalculationTab;
 };
+
+export type DerivedMatrixCalculationTab = "comparison" | "aggregated";
 
 type PreviewRow = {
   key: string;
@@ -73,6 +80,7 @@ export default function DerivedMatrixCalculationModal({
   open,
   onClose,
   onOpenGroupingSettings,
+  initialTab = DEFAULT_DERIVED_MATRIX_CALCULATION_TAB,
 }: Props) {
   const dispatch = useAppDispatch();
   const dataset = useAppSelector(selectDatasetData);
@@ -143,9 +151,8 @@ export default function DerivedMatrixCalculationModal({
   );
   const [aggregationWarnings, setAggregationWarnings] = useState<string[]>([]);
   const [baseMatrixIds, setBaseMatrixIds] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<"comparison" | "aggregated">(
-    DEFAULT_DERIVED_MATRIX_CALCULATION_TAB,
-  );
+  const [activeTab, setActiveTab] =
+    useState<DerivedMatrixCalculationTab>(initialTab);
   const running = calculationStatus === "loading";
   const aggregationOrderMode: AggregatedMatrixOrderMode =
     selectedViewType === "circular" ? "circular" : "matrix";
@@ -306,10 +313,51 @@ export default function DerivedMatrixCalculationModal({
   const aggregationBaseMatrices = useMemo(
     () =>
       (datasetContent?.matrices ?? []).filter((matrix) =>
-        ["subject", "aggregate", "comparison"].includes(matrix.kind),
+        ["subject", "population", "comparison"].includes(matrix.kind),
       ),
     [datasetContent?.matrices],
   );
+  const logAggregationSelectAllDiagnostics = () => {
+    const aggregatedKeys = new Map<string, typeof aggregationBaseMatrices>();
+    aggregationBaseMatrices.forEach((matrix) => {
+      const layerId = matrix.context.layerId
+        ? `${matrix.context.layerId}-${matrix.stat.id}-${groupConfig?.fields.join("-") ?? "ungrouped"}`
+        : `none-${matrix.stat.id}-${groupConfig?.fields.join("-") ?? "ungrouped"}`;
+      const populationIds =
+        matrix.source.level === "population"
+          ? matrix.source.populationIds
+          : matrix.source.level === "comparison"
+            ? [
+                matrix.source.left.populationIds?.join("+") ?? "left",
+                matrix.source.right.populationIds?.join("+") ?? "right",
+              ]
+            : matrix.source.level === "subject"
+              ? matrix.source.populationIds
+              : [];
+      const key = `${layerId}::${matrix.context.measureId}::mean::${[...populationIds].sort().join("+")}`;
+      aggregatedKeys.set(key, [...(aggregatedKeys.get(key) ?? []), matrix]);
+    });
+    const duplicates = Array.from(aggregatedKeys.entries())
+      .filter(([, matrices]) => matrices.length > 1)
+      .map(([key, matrices]) => ({
+        aggregatedCompoundId: key,
+        baseMatrices: matrices.map((matrix) => ({
+          id: matrix.id,
+          label: matrix.label,
+          layerId: matrix.context.layerId,
+          measureId: matrix.context.measureId,
+          statId: matrix.stat.id,
+          kind: matrix.kind,
+        })),
+      }));
+
+    console.info("[aggregation-select-all] selected base matrix diagnostics", {
+      baseMatrixCount: aggregationBaseMatrices.length,
+      prospectiveAggregatedKeyCount: aggregatedKeys.size,
+      duplicateAggregatedKeysCount: duplicates.length,
+      duplicateAggregatedKeys: duplicates,
+    });
+  };
   const groupPreview = useMemo(() => {
     if (!datasetContent || !groupConfig) return null;
     return buildRoiGroupsFromTags({
@@ -320,16 +368,39 @@ export default function DerivedMatrixCalculationModal({
       missingTagPolicy: groupConfig.missingTagPolicy,
     });
   }, [activeRoiIds, datasetContent, groupConfig]);
-  const staleReducedCount = useMemo(() => {
-    if (!datasetContent) return 0;
-    const currentHash = hashRoiSet(activeRoiIds);
-    return datasetContent.matrices.filter(
-      (matrix) =>
-        matrix.kind === "reduced" &&
-        matrix.reduction?.activeRoiSetHash &&
-        matrix.reduction.activeRoiSetHash !== currentHash,
-    ).length;
-  }, [activeRoiIds, datasetContent]);
+  const aggregationMismatchMatrixIds = useMemo(() => {
+    if (!datasetContent) return [];
+
+    const aggregatedMatrices = datasetContent.matrices.filter(
+      (matrix) => matrix.kind === "aggregated",
+    );
+    if (!groupConfig || !groupPreview) {
+      return aggregatedMatrices.map((matrix) => matrix.id);
+    }
+
+    const currentGroupOrderHash = hashGroupOrder(
+      groupPreview.groups.map((group) => group.id),
+    );
+
+    return aggregatedMatrices
+      .filter((matrix) => {
+        const aggregation = matrix.aggregation;
+        if (!aggregation) return true;
+
+        const sameFields =
+          aggregation.fields.length === groupConfig.fields.length &&
+          aggregation.fields.every(
+            (field, index) => field === groupConfig.fields[index],
+          );
+        const sameMissingPolicy =
+          aggregation.parameters.missingTagPolicy === groupConfig.missingTagPolicy;
+        const sameGroupOrder =
+          aggregation.parameters.groupOrderHash === currentGroupOrderHash;
+
+        return !(sameFields && sameMissingPolicy && sameGroupOrder);
+      })
+      .map((matrix) => matrix.id);
+  }, [datasetContent, groupConfig, groupPreview]);
   const canAggregate =
     Boolean(groupConfig) &&
     baseMatrixIds.length > 0 &&
@@ -365,6 +436,26 @@ export default function DerivedMatrixCalculationModal({
       // The slice stores and exposes the user-facing error.
     }
   };
+
+  const handleDeleteAggregationMismatchMatrices = useCallback(() => {
+    if (!datasetContent || aggregationMismatchMatrixIds.length === 0) return;
+
+    const deletedIds = new Set(aggregationMismatchMatrixIds);
+    const validCompoundIds = datasetContent.matrices
+      .filter((matrix) => !deletedIds.has(matrix.id))
+      .map(getMatrixCompoundId);
+
+    dispatch(removeDatasetMatrices({ matrixIds: aggregationMismatchMatrixIds }));
+    void dispatch(
+      pruneInvalidNetworkViews({
+        validCompoundIds,
+        enabled: true,
+      }),
+    );
+    setAggregationSummary(
+      `Deleted ${aggregationMismatchMatrixIds.length} aggregated matrices with a different grouping.`,
+    );
+  }, [aggregationMismatchMatrixIds, datasetContent, dispatch]);
 
   const methodOptions = methods.filter((method) => availableIds.has(method.id));
   const columns: ColumnsType<PreviewRow> = [
@@ -420,7 +511,7 @@ export default function DerivedMatrixCalculationModal({
         ) : null}
         <Tabs
           activeKey={activeTab}
-          onChange={(key) => setActiveTab(key as "comparison" | "aggregated")}
+          onChange={(key) => setActiveTab(key as DerivedMatrixCalculationTab)}
           items={[
             {
               key: "comparison",
@@ -653,7 +744,7 @@ export default function DerivedMatrixCalculationModal({
               children: (
                 <Space direction="vertical" size={12} style={{ width: "100%" }}>
                   <Typography.Text type="secondary">
-                    Create a reduced ROI-group matrix from the current
+                    Create an aggregated ROI-group matrix from the current
                     Visualization Settings grouping.
                   </Typography.Text>
                   {groupConfig ? (
@@ -691,11 +782,21 @@ export default function DerivedMatrixCalculationModal({
                       description={inactiveRoiIds.slice(0, 12).join(", ")}
                     />
                   ) : null}
-                  {staleReducedCount > 0 ? (
+                  {aggregationMismatchMatrixIds.length > 0 ? (
                     <Alert
                       type="warning"
                       showIcon
-                      message={`${staleReducedCount} aggregated matrix${staleReducedCount === 1 ? " is" : "es are"} outdated: active ROIs changed.`}
+                      message={`${aggregationMismatchMatrixIds.length} aggregated matrix${aggregationMismatchMatrixIds.length === 1 ? " uses" : " matrices use"} a different grouping.`}
+                      description="These matrices are kept as snapshots and will not be recalculated when the grouping fields or category order changes."
+                      action={
+                        <Button
+                          size="small"
+                          danger
+                          onClick={handleDeleteAggregationMismatchMatrices}
+                        >
+                          Delete all
+                        </Button>
+                      }
                     />
                   ) : null}
                   <Form layout="vertical">
@@ -712,13 +813,14 @@ export default function DerivedMatrixCalculationModal({
                               !groupConfig ||
                               aggregationBaseMatrices.length === 0
                             }
-                            onClick={() =>
+                            onClick={() => {
+                              logAggregationSelectAllDiagnostics();
                               setBaseMatrixIds(
                                 aggregationBaseMatrices.map(
                                   (matrix) => matrix.id,
                                 ),
-                              )
-                            }
+                              );
+                            }}
                           >
                             Select all
                           </Button>

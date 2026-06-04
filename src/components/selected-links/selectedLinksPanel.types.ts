@@ -1,4 +1,4 @@
-import type { ConnectivityMatrix } from "@/types/matrix";
+import type { MatrixViewData } from "@/types/connectivityBundle";
 import type { SelectedLink } from "@/types/visualizationUi";
 
 export type MatrixOption = {
@@ -19,7 +19,7 @@ export type LinkRow = {
 
 export type DownloadMode = "all" | "viewer";
 
-export type MatrixLookup = Record<string, ConnectivityMatrix | null>;
+export type MatrixLookup = Record<string, MatrixViewData | null>;
 
 export type BuildLinkValuesParams = {
   link: SelectedLink;
@@ -41,6 +41,7 @@ export type ExportedLink = {
   rowLabel: string;
   colId: string;
   colLabel: string;
+  directed?: boolean;
   values: Record<string, number | null>;
 };
 

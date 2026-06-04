@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
 import { Button, Card, Divider, Input, InputNumber, Space, Switch, Typography } from "antd";
-import type { MeasureCatalogEntry } from "@/types/connectivityBundle";
-import { useAppSelector } from "@/store/hooks";
-import { selectDatasetContent } from "@/store/slices/dataset";
+import { useEffect, useMemo, useState } from "react";
+
+import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 import {
   isEnabled,
   normalizeNumber,
 } from "@/components/management/utils/catalogValues";
-import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
+import { useAppSelector } from "@/store/hooks";
+import { selectDatasetContent } from "@/store/slices/dataset";
+import type { MeasureCatalogEntry } from "@/types/connectivityBundle";
 
 type MeasureDraft = {
   id: string;

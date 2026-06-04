@@ -1,44 +1,35 @@
-import { createCompoundId } from "@/utils/matrixStore";
 import type {
   ConnectivityDataState,
-  MatrixKind,
-  MatrixRecord,
+  ConnectivityMatrix,
+  MatrixViewData,
 } from "@/types/connectivityBundle";
-import type { ConnectivityMatrix } from "@/types/matrix";
-import type { MatrixKindForRanking, RankingQuery } from "@/types/rankings";
-import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
+import type { RankingQuery } from "@/types/rankings";
 import { getMatrixPopulationIds } from "@/utils/matrixSource";
+import { createCompoundId } from "@/utils/matrixStore";
+import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
 
 export const ALL_COMPATIBLE_LAYERS = "__all_compatible_layers__";
 
-export const toRankingMatrixKind = (
-  kind: MatrixKind,
-): MatrixKindForRanking => {
-  if (kind === "comparison") return "comparison";
-  if (kind === "reduced") return "aggregated";
-  return "original";
-};
-
-export const getMatrixAggregationGroupingKey = (matrix: MatrixRecord) => {
-  if (matrix.kind !== "reduced" || !matrix.reduction) return undefined;
-  const parameters = matrix.reduction.parameters;
+export const getMatrixAggregationGroupingKey = (matrix: ConnectivityMatrix) => {
+  if (matrix.kind !== "aggregated" || !matrix.aggregation) return undefined;
+  const parameters = matrix.aggregation.parameters;
   return [
     matrix.geometry.atlasId,
     matrix.geometry.shape.join("x"),
-    matrix.reduction.fields.join("/"),
+    matrix.aggregation.fields.join("/"),
     parameters.missingTagPolicy,
     parameters.activeRoiSetHash,
     parameters.groupOrderHash ?? "unordered",
   ].join("::");
 };
 
-export const getMatrixAggregationGroupingLabel = (matrix: MatrixRecord) => {
-  if (matrix.kind !== "reduced" || !matrix.reduction) return undefined;
-  return matrix.reduction.fields.join(" / ");
+export const getMatrixAggregationGroupingLabel = (matrix: ConnectivityMatrix) => {
+  if (matrix.kind !== "aggregated" || !matrix.aggregation) return undefined;
+  return matrix.aggregation.fields.join(" / ");
 };
 
 export const getMatrixSource = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
 ): { sourceType?: RankingQuery["sourceType"]; sourceId?: string } => {
   if (matrix.source.level === "population") {
     return {
@@ -62,7 +53,7 @@ export const getMatrixSource = (
       "right";
     return { sourceType: "comparison", sourceId: `${left} vs ${right}` };
   }
-  if (matrix.source.level === "reduction") {
+  if (matrix.source.level === "aggregation") {
     const populationIds = getMatrixPopulationIds(matrix);
     if (populationIds.length > 0) {
       return {
@@ -75,7 +66,7 @@ export const getMatrixSource = (
 };
 
 export const getMatrixSourceLabel = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   connectivity: ConnectivityDataState,
 ) => {
   if (matrix.source.level === "population") {
@@ -113,7 +104,7 @@ export const getMatrixSourceLabel = (
       "right";
     return `${left} vs ${right}`;
   }
-  if (matrix.source.level === "reduction") {
+  if (matrix.source.level === "aggregation") {
     const populationIds = getMatrixPopulationIds(matrix);
     if (populationIds.length > 0) {
       return formatPopulationSetLabel(populationIds, connectivity.catalogs);
@@ -122,11 +113,11 @@ export const getMatrixSourceLabel = (
   return undefined;
 };
 
-export const getMatrixCompoundId = (matrix: MatrixRecord) => {
+export const getMatrixCompoundId = (matrix: ConnectivityMatrix) => {
   const populationIds = getMatrixPopulationIds(matrix);
 
   const legacyMatrixIdentity: Pick<
-    ConnectivityMatrix,
+    MatrixViewData,
     "id" | "layerId" | "measureId" | "statId" | "populationIds"
   > = {
     id: matrix.id,
@@ -139,7 +130,7 @@ export const getMatrixCompoundId = (matrix: MatrixRecord) => {
 };
 
 export const getMatrixLabel = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   connectivity: ConnectivityDataState,
 ) => {
   if (matrix.label) return matrix.label;
@@ -153,11 +144,11 @@ export const getMatrixLabel = (
   return [source, measure, layer, stat].filter(Boolean).join(" / ");
 };
 
-export const getMatrixEndpointIds = (matrix: MatrixRecord): string[] =>
-  matrix.geometry.roiOrder ?? matrix.reduction?.groups.map((group) => group.id) ?? [];
+export const getMatrixEndpointIds = (matrix: ConnectivityMatrix): string[] =>
+  matrix.geometry.roiOrder ?? matrix.aggregation?.groups.map((group) => group.id) ?? [];
 
 export const resolveMatrixEndpointIds = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   connectivity: ConnectivityDataState,
 ): string[] => {
   const explicit = getMatrixEndpointIds(matrix);
@@ -171,7 +162,7 @@ export const resolveMatrixEndpointIds = (
 };
 
 export const matrixMatchesRankingQuery = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   query: RankingQuery,
 ) => {
   const source = getMatrixSource(matrix);
@@ -184,7 +175,7 @@ export const matrixMatchesRankingQuery = (
   return (
     (!query.sourceType || source.sourceType === query.sourceType) &&
     (!query.sourceId || source.sourceId === query.sourceId) &&
-    (!query.matrixKind || toRankingMatrixKind(matrix.kind) === query.matrixKind) &&
+    (!query.matrixKind || matrix.kind === query.matrixKind) &&
     (!query.aggregationGroupingKey ||
       aggregationGroupingKey === query.aggregationGroupingKey) &&
     (!query.measureId || matrix.context.measureId === query.measureId) &&
@@ -205,7 +196,7 @@ export const resolveRankingMatrixCollection = (
   if (directIds.length > 0) {
     return directIds
       .map((id) => connectivity.matrixIndex[id])
-      .filter((matrix): matrix is MatrixRecord => Boolean(matrix));
+      .filter((matrix): matrix is ConnectivityMatrix => Boolean(matrix));
   }
   const matches = connectivity.matrices.filter((matrix) =>
     matrixMatchesRankingQuery(matrix, query),
@@ -215,7 +206,7 @@ export const resolveRankingMatrixCollection = (
   const firstEndpointKey = JSON.stringify(resolveMatrixEndpointIds(first, connectivity));
   return matches.filter(
     (matrix) =>
-      toRankingMatrixKind(matrix.kind) === toRankingMatrixKind(first.kind) &&
+      matrix.kind === first.kind &&
       getMatrixAggregationGroupingKey(matrix) ===
         getMatrixAggregationGroupingKey(first) &&
       matrix.geometry.atlasId === first.geometry.atlasId &&

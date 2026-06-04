@@ -1,6 +1,8 @@
 import { useMemo } from "react";
-import type { AtlasPanelState } from "@/types/visualizationUi";
+
 import type { GroupedRow } from "@/types/atlasPanel";
+import type { AtlasPanelState } from "@/types/visualizationUi";
+
 import { buildGroupTreeEntries } from "../panelTree";
 
 type UseAtlasPanelDerivedDataArgs = {

@@ -1,3 +1,6 @@
+import { RANKING_TOP_N_OPTIONS } from "@/config/ui";
+import type { ConnectivityDataState, ConnectivityMatrix } from "@/types/connectivityBundle";
+import type { RankingQuery } from "@/types/rankings";
 import {
   ALL_COMPATIBLE_LAYERS,
   getMatrixAggregationGroupingKey,
@@ -6,15 +9,11 @@ import {
   getMatrixSource,
   getMatrixSourceLabel,
   matrixMatchesRankingQuery,
-  toRankingMatrixKind,
 } from "@/utils/rankings/rankingMatrixMetadata";
-import { RANKING_TOP_N_OPTIONS } from "@/config/ui";
-import type { ConnectivityDataState, MatrixRecord } from "@/types/connectivityBundle";
-import type { RankingQuery } from "@/types/rankings";
 
 type Option = { value: string; label: string };
 
-const isRankingMatrixCandidate = (matrix: MatrixRecord) => {
+const isRankingMatrixCandidate = (matrix: ConnectivityMatrix) => {
   void matrix;
   return true;
 };
@@ -25,8 +24,15 @@ const sourceTypeLabel: Record<NonNullable<RankingQuery["sourceType"]>, string> =
   comparison: "Comparison",
 };
 
+const matrixKindLabel: Record<ConnectivityMatrix["kind"], string> = {
+  population: "Population",
+  subject: "Subject",
+  comparison: "Comparison",
+  aggregated: "Aggregated",
+};
+
 const matchesQueryPart = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   query: RankingQuery,
   ignored: Array<keyof RankingQuery> = [],
 ) => {
@@ -41,7 +47,7 @@ const matchesQueryPart = (
 };
 
 const getSelectedLayerCompatibility = (
-  matrices: MatrixRecord[],
+  matrices: ConnectivityMatrix[],
   query: RankingQuery,
 ) => {
   const selectedLayerIds = (query.layerIds ?? []).filter(
@@ -55,7 +61,7 @@ const getSelectedLayerCompatibility = (
       matchesQueryPart(matrix, query, ["layerIds"]),
   );
   const selectedKinds = new Set(
-    selectedMatrices.map((matrix) => toRankingMatrixKind(matrix.kind)),
+    selectedMatrices.map((matrix) => matrix.kind),
   );
   const selectedGroupingKeys = new Set(
     selectedMatrices
@@ -210,7 +216,7 @@ export const getCompatibleLayerOptions = (
       }
       if (
         selectedCompatibility.matrixKind &&
-        toRankingMatrixKind(matrix.kind) !== selectedCompatibility.matrixKind
+        matrix.kind !== selectedCompatibility.matrixKind
       ) {
         return false;
       }
@@ -264,7 +270,7 @@ export const getMatrixOptions = (
         : isRankingMatrixCandidate(matrix),
     )
     .map((matrix) => ({
-      label: `${getMatrixLabel(matrix, connectivity)} · ${toRankingMatrixKind(matrix.kind)}`,
+      label: `${getMatrixLabel(matrix, connectivity)} · ${matrixKindLabel[matrix.kind]}`,
       value: matrix.id,
       matrix,
     }));
@@ -273,7 +279,7 @@ export const getMatrixOptions = (
 export const findMatrix = (
   connectivity: ConnectivityDataState | null | undefined,
   matrixId?: string,
-): MatrixRecord | undefined =>
+): ConnectivityMatrix | undefined =>
   matrixId && connectivity ? connectivity.matrixIndex[matrixId] : undefined;
 
 export const getRankingQueryMissingFields = (

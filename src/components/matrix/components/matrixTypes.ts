@@ -14,7 +14,6 @@ export type HeatmapCellDatum = {
 };
 
 export type HeatmapHighlightSelections = {
-  cell: d3.Selection<SVGRectElement, unknown, null, undefined>;
   rowTop: d3.Selection<SVGLineElement, unknown, null, undefined>;
   rowBottom: d3.Selection<SVGLineElement, unknown, null, undefined>;
   colLeft: d3.Selection<SVGLineElement, unknown, null, undefined>;

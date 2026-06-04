@@ -1,4 +1,4 @@
-import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
+import type { RuntimeEdgeMask } from "@/types/edgeFilter";
 import type { MatrixValueRange } from "@/types/matrixView";
 import type {
   FilterContributor,
@@ -6,7 +6,7 @@ import type {
   NodeLinkNetworkViewSettings,
   ViewVisibility,
 } from "@/types/networkVisualization";
-import type { RuntimeEdgeMask } from "@/types/edgeFilter";
+import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
 
 
 export const buildLinkKey = (a: string, b: string) =>
@@ -114,18 +114,20 @@ export const applyLinkMask = ({
   rowLabels,
   colLabels,
   allowedLinkIds,
+  preserveDiagonal = true,
 }: {
   data: number[][];
   rowLabels: string[];
   colLabels: string[];
   allowedLinkIds: Set<string>;
+  preserveDiagonal?: boolean;
 }) =>
   data.map((row, rowIndex) =>
     row.map((value, colIndex) => {
       const rowId = rowLabels[rowIndex];
       const colId = colLabels[colIndex];
       if (!rowId || !colId) return Number.NaN;
-      if (rowId === colId) return value;
+      if (preserveDiagonal && rowId === colId) return value;
       return allowedLinkIds.has(buildLinkKey(rowId, colId)) ? value : Number.NaN;
     }),
   );

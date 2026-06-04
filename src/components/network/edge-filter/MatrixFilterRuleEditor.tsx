@@ -1,8 +1,10 @@
 import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Button, Card, Select, Space, Tooltip, Typography } from "antd";
-import { resolveMatrixUiRange } from "@/utils/matrixUiRange";
-import type { Catalogs, MatrixRecord } from "@/types/connectivityBundle";
+
+import type { Catalogs, ConnectivityMatrix, UiRangeMode } from "@/types/connectivityBundle";
 import type { MatrixFilterRule } from "@/types/edgeFilter";
+import { resolveValueDomain } from "@/utils/valueDomain";
+
 import MatrixFilterRangeControl from "./MatrixFilterRangeControl";
 
 type MatrixOptionGroup = {
@@ -12,10 +14,10 @@ type MatrixOptionGroup = {
 
 type Props = {
   rule: MatrixFilterRule;
-  matrices: MatrixRecord[];
+  matrices: ConnectivityMatrix[];
   matrixGroups: MatrixOptionGroup[];
   catalogs?: Catalogs;
-  uiRangeMode: "logical_default" | "observed";
+  uiRangeMode: UiRangeMode;
   onChange: (rule: MatrixFilterRule) => void;
   onDelete: () => void;
   onMoveUp: () => void;
@@ -35,9 +37,10 @@ export default function MatrixFilterRuleEditor({
 }: Props) {
   const matrix = matrices.find((item) => item.id === rule.matrixId);
   const range = matrix
-    ? resolveMatrixUiRange(matrix, catalogs, {
-        uiRangeMode,
-        target: "slider",
+    ? resolveValueDomain({
+        matrix,
+        catalogs,
+        mode: uiRangeMode,
       })
     : { min: -1, max: 1 };
   const isDivergent = "scaleType" in range && range.scaleType === "diverging";
@@ -52,9 +55,10 @@ export default function MatrixFilterRuleEditor({
       return;
     }
 
-    const nextRange = resolveMatrixUiRange(nextMatrix, catalogs, {
-      uiRangeMode,
-      target: "slider",
+    const nextRange = resolveValueDomain({
+      matrix: nextMatrix,
+      catalogs,
+      mode: uiRangeMode,
     });
     if (nextRange.scaleType === "diverging") {
       onChange({

@@ -1,20 +1,21 @@
 import { useMemo } from "react";
+
+import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
-import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import type { AtlasDefinition } from "@/types/atlas";
 import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
+import {
+  getDatasetAtlasId,
+  getDatasetAtlasLabel,
+  getDatasetMatrixOrder,
+} from "@/utils/datasetAccessors";
 import {
   buildGroupingColorCategoryKey,
   buildRoiGroupingColorById,
   buildRoiGroupingColorCategories,
 } from "@/utils/groupingColoring";
 import { buildLabelNameMap, normalizeMatrixOrder } from "@/utils/matrixOrder";
-import {
-  getDatasetAtlasId,
-  getDatasetAtlasLabel,
-  getDatasetMatrixOrder,
-} from "@/utils/datasetAccessors";
 
 type UseAtlasLabelPresentationArgs = {
   useMatrixHierarchyOrder?: boolean;
@@ -82,7 +83,7 @@ export const useAtlasLabelPresentation = ({
           }, {});
 
       dataset?.content?.matrices.forEach((matrix) => {
-        matrix.reduction?.groups.forEach((group) => {
+        matrix.aggregation?.groups.forEach((group) => {
           base[group.id] = group.label;
         });
       });
@@ -101,7 +102,7 @@ export const useAtlasLabelPresentation = ({
         return acc;
       }, {});
       dataset?.content?.matrices.forEach((matrix) => {
-        matrix.reduction?.groups.forEach((group) => {
+        matrix.aggregation?.groups.forEach((group) => {
           base[group.id] = group.label;
         });
       });
@@ -120,7 +121,7 @@ export const useAtlasLabelPresentation = ({
         return acc;
       }, {});
       dataset?.content?.matrices.forEach((matrix) => {
-        matrix.reduction?.groups.forEach((group) => {
+        matrix.aggregation?.groups.forEach((group) => {
           base[group.id] = group.label;
         });
       });
@@ -179,7 +180,7 @@ export const useAtlasLabelPresentation = ({
       );
 
       dataset?.content?.matrices.forEach((matrix) => {
-        matrix.reduction?.groups.forEach((group) => {
+        matrix.aggregation?.groups.forEach((group) => {
           const values = atlas.colorFields.map((field) => group.criteria[field] ?? "Unknown");
           const color = colorByCategory.get(buildGroupingColorCategoryKey(values));
           if (color) baseColors[group.id] = color;

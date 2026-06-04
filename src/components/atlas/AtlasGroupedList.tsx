@@ -1,10 +1,12 @@
-import { memo, useCallback, useMemo, type Key } from "react";
 import { Button, Collapse, List, Space, Typography } from "antd";
-import type { GroupTreeEntry, RoiTreeNode } from "./panelTypes";
-import { AtlasRoiListItem } from "./AtlasRoiListItem";
+import { type Key,memo, useCallback, useMemo } from "react";
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setLabelsEnabled } from "@/store/slices/atlasUi";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
+
+import { AtlasRoiListItem } from "./AtlasRoiListItem";
+import type { GroupTreeEntry, RoiTreeNode } from "./panelTypes";
+import { buildEffectiveRoiEnabledMap } from "./roiVisibilityDraft";
 
 type AtlasGroupedListProps = {
   entries: GroupTreeEntry[];
@@ -32,6 +34,11 @@ export const AtlasGroupedList = memo(function AtlasGroupedList({
   const collapsedGroupIds = useAppSelector(
     (state) => state.visualizationUi.atlasPanel.collapsedGroups,
   );
+  const { draft, labelsById, order } = useAppSelector((state) => ({
+    draft: state.visualizationUi.atlasPanel.roiVisibilityDraft,
+    labelsById: state.atlasUi.labelsById,
+    order: state.atlasUi.order,
+  }));
   const collapsedGroups = useMemo(
     () => new Set(collapsedGroupIds),
     [collapsedGroupIds],
@@ -63,9 +70,13 @@ export const AtlasGroupedList = memo(function AtlasGroupedList({
     (entriesToUpdate: GroupTreeEntry[], enabled: boolean) => {
       const ids = collectRoiIds(entriesToUpdate);
       if (ids.length === 0) return;
-      dispatch(setLabelsEnabled({ ids, enabled }));
+      const nextDraft = buildEffectiveRoiEnabledMap({ order, labelsById, draft });
+      ids.forEach((id) => {
+        nextDraft[id] = enabled;
+      });
+      dispatch(setAtlasPanelState({ roiVisibilityDraft: nextDraft }));
     },
-    [dispatch],
+    [dispatch, draft, labelsById, order],
   );
 
   if (entries.length === 0) {

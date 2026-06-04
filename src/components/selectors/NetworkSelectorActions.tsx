@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   CalculatorOutlined,
   DatabaseOutlined,
@@ -6,30 +5,38 @@ import {
   SettingOutlined,
 } from "@ant-design/icons";
 import { Button, Space, Tooltip } from "antd";
-import DerivedMatrixCalculationModal from "@/components/calculations/DerivedMatrixCalculationModal";
+import { useState } from "react";
+
+import DerivedMatrixCalculationModal, {
+  type DerivedMatrixCalculationTab,
+} from "@/components/calculations/DerivedMatrixCalculationModal";
 import DataManagementModal from "@/components/management/DataManagementModal";
 import NetworkEdgeFilterModal from "@/components/network/edge-filter/NetworkEdgeFilterModal";
 import NetworkVisualizationSettingsModal, {
   type NetworkVisualizationSettingsTabKey,
 } from "@/components/network/settings/NetworkVisualizationSettingsModal";
 import { DEFAULT_NETWORK_SETTINGS_TAB } from "@/config/ui";
-import { getAvailableMatrixCalculations } from "@/connectivity/calculations";
+import { getAvailableMatrixCalculations } from "@/networkDerivation/calculations";
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetContent } from "@/store/slices/dataset";
 
-function DataAction() {
-  const [open, setOpen] = useState(false);
+type DataActionProps = {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+};
 
+function DataAction({ open, onOpen, onClose }: DataActionProps) {
   return (
     <>
       <Tooltip title="Manage loaded datasets and matrix metadata">
         <Button
           aria-label="Manage data"
           icon={<DatabaseOutlined />}
-          onClick={() => setOpen(true)}
+          onClick={onOpen}
         />
       </Tooltip>
-      <DataManagementModal open={open} onClose={() => setOpen(false)} />
+      <DataManagementModal open={open} onClose={onClose} />
     </>
   );
 }
@@ -37,6 +44,7 @@ function DataAction() {
 type SettingsActionProps = {
   open: boolean;
   activeTab: NetworkVisualizationSettingsTabKey;
+  onOpenAggregationModal: () => void;
   onOpen: () => void;
   onClose: () => void;
   onTabChange: (tab: NetworkVisualizationSettingsTabKey) => void;
@@ -45,6 +53,7 @@ type SettingsActionProps = {
 function SettingsAction({
   open,
   activeTab,
+  onOpenAggregationModal,
   onOpen,
   onClose,
   onTabChange,
@@ -62,6 +71,7 @@ function SettingsAction({
         open={open}
         onClose={onClose}
         activeTab={activeTab}
+        onOpenAggregationModal={onOpenAggregationModal}
         onTabChange={onTabChange}
       />
     </>
@@ -86,14 +96,23 @@ function FilterAction() {
 }
 
 type ComputeActionProps = {
+  open: boolean;
+  initialTab: DerivedMatrixCalculationTab;
+  onOpen: () => void;
+  onClose: () => void;
   onOpenGroupingSettings: () => void;
 };
 
-function ComputeAction({ onOpenGroupingSettings }: ComputeActionProps) {
+function ComputeAction({
+  open,
+  initialTab,
+  onOpen,
+  onClose,
+  onOpenGroupingSettings,
+}: ComputeActionProps) {
   const datasetContent = useAppSelector(
     (state) => selectDatasetContent(state),
   );
-  const [open, setOpen] = useState(false);
   const calculationAvailable =
     datasetContent && getAvailableMatrixCalculations(datasetContent).length > 0;
 
@@ -110,22 +129,29 @@ function ComputeAction({ onOpenGroupingSettings }: ComputeActionProps) {
           aria-label="Compute derived matrices"
           icon={<CalculatorOutlined />}
           disabled={!calculationAvailable}
-          onClick={() => setOpen(true)}
+          onClick={onOpen}
         />
       </Tooltip>
-      <DerivedMatrixCalculationModal
-        open={open}
-        onClose={() => setOpen(false)}
-        onOpenGroupingSettings={() => {
-          setOpen(false);
-          onOpenGroupingSettings();
-        }}
-      />
+      {open ? (
+        <DerivedMatrixCalculationModal
+          open={open}
+          initialTab={initialTab}
+          onClose={onClose}
+          onOpenGroupingSettings={() => {
+            onClose();
+            onOpenGroupingSettings();
+          }}
+        />
+      ) : null}
     </>
   );
 }
 
 export default function NetworkSelectorActions() {
+  const [dataOpen, setDataOpen] = useState(false);
+  const [computeOpen, setComputeOpen] = useState(false);
+  const [computeInitialTab, setComputeInitialTab] =
+    useState<DerivedMatrixCalculationTab>("comparison");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] =
     useState<NetworkVisualizationSettingsTabKey>(DEFAULT_NETWORK_SETTINGS_TAB);
@@ -137,15 +163,36 @@ export default function NetworkSelectorActions() {
     setSettingsOpen(true);
   };
 
+  const openComputeModal = (tab: DerivedMatrixCalculationTab = "comparison") => {
+    setComputeInitialTab(tab);
+    setComputeOpen(true);
+  };
+
+  const openAggregationModal = () => {
+    setSettingsOpen(false);
+    openComputeModal("aggregated");
+  };
+
   return (
     <div className="network-action-toolbar" aria-label="Network tools">
       <Space size={6}>
-        <DataAction />
-        <ComputeAction onOpenGroupingSettings={() => openSettings("grouping")} />
+        <DataAction
+          open={dataOpen}
+          onOpen={() => setDataOpen(true)}
+          onClose={() => setDataOpen(false)}
+        />
+        <ComputeAction
+          open={computeOpen}
+          initialTab={computeInitialTab}
+          onOpen={() => openComputeModal("comparison")}
+          onClose={() => setComputeOpen(false)}
+          onOpenGroupingSettings={() => openSettings("grouping")}
+        />
         <FilterAction />
         <SettingsAction
           open={settingsOpen}
           activeTab={settingsTab}
+          onOpenAggregationModal={openAggregationModal}
           onOpen={() => openSettings(DEFAULT_NETWORK_SETTINGS_TAB)}
           onClose={() => setSettingsOpen(false)}
           onTabChange={setSettingsTab}

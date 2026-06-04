@@ -1,13 +1,17 @@
-import { type MutableRefObject } from "react";
 import * as d3 from "d3";
+import { type MutableRefObject } from "react";
+
 import { buildHeatmapCells } from "@/components/matrix/components/matrixData";
+import type { HeatmapLayout } from "@/components/matrix/components/matrixLayout";
 import {
   hideHoveredCellOverlay,
   showHoveredCellOverlay,
 } from "@/components/matrix/components/matrixOverlays";
-import { formatHeatmapTooltipHtml } from "@/components/matrix/matrixTooltip";
-import type { HeatmapLayout } from "@/components/matrix/components/matrixLayout";
 import type { HeatmapHighlightSelections } from "@/components/matrix/components/matrixTypes";
+import {
+  formatHeatmapTooltipHtml,
+  resolveHeatmapTooltipLabel,
+} from "@/components/matrix/matrixTooltip";
 import type { HeatmapProps } from "@/types/matrixHeatmap";
 
 type HoverPayload = Parameters<NonNullable<HeatmapProps["onCellHover"]>>[0];
@@ -48,6 +52,7 @@ export const renderHeatmapCells = (args: {
   resolvedRowLabels?: string[];
   resolvedColLabels?: string[];
   labelNames?: Record<string, string>;
+  labelTitles?: Record<string, string>;
   hoverCbRef: MutableRefObject<HeatmapProps["onCellHover"] | undefined>;
   leaveCbRef: MutableRefObject<HeatmapProps["onCellLeave"] | undefined>;
   selectCbRef: MutableRefObject<HeatmapProps["onCellSelect"] | undefined>;
@@ -69,6 +74,7 @@ export const renderHeatmapCells = (args: {
     resolvedRowLabels,
     resolvedColLabels,
     labelNames,
+    labelTitles,
     hoverCbRef,
     leaveCbRef,
     selectCbRef,
@@ -95,7 +101,7 @@ export const renderHeatmapCells = (args: {
     .attr("pointer-events", (cell) =>
       Number.isFinite(cell.value) ? "all" : "none",
     )
-    .on("mousemove", (_event, cell) => {
+    .on("mouseenter", (_event, cell) => {
       const rowY = layout.yScale(cell.row) ?? 0;
       const colX = layout.xScale(cell.col) ?? 0;
       const bandwidthX = layout.xScale.bandwidth();
@@ -124,8 +130,8 @@ export const renderHeatmapCells = (args: {
       tooltip
         .html(
           formatHeatmapTooltipHtml(
-            payload.rowLabel,
-            payload.colLabel,
+            resolveHeatmapTooltipLabel(payload.rowId, labelNames, labelTitles),
+            resolveHeatmapTooltipLabel(payload.colId, labelNames, labelTitles),
             cell.value,
             valueLabel,
           ),

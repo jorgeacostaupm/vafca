@@ -1,20 +1,26 @@
 import * as d3 from "d3";
 import type { MutableRefObject } from "react";
-import {
-  DEFAULT_MARGIN,
-  buildClassicSceneModel,
-} from "@/components/nodelink/sceneModel";
+
+import { renderClassicElements } from "@/components/nodelink/renderStrategies";
 import {
   configureClassicBrush,
   configureClassicZoom,
   createClassicTooltipHandlers,
 } from "@/components/nodelink/sceneBehaviors";
-import { renderClassicElements } from "@/components/nodelink/renderStrategies";
+import {
+  buildClassicSceneModel,
+  DEFAULT_MARGIN,
+} from "@/components/nodelink/sceneModel";
+import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type {
   ClassicLink,
   ClassicNode,
+  NetworkLinkColorResolver,
+  NodeLinkBrushLink,
   NodeLinkValueFilters,
 } from "@/types/nodelink";
+import type { ResolvedValueDomain } from "@/types/valueDomain";
+import type { MatrixVisualStyle } from "@/types/visualizationUi";
 
 type ClassicSceneRenderArgs = {
   svgElement: SVGSVGElement;
@@ -30,11 +36,14 @@ type ClassicSceneRenderArgs = {
   valueFilters?: NodeLinkValueFilters;
   selectedZoomLabels?: string[];
   linkWidthRange?: [number, number];
+  valueDomain?: ResolvedValueDomain;
   brushEnabled: boolean;
+  brushMode?: MatrixBrushMode;
   geometricZoomEnabled: boolean;
   hideIsolatedNodes: boolean;
-  diverging?: boolean;
   selectedLinkIds: Set<string>;
+  visualStyle: MatrixVisualStyle;
+  linkColorResolver: NetworkLinkColorResolver;
   onLabelToggle?: (label: string) => void;
   onLinkSelect: (payload: {
     rowId: string;
@@ -48,6 +57,8 @@ type ClassicSceneRenderArgs = {
   onNodeHover?: (id: string) => void;
   onNodeLeave?: () => void;
   onBrushZoom?: (payload: { labels: string[] }) => void;
+  onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
+  onBrushDeselectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   getNodeColor: (node: ClassicNode) => string;
   valueLabel: string;
   resetLocalHoverActive: () => void;
@@ -81,11 +92,14 @@ export const renderClassicScene = ({
   valueFilters,
   selectedZoomLabels,
   linkWidthRange,
+  valueDomain,
   brushEnabled,
+  brushMode = "zoom",
   geometricZoomEnabled,
   hideIsolatedNodes,
-  diverging,
   selectedLinkIds,
+  visualStyle,
+  linkColorResolver,
   onLabelToggle,
   onLinkSelect,
   onLinkHover,
@@ -93,6 +107,8 @@ export const renderClassicScene = ({
   onNodeHover,
   onNodeLeave,
   onBrushZoom,
+  onBrushSelectLinks,
+  onBrushDeselectLinks,
   getNodeColor,
   valueLabel,
   resetLocalHoverActive,
@@ -119,6 +135,7 @@ export const renderClassicScene = ({
     hideIsolatedNodes,
     selectedZoomLabels,
     linkWidthRange,
+    valueDomain,
     width,
     height,
   });
@@ -138,11 +155,12 @@ export const renderClassicScene = ({
     simLinks: model.simLinks,
     width,
     height,
-    diverging,
     labelNames,
     labelTitles,
     labelAcronyms,
     selectedLinkIds,
+    visualStyle,
+    linkColorResolver,
     widthScale: model.widthScale,
     nodeRadius: model.nodeRadius,
     zoomLabelSet: model.zoomLabelSet,
@@ -178,11 +196,17 @@ export const renderClassicScene = ({
       width,
       height,
       labels,
+      labelNames,
       simNodes: model.simNodes,
+      linkSelection:
+        linkSelection as d3.Selection<SVGLineElement, ClassicLink, SVGGElement, unknown>,
       clampX: model.clampX,
       clampY: model.clampY,
       zoomTransformRef,
+      brushMode,
       onBrushZoom,
+      onBrushSelectLinks,
+      onBrushDeselectLinks,
       hideTooltip,
     });
   }

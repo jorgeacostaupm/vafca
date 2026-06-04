@@ -1,5 +1,7 @@
 import type { UiRangeMode } from "@/types/connectivityBundle";
+import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type { MatrixValueRange, StatRangeValue } from "@/types/matrixView";
+import type { ResolvedValueDomain } from "@/types/valueDomain";
 
 export type NetworkViewType = "matrix" | "circular" | "classic";
 export type NetworkMatrixSelectorMode = "combined" | "fields";
@@ -8,6 +10,7 @@ export type ViewLoadStatus = "formatting" | "ready" | "error";
 export type ZoomSelection = {
   rows: string[];
   cols: string[];
+  linkIds?: string[];
 } | null;
 
 export type ZoomableViewSettings = {
@@ -31,20 +34,26 @@ export type SharedNetworkViewSettings = {
   zoomLabelSelection?: string[];
   zoomHistory?: ZoomSelection[];
   zoomIndex?: number;
+  selectionVisible?: boolean;
+  zoomLinkPercent?: number;
   useAsNodeFilter?: boolean;
   useAsLinkFilter?: boolean;
 };
 
 export type MatrixNetworkViewSettings = SharedNetworkViewSettings & {
   brushEnabled?: boolean;
+  brushMode?: MatrixBrushMode;
 };
 
 export type NodeLinkNetworkViewSettings = SharedNetworkViewSettings & {
   brushEnabled?: boolean;
+  brushMode?: MatrixBrushMode;
   geometricZoomEnabled?: boolean;
   linkWidthRange?: [number, number];
   circularLinkTension?: number;
   circularBundlingEnabled?: boolean;
+  circularPositiveLinkColor?: string;
+  circularNegativeLinkColor?: string;
 };
 
 export type NetworkViewDescriptor = {
@@ -78,6 +87,9 @@ export type NetworkSelectorControlsState = {
   hideIsolatedNodes: boolean;
   circularLinkTension: number;
   circularBundlingEnabled: boolean;
+  circularPositiveLinkColor: string;
+  circularNegativeLinkColor: string;
+  percentZoomIncludeAutoconnections: boolean;
 };
 
 export type ViewVisibility = {
@@ -107,6 +119,7 @@ export type ComputedView = {
   data: number[][];
   rowLabels: string[];
   colLabels: string[];
+  symmetric: boolean;
   settings?: MatrixNetworkViewSettings | NodeLinkNetworkViewSettings;
   zoomState: ZoomState;
   availableLabels: string[];
@@ -117,13 +130,19 @@ export type ComputedView = {
   measureRange: [number, number] | null;
   hideIsolatedNodes: boolean;
   brushEnabled: boolean;
+  brushMode: MatrixBrushMode;
   geometricZoomEnabled: boolean;
   linkWidthRange: [number, number];
   circularLinkTension: number;
   circularBundlingEnabled: boolean;
+  circularPositiveLinkColor: string;
+  circularNegativeLinkColor: string;
+  selectionVisible: boolean;
+  zoomLinkPercent: number;
   useAsNodeFilter: boolean;
   useAsLinkFilter: boolean;
   isRangeFilterSource: boolean;
+  valueDomain: ResolvedValueDomain;
   statSliderMin: number;
   statSliderMax: number;
   hasNegativeRange: boolean;

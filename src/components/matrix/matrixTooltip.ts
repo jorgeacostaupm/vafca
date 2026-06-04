@@ -10,6 +10,12 @@ export const formatHeatmapTooltipHtml = (
     `${rowLabel} ↔ ${colLabel}`,
   )}</strong></div><div>${escapeHtml(valueLabel)}: ${value.toFixed(4)}</div>`;
 
+export const resolveHeatmapTooltipLabel = (
+  labelId: string,
+  labelNames?: Record<string, string>,
+  labelTitles?: Record<string, string>,
+) => labelTitles?.[labelId] ?? labelNames?.[labelId] ?? labelId;
+
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 

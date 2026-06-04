@@ -50,10 +50,6 @@ matrix is `data`.
   {
     "id": "alpha-control",
     "label": "Alpha control",
-    "layer": "alpha",
-    "measure": "plv",
-    "stat": "mean",
-    "population": "control",
     "layout": "full",
     "n": 24,
     "data": [
@@ -63,6 +59,18 @@ matrix is `data`.
   }
 ]
 ```
+
+`layer`, `measure`, `stat`, and `population` are optional per matrix. When they
+are missing, VAFCA assigns internal fallbacks:
+
+- `layer`: `layer-1`, `layer-2`, `layer-3`, and so on, based on matrix order.
+- `measure`: `Unknown`.
+- `stat`: `Unknown`.
+- `population`: `Unknown`.
+
+These fallbacks are only a loading aid. Add explicit metadata to matrices when
+users need to compare, filter, or identify them by layer, measure, statistic, or
+population.
 
 In `matrices/`, each file may contain the same object shape or a raw matrix
 array:
@@ -81,7 +89,9 @@ array:
 - `lower_triangular`: flat array with the lower triangle, including diagonal.
 
 For triangular layouts, `data.length` must be `n * (n + 1) / 2`. The importer
-materializes the missing side internally.
+materializes the missing side internally only when the matrix is declared
+`symmetric`. Non-symmetric triangular matrices keep the unstored side as
+missing values.
 
 ```json
 {
@@ -124,14 +134,13 @@ fields at the top level.
 {
   "formatVersion": "vafca-zip-v1",
   "name": "Demo dataset",
-  "defaults": {
-    "layer": "alpha",
-    "measure": "connectivity",
-    "stat": "value",
-    "population": "dataset"
-  }
+  "directedNetworks": false
 }
 ```
+
+`directedNetworks` declares matrix semantics, not storage. When it is `false`,
+`A-B` and `B-A` are the same undirected link and matrices are treated as
+symmetric. When it is `true`, both directions are preserved independently.
 
 ## catalogs/
 
@@ -159,7 +168,7 @@ it with `catalogs/` in the same ZIP.
 
 ## Import modes
 
-Lenient mode loads usable data and records inferred fields as warnings.
+Lenient mode loads usable data and records internally inferred fields.
 
 Strict mode blocks missing `manifest.json`, missing `rois.json`, missing matrix
 metadata, and generated ids.

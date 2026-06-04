@@ -1,4 +1,5 @@
 import { Form, Space, Switch } from "antd";
+
 import {
   DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS,
   DEFAULT_ROI_RANKING_ALLOW_AUTOCONNECTIONS,

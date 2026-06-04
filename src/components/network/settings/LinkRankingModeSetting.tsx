@@ -1,5 +1,6 @@
 import { AppstoreOutlined, TableOutlined } from "@ant-design/icons";
 import { Form, Segmented } from "antd";
+
 import { createNetworkSegmentedOption } from "@/components/network/segmentedOption";
 import { DEFAULT_LINK_COLLECTION_RANKING_MODE } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";

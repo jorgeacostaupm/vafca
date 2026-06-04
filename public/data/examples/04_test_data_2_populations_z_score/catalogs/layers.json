@@ -1,0 +1,39 @@
+{
+  "delta": {
+    "label": "Delta",
+    "description": "some descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome descriptionsome description (2-4 Hz)"
+  },
+  "theta": {
+    "label": "Theta",
+    "description": "some descriptionsome descriptionsome descriptionsome description (4-7 Hz)"
+  },
+  "alpha_low": {
+    "label": "Alpha Low",
+    "description": "some description (8-10 Hz)"
+  },
+  "alpha_high": {
+    "label": "Alpha High",
+    "description": "some description (10-12 Hz)"
+  },
+  "beta_low": {
+    "label": "Beta Low",
+    "description": "some description (12-20 Hz)"
+  },
+  "beta_high": {
+    "label": "Beta High",
+    "description": "some description (20-30 Hz)"
+  },
+  "gamma": {
+    "label": "Gamma",
+    "description": "some description (30-50 Hz)"
+  },
+  "max": {
+    "label": "MAX"
+  },
+  "min": {
+    "label": "MIN"
+  },
+  "mean": {
+    "label": "MEAN"
+  }
+}

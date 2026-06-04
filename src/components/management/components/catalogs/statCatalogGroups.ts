@@ -1,6 +1,14 @@
-import type { MatrixRecord, StatCatalogEntry } from "@/types/connectivityBundle";
+import type { ConnectivityMatrix, StatCatalogEntry } from "@/types/connectivityBundle";
 
 export type StatCatalogGroup = "matrix" | "comparison";
+
+export type StatUsageById = Record<
+  string,
+  {
+    comparison: boolean;
+    matrix: boolean;
+  }
+>;
 
 const COMPARISON_STAT_CATEGORIES = new Set([
   "comparison",
@@ -19,11 +27,31 @@ const MATRIX_STAT_CATEGORIES = new Set([
 
 export const classifyStatCatalogItem = (
   stat: Pick<StatCatalogEntry, "id" | "category">,
-  matrices: MatrixRecord[],
+  matrices: ConnectivityMatrix[],
 ): StatCatalogGroup => {
-  const usedBy = matrices.filter((matrix) => matrix.stat.id === stat.id);
-  if (usedBy.some((matrix) => matrix.kind === "comparison")) return "comparison";
-  if (usedBy.some((matrix) => matrix.kind !== "comparison")) return "matrix";
+  const usage = buildStatUsageById(matrices)[stat.id];
+  return classifyStatCatalogItemWithUsage(stat, usage);
+};
+
+export const buildStatUsageById = (matrices: ConnectivityMatrix[]): StatUsageById =>
+  matrices.reduce<StatUsageById>((usageById, matrix) => {
+    const statId = matrix.stat.id;
+    const current = usageById[statId] ?? { comparison: false, matrix: false };
+    if (matrix.kind === "comparison") {
+      current.comparison = true;
+    } else {
+      current.matrix = true;
+    }
+    usageById[statId] = current;
+    return usageById;
+  }, {});
+
+export const classifyStatCatalogItemWithUsage = (
+  stat: Pick<StatCatalogEntry, "id" | "category">,
+  usage?: StatUsageById[string],
+): StatCatalogGroup => {
+  if (usage?.comparison) return "comparison";
+  if (usage?.matrix) return "matrix";
 
   if (stat.category && COMPARISON_STAT_CATEGORIES.has(stat.category)) {
     return "comparison";

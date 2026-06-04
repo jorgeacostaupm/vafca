@@ -47,12 +47,6 @@ writeZip("02_rois_and_matrices.zip", {
   "manifest.json": {
     formatVersion: "vafca-zip-v1",
     name: "ROI metadata demo",
-    defaults: {
-      layer: "alpha",
-      measure: "plv",
-      stat: "mean",
-      population: "control",
-    },
   },
   "rois.json": [
     {
@@ -62,7 +56,6 @@ writeZip("02_rois_and_matrices.zip", {
       tags: {
         hemisphere: "left",
         lobe: "frontal",
-        network: "DMN",
       },
     },
     {
@@ -72,7 +65,6 @@ writeZip("02_rois_and_matrices.zip", {
       tags: {
         hemisphere: "right",
         lobe: "frontal",
-        network: "DMN",
       },
     },
     {
@@ -82,7 +74,6 @@ writeZip("02_rois_and_matrices.zip", {
       tags: {
         hemisphere: "left",
         lobe: "temporal",
-        network: "SAL",
       },
     },
     {
@@ -92,7 +83,6 @@ writeZip("02_rois_and_matrices.zip", {
       tags: {
         hemisphere: "right",
         lobe: "temporal",
-        network: "SAL",
       },
     },
   ],
@@ -103,6 +93,10 @@ writeZip("02_rois_and_matrices.zip", {
     {
       id: "alpha-control-mean",
       label: "Alpha control mean",
+      layer: "alpha",
+      measure: "plv",
+      stat: "mean",
+      population: "control",
       layout: "full",
       data: [
         [0, 0.28, 0.41, 0.19],
@@ -114,7 +108,10 @@ writeZip("02_rois_and_matrices.zip", {
     {
       id: "alpha-control-std",
       label: "Alpha control standard deviation",
+      layer: "alpha",
+      measure: "plv",
       stat: "std",
+      population: "control",
       layout: "full",
       data: [
         [0, 0.05, 0.08, 0.04],
@@ -130,12 +127,6 @@ writeZip("03_matrix_folder.zip", {
   "manifest.json": {
     formatVersion: "vafca-zip-v1",
     name: "Matrix folder demo",
-    defaults: {
-      layer: "beta",
-      measure: "coherence",
-      stat: "mean",
-      population: "dataset",
-    },
   },
   "rois.json": [
     { index: 0, id: "roi-a", label: "ROI A", tags: { system: "A" } },
@@ -145,6 +136,10 @@ writeZip("03_matrix_folder.zip", {
   "matrices/beta.json": {
     id: "beta-dataset",
     label: "Beta dataset",
+    layer: "beta",
+    measure: "coherence",
+    stat: "mean",
+    population: "dataset",
     layout: "full",
     data: [
       [0, 0.62, 0.21],
@@ -156,6 +151,9 @@ writeZip("03_matrix_folder.zip", {
     id: "gamma-dataset",
     label: "Gamma dataset",
     layer: "gamma",
+    measure: "coherence",
+    stat: "mean",
+    population: "dataset",
     layout: "full",
     data: [
       [0, 0.49, 0.33],
@@ -272,12 +270,6 @@ if (existsSync(legacyTwoPopulationPath)) {
       formatVersion: "vafca-zip-v1",
       name: "test_Data_2_populations_z_score",
       atlasId: legacy.atlas,
-      defaults: {
-        layer: "delta",
-        measure: "plv",
-        stat: "mean",
-        population: "study",
-      },
     },
     "rois.json": rois,
     "catalogs/layers.json": layers,

@@ -1,18 +1,19 @@
 import { useCallback } from "react";
+
+import { useNetworkViewLifecycle } from "@/components/network/useNetworkViewLifecycle";
+import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
+import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
 import {
   addNetworkViewAndFormat,
   patchNetworkControls,
 } from "@/store/slices/networkVisualization";
-import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
-import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
-import { useNetworkViewLifecycle } from "@/components/network/useNetworkViewLifecycle";
-import { buildMatrixLabel, normalizePopulationKey } from "@/utils/matrixViewUtils";
 import {
   getDatasetCatalogs,
   getDatasetMatrixStats,
 } from "@/utils/datasetAccessors";
+import { buildMatrixLabel, normalizePopulationKey } from "@/utils/matrixViewUtils";
 
 export const useNetworkSelectorModel = () => {
   const dispatch = useAppDispatch();
@@ -121,13 +122,53 @@ export const useNetworkSelectorModel = () => {
         (item) => item.compoundId === value,
       );
       if (!summary) {
+        console.info("[matrix-selector] selected matrix was not found", {
+          selectedValue: value,
+          availableCompoundIds: selectableMatrixSummaries.map(
+            (item) => item.compoundId,
+          ),
+        });
         dispatch(patchNetworkControls({ selectedCompoundId: "" }));
         return;
       }
 
+      const matchingSummaries = selectableMatrixSummaries.filter(
+        (item) => item.compoundId === value,
+      );
+      const matchingOptions = allMatrixOptions.filter(
+        (option) => option.value === value,
+      );
+      const derivedPopulationKey = normalizePopulationKey(summary.populationIds);
+      console.info("[matrix-selector] selected matrix metadata", {
+        selectedValue: value,
+        selectorValueFields: {
+          compoundId: summary.compoundId,
+          layerId: summary.layerId,
+          measureId: summary.measureId,
+          statId: summary.statId,
+          populationIds: summary.populationIds,
+          normalizedPopulationKey: derivedPopulationKey,
+        },
+        selectorDisplayFields: {
+          label: buildMatrixLabel(summary, catalogs),
+          populationLabel: summary.populationIds
+            .map((id) => catalogs?.populations[id]?.label ?? id)
+            .join(" vs "),
+          measureLabel: catalogs?.measures[summary.measureId]?.label ?? summary.measureId,
+          statLabel: catalogs?.stats[summary.statId]?.label ?? summary.statId,
+          layerLabel: catalogs?.layers[summary.layerId]?.label ?? summary.layerId,
+        },
+        summary,
+        derivedPopulationKey,
+        matchingSummariesCount: matchingSummaries.length,
+        matchingSummaries,
+        matchingOptions,
+        currentControls: controls,
+      });
+
       dispatch(
         patchNetworkControls({
-          populationKey: normalizePopulationKey(summary.populationIds),
+          populationKey: derivedPopulationKey,
           measureId: summary.measureId,
           statId: summary.statId,
           layerId: summary.layerId,
@@ -136,12 +177,10 @@ export const useNetworkSelectorModel = () => {
       );
     },
     [
-      controls.layerId,
-      controls.matrixSelectorMode,
-      controls.measureId,
-      controls.populationKey,
-      controls.statId,
+      controls,
+      catalogs,
       dispatch,
+      allMatrixOptions,
       selectableMatrixSummaries,
     ],
   );

@@ -3,21 +3,21 @@ Continuar con el formato, dejarlo cerrado
 
 ----------------> SELECTION: poner una lista de las rois seleccionadas?
 ----------------> RANKING ROIS: permitir seleccionar rois desde los rankings
-----------------> MATRIX: añadir seleccion por brush a matrices
+
+----------------> GRAPH THEORY MEASURES: poder obtener graph theory measures basicacas ad hoc de las redes visualizadas
+
+----------------> DATA LOADING: esto es un cuello de botella para usuarios hay que permitir un formato minimo, modular y sencillo
+----------------> DATA LOADING: hay que validar los datos en carga, avisar de errores concretos
+----------------> FILTERING: se deberian pdoer guardar filtros para reutilizarlos
+----------------> FILTERING: parte del filtering consistente es el que se extrae de vistas
+
+
+
 ----------------> ATLAS: poder seleccionar atlas 2d, 3d o no en settings
 ----------------> ATLAS: poner grouping como settings de esta parte
 ----------------> ATLAS: sino quedan mas campos en grouping no mostrar selector, informar al usuario
-----------------> CIRCULAR: vigilar la posicion del tooltip, a veces se superpone, quitar el acronimo, hay que buscar una mejor forma de posicionarlo
-----------------> CIRCULAR: Otro comportamiento del zoom:
-                                                          - Brush: sobre todos los nodos de los enlaces seleccionados, he incluir todos lo nodos que se seleccionen
-                                                          - Seleccion:
-                                                            - Nodo, se inclyen todos los nodos con los que tiene seleccion y por tanto los enlaces
-                                                            - Enlace, se incluyen los nodos que conecta el enlace y el enlacw
 
-----------------> RANGOS: aun hay que buscar una manera consistente de que la aplicacion determine rangos si no vienen dados, porque plv tiene rangos pero z-score no? mean tampoco? eso tiene sentido?
-----------------> GRAPH THEORY MEASURES: poder obtener graph theory measures basicacas ad hoc de las redes visualizadas
-----------------> DATA LOADING: esto es un cuello de botella para usuarios hay que permitir un formato minimo, modular y sencillo
-----------------> DATA LOADING: hay que validar los datos en carga, avisar de errores concretos
-----------------> FILTERING: el filtrado a de ser consitente si quito una ROI, ningun ranking o vista debe tenerlo en cuenta y se deben recalcular, en realidad lo haran en base a las rois disponibles porque las vistas se regeneran aunque dejalo para que reaccione por si lo pasamos a tabs o a que no se destruyan. Esto debe ser similar al filtrado activo que haya
-----------------> FILTERING: se deberian pdoer guardar filtros para reutilizarlos
-----------------> FILTERING: parte del filtering consistente es el que se extrae de vistas
+
+
+
+

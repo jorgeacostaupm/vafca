@@ -1,12 +1,12 @@
 import type {
   Atlas,
+  ConnectivityMatrix,
   MatrixCellValue,
   MatrixData,
   MatrixLayout,
-  MatrixRecord,
 } from "@/types/connectivityBundle";
 
-const assertShape = (matrix: MatrixRecord) => {
+const assertShape = (matrix: ConnectivityMatrix) => {
   const [rows, cols] = matrix.geometry.shape;
   if (rows !== cols) {
     throw new Error(`Matrix '${matrix.id}' is not square.`);
@@ -14,7 +14,7 @@ const assertShape = (matrix: MatrixRecord) => {
   return rows;
 };
 
-export const getExpectedDataLength = (matrix: MatrixRecord): number => {
+export const getExpectedDataLength = (matrix: ConnectivityMatrix): number => {
   const [rows] = matrix.geometry.shape;
   if (matrix.encoding.layout === "full") return rows;
   const size = assertShape(matrix);
@@ -38,7 +38,7 @@ export const getTriangularIndex = (
   throw new Error("Triangular index is not valid for full layout.");
 };
 
-const assertBounds = (matrix: MatrixRecord, i: number, j: number) => {
+const assertBounds = (matrix: ConnectivityMatrix, i: number, j: number) => {
   const [rows, cols] = matrix.geometry.shape;
   if (i < 0 || j < 0 || i >= rows || j >= cols) {
     throw new Error(`Matrix indices (${i}, ${j}) are out of range.`);
@@ -46,7 +46,7 @@ const assertBounds = (matrix: MatrixRecord, i: number, j: number) => {
 };
 
 export const getMatrixValue = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   i: number,
   j: number,
 ): MatrixCellValue => {
@@ -59,20 +59,18 @@ export const getMatrixValue = (
   if (layout === "upper_triangular") {
     if (i <= j) return values[getTriangularIndex(i, j, n, layout)];
     if (symmetric) return values[getTriangularIndex(j, i, n, layout)];
+    return missingValue;
   }
   if (layout === "lower_triangular") {
     if (i >= j) return values[getTriangularIndex(i, j, n, layout)];
     if (symmetric) return values[getTriangularIndex(j, i, n, layout)];
+    return missingValue;
   }
-  throw new Error(
-    missingValue === null
-      ? "Cannot read the unstored side of a non-symmetric triangular matrix."
-      : "Unsupported triangular matrix access.",
-  );
+  throw new Error("Unsupported triangular matrix access.");
 };
 
 export const setMatrixValue = (
-  matrix: MatrixRecord,
+  matrix: ConnectivityMatrix,
   i: number,
   j: number,
   value: MatrixCellValue,
@@ -90,7 +88,7 @@ export type MatrixEdge = {
   value: MatrixCellValue;
 };
 
-export function* iterateMatrixEdges(matrix: MatrixRecord): Generator<MatrixEdge> {
+export function* iterateMatrixEdges(matrix: ConnectivityMatrix): Generator<MatrixEdge> {
   const [rows, cols] = matrix.geometry.shape;
   for (let i = 0; i < rows; i += 1) {
     const start = matrix.encoding.symmetric ? i : 0;
@@ -115,8 +113,8 @@ export const computeRoiOrderHash = (atlas: Atlas): string => {
 };
 
 export const compareGeometryCompatibility = (
-  matrixA: MatrixRecord,
-  matrixB: MatrixRecord,
+  matrixA: ConnectivityMatrix,
+  matrixB: ConnectivityMatrix,
   atlasA: Atlas,
   atlasB: Atlas,
 ) => {
@@ -142,7 +140,7 @@ export const compareGeometryCompatibility = (
   };
 };
 
-export const materializeMatrixData = (matrix: MatrixRecord): number[][] => {
+export const materializeMatrixData = (matrix: ConnectivityMatrix): number[][] => {
   const [rows, cols] = matrix.geometry.shape;
   return Array.from({ length: rows }, (_, i) =>
     Array.from({ length: cols }, (_, j) => {

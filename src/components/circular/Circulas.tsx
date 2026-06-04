@@ -2,26 +2,23 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import NodeLinkViewTemplate from "@/components/nodelink/NodeLinkViewTemplate";
-import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
-import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
-import { useAppSelector } from "@/store/hooks";
-import { selectDatasetData } from "@/store/slices/dataset";
-import type { CircularNode as Node } from "@/types/nodelink";
+
 import { buildCircularGraphData } from "@/components/circular/circularGraphModel";
-import { useCircularProgrammaticTooltip } from "@/components/circular/useCircularProgrammaticTooltip";
-import { useCircularSelectionStyles } from "@/components/circular/useCircularSelectionStyles";
-import { useCircularScene } from "@/components/circular/useCircularScene";
-import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 import type {
   CircularNodeLinkPanelProps,
   CircularNodeLinkProps,
 } from "@/components/circular/circularPanelTypes";
-
-const SELECTED_COLOR = "#d64545";
+import { useCircularProgrammaticTooltip } from "@/components/circular/useCircularProgrammaticTooltip";
+import { useCircularScene } from "@/components/circular/useCircularScene";
+import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
+import NodeLinkViewTemplate from "@/components/nodelink/NodeLinkViewTemplate";
+import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
+import { useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
+import type { CircularNode as Node } from "@/types/nodelink";
+import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
 export default function Circulas({
-  diverging,
   atlasDefinition,
   circularHierarchyFields,
   circularHierarchyCategoryOrder,
@@ -41,7 +38,6 @@ export default function Circulas({
         circularHierarchyCategoryOrder:
           circularHierarchyCategoryOrder ?? atlas.circularHierarchyCategoryOrder,
       }}
-      diverging={diverging ?? false}
       {...props}
     />
   );
@@ -60,18 +56,19 @@ function CircularNodeLink({
   valueFilters,
   selectedZoomLabels,
   linkWidthRange,
+  valueDomain,
   circularLinkTension,
   circularBundlingEnabled,
   brushEnabled = false,
+  brushMode = "zoom",
   geometricZoomEnabled = false,
   hideIsolatedNodes = true,
-  diverging,
   atlasDefinition = null,
   circularHierarchyFields = [],
   circularHierarchyCategoryOrder = {},
   selectedLinkIds,
-  hoveredCell,
-  hoveredNodeId,
+  visualStyle,
+  linkColorResolver,
   onLabelToggle,
   onLinkSelect,
   onLinkHover,
@@ -79,6 +76,8 @@ function CircularNodeLink({
   onNodeHover,
   onNodeLeave,
   onBrushZoom,
+  onBrushSelectLinks,
+  onBrushDeselectLinks,
 }: CircularNodeLinkProps) {
   const { nodes, links, degreeById } = useMemo(
     () =>
@@ -126,12 +125,6 @@ function CircularNodeLink({
     tooltipRef,
     zoomTransformRef,
     localHoverActive,
-    linkSelectionRef,
-    nodeSelectionRef,
-    labelSelectionRef,
-    widthScaleRef,
-    nodeRadiusRef,
-    zoomLabelSetRef,
   } = useCircularScene({
     svgRefProp,
     width,
@@ -144,12 +137,15 @@ function CircularNodeLink({
     degreeById,
     selectedZoomLabels,
     linkWidthRange,
+    valueDomain,
     circularLinkTension,
     circularBundlingEnabled,
     brushEnabled,
+    brushMode,
     geometricZoomEnabled,
-    diverging,
     selectedLinkIds,
+    visualStyle,
+    linkColorResolver,
     onLabelToggle,
     onLinkSelect,
     onLinkHover,
@@ -157,22 +153,10 @@ function CircularNodeLink({
     onNodeHover,
     onNodeLeave,
     onBrushZoom,
+    onBrushSelectLinks,
+    onBrushDeselectLinks,
     getNodeColor,
     valueLabel,
-  });
-
-  useCircularSelectionStyles({
-    linkSelectionRef,
-    nodeSelectionRef,
-    labelSelectionRef,
-    widthScaleRef,
-    zoomLabelSetRef,
-    nodeRadiusRef,
-    hoveredCell,
-    hoveredNodeId,
-    selectedLinkIds,
-    getNodeColor,
-    selectedColor: SELECTED_COLOR,
   });
 
   useCircularProgrammaticTooltip({
@@ -184,8 +168,6 @@ function CircularNodeLink({
     nodes,
     links,
     degreeById,
-    hoveredCell,
-    hoveredNodeId,
     labelNames,
     labelTitles,
     valueLabel,

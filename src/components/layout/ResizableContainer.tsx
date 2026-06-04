@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+import { DEFAULT_RESIZABLE_CONTAINER_DEBOUNCE_MS } from "@/config/ui";
+
 type Size = { width: number; height: number };
 
 type ResizableContainerProps = {
@@ -9,10 +11,10 @@ type ResizableContainerProps = {
 
 export default function ResizableContainer({
   children,
-  debounceMs = 100,
+  debounceMs = DEFAULT_RESIZABLE_CONTAINER_DEBOUNCE_MS,
 }: ResizableContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState<Size>({ width: 320, height: 320 });
+  const [size, setSize] = useState<Size | null>(null);
   const debounceRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -21,9 +23,11 @@ export default function ResizableContainer({
 
     const updateSize = () => {
       const rect = element.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+
       setSize((prev) => {
         const next = { width: rect.width, height: rect.height };
-        if (prev.width === next.width && prev.height === next.height) {
+        if (prev?.width === next.width && prev.height === next.height) {
           return prev;
         }
         return next;
@@ -46,11 +50,8 @@ export default function ResizableContainer({
   }, [debounceMs]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ width: "100%", height: "100%", overflow: "hidden" }}
-    >
-      {children(size)}
+    <div ref={containerRef} className="resizable-container">
+      {size ? children(size) : null}
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
-import { Button, Card, Space } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
+import { Button, Card, Space } from "antd";
+import type { ReactNode } from "react";
 
 type NetworkViewFrameProps = {
   title: string;

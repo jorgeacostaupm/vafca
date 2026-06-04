@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
 import { Col, Row, Space } from "antd";
+import type { ReactNode } from "react";
 
 type AtlasPanelLayoutProps = {
   has3d: boolean;

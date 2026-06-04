@@ -1,5 +1,5 @@
-import { intersectLabels } from "@/utils/matrixViewUtils";
 import type { ZoomSelection } from "@/types/networkVisualization";
+import { intersectLabels } from "@/utils/matrixViewUtils";
 
 export const buildLabelState = ({
   matrixOrderIds,

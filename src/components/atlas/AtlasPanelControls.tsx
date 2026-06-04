@@ -1,75 +1,53 @@
-import { useCallback } from "react";
-import { Button, Select, Space, Typography } from "antd";
-import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
-import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
+import { Button, Space, Typography } from "antd";
+import { useCallback, useMemo } from "react";
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setLabelsEnabledMap } from "@/store/slices/atlasUi";
+import { recomputeAggregatedMatricesForActiveRois } from "@/store/slices/dataset";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
-import { moveField } from "./panelFieldUtils";
+
+import {
+  buildEffectiveRoiEnabledMap,
+  countChangedRois,
+} from "./roiVisibilityDraft";
 
 type AtlasPanelControlsProps = {
   totalCount: number;
   enabledCount: number;
-  groupByFields: string[];
-  selectableGroupFields: string[];
 };
 
 export function AtlasPanelControls({
   totalCount,
   enabledCount,
-  groupByFields,
-  selectableGroupFields,
 }: AtlasPanelControlsProps) {
   const dispatch = useAppDispatch();
-  const selectedFilters = useAppSelector(
-    (state) => state.visualizationUi.atlasPanel.selectedFilters,
+  const { draft, labelsById, order } = useAppSelector((state) => ({
+    draft: state.visualizationUi.atlasPanel.roiVisibilityDraft,
+    labelsById: state.atlasUi.labelsById,
+    order: state.atlasUi.order,
+  }));
+  const pendingCount = useMemo(
+    () => countChangedRois({ order, labelsById, draft }),
+    [draft, labelsById, order],
   );
 
-  const handleMoveGroupField = useCallback(
-    (field: string, direction: "up" | "down") => {
-      dispatch(
-        setAtlasPanelState({
-          groupByFields: moveField(groupByFields, field, direction),
-          collapsedGroups: [],
-        }),
-      );
-    },
-    [dispatch, groupByFields],
-  );
+  const handleApply = useCallback(() => {
+    if (!draft) return;
+    dispatch(
+      setLabelsEnabledMap(
+        buildEffectiveRoiEnabledMap({ order, labelsById, draft }),
+      ),
+    );
+    dispatch(setAtlasPanelState({ roiVisibilityDraft: null }));
+    void dispatch(recomputeAggregatedMatricesForActiveRois());
+  }, [dispatch, draft, labelsById, order]);
 
-  const handleRemoveGroupField = useCallback(
-    (field: string) => {
-      const nextSelectedFilters = { ...selectedFilters };
-      delete nextSelectedFilters[field];
-
-      dispatch(
-        setAtlasPanelState({
-          groupByFields: groupByFields.filter((value) => value !== field),
-          selectedFilters: nextSelectedFilters,
-          collapsedGroups: [],
-        }),
-      );
-    },
-    [dispatch, groupByFields, selectedFilters],
-  );
-
-  const handleAddGroupField = useCallback(
-    (field: string) => {
-      dispatch(
-        setAtlasPanelState({
-          groupByFields: [...groupByFields, field],
-          collapsedGroups: [],
-        }),
-      );
-    },
-    [dispatch, groupByFields],
-  );
+  const handleDiscard = useCallback(() => {
+    dispatch(setAtlasPanelState({ roiVisibilityDraft: null }));
+  }, [dispatch]);
 
   return (
-    <Space direction="vertical" size={16} style={{ width: "100%" }}>
+    <Space direction="vertical" size={2} style={{ width: "100%" }}>
       <Space
         align="center"
         style={{ width: "100%", justifyContent: "space-between" }}
@@ -82,54 +60,25 @@ export function AtlasPanelControls({
             {totalCount} ROIs · {enabledCount} active
           </Typography.Text>
         </Space>
-      </Space>
-
-      <Space direction="vertical" size={8} style={{ width: "100%" }}>
-        <Typography.Text strong>Grouping fields (order matters)</Typography.Text>
-
-        <Space direction="vertical" size={8} style={{ width: "100%" }}>
-          {groupByFields.map((field, index) => (
-            <div key={field} className="atlas-panel__field-row">
-              <Typography.Text strong>{humanizeFieldName(field)}</Typography.Text>
-              <Space>
-                <Button
-                  size="small"
-                  icon={<ArrowUpOutlined />}
-                  onClick={() => handleMoveGroupField(field, "up")}
-                  disabled={index === 0}
-                  aria-label={`Move ${humanizeFieldName(field)} up`}
-                />
-                <Button
-                  size="small"
-                  icon={<ArrowDownOutlined />}
-                  onClick={() => handleMoveGroupField(field, "down")}
-                  disabled={index === groupByFields.length - 1}
-                  aria-label={`Move ${humanizeFieldName(field)} down`}
-                />
-                <Button
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleRemoveGroupField(field)}
-                  aria-label={`Remove ${humanizeFieldName(field)}`}
-                />
-              </Space>
-            </div>
-          ))}
+        <Space>
+          <Button
+            type="primary"
+            onClick={handleApply}
+            disabled={pendingCount === 0}
+          >
+            Apply ROIs
+          </Button>
+          <Button onClick={handleDiscard} disabled={pendingCount === 0}>
+            Discard
+          </Button>
         </Space>
-
-        <Select
-          placeholder="Add field"
-          style={{ width: "100%" }}
-          options={selectableGroupFields.map((field) => ({
-            value: field,
-            label: humanizeFieldName(field),
-          }))}
-          onChange={(value) => handleAddGroupField(String(value))}
-          value={undefined}
-        />
       </Space>
-
+      {pendingCount > 0 ? (
+        <Typography.Text type="secondary">
+          {pendingCount} pending ROI visibility change
+          {pendingCount === 1 ? "" : "s"}
+        </Typography.Text>
+      ) : null}
     </Space>
   );
 }

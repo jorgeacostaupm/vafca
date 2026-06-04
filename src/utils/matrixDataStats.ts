@@ -1,7 +1,7 @@
 import type {
+  ConnectivityMatrix,
   MatrixDataStats,
   MatrixDataStatsBucket,
-  MatrixRecord,
 } from "@/types/connectivityBundle";
 import { getMatrixValue } from "@/utils/connectivityMatrix";
 
@@ -26,7 +26,7 @@ const addValue = (bucket: MatrixDataStatsBucket, value: number | null) => {
   bucket.finiteCount += 1;
 };
 
-export const computeMatrixDataStats = (matrix: MatrixRecord): MatrixDataStats => {
+export const computeMatrixDataStats = (matrix: ConnectivityMatrix): MatrixDataStats => {
   const [rows, cols] = matrix.geometry.shape;
   const allValues = emptyBucket();
 

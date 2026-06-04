@@ -1,78 +1,79 @@
 import { useMemo } from "react";
-import { useAppSelector } from "@/store/hooks";
-import { selectDatasetData } from "@/store/slices/dataset";
-import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
+
 import { resolveComputedNetworkView } from "@/components/network/views/networkViewModel";
-import { getDatasetMatrixByCompoundId } from "@/utils/datasetAccessors";
+import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
+import { useAppSelector } from "@/store/hooks";
+import { selectDatasetViewData } from "@/store/slices/dataset";
+import type { UiRangeMode } from "@/types/connectivityBundle";
+import type { DatasetMeta } from "@/types/datasetState";
+import type { StoredMatrix } from "@/types/matrixStore";
 import type {
   ComputedView,
+  MatrixNetworkViewSettings,
   NetworkViewDescriptor,
+  NodeLinkNetworkViewSettings,
 } from "@/types/networkVisualization";
 
-export const useNetworkViews = () => {
-  const viewsOrder = useAppSelector(
-    (state) => state.networkVisualization.viewsOrder,
-  );
-  const viewsById = useAppSelector(
-    (state) => state.networkVisualization.viewsById,
-  );
-
-  return useMemo(
-    () =>
-      viewsOrder
-        .map((id) => viewsById[id])
-        .filter((view): view is NetworkViewDescriptor => Boolean(view)),
-    [viewsById, viewsOrder],
-  );
+export type NetworkViewComputationContext = {
+  dataset: DatasetMeta | null;
+  matrixByCompoundId: Record<string, StoredMatrix>;
+  matrixOrderIds: string[];
+  activeLabelIds: string[];
+  matrixActiveLabelIds: string[];
+  atlasOrderLength: number;
+  circularHierarchyCategoryOrder: Record<string, string[]>;
+  matrixHierarchyCategoryOrder: Record<string, string[]>;
+  uiRangeMode: UiRangeMode;
 };
 
-export const useNetworkViewResolver = () => {
-  const dataset = useAppSelector((state) => selectDatasetData(state));
+export const resolveNetworkViewWithContext = ({
+  view,
+  matrix,
+  settings,
+  nodeLinkSettings,
+  context,
+}: {
+  view: NetworkViewDescriptor;
+  matrix: StoredMatrix;
+  settings?: MatrixNetworkViewSettings | NodeLinkNetworkViewSettings;
+  nodeLinkSettings?: NodeLinkNetworkViewSettings;
+  context: NetworkViewComputationContext;
+}): ComputedView =>
+  resolveComputedNetworkView({
+    view,
+    matrix,
+    settings,
+    nodeLinkSettings,
+    matrixOrderIds: context.matrixOrderIds,
+    atlasOrderLength: context.atlasOrderLength,
+    activeLabelIds: context.activeLabelIds,
+    matrixActiveLabelIds: context.matrixActiveLabelIds,
+    circularHierarchyCategoryOrder: context.circularHierarchyCategoryOrder,
+    matrixHierarchyCategoryOrder: context.matrixHierarchyCategoryOrder,
+    dataset: context.dataset,
+    uiRangeMode: context.uiRangeMode,
+  });
+
+export const useNetworkViewComputationContextValue = () => {
+  const { dataset, matrixByCompoundId } = useAppSelector(selectDatasetViewData);
   const atlas = useAppSelector((state) => state.atlasUi);
   const uiRangeMode = useAppSelector(
     (state) => state.visualizationUi.uiRangeMode,
-  );
-  const matrixSettingsByViewId = useAppSelector(
-    (state) => state.networkVisualization.matrixSettingsByViewId,
-  );
-  const nodeLinkSettingsByViewId = useAppSelector(
-    (state) => state.networkVisualization.nodeLinkSettingsByViewId,
   );
   const { matrixOrderIds, activeLabelIds } = useAtlasLabelPresentation();
   const { activeLabelIds: matrixActiveLabelIds } = useAtlasLabelPresentation({
     useMatrixHierarchyOrder: true,
   });
-
   return useMemo(
     () => ({
       dataset,
-      resolve(view: NetworkViewDescriptor): ComputedView | null {
-        const matrix = getDatasetMatrixByCompoundId(dataset, view.compoundId);
-        if (!matrix) return null;
-        const settings =
-          view.type === "matrix"
-            ? matrixSettingsByViewId[view.id]
-            : nodeLinkSettingsByViewId[view.id];
-        const nodeLinkSettings =
-          view.type === "matrix" ? undefined : nodeLinkSettingsByViewId[view.id];
-
-        return resolveComputedNetworkView({
-          view,
-          matrix,
-          settings,
-          nodeLinkSettings,
-          matrixOrderIds,
-          atlasOrderLength: atlas.order.length,
-          activeLabelIds,
-          matrixActiveLabelIds,
-          circularHierarchyCategoryOrder: atlas.circularHierarchyCategoryOrder,
-          matrixHierarchyCategoryOrder: atlas.matrixHierarchyCategoryOrder,
-          dataset,
-          uiRangeMode,
-        });
-      },
+      matrixByCompoundId,
       matrixOrderIds,
       activeLabelIds,
+      matrixActiveLabelIds,
+      atlasOrderLength: atlas.order.length,
+      circularHierarchyCategoryOrder: atlas.circularHierarchyCategoryOrder,
+      matrixHierarchyCategoryOrder: atlas.matrixHierarchyCategoryOrder,
       uiRangeMode,
     }),
     [
@@ -81,10 +82,9 @@ export const useNetworkViewResolver = () => {
       atlas.matrixHierarchyCategoryOrder,
       atlas.order.length,
       dataset,
+      matrixByCompoundId,
       matrixActiveLabelIds,
       matrixOrderIds,
-      matrixSettingsByViewId,
-      nodeLinkSettingsByViewId,
       uiRangeMode,
     ],
   );

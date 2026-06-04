@@ -1,17 +1,3 @@
-export { default } from './atlasUiSlice'
-export {
-  buildAtlasState,
-  setAllLabels,
-  setAtlasColorFields,
-  setAtlasColorPalette,
-  setAtlasLabels,
-  setCircularHierarchyCategoryOrder,
-  setCircularHierarchyFields,
-  setLabelEnabled,
-  setLabelsEnabled,
-  setMatrixHierarchyCategoryOrder,
-  setMatrixHierarchyFields,
-} from './atlasUiSlice'
 export {
   selectAtlasColorFields,
   selectAtlasColorPalette,
@@ -23,6 +9,21 @@ export {
   selectAtlasOrder,
   selectAtlasUiState,
 } from './atlasUiSelectors'
+export { default } from './atlasUiSlice'
+export {
+  buildAtlasState,
+  setAllLabels,
+  setAtlasColorFields,
+  setAtlasColorPalette,
+  setAtlasLabels,
+  setCircularHierarchyCategoryOrder,
+  setCircularHierarchyFields,
+  setLabelEnabled,
+  setLabelsEnabled,
+  setLabelsEnabledMap,
+  setMatrixHierarchyCategoryOrder,
+  setMatrixHierarchyFields,
+} from './atlasUiSlice'
 export type {
   AtlasColorPalettePayload,
   AtlasUiSliceState,

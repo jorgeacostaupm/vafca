@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from "react";
 import * as d3 from "d3";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+
 import {
-  getTooltipPositionForMatrixCell,
-  getTooltipPositionForMatrixPointer,
-} from "@/components/matrix/matrixTooltip";
+  type SharedHoverState,
+  subscribeSharedHover,
+} from "@/components/hover/sharedHover";
 import { BASE_MARGIN } from "@/components/matrix/components/matrixConstants";
 import {
   applyHeatmapValueFilters,
@@ -22,6 +23,14 @@ import type {
   HeatmapHighlightSelections,
   MatrixMargin,
 } from "@/components/matrix/components/matrixTypes";
+import {
+  getTooltipPositionForMatrixCell,
+  getTooltipPositionForMatrixPointer,
+} from "@/components/matrix/matrixTooltip";
+import {
+  DEFAULT_MATRIX_COLOR_SETTINGS,
+  getMatrixVisualStyle,
+} from "@/config/matrixColorScales";
 import type { HeatmapProps } from "@/types/matrixHeatmap";
 
 function MatrixHeatmap({
@@ -30,27 +39,34 @@ function MatrixHeatmap({
   height,
   title,
   valueLabel = "Value",
+  symmetric = false,
   labels,
   rowLabels,
   colLabels,
   labelNames,
   labelTitles,
-  labelAcronyms,
   labelColors,
   brushEnabled = false,
+  brushMode = "zoom",
   showAllLabels = false,
   selectedZoomLabels,
   legendMin,
   legendMax,
-  invertColorScale = false,
+  scaleType,
+  scaleCenter,
+  colorScaleSettings,
+  visualStyle,
   valueFilters,
-  hoveredCell,
   selectedCells,
   svgRef: svgRefProp,
   onCellHover,
   onCellLeave,
+  onLabelHover,
+  onLabelLeave,
   onCellSelect,
   onBrushZoom,
+  onBrushSelectLinks,
+  onBrushDeselectLinks,
   onLabelToggle,
 }: HeatmapProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -85,32 +101,34 @@ function MatrixHeatmap({
   const leaveCbRef = useRef(onCellLeave);
   const selectCbRef = useRef(onCellSelect);
   const brushCbRef = useRef(onBrushZoom);
+  const brushSelectLinksCbRef = useRef(onBrushSelectLinks);
+  const brushDeselectLinksCbRef = useRef(onBrushDeselectLinks);
   const labelToggleCbRef = useRef(onLabelToggle);
+  const labelHoverCbRef = useRef(onLabelHover);
+  const labelLeaveCbRef = useRef(onLabelLeave);
 
-  const positionTooltipForCell = (
-    colX: number,
-    rowY: number,
-    bandwidthX: number,
-    bandwidthY: number,
-  ) => {
-    const tooltipEl = tooltipRef.current;
-    if (!tooltipEl) return;
+  const positionTooltipForCell = useCallback(
+    (colX: number, rowY: number, bandwidthX: number, bandwidthY: number) => {
+      const tooltipEl = tooltipRef.current;
+      if (!tooltipEl) return;
 
-    const { left, top } = getTooltipPositionForMatrixCell({
-      colX,
-      rowY,
-      bandwidthX,
-      bandwidthY,
-      matrixSize: sizeRef.current,
-      margin: marginRef.current,
-      tooltipRect: tooltipEl.getBoundingClientRect(),
-    });
+      const { left, top } = getTooltipPositionForMatrixCell({
+        colX,
+        rowY,
+        bandwidthX,
+        bandwidthY,
+        matrixSize: sizeRef.current,
+        margin: marginRef.current,
+        tooltipRect: tooltipEl.getBoundingClientRect(),
+      });
 
-    tooltipEl.style.left = `${left}px`;
-    tooltipEl.style.top = `${top}px`;
-  };
+      tooltipEl.style.left = `${left}px`;
+      tooltipEl.style.top = `${top}px`;
+    },
+    [],
+  );
 
-  const positionTooltipForPointer = (clientX: number, clientY: number) => {
+  const positionTooltipForPointer = useCallback((clientX: number, clientY: number) => {
     const tooltipEl = tooltipRef.current;
     const wrapperEl = wrapperRef.current;
     if (!tooltipEl || !wrapperEl) return;
@@ -124,15 +142,29 @@ function MatrixHeatmap({
 
     tooltipEl.style.left = `${left}px`;
     tooltipEl.style.top = `${top}px`;
-  };
+  }, []);
 
   useEffect(() => {
     hoverCbRef.current = onCellHover;
     leaveCbRef.current = onCellLeave;
     selectCbRef.current = onCellSelect;
     brushCbRef.current = onBrushZoom;
+    brushSelectLinksCbRef.current = onBrushSelectLinks;
+    brushDeselectLinksCbRef.current = onBrushDeselectLinks;
     labelToggleCbRef.current = onLabelToggle;
-  }, [onCellHover, onCellLeave, onCellSelect, onBrushZoom, onLabelToggle]);
+    labelHoverCbRef.current = onLabelHover;
+    labelLeaveCbRef.current = onLabelLeave;
+  }, [
+    onCellHover,
+    onCellLeave,
+    onCellSelect,
+    onBrushZoom,
+    onBrushSelectLinks,
+    onBrushDeselectLinks,
+    onLabelToggle,
+    onLabelHover,
+    onLabelLeave,
+  ]);
 
   useEffect(() => {
     selectedCellsRef.current = selectedCells;
@@ -162,6 +194,21 @@ function MatrixHeatmap({
         maxValue,
       }),
     [legendMin, legendMax, minValue, maxValue],
+  );
+
+  const resolvedScaleType = useMemo(
+    () =>
+      scaleType ??
+      (legendRange.min < 0 && legendRange.max > 0 ? "diverging" : "sequential"),
+    [legendRange.max, legendRange.min, scaleType],
+  );
+  const resolvedColorScaleSettings = useMemo(
+    () => colorScaleSettings ?? DEFAULT_MATRIX_COLOR_SETTINGS[resolvedScaleType],
+    [colorScaleSettings, resolvedScaleType],
+  );
+  const resolvedVisualStyle = useMemo(
+    () => visualStyle ?? getMatrixVisualStyle(resolvedColorScaleSettings),
+    [resolvedColorScaleSettings, visualStyle],
   );
 
   const { resolvedRowLabels, resolvedColLabels } = useMemo(
@@ -204,22 +251,29 @@ function MatrixHeatmap({
       layout,
       data: filtered,
       legendRange,
-      invertColorScale,
+      scaleType: resolvedScaleType,
+      scaleCenter: scaleCenter ?? null,
+      colorScaleSettings: resolvedColorScaleSettings,
+      visualStyle: resolvedVisualStyle,
       title,
       valueLabel,
       resolvedRowLabels,
       resolvedColLabels,
       labelNames,
       labelTitles,
-      labelAcronyms,
       labelColors,
       selectedZoomLabels,
       brushEnabled,
+      brushMode,
       hoverCbRef,
       leaveCbRef,
       selectCbRef,
       brushCbRef,
+      brushSelectLinksCbRef,
+      brushDeselectLinksCbRef,
       labelToggleCbRef,
+      labelHoverCbRef,
+      labelLeaveCbRef,
       positionTooltipForCell,
       positionTooltipForPointer,
     });
@@ -243,25 +297,34 @@ function MatrixHeatmap({
         rows: filtered.length,
         cols: filtered[0]?.length ?? 0,
       },
+      visibleData: filtered,
+      symmetric,
       selectedCells: selectedCellsRef.current,
+      visualStyle: resolvedVisualStyle,
     });
   }, [
     filtered,
     layout,
     legendRange,
-    invertColorScale,
+    resolvedScaleType,
+    scaleCenter,
+    resolvedColorScaleSettings,
+    resolvedVisualStyle,
     title,
     valueLabel,
     resolvedRowLabels,
     resolvedColLabels,
     labelNames,
     labelTitles,
-    labelAcronyms,
     labelColors,
     selectedZoomLabels,
     brushEnabled,
+    brushMode,
     showAllLabels,
+    symmetric,
     svgRef,
+    positionTooltipForCell,
+    positionTooltipForPointer,
   ]);
 
   useEffect(() => {
@@ -279,11 +342,14 @@ function MatrixHeatmap({
         rows: normalizedData.length,
         cols: normalizedData[0]?.length ?? 0,
       },
+      visibleData: normalizedData,
+      symmetric,
       selectedCells,
+      visualStyle: resolvedVisualStyle,
     });
-  }, [selectedCells, filtered, width, height]);
+  }, [selectedCells, filtered, width, height, symmetric, resolvedVisualStyle]);
 
-  useEffect(() => {
+  const syncSharedHover = useCallback((hoverState: SharedHoverState) => {
     const xScale = xScaleRef.current;
     const yScale = yScaleRef.current;
     const highlights = highlightRefs.current;
@@ -291,10 +357,15 @@ function MatrixHeatmap({
     if (!xScale || !yScale || !highlights || !tooltip) return;
 
     syncHoveredCellOverlay({
-      hoveredCell,
+      hoveredCell:
+        hoverState?.type === "cell"
+          ? { rowId: hoverState.rowId, colId: hoverState.colId }
+          : null,
+      hoveredNodeId: hoverState?.type === "node" ? hoverState.nodeId : null,
       rowLabels: rowLabelsRef.current,
       colLabels: colLabelsRef.current,
       labelNames,
+      labelTitles,
       normalizedData: normalizedRef.current,
       xScale,
       yScale,
@@ -304,7 +375,14 @@ function MatrixHeatmap({
       valueLabel,
       positionTooltipForCell,
     });
-  }, [hoveredCell, labelNames, valueLabel]);
+  }, [
+    labelNames,
+    labelTitles,
+    positionTooltipForCell,
+    valueLabel,
+  ]);
+
+  useEffect(() => subscribeSharedHover(syncSharedHover), [syncSharedHover]);
 
   return (
     <div ref={wrapperRef} className="heatmap-wrapper">

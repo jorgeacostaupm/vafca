@@ -1,5 +1,13 @@
-import { type MutableRefObject } from "react";
 import * as d3 from "d3";
+import { type MutableRefObject } from "react";
+
+import { resolveHeatmapTooltipLabel } from "@/components/matrix/matrixTooltip";
+import {
+  MATRIX_LABEL_BACKGROUND_PADDING_X,
+  MATRIX_LABEL_BACKGROUND_PADDING_Y,
+  MATRIX_LABEL_BACKGROUND_RADIUS,
+} from "@/config/ui";
+import type { MatrixVisualStyle } from "@/types/visualizationUi";
 import { getReadableTextColor } from "@/utils/groupingColoring";
 import { escapeHtml } from "@/utils/html";
 
@@ -11,46 +19,77 @@ type SharedLabelArgs = {
   tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined>;
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  labelAcronyms?: Record<string, string>;
   labelColors?: Record<string, string>;
+  visualStyle: MatrixVisualStyle;
   selectedZoomLabels?: string[];
   labelToggleCbRef: MutableRefObject<((label: string) => void) | undefined>;
+  labelHoverCbRef: MutableRefObject<((label: string) => void) | undefined>;
+  labelLeaveCbRef: MutableRefObject<(() => void) | undefined>;
   positionTooltipForPointer: (clientX: number, clientY: number) => void;
 };
 
 type RenderColumnLabelsArgs = SharedLabelArgs & {
   labels: string[];
+  data: number[][];
   xScale: d3.ScaleBand<number>;
   colLabelFontSize: number;
 };
 
 type RenderRowLabelsArgs = SharedLabelArgs & {
   labels: string[];
+  data: number[][];
   yScale: d3.ScaleBand<number>;
   rowLabelFontSize: number;
 };
 
+type MatrixAxis = "row" | "column";
+
+const countVisibleLinks = (args: {
+  data: number[][];
+  index: number;
+  axis: MatrixAxis;
+}) => {
+  const { data, index, axis } = args;
+  const size = axis === "row" ? (data[index]?.length ?? 0) : data.length;
+  let count = 0;
+
+  for (let offset = 0; offset < size; offset += 1) {
+    if (offset === index) continue;
+    const value = axis === "row" ? data[index]?.[offset] : data[offset]?.[index];
+    if (Number.isFinite(value)) count += 1;
+  }
+
+  return count;
+};
+
 const resolveTooltipHtml = (args: {
   id: string;
+  linkCount: number;
+  axis: MatrixAxis;
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  labelAcronyms?: Record<string, string>;
 }) => {
-  const { id, labelNames, labelTitles, labelAcronyms } = args;
-  const roiName = labelTitles?.[id] ?? labelNames?.[id] ?? id;
-  const acronym = labelAcronyms?.[id] ?? id;
-  return `<div><strong>${escapeHtml(roiName)} (${escapeHtml(acronym)})</strong></div>`;
+  const { id, linkCount, axis, labelNames, labelTitles } = args;
+  const roiName = resolveHeatmapTooltipLabel(id, labelNames, labelTitles);
+  const axisLabel = axis === "row" ? "Row" : "Column";
+  const linkLabel = linkCount === 1 ? "link" : "links";
+  return `<div><strong>${escapeHtml(roiName)}</strong></div><div>${axisLabel}: ${linkCount} ${linkLabel}</div>`;
 };
 
 const resolveTextColor = (args: {
   id: string;
   labelColors?: Record<string, string>;
   zoomLabelSet: Set<string> | null;
+  visualStyle: MatrixVisualStyle;
 }) => {
-  const { id, labelColors, zoomLabelSet } = args;
+  const { id, labelColors, zoomLabelSet, visualStyle } = args;
+  if (zoomLabelSet?.has(id)) {
+    return getReadableTextColor(visualStyle.selectionColor);
+  }
+
   const backgroundColor = labelColors?.[id];
   if (backgroundColor) return getReadableTextColor(backgroundColor);
-  return zoomLabelSet?.has(id) ? "#1b2b38" : "#394b59";
+  return "#394b59";
 };
 
 const resolveFontWeight = (id: string, zoomLabelSet: Set<string> | null) =>
@@ -60,10 +99,15 @@ const applyLabelBackground = (
   group: d3.Selection<SVGGElement, number, SVGGElement, unknown>,
   labelIdByIndex: (index: number) => string,
   labelColors?: Record<string, string>,
+  zoomLabelSet?: Set<string> | null,
+  visualStyle?: MatrixVisualStyle,
 ) => {
   group.each(function (index) {
     const id = labelIdByIndex(index);
-    const backgroundColor = labelColors?.[id] ?? null;
+    const backgroundColor =
+      zoomLabelSet?.has(id) && visualStyle
+        ? visualStyle.selectionColor
+        : labelColors?.[id] ?? null;
     const textNode = d3.select(this).select<SVGTextElement>("text").node();
     const rect = d3.select(this).select<SVGRectElement>("rect");
 
@@ -79,16 +123,13 @@ const applyLabelBackground = (
     }
 
     const box = textNode.getBBox();
-    const padX = 2;
-    const padY = 1;
-
     rect
       .attr("fill", backgroundColor)
       .attr("stroke", "none")
-      .attr("x", box.x - padX)
-      .attr("y", box.y - padY)
-      .attr("width", box.width + padX * 2)
-      .attr("height", box.height + padY * 2);
+      .attr("x", box.x - MATRIX_LABEL_BACKGROUND_PADDING_X)
+      .attr("y", box.y - MATRIX_LABEL_BACKGROUND_PADDING_Y)
+      .attr("width", box.width + MATRIX_LABEL_BACKGROUND_PADDING_X * 2)
+      .attr("height", box.height + MATRIX_LABEL_BACKGROUND_PADDING_Y * 2);
   });
 };
 
@@ -96,14 +137,17 @@ export const renderColumnLabels = ({
   root,
   tooltip,
   labels,
+  data,
   xScale,
   colLabelFontSize,
   labelNames,
   labelTitles,
-  labelAcronyms,
   labelColors,
+  visualStyle,
   selectedZoomLabels,
   labelToggleCbRef,
+  labelHoverCbRef,
+  labelLeaveCbRef,
   positionTooltipForPointer,
 }: RenderColumnLabelsArgs) => {
   const zoomLabelSet =
@@ -131,6 +175,9 @@ export const renderColumnLabels = ({
       event.stopPropagation();
       labelToggleCbRef.current(labels[index]);
     })
+    .on("mouseenter", (_event, index) => {
+      labelHoverCbRef.current?.(labels[index]);
+    })
     .on("mousemove", (event, index) => {
       const id = labels[index];
       tooltip
@@ -138,23 +185,25 @@ export const renderColumnLabels = ({
         .html(
           resolveTooltipHtml({
             id,
+            axis: "column",
+            linkCount: countVisibleLinks({ data, index, axis: "column" }),
             labelNames,
             labelTitles,
-            labelAcronyms,
           }),
         );
       positionTooltipForPointer(event.clientX, event.clientY);
     })
     .on("mouseleave", () => {
       tooltip.style("opacity", "0");
+      labelLeaveCbRef.current?.();
     });
 
   xLabelGroups
     .selectAll("rect")
     .data((index) => [index])
     .join("rect")
-    .attr("rx", 2)
-    .attr("ry", 2);
+    .attr("rx", MATRIX_LABEL_BACKGROUND_RADIUS)
+    .attr("ry", MATRIX_LABEL_BACKGROUND_RADIUS);
 
   xLabelGroups
     .selectAll("text")
@@ -170,6 +219,7 @@ export const renderColumnLabels = ({
         id: labels[index],
         labelColors,
         zoomLabelSet,
+        visualStyle,
       }),
     )
     .attr("font-weight", (index) => resolveFontWeight(labels[index], zoomLabelSet))
@@ -178,21 +228,30 @@ export const renderColumnLabels = ({
       return labelNames?.[id] ?? id;
     });
 
-  applyLabelBackground(xLabelGroups, (index) => labels[index], labelColors);
+  applyLabelBackground(
+    xLabelGroups,
+    (index) => labels[index],
+    labelColors,
+    zoomLabelSet,
+    visualStyle,
+  );
 };
 
 export const renderRowLabels = ({
   root,
   tooltip,
   labels,
+  data,
   yScale,
   rowLabelFontSize,
   labelNames,
   labelTitles,
-  labelAcronyms,
   labelColors,
+  visualStyle,
   selectedZoomLabels,
   labelToggleCbRef,
+  labelHoverCbRef,
+  labelLeaveCbRef,
   positionTooltipForPointer,
 }: RenderRowLabelsArgs) => {
   const zoomLabelSet =
@@ -220,6 +279,9 @@ export const renderRowLabels = ({
       event.stopPropagation();
       labelToggleCbRef.current(labels[index]);
     })
+    .on("mouseenter", (_event, index) => {
+      labelHoverCbRef.current?.(labels[index]);
+    })
     .on("mousemove", (event, index) => {
       const id = labels[index];
       tooltip
@@ -227,23 +289,25 @@ export const renderRowLabels = ({
         .html(
           resolveTooltipHtml({
             id,
+            axis: "row",
+            linkCount: countVisibleLinks({ data, index, axis: "row" }),
             labelNames,
             labelTitles,
-            labelAcronyms,
           }),
         );
       positionTooltipForPointer(event.clientX, event.clientY);
     })
     .on("mouseleave", () => {
       tooltip.style("opacity", "0");
+      labelLeaveCbRef.current?.();
     });
 
   yLabelGroups
     .selectAll("rect")
     .data((index) => [index])
     .join("rect")
-    .attr("rx", 2)
-    .attr("ry", 2);
+    .attr("rx", MATRIX_LABEL_BACKGROUND_RADIUS)
+    .attr("ry", MATRIX_LABEL_BACKGROUND_RADIUS);
 
   yLabelGroups
     .selectAll("text")
@@ -259,6 +323,7 @@ export const renderRowLabels = ({
         id: labels[index],
         labelColors,
         zoomLabelSet,
+        visualStyle,
       }),
     )
     .attr("font-weight", (index) => resolveFontWeight(labels[index], zoomLabelSet))
@@ -267,5 +332,11 @@ export const renderRowLabels = ({
       return labelNames?.[id] ?? id;
     });
 
-  applyLabelBackground(yLabelGroups, (index) => labels[index], labelColors);
+  applyLabelBackground(
+    yLabelGroups,
+    (index) => labels[index],
+    labelColors,
+    zoomLabelSet,
+    visualStyle,
+  );
 };

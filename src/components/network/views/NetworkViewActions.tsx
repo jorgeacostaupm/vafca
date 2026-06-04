@@ -1,38 +1,43 @@
-import { Button, Popover } from "antd";
-import type { RefObject } from "react";
 import {
+  EyeInvisibleOutlined,
+  EyeOutlined,
   FilterOutlined,
   FullscreenOutlined,
   LeftOutlined,
   ReloadOutlined,
   RightOutlined,
-  SelectOutlined,
-  ZoomInOutlined,
 } from "@ant-design/icons";
+import { Button, Popover } from "antd";
+import type { RefObject } from "react";
+
 import ChartDownloadButton from "@/components/common/ChartDownloadButton";
 import NetworkFilterRolePopover from "@/components/network/NetworkFilterRolePopover";
+import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
+import NetworkBrushControls from "@/components/network/views/NetworkBrushControls";
+import type { buildAdaptedNetworkViewData } from "@/components/network/views/networkViewData";
+import NetworkZoomModesPopover from "@/components/network/views/NetworkZoomModesPopover";
+import { useAppDispatch } from "@/store/hooks";
 import {
-  applyNetworkZoom,
-  patchNetworkNodeLinkSettings,
   patchNetworkMatrixSettings,
+  patchNetworkNodeLinkSettings,
   resetNetworkZoomLabelSelection,
   stepNetworkZoomHistory,
   updateNetworkViewStatRange,
 } from "@/store/slices/networkVisualization";
-import { useAppDispatch } from "@/store/hooks";
-import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
+import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type {
   ComputedView,
   SharedNetworkViewSettings,
 } from "@/types/networkVisualization";
 
 type SharedPanelSettingsPatch = Partial<
-  SharedNetworkViewSettings & { brushEnabled: boolean }
+  SharedNetworkViewSettings & { brushEnabled: boolean; brushMode: MatrixBrushMode }
 >;
 
 type NetworkViewActionsProps = {
   view: ComputedView["view"];
   computed: ComputedView;
+  adapted: ReturnType<typeof buildAdaptedNetworkViewData>;
   isMatrixView: boolean;
   viewTitle: string;
   svgRef: RefObject<SVGSVGElement | null>;
@@ -41,6 +46,7 @@ type NetworkViewActionsProps = {
 export default function NetworkViewActions({
   view,
   computed,
+  adapted,
   isMatrixView,
   viewTitle,
   svgRef,
@@ -50,7 +56,6 @@ export default function NetworkViewActions({
   const canZoomBack = computed.zoomState.index > 0;
   const canZoomForward =
     computed.zoomState.index < computed.zoomState.history.length - 1;
-  const canZoomByLabels = computed.orderedZoomLabels.length > 0;
   const patchSharedSettings = (patch: SharedPanelSettingsPatch) => {
     if (isMatrixView) {
       dispatch(
@@ -74,6 +79,7 @@ export default function NetworkViewActions({
     <NetworkFilterRolePopover
       statRangeValue={computed.statRangeValue}
       hasNegativeRange={computed.hasNegativeRange}
+      statCenter={computed.valueDomain.center ?? 0}
       statSliderMin={computed.statSliderMin}
       statSliderMax={computed.statSliderMax}
       onStatRangeChange={(value, segment) =>
@@ -100,17 +106,11 @@ export default function NetworkViewActions({
   return (
     <div className="network-view-actions">
       <ChartDownloadButton svgRef={svgRef} fileName={`${viewTitle} ${view.label}`} />
-      <Button
-        size="small"
-        type={computed.brushEnabled ? "default" : "text"}
-        aria-label="Toggle brush zoom"
-        title="Brush zoom"
-        icon={<SelectOutlined />}
-        onClick={() =>
-          patchSharedSettings({
-            brushEnabled: !computed.brushEnabled,
-          })
-        }
+      <NetworkBrushControls
+        enabled={computed.brushEnabled}
+        mode={computed.brushMode}
+        isMatrixView={isMatrixView}
+        onChange={patchSharedSettings}
       />
       {!isMatrixView ? (
         <Button
@@ -133,24 +133,21 @@ export default function NetworkViewActions({
       ) : null}
       <Button
         size="small"
-        type="text"
-        aria-label="Zoom to labels"
-        title="Zoom to labels"
-        icon={<ZoomInOutlined />}
-        disabled={!canZoomByLabels}
+        type={computed.selectionVisible ? "default" : "text"}
+        aria-label={
+          computed.selectionVisible ? "Hide selection" : "Show selection"
+        }
+        title={computed.selectionVisible ? "Hide selection" : "Show selection"}
+        icon={
+          computed.selectionVisible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+        }
         onClick={() =>
-          canZoomByLabels &&
-          dispatch(
-            applyNetworkZoom({
-              targetViewIds: zoomTargetsByType(view.id),
-              selection: {
-                rows: computed.orderedZoomLabels,
-                cols: computed.orderedZoomLabels,
-              },
-            }),
-          )
+          patchSharedSettings({
+            selectionVisible: !computed.selectionVisible,
+          })
         }
       />
+      <NetworkZoomModesPopover view={view} computed={computed} adapted={adapted} />
       <Button
         size="small"
         type="text"

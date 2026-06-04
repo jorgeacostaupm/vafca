@@ -1,11 +1,14 @@
-import { memo, useCallback } from "react";
 import { List, Switch } from "antd";
+import { memo, useCallback } from "react";
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setLabelEnabled } from "@/store/slices/atlasUi";
+import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 import {
   getAtlasDisplayLabel,
   isAtlasLabelEnabled,
 } from "@/utils/atlas/labels";
+
+import { buildEffectiveRoiEnabledMap } from "./roiVisibilityDraft";
 
 type AtlasRoiListItemProps = {
   id: string;
@@ -15,15 +18,27 @@ export const AtlasRoiListItem = memo(function AtlasRoiListItem({
   id,
 }: AtlasRoiListItemProps) {
   const dispatch = useAppDispatch();
-  const labelMeta = useAppSelector((state) => state.atlasUi.labelsById[id]);
+  const { draft, labelsById, order } = useAppSelector((state) => ({
+    draft: state.visualizationUi.atlasPanel.roiVisibilityDraft,
+    labelsById: state.atlasUi.labelsById,
+    order: state.atlasUi.order,
+  }));
+  const labelMeta = labelsById[id];
   const displayLabel = getAtlasDisplayLabel(labelMeta, id);
-  const enabled = isAtlasLabelEnabled(labelMeta);
+  const enabled = draft?.[id] ?? isAtlasLabelEnabled(labelMeta);
 
   const handleChange = useCallback(
     (checked: boolean) => {
-      dispatch(setLabelEnabled({ id, enabled: checked }));
+      dispatch(
+        setAtlasPanelState({
+          roiVisibilityDraft: {
+            ...buildEffectiveRoiEnabledMap({ order, labelsById, draft }),
+            [id]: checked,
+          },
+        }),
+      );
     },
-    [dispatch, id],
+    [dispatch, draft, id, labelsById, order],
   );
 
   return (

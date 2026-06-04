@@ -1,14 +1,16 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { Provider } from "react-redux";
-import { ConfigProvider } from "antd";
 import "antd/dist/reset.css";
 import "react-resizable/css/styles.css";
 import "react-grid-layout/css/styles.css";
 import "@/index.css";
+
+import { ConfigProvider } from "antd";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { Provider } from "react-redux";
+
 import App from "@/App";
 import { store } from "@/store/store";
-import { appTheme, applyThemeCssVariables } from "@/theme";
+import { applyThemeCssVariables,appTheme } from "@/theme";
 
 applyThemeCssVariables();
 

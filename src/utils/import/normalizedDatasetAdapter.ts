@@ -1,13 +1,13 @@
 import type {
   Atlas,
   Catalogs,
-  MatrixRecord,
+  ConnectivityMatrix,
 } from "@/types/connectivityBundle";
+import { CONNECTIVITY_SCHEMA_VERSION } from "@/types/connectivityBundle";
 import type { DatasetMeta } from "@/types/datasetState";
 import type { MatrixOrderEntry } from "@/types/matrixOrder";
-import type { NormalizedConnectivityDataset } from "@/utils/import/types";
-import { CONNECTIVITY_SCHEMA_VERSION } from "@/types/connectivityBundle";
 import { computeRoiOrderHash } from "@/utils/connectivityMatrix";
+import type { NormalizedConnectivityDataset } from "@/utils/import/types";
 import { computeMatrixDataStats } from "@/utils/matrixDataStats";
 
 const toAtlas = (dataset: NormalizedConnectivityDataset): Atlas => ({
@@ -26,6 +26,14 @@ const toAtlas = (dataset: NormalizedConnectivityDataset): Atlas => ({
   })),
 });
 
+const getMeasureSymmetry = (
+  dataset: NormalizedConnectivityDataset,
+  measureId: string,
+) => {
+  const matrices = dataset.matrices.filter((matrix) => matrix.measureId === measureId);
+  return matrices.length === 0 || matrices.every((matrix) => matrix.symmetric);
+};
+
 const toCatalogs = (dataset: NormalizedConnectivityDataset): Catalogs => ({
   layers: Object.fromEntries(
     Object.values(dataset.catalogs.layers).map((layer) => [
@@ -38,17 +46,20 @@ const toCatalogs = (dataset: NormalizedConnectivityDataset): Catalogs => ({
     ]),
   ),
   measures: Object.fromEntries(
-    Object.values(dataset.catalogs.measures).map((measure) => [
-      measure.id,
-      {
-        id: measure.id,
-        label: measure.label,
-        description: measure.description ?? null,
-        expectedRange: measure.expectedRange ?? null,
-        symmetric: true,
-        directed: false,
-      },
-    ]),
+    Object.values(dataset.catalogs.measures).map((measure) => {
+      const symmetric = getMeasureSymmetry(dataset, measure.id);
+      return [
+        measure.id,
+        {
+          id: measure.id,
+          label: measure.label,
+          description: measure.description ?? null,
+          expectedRange: measure.expectedRange ?? null,
+          symmetric,
+          directed: !symmetric,
+        },
+      ];
+    }),
   ),
   stats: Object.fromEntries(
     Object.values(dataset.catalogs.stats).map((stat) => [
@@ -75,19 +86,31 @@ const toCatalogs = (dataset: NormalizedConnectivityDataset): Catalogs => ({
       },
     ]),
   ),
-  subjects: {},
+  subjects: Object.fromEntries(
+    dataset.matrices
+      .filter((matrix) => matrix.kind === "subject" && matrix.subjectId)
+      .map((matrix) => [
+        matrix.subjectId as string,
+        {
+          id: matrix.subjectId as string,
+          label: matrix.subjectId as string,
+          populationIds: matrix.populationIds,
+          metadata: {},
+        },
+      ]),
+  ),
   roiGroupSchemes: {},
 });
 
-const toMatrixRecord = (
+const toConnectivityMatrix = (
   dataset: NormalizedConnectivityDataset,
   atlas: Atlas,
   matrixIndex: number,
-): MatrixRecord => {
+): ConnectivityMatrix => {
   const matrix = dataset.matrices[matrixIndex];
-  const record: MatrixRecord = {
+  const record: ConnectivityMatrix = {
     id: matrix.id,
-    kind: matrix.kind === "comparison" ? "comparison" : "aggregate",
+    kind: matrix.kind,
     label: matrix.label,
     context: {
       layerId: matrix.layerId,
@@ -110,11 +133,17 @@ const toMatrixRecord = (
             label: matrix.comparison?.right,
           },
         }
-      : {
-          level: "population",
-          populationIds: matrix.populationIds,
-          n: matrix.n ?? 1,
-        },
+      : matrix.kind === "subject"
+        ? {
+            level: "subject",
+            subjectId: matrix.subjectId ?? matrix.id,
+            populationIds: matrix.populationIds,
+          }
+        : {
+            level: "population",
+            populationIds: matrix.populationIds,
+            n: matrix.n ?? 1,
+          },
     stat: {
       id: matrix.statId,
       method: null,
@@ -171,7 +200,7 @@ export const createConnectivityStateFromNormalized = (
   const atlas = toAtlas(dataset);
   const catalogs = toCatalogs(dataset);
   const matrices = dataset.matrices.map((_, index) =>
-    toMatrixRecord(dataset, atlas, index),
+    toConnectivityMatrix(dataset, atlas, index),
   );
 
   return {

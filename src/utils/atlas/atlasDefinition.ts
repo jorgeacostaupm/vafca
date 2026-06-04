@@ -1,6 +1,5 @@
 import type {
   AtlasDefinition,
-  AtlasMeshMode,
   AtlasRoi,
   AtlasTagValue,
   AtlasValidationResult,
@@ -143,12 +142,8 @@ export const getDefaultGroupByFields = (fields: string[]) => {
   return fields.slice(0, 1);
 };
 
-export const atlasSupports3d = (
-  atlas: AtlasDefinition | null,
-  meshMode?: AtlasMeshMode | null,
-) => {
+export const atlasSupports3d = (atlas: AtlasDefinition | null) => {
   if (!atlas?.rois?.length) return false;
-  if (meshMode === "without_mesh_points") return false;
 
   return atlas.rois.some(hasValidMeshPoints);
 };

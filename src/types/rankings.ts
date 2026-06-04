@@ -1,7 +1,7 @@
+import type { MatrixKind } from "@/types/connectivityBundle";
 import type { NetworkLayoutItem } from "@/types/networkVisualization";
 
 export type RankingTarget = "matrices" | "links" | "rois";
-export type MatrixKindForRanking = "original" | "aggregated" | "comparison";
 export type RankingMode =
   | "singleMatrix"
   | "matrixCollection";
@@ -31,7 +31,7 @@ export type RankingQuery = {
   allowRoiRankingAutoconnections: boolean;
   sourceType?: "population" | "subject" | "comparison";
   sourceId?: string;
-  matrixKind?: MatrixKindForRanking;
+  matrixKind?: MatrixKind;
   aggregationGroupingKey?: string;
   measureId?: string;
   statisticId?: string;
@@ -51,7 +51,7 @@ export type MatrixRankingRow = {
   label: string;
   sourceType?: "population" | "subject" | "comparison";
   sourceId?: string;
-  matrixKind?: MatrixKindForRanking;
+  matrixKind?: MatrixKind;
   aggregationGroupingKey?: string;
   measureId?: string;
   statisticId?: string;

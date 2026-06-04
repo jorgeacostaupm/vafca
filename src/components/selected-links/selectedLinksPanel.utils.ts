@@ -1,16 +1,16 @@
-import { resolveMatrixValue } from "@/utils/matrixValue";
-import type { SelectedLink } from "@/types/visualizationUi";
 import type {
   BuildLinkValuesParams,
   BuildRowsParams,
   DownloadMode,
   ExportedLink,
   LinkRow,
-  MatrixLookup,
   MatrixColumn,
+  MatrixLookup,
   MatrixOption,
   SelectedLinksExportPayload,
 } from "@/components/selected-links/selectedLinksPanel.types";
+import type { SelectedLink } from "@/types/visualizationUi";
+import { resolveMatrixValue } from "@/utils/matrixValue";
 
 export const buildMatrixLabelMap = (options: MatrixOption[]) => {
   return options.reduce<Record<string, string>>((acc, option) => {
@@ -105,7 +105,7 @@ export const buildRows = ({
 }: BuildRowsParams): LinkRow[] => {
   return links.map((link) => ({
     key: link.id,
-    linkLabel: `${link.rowLabel} ↔ ${link.colLabel}`,
+    linkLabel: `${link.rowLabel} ${link.directed ? "→" : "↔"} ${link.colLabel}`,
     values: buildLinkValues({
       link,
       layerIds: selectedMatrixIds,
@@ -127,6 +127,7 @@ export const buildExportLinks = (
     rowLabel: link.rowLabel,
     colId: link.colId,
     colLabel: link.colLabel,
+    directed: link.directed,
     values: buildLinkValues({
       link,
       layerIds,

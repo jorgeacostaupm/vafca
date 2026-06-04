@@ -1,7 +1,9 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+
+import { DEFAULT_D3_GROUPING_PALETTE } from '@/config/groupingPalettes'
 import type { AtlasLabel, AtlasState } from '@/types/atlas'
 import type { MatrixOrderEntry } from '@/types/matrixOrder'
-import { DEFAULT_D3_GROUPING_PALETTE } from '@/config/groupingPalettes'
+
 import {
   type AtlasColorPalettePayload,
   initialAtlasUiState,
@@ -33,6 +35,16 @@ const atlasUiSlice = createSlice({
       for (const id of ids) {
         const label = state.labelsById[id]
         if (label) label.enabled = enabled
+      }
+    },
+    setLabelsEnabledMap(
+      state,
+      action: PayloadAction<Record<string, boolean>>,
+    ) {
+      for (const id of state.order) {
+        const label = state.labelsById[id]
+        const enabled = action.payload[id]
+        if (label && typeof enabled === 'boolean') label.enabled = enabled
       }
     },
     setAllLabels(state, action: PayloadAction<boolean>) {
@@ -72,6 +84,7 @@ const atlasUiSlice = createSlice({
 export const {
   setAtlasLabels,
   setLabelEnabled,
+  setLabelsEnabledMap,
   setLabelsEnabled,
   setAllLabels,
   setAtlasColorFields,

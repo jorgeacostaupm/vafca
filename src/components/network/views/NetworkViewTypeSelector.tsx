@@ -1,4 +1,5 @@
 import { Select } from "antd";
+
 import { networkViewTypeIconOptions } from "@/components/network/networkViewTypeOptions";
 import { useAppDispatch } from "@/store/hooks";
 import { mutateNetworkViewType } from "@/store/slices/networkVisualization";

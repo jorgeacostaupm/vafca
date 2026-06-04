@@ -1,4 +1,4 @@
-import type { ConnectivityCatalogs } from "@/types/catalogs";
+import type { Catalogs } from "@/types/connectivityBundle";
 import type { StatRangeValue } from "@/types/matrixView";
 
 type PopulationCatalogsLike = {
@@ -11,8 +11,6 @@ type MatrixSummaryLike = {
   statId: string;
   layerId: string;
 };
-
-export const DEFAULT_LINK_WIDTH_RANGE: [number, number] = [0.6, 2.6];
 
 export const toLabel = (value?: string) => value ?? "Unknown";
 
@@ -51,13 +49,15 @@ export const areLabelListsEqual = (
 };
 
 export const areZoomSelectionsEqual = (
-  a: { rows: string[]; cols: string[] } | null | undefined,
-  b: { rows: string[]; cols: string[] } | null | undefined,
+  a: { rows: string[]; cols: string[]; linkIds?: string[] } | null | undefined,
+  b: { rows: string[]; cols: string[]; linkIds?: string[] } | null | undefined,
 ) => {
   if (!a && !b) return true;
   if (!a || !b) return false;
   return (
-    areLabelListsEqual(a.rows, b.rows) && areLabelListsEqual(a.cols, b.cols)
+    areLabelListsEqual(a.rows, b.rows) &&
+    areLabelListsEqual(a.cols, b.cols) &&
+    areLabelListsEqual(a.linkIds, b.linkIds)
   );
 };
 
@@ -96,7 +96,7 @@ export const buildDefaultRanges = (
 };
 
 export const buildDefaultStatRanges = (
-  stats: ConnectivityCatalogs["stats"] | undefined,
+  stats: Catalogs["stats"] | undefined,
 ) => {
   if (!stats) return {} as Record<string, StatRangeValue>;
   return Object.entries(stats).reduce<Record<string, StatRangeValue>>(
@@ -139,7 +139,7 @@ export const getLegendRange = (
   data: number[][],
   measureId: string,
   statId: string,
-  catalogs?: ConnectivityCatalogs,
+  catalogs?: Catalogs,
 ) => {
   if (!catalogs) return { min: undefined, max: undefined };
   const statRange = catalogs.stats[statId];
@@ -171,7 +171,7 @@ export const getLegendRange = (
 
 export const buildMatrixLabel = (
   summary: MatrixSummaryLike,
-  catalogs?: ConnectivityCatalogs,
+  catalogs?: Catalogs,
 ) => {
   const populationLabel = formatPopulationSetLabel(
     summary.populationIds,

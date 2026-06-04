@@ -1,5 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+
 import type { MatrixFilterDefinition, RuntimeEdgeMask } from "@/types/edgeFilter";
+
 import { initialNetworkFiltersState } from "./networkFiltersTypes";
 
 const networkFiltersSlice = createSlice({

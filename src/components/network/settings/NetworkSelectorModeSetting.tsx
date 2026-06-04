@@ -1,29 +1,27 @@
-import { ApartmentOutlined, ProfileOutlined } from "@ant-design/icons";
-import { Form, Segmented } from "antd";
-import { createNetworkSegmentedOption } from "@/components/network/segmentedOption";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  patchNetworkControls,
-  selectNetworkControls,
-} from "@/store/slices/networkVisualization";
-import type { NetworkMatrixSelectorMode } from "@/types/networkVisualization";
+import { ApartmentOutlined, ProfileOutlined } from '@ant-design/icons'
+import { Form, Segmented } from 'antd'
+
+import { createNetworkSegmentedOption } from '@/components/network/segmentedOption'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { patchNetworkControls, selectNetworkControls } from '@/store/slices/networkVisualization'
+import type { NetworkMatrixSelectorMode } from '@/types/networkVisualization'
 
 const selectorModeOptions = [
   createNetworkSegmentedOption<NetworkMatrixSelectorMode>(
-    "combined",
+    'combined',
     <ProfileOutlined />,
-    "Single selector",
+    'Single',
   ),
   createNetworkSegmentedOption<NetworkMatrixSelectorMode>(
-    "fields",
+    'fields',
     <ApartmentOutlined />,
-    "Field selectors",
+    'Fields',
   ),
-];
+]
 
 export default function NetworkSelectorModeSetting() {
-  const dispatch = useAppDispatch();
-  const networkControls = useAppSelector(selectNetworkControls);
+  const dispatch = useAppDispatch()
+  const networkControls = useAppSelector(selectNetworkControls)
 
   return (
     <Form layout="vertical" style={{ marginBottom: 0 }}>
@@ -45,5 +43,5 @@ export default function NetworkSelectorModeSetting() {
         />
       </Form.Item>
     </Form>
-  );
+  )
 }

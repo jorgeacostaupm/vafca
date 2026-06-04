@@ -1,6 +1,7 @@
-import { useMemo } from "react";
-import { Alert, Button, Radio, Space, Typography, Upload } from "antd";
 import type { UploadProps } from "antd";
+import { Alert, Button, Space, Typography, Upload } from "antd";
+import { useMemo } from "react";
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   clearUploadedAtlasAndSync,
@@ -8,34 +9,8 @@ import {
   selectUploadedAtlasStatus,
   uploadAtlasDefinitionAndSync,
 } from "@/store/slices/atlasDefinition";
-import type { AtlasMeshMode } from "@/types/atlas";
 
 const { Dragger } = Upload;
-
-type AtlasMeshModeControlProps = {
-  meshMode: AtlasMeshMode;
-  onMeshModeChange: (meshMode: AtlasMeshMode) => void;
-};
-
-export function AtlasMeshModeControl({
-  meshMode,
-  onMeshModeChange,
-}: AtlasMeshModeControlProps) {
-  return (
-    <Radio.Group
-      value={meshMode}
-      onChange={(event) =>
-        onMeshModeChange(event.target.value as AtlasMeshMode)
-      }
-      optionType="button"
-      buttonStyle="solid"
-      options={[
-        { label: "Atlas with mesh points", value: "with_mesh_points" },
-        { label: "Atlas without mesh points", value: "without_mesh_points" },
-      ]}
-    />
-  );
-}
 
 type AtlasUploaderProps = {
   onDefaultsDetected?: (fields: string[]) => void;

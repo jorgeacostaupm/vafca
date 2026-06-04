@@ -1,12 +1,13 @@
+export {
+  selectNetworkLayout,
+  selectNetworkLayoutState,
+} from "./networkLayoutSelectors";
 export { default } from "./networkLayoutSlice";
 export {
   addNetworkLayoutItem,
   clearNetworkLayout,
   removeNetworkLayoutItem,
+  removeNetworkLayoutItems,
   setNetworkLayout,
 } from "./networkLayoutSlice";
-export {
-  selectNetworkLayout,
-  selectNetworkLayoutState,
-} from "./networkLayoutSelectors";
 export type { NetworkLayoutState } from "./networkLayoutTypes";

@@ -1,9 +1,20 @@
-import { useEffect } from "react";
 import * as d3 from "d3";
 import type { MutableRefObject } from "react";
+import { useEffect } from "react";
+
+import {
+  type SharedHoverState,
+  subscribeSharedHover,
+} from "@/components/hover/sharedHover";
 import { DEFAULT_NODE_RADIUS } from "@/components/nodelink/sceneModel";
 import { applyClassicHoverSelectionStyles } from "@/components/nodelink/visualEffects";
-import type { ClassicLink, ClassicNode } from "@/types/nodelink";
+import { SHARED_HOVER_GRAPH_SYNC_THROTTLE_MS } from "@/config/ui";
+import type {
+  ClassicLink,
+  ClassicNode,
+  NetworkLinkColorResolver,
+} from "@/types/nodelink";
+import type { MatrixVisualStyle } from "@/types/visualizationUi";
 
 type UseClassicSelectionStylesArgs = {
   linkSelectionRef: MutableRefObject<
@@ -18,12 +29,19 @@ type UseClassicSelectionStylesArgs = {
   widthScaleRef: MutableRefObject<d3.ScaleLinear<number, number> | null>;
   zoomLabelSetRef: MutableRefObject<Set<string> | null>;
   nodeRadiusRef: MutableRefObject<number>;
-  hoveredCell?: { rowId: string; colId: string } | null;
-  hoveredNodeId?: string | null;
   selectedLinkIds: Set<string>;
+  visualStyle: MatrixVisualStyle;
+  linkColorResolver: NetworkLinkColorResolver;
   getNodeColor: (node: ClassicNode) => string;
-  hoverNodeColor: string;
 };
+
+const getHoverCell = (hoverState: SharedHoverState) =>
+  hoverState?.type === "cell"
+    ? { rowId: hoverState.rowId, colId: hoverState.colId }
+    : null;
+
+const getHoverNodeId = (hoverState: SharedHoverState) =>
+  hoverState?.type === "node" ? hoverState.nodeId : null;
 
 export const useClassicSelectionStyles = ({
   linkSelectionRef,
@@ -32,11 +50,10 @@ export const useClassicSelectionStyles = ({
   widthScaleRef,
   zoomLabelSetRef,
   nodeRadiusRef,
-  hoveredCell,
-  hoveredNodeId,
   selectedLinkIds,
+  visualStyle,
+  linkColorResolver,
   getNodeColor,
-  hoverNodeColor,
 }: UseClassicSelectionStylesArgs) => {
   useEffect(() => {
     const linkSelection = linkSelectionRef.current;
@@ -44,22 +61,25 @@ export const useClassicSelectionStyles = ({
     const labelSelection = labelSelectionRef.current;
     const widthScale = widthScaleRef.current;
 
-    if (!linkSelection || !nodeSelection || !labelSelection || !widthScale) {
-      return;
-    }
+    if (!linkSelection || !nodeSelection || !labelSelection || !widthScale) return;
 
-    applyClassicHoverSelectionStyles({
+    const applyHover = (hoverState: SharedHoverState) => applyClassicHoverSelectionStyles({
       linkSelection,
       nodeSelection,
       labelSelection,
       widthScale,
       zoomLabelSet: zoomLabelSetRef.current,
       nodeRadius: nodeRadiusRef.current ?? DEFAULT_NODE_RADIUS,
-      hoveredCell,
-      hoveredNodeId,
+      hoveredCell: getHoverCell(hoverState),
+      hoveredNodeId: getHoverNodeId(hoverState),
       selectedLinkIds,
+      visualStyle,
+      linkColorResolver,
       getNodeColor,
-      hoverNodeColor,
+    });
+
+    return subscribeSharedHover(applyHover, {
+      throttleMs: SHARED_HOVER_GRAPH_SYNC_THROTTLE_MS,
     });
   }, [
     linkSelectionRef,
@@ -68,10 +88,9 @@ export const useClassicSelectionStyles = ({
     widthScaleRef,
     zoomLabelSetRef,
     nodeRadiusRef,
-    hoveredCell,
-    hoveredNodeId,
     selectedLinkIds,
+    visualStyle,
+    linkColorResolver,
     getNodeColor,
-    hoverNodeColor,
   ]);
 };

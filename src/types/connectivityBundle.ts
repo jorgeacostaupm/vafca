@@ -1,6 +1,6 @@
 export const CONNECTIVITY_SCHEMA_VERSION = "fc-connectivity-v1.0" as const;
 
-export type MatrixKind = "subject" | "aggregate" | "comparison" | "reduced";
+export type MatrixKind = "subject" | "population" | "comparison" | "aggregated";
 export type MatrixLayout = "full" | "upper_triangular" | "lower_triangular";
 export type MatrixDtype = "float32" | "float64";
 export type MatrixCellValue = number | null;
@@ -13,7 +13,7 @@ export type RangeMode =
   | "observed"
   | "observed_symmetric"
   | "fixed";
-export type UiRangeMode = "logical_default" | "observed";
+export type UiRangeMode = "view_observed" | "catalog";
 
 export type MatrixDataStatsBucket = {
   min: number | null;
@@ -156,8 +156,8 @@ export type ComparisonMatrixSource = {
   right: ComparisonSideSource;
 };
 
-export type ReductionMatrixSource = {
-  level: "reduction";
+export type AggregationMatrixSource = {
+  level: "aggregation";
   baseMatrixId: string;
   populationIds: string[];
 };
@@ -166,7 +166,7 @@ export type MatrixSource =
   | SubjectMatrixSource
   | PopulationMatrixSource
   | ComparisonMatrixSource
-  | ReductionMatrixSource;
+  | AggregationMatrixSource;
 
 export type MatrixStat = {
   id: string;
@@ -213,7 +213,7 @@ export type RoiGroup = {
   roiIds: string[];
 };
 
-export type ReducedMatrixParameters = {
+export type AggregatedMatrixParameters = {
   baseMatrixId: string;
   fields: string[];
   aggregator: "mean";
@@ -227,13 +227,13 @@ export type ReducedMatrixParameters = {
   activeRoiSetHash: string;
 };
 
-export type MatrixReduction = {
+export type MatrixAggregation = {
   baseMatrixId: string;
   source: "visualizationSettings" | "manual";
   fields: string[];
   aggregator: "mean";
   formula: string;
-  parameters: ReducedMatrixParameters;
+  parameters: AggregatedMatrixParameters;
   groups: RoiGroup[];
   cellCounts: number[][];
   excludedRoiIds: string[];
@@ -242,7 +242,7 @@ export type MatrixReduction = {
   staleReason?: string | null;
 };
 
-export type MatrixRecord = {
+export type ConnectivityMatrix = {
   id: string;
   kind: MatrixKind;
   label?: string;
@@ -255,8 +255,19 @@ export type MatrixRecord = {
   dataStats?: MatrixDataStats;
   provenance: MatrixProvenance;
   comparison?: MatrixComparison;
-  reduction?: MatrixReduction;
+  aggregation?: MatrixAggregation;
   data: MatrixData;
+};
+
+export type MatrixViewData = {
+  id: string;
+  layerId: string;
+  measureId: string;
+  statId: string;
+  populationIds: string[];
+  data: number[][];
+  symmetric: boolean;
+  dataStats?: MatrixDataStats;
 };
 
 export type ConnectivityBundle = {
@@ -264,7 +275,7 @@ export type ConnectivityBundle = {
   bundle: BundleMetadata;
   atlas: Atlas;
   catalogs: Catalogs;
-  matrices: MatrixRecord[];
+  matrices: ConnectivityMatrix[];
 };
 
 export type ValidationIssue = {
@@ -304,8 +315,8 @@ export type ConnectivityDataState = {
   atlas: Atlas;
   roiOrderHash: string;
   catalogs: Catalogs;
-  matrices: MatrixRecord[];
-  matrixIndex: Record<string, MatrixRecord>;
+  matrices: ConnectivityMatrix[];
+  matrixIndex: Record<string, ConnectivityMatrix>;
 };
 
 export type ConnectivityLoadResult = {

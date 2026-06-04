@@ -1,24 +1,30 @@
 import * as d3 from "d3";
-import { escapeHtml } from "@/utils/html";
-import {
-  NODE_LINK_LABEL_DY,
-  NODE_LINK_LABEL_FONT_SIZE,
-  NODE_LINK_LABEL_OFFSET,
-  NODE_LINK_ZOOM_RADIUS_OFFSET,
-} from "@/config/ui";
-import type { ClassicLink, ClassicNode } from "@/types/nodelink";
-import {
-  buildRoiTooltipLabel,
-  LINK_COLOR,
-  LINK_NEGATIVE,
-  LINK_POSITIVE,
-  SELECTED_STROKE,
-} from "@/components/nodelink/nodelinkShared";
+
 import {
   configureDraggableNodes,
   syncNodeLinkPositions,
 } from "@/components/nodelink/draggableNodes";
-
+import {
+  buildRoiTooltipLabel,
+} from "@/components/nodelink/nodelinkShared";
+import {
+  NETWORK_LINK_SELECTED_MIN_STROKE,
+  NETWORK_LINK_SELECTED_OPACITY,
+  NODE_LINK_HIT_STROKE_WIDTH,
+  NODE_LINK_LABEL_DY,
+  NODE_LINK_LABEL_FONT_SIZE,
+  NODE_LINK_LABEL_OFFSET,
+  NODE_LINK_LABEL_SELECTION_BACKGROUND_RADIUS,
+  NODE_LINK_LINK_OPACITY,
+  NODE_LINK_ZOOM_RADIUS_OFFSET,
+} from "@/config/ui";
+import type { ClassicLink, ClassicNode } from "@/types/nodelink";
+import type { NetworkLinkColorResolver } from "@/types/nodelink";
+import type {
+  MatrixVisualStyle,
+} from "@/types/visualizationUi";
+import { getReadableTextColor } from "@/utils/groupingColoring";
+import { escapeHtml } from "@/utils/html";
 
 type RenderClassicElementsArgs = {
   root: d3.Selection<SVGGElement, unknown, null, undefined>;
@@ -26,11 +32,12 @@ type RenderClassicElementsArgs = {
   simLinks: ClassicLink[];
   width: number;
   height: number;
-  diverging?: boolean;
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
   labelAcronyms?: Record<string, string>;
   selectedLinkIds: Set<string>;
+  visualStyle: MatrixVisualStyle;
+  linkColorResolver: NetworkLinkColorResolver;
   widthScale: d3.ScaleLinear<number, number>;
   nodeRadius: number;
   zoomLabelSet: Set<string> | null;
@@ -58,17 +65,47 @@ type RenderClassicElementsArgs = {
   defaultMargin: number;
 };
 
+const getClassicNodeLabelId = (node: ClassicNode) => node.labelId ?? String(node.id);
+
+const isClassicNodeSelected = (
+  node: ClassicNode,
+  zoomLabelSet: Set<string> | null,
+) => node.labelId !== undefined && zoomLabelSet?.has(node.labelId);
+
+const buildClassicNodeTooltipHtml = ({
+  node,
+  degree,
+  labelTitles,
+  labelAcronyms,
+}: {
+  node: ClassicNode;
+  degree: number;
+  labelTitles?: Record<string, string>;
+  labelAcronyms?: Record<string, string>;
+}) => {
+  const labelId = getClassicNodeLabelId(node);
+  const tooltipLabel = buildRoiTooltipLabel(
+    labelTitles?.[labelId] ?? node.label,
+    labelAcronyms?.[labelId] ?? labelId,
+  );
+
+  return `<div><strong>${escapeHtml(
+    tooltipLabel,
+  )}</strong></div><div>Links: ${degree}</div>`;
+};
+
 export const renderClassicElements = ({
   root,
   simNodes,
   simLinks,
   width,
   height,
-  diverging,
   labelNames,
   labelTitles,
   labelAcronyms,
   selectedLinkIds,
+  visualStyle,
+  linkColorResolver,
   widthScale,
   nodeRadius,
   zoomLabelSet,
@@ -92,10 +129,39 @@ export const renderClassicElements = ({
   const isSelectedLink = (link: ClassicLink) =>
     selectedLinkIds.has(`${link.rowId}::${link.colId}`) ||
     selectedLinkIds.has(`${link.colId}::${link.rowId}`);
-  const linkOpacity = (link: ClassicLink) => (isSelectedLink(link) ? 0.9 : 0.55);
+  const linkOpacity = (link: ClassicLink) =>
+    isSelectedLink(link) ? NETWORK_LINK_SELECTED_OPACITY : NODE_LINK_LINK_OPACITY;
   const linkStrokeWidth = (link: ClassicLink) => {
     const base = widthScale(Math.abs(link.value));
-    return isSelectedLink(link) ? Math.max(base, SELECTED_STROKE) : base;
+    return isSelectedLink(link) ? Math.max(base, NETWORK_LINK_SELECTED_MIN_STROKE) : base;
+  };
+  const showNodeTooltipForInteraction = (
+    event: MouseEvent | PointerEvent,
+    node: ClassicNode,
+  ) => {
+    const labelId = getClassicNodeLabelId(node);
+    const degree = degreeById.get(labelId) ?? 0;
+    showTooltip(
+      buildClassicNodeTooltipHtml({ node, degree, labelTitles, labelAcronyms }),
+      event,
+    );
+  };
+  const handleNodeMouseEnter = (event: MouseEvent, node: ClassicNode) => {
+    const labelId = getClassicNodeLabelId(node);
+    showNodeTooltipForInteraction(event, node);
+    onNodeHover?.(labelId);
+  };
+  const handleNodeMouseMove = (event: MouseEvent, node: ClassicNode) => {
+    showNodeTooltipForInteraction(event, node);
+  };
+  const handleNodeMouseLeave = () => {
+    hideTooltip();
+    onNodeLeave?.();
+  };
+  const handleNodeClick = (event: MouseEvent, node: ClassicNode) => {
+    if (!onLabelToggle || !node.labelId) return;
+    event.stopPropagation();
+    onLabelToggle(node.labelId);
   };
 
   const linkGroup = root.append("g");
@@ -123,13 +189,45 @@ export const renderClassicElements = ({
         typeof link.target === "number" ? simNodes[link.target] : link.target;
       return clampY(target?.y);
     })
-    .attr("stroke", (link: ClassicLink) => {
-      if (!diverging) return LINK_COLOR;
-      return link.value >= 0 ? LINK_POSITIVE : LINK_NEGATIVE;
-    })
+    .attr("stroke", (link: ClassicLink) =>
+      isSelectedLink(link)
+        ? visualStyle.selectionColor
+        : linkColorResolver(link.value),
+    )
     .attr("stroke-opacity", (link: ClassicLink) => linkOpacity(link))
     .attr("stroke-width", (link: ClassicLink) => linkStrokeWidth(link))
+    .style("pointer-events", "none");
+
+  const linkHitSelection = root
+    .append("g")
+    .selectAll<SVGLineElement, ClassicLink>("line")
+    .data(simLinks)
+    .join("line")
+    .attr("x1", (link: ClassicLink) => {
+      const source =
+        typeof link.source === "number" ? simNodes[link.source] : link.source;
+      return clampX(source?.x);
+    })
+    .attr("y1", (link: ClassicLink) => {
+      const source =
+        typeof link.source === "number" ? simNodes[link.source] : link.source;
+      return clampY(source?.y);
+    })
+    .attr("x2", (link: ClassicLink) => {
+      const target =
+        typeof link.target === "number" ? simNodes[link.target] : link.target;
+      return clampX(target?.x);
+    })
+    .attr("y2", (link: ClassicLink) => {
+      const target =
+        typeof link.target === "number" ? simNodes[link.target] : link.target;
+      return clampY(target?.y);
+    })
+    .attr("stroke", "transparent")
+    .attr("stroke-width", NODE_LINK_HIT_STROKE_WIDTH)
+    .attr("stroke-linecap", "round")
     .style("cursor", "pointer")
+    .style("pointer-events", "stroke")
     .on("click", (event: MouseEvent, link: ClassicLink) => {
       event.stopPropagation();
       const rowLabel = labelNames?.[link.rowId] ?? link.rowId;
@@ -145,6 +243,7 @@ export const renderClassicElements = ({
     .on("mouseenter", (event: MouseEvent, link: ClassicLink) => {
       const rowLabel = labelNames?.[link.rowId] ?? link.rowId;
       const colLabel = labelNames?.[link.colId] ?? link.colId;
+      setLocalHoverActive(true);
       showTooltip(
         `<div><strong>${escapeHtml(
           `${rowLabel} ↔ ${colLabel}`,
@@ -156,8 +255,10 @@ export const renderClassicElements = ({
     .on("mousemove", (event: MouseEvent) => moveTooltip(event))
     .on("mouseleave", () => {
       hideTooltip();
+      setLocalHoverActive(false);
       onLinkLeave?.();
     });
+  linkSelection.filter((link: ClassicLink) => isSelectedLink(link)).raise();
 
   const nodeGroup = root.append("g");
   const nodeSelection = nodeGroup
@@ -171,30 +272,32 @@ export const renderClassicElements = ({
         ? nodeRadius + NODE_LINK_ZOOM_RADIUS_OFFSET
         : nodeRadius,
     )
-    .attr("fill", (node: ClassicNode) => getNodeColor(node))
+    .attr("fill", (node: ClassicNode) =>
+      isClassicNodeSelected(node, zoomLabelSet)
+        ? visualStyle.selectionColor
+        : getNodeColor(node),
+    )
     .style("cursor", "pointer")
-    .on("mouseenter", (event: MouseEvent, node: ClassicNode) => {
-      const labelId = node.labelId ?? String(node.id);
-      const degree = degreeById.get(labelId) ?? 0;
-      const tooltipLabel = buildRoiTooltipLabel(
-        labelTitles?.[labelId] ?? node.label,
-        labelAcronyms?.[labelId] ?? labelId,
-      );
-      showTooltip(
-        `<div><strong>${escapeHtml(
-          tooltipLabel,
-        )}</strong></div><div>Links: ${degree}</div>`,
-        event,
-      );
-      onNodeHover?.(labelId);
-    })
-    .on("mousemove", (event: MouseEvent) => moveTooltip(event))
-    .on("mouseleave", () => {
-      hideTooltip();
-      onNodeLeave?.();
-    });
+    .on("mouseenter", handleNodeMouseEnter)
+    .on("mousemove", handleNodeMouseMove)
+    .on("mouseleave", handleNodeMouseLeave)
+    .on("click", handleNodeClick);
 
   const labelGroup = root.append("g");
+  const labelBackgroundSelection = labelGroup
+    .selectAll<SVGRectElement, ClassicNode>("rect")
+    .data(simNodes)
+    .join("rect")
+    .attr("rx", NODE_LINK_LABEL_SELECTION_BACKGROUND_RADIUS)
+    .attr("ry", NODE_LINK_LABEL_SELECTION_BACKGROUND_RADIUS)
+    .attr("fill", (node: ClassicNode) =>
+      isClassicNodeSelected(node, zoomLabelSet)
+        ? visualStyle.selectionColor
+        : "transparent",
+    )
+    .attr("stroke", "none")
+    .style("pointer-events", "none");
+
   const labelSelection = labelGroup
     .selectAll<SVGTextElement, ClassicNode>("text")
     .data(simNodes)
@@ -210,32 +313,26 @@ export const renderClassicElements = ({
     )
     .attr("font-size", NODE_LINK_LABEL_FONT_SIZE)
     .attr("fill", (node: ClassicNode) =>
-      node.labelId && zoomLabelSet?.has(node.labelId) ? "#1b2b38" : "#394b59",
+      isClassicNodeSelected(node, zoomLabelSet)
+        ? getReadableTextColor(visualStyle.selectionColor)
+        : "#394b59",
     )
     .attr("font-weight", (node: ClassicNode) =>
-      node.labelId && zoomLabelSet?.has(node.labelId) ? 700 : 400,
+      isClassicNodeSelected(node, zoomLabelSet) ? 700 : 400,
     )
     .style("cursor", onLabelToggle ? "pointer" : "default")
     .text((node: ClassicNode) => node.label)
-    .on("mouseenter", (_event: MouseEvent, node: ClassicNode) => {
-      const labelId = node.labelId ?? String(node.id);
-      setLocalHoverActive(true);
-      onNodeHover?.(labelId);
-    })
-    .on("mouseleave", () => {
-      setLocalHoverActive(false);
-      onNodeLeave?.();
-    })
-    .on("click", (event: MouseEvent, node: ClassicNode) => {
-      if (!onLabelToggle || !node.labelId) return;
-      event.stopPropagation();
-      onLabelToggle(node.labelId);
-    });
+    .on("mouseenter", handleNodeMouseEnter)
+    .on("mousemove", handleNodeMouseMove)
+    .on("mouseleave", handleNodeMouseLeave)
+    .on("click", handleNodeClick);
 
   syncNodeLinkPositions({
     linkSelection,
+    linkHitSelection,
     nodeSelection,
     labelSelection,
+    labelBackgroundSelection,
     simNodes,
     width,
     height,
@@ -246,8 +343,10 @@ export const renderClassicElements = ({
 
   configureDraggableNodes({
     linkSelection,
+    linkHitSelection,
     nodeSelection,
     labelSelection,
+    labelBackgroundSelection,
     simNodes,
     simLinks,
     width,

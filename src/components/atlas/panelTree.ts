@@ -1,4 +1,5 @@
 import type { GroupedRow } from "@/types/atlasPanel";
+
 import type { GroupTreeEntry, GroupTreeNode, RoiTreeNode } from "./panelTypes";
 
 export const buildGroupTreeEntries = (rows: GroupedRow[]): GroupTreeEntry[] => {

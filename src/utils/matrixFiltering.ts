@@ -1,5 +1,5 @@
-import { resolveMatrixValue } from "@/utils/matrixValue";
 import type { MatrixValueRange } from "@/types/matrixView";
+import { resolveMatrixValue } from "@/utils/matrixValue";
 
 
 export const normalizeMatrixValueRanges = (range: MatrixValueRange) => {

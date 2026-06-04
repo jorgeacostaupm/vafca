@@ -1,5 +1,6 @@
 import type { DatasetState } from '@/types/datasetState'
-import { matricesAdapter } from './matricesAdapter'
+
+import { matricesAdapter } from './utils/matricesAdapter'
 
 export type DatasetSliceState = DatasetState
 

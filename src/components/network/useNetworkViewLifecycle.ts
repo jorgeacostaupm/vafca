@@ -1,9 +1,10 @@
 import { useEffect } from "react";
+
+import { useAppDispatch } from "@/store/hooks";
 import {
   pruneInvalidNetworkViews,
   syncNetworkSelectedCompoundId,
 } from "@/store/slices/networkVisualization";
-import { useAppDispatch } from "@/store/hooks";
 import type { MatrixSummary } from "@/types/matrixStore";
 
 type UseNetworkViewLifecycleArgs = {

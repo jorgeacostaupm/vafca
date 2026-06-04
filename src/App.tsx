@@ -1,19 +1,21 @@
-import { useEffect } from "react";
-import { Layout, Tabs } from "antd";
-import NetworkVisualizationTab from "@/components/network/NetworkVisualizationTab";
-import SelectedLinksPanel from "@/components/selected-links/SelectedLinksPanel";
-import AtlasPanel from "@/components/atlas";
-import UserNotificationHost from "@/components/notifications/UserNotificationHost";
-import { initialDataConfig } from "@/config/initialData";
-import { useAppDispatch } from "@/store/hooks";
-import { initializeDatasetAndDerivedState } from "@/store/slices/dataset";
+import { Layout, Tabs } from 'antd'
+import { useEffect } from 'react'
+
+import AtlasPanel from '@/components/atlas'
+import NetworkVisualizationTab from '@/components/network/NetworkVisualizationTab'
+import NetworkSummaryTab from '@/components/network-summary/NetworkSummaryTab'
+import UserNotificationHost from '@/components/notifications/UserNotificationHost'
+import SelectedLinksPanel from '@/components/selected-links/SelectedLinksPanel'
+import { initialDataConfig } from '@/config/initialData'
+import { useAppDispatch } from '@/store/hooks'
+import { initializeDatasetAndDerivedState } from '@/store/slices/dataset'
 
 function App() {
-  const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch()
 
   useEffect(() => {
-    void dispatch(initializeDatasetAndDerivedState(initialDataConfig));
-  }, [dispatch]);
+    void dispatch(initializeDatasetAndDerivedState(initialDataConfig))
+  }, [dispatch])
 
   return (
     <Layout className="app-shell">
@@ -21,28 +23,33 @@ function App() {
       <Layout.Content className="app-content">
         <Tabs
           className="app-tabs"
-          destroyOnHidden={true}
+          destroyOnHidden={false}
           items={[
             {
-              key: "vis",
-              label: "Network Visualization",
+              key: 'vis',
+              label: 'Rankings & Networks',
               children: <NetworkVisualizationTab />,
             },
             {
-              key: "atlas",
-              label: "Atlas",
+              key: 'atlas',
+              label: 'Atlas',
               children: <AtlasPanel />,
             },
             {
-              key: "links",
-              label: "Selected Links",
+              key: 'summaries',
+              label: 'Summaries',
+              children: <NetworkSummaryTab />,
+            },
+            {
+              key: 'links',
+              label: 'Selected Links',
               children: <SelectedLinksPanel />,
             },
           ]}
         />
       </Layout.Content>
     </Layout>
-  );
+  )
 }
 
-export default App;
+export default App

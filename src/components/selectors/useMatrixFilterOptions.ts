@@ -1,10 +1,15 @@
 import { useMemo } from "react";
-import type { DatasetMeta } from "@/types/datasetState";
+
 import type { AtlasState } from "@/types/atlas";
 import type { AtlasDefinition } from "@/types/atlas";
+import type { DatasetMeta } from "@/types/datasetState";
 import type { MatrixSummary } from "@/types/matrixStore";
-import { buildLabelNameMap, normalizeMatrixOrder } from "@/utils/matrixOrder";
 import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
+import {
+  getDatasetCatalogs,
+  getDatasetMatrixOrder,
+} from "@/utils/datasetAccessors";
+import { buildLabelNameMap, normalizeMatrixOrder } from "@/utils/matrixOrder";
 import {
   buildMatrixLabel,
   formatPopulationSetLabel,
@@ -12,10 +17,6 @@ import {
   isEnabled,
   normalizePopulationKey,
 } from "@/utils/matrixViewUtils";
-import {
-  getDatasetCatalogs,
-  getDatasetMatrixOrder,
-} from "@/utils/datasetAccessors";
 
 type Option = { value: string; label: string };
 

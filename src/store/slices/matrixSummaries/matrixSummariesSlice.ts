@@ -1,12 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit'
+
 import {
   clearDataset,
   computeDerivedMatrices,
-  loadInitialDataset,
   loadDatasetFromUploadedZip,
+  loadInitialDataset,
 } from '@/store/slices/dataset'
-import { loadMatrixSummaries } from './matrixSummariesThunks'
+
 import { initialMatrixSummariesState } from './matrixSummariesTypes'
+import { loadMatrixSummaries } from './thunks/loadMatrixSummaries'
 
 const matrixSummariesSlice = createSlice({
   name: 'matrixSummaries',

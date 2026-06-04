@@ -5,14 +5,8 @@ import {
 } from "@ant-design/icons";
 import { Button, Form, Segmented, Select } from "antd";
 import { useMemo } from "react";
+
 import { createNetworkSegmentedOption } from "@/components/network/segmentedOption";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { selectDatasetContent } from "@/store/slices/dataset";
-import {
-  patchRankingQuery,
-  runRankingQuery,
-  setRankingTarget,
-} from "@/store/slices/rankings";
 import {
   getCompatibleLayerOptions,
   getMeasureOptions,
@@ -24,6 +18,13 @@ import {
   matrixMetricOptions,
   roiMetricOptions,
 } from "@/components/rankings/rankingOptions";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectDatasetContent } from "@/store/slices/dataset";
+import {
+  patchRankingQuery,
+  runRankingQuery,
+  setRankingTarget,
+} from "@/store/slices/rankings";
 import type { RankingTarget } from "@/types/rankings";
 import { ALL_COMPATIBLE_LAYERS } from "@/utils/rankings/rankingMatrixMetadata";
 

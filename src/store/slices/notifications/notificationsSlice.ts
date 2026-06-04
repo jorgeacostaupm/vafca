@@ -1,4 +1,5 @@
 import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
+
 import {
   initialNotificationsState,
   type UserNotification,

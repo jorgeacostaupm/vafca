@@ -1,17 +1,20 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+
 import type {
   DatasetMeta,
   UpdateCatalogPayload,
 } from '@/types/datasetState'
+
+import { initialDatasetState } from './datasetTypes'
 import {
   computeAggregatedMatrixFromVisualizationGroups,
-  computeDerivedMatrices,
-} from './datasetThunks'
-import { initialDatasetState } from './datasetTypes'
-import { matricesAdapter } from './matricesAdapter'
-import { registerGeneratedMatricesInDataset } from './registerGeneratedMatrices'
-import { hydrateDatasetStateFromContent } from './datasetHydration'
-import { updateDatasetCatalogItem } from './catalogUpdate'
+} from './thunks/computeAggregatedMatrices'
+import { computeDerivedMatrices } from './thunks/computeDerivedMatrices'
+import { recomputeAggregatedMatricesForActiveRois } from './thunks/recomputeAggregatedMatricesForActiveRois'
+import { updateDatasetCatalogItem } from './utils/catalogUpdate'
+import { hydrateDatasetStateFromContent } from './utils/datasetHydration'
+import { matricesAdapter } from './utils/matricesAdapter'
+import { registerGeneratedMatricesInDataset } from './utils/registerGeneratedMatrices'
 
 const datasetSlice = createSlice({
   name: 'dataset',
@@ -32,6 +35,9 @@ const datasetSlice = createSlice({
       if (!state.catalogs) return
       updateDatasetCatalogItem(state.catalogs, action.payload)
     },
+    removeDatasetMatrices(state, action: PayloadAction<{ matrixIds: string[] }>) {
+      matricesAdapter.removeMany(state.matrices, action.payload.matrixIds)
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -44,12 +50,18 @@ const datasetSlice = createSlice({
         if (!state.catalogs || matrices.length === 0) return
         registerGeneratedMatricesInDataset(state, matrices)
       })
+      .addCase(recomputeAggregatedMatricesForActiveRois.fulfilled, (state, action) => {
+        const matrices = action.payload.matrices
+        if (!state.catalogs || matrices.length === 0) return
+        registerGeneratedMatricesInDataset(state, matrices)
+      })
   },
 })
 
 export const {
   setDataset,
   clearDataset,
+  removeDatasetMatrices,
   updateCatalogItem,
 } =
   datasetSlice.actions

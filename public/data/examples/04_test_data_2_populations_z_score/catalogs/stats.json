@@ -1,0 +1,11 @@
+{
+  "mean": {
+    "label": "Mean"
+  },
+  "std": {
+    "label": "Standard deviation"
+  },
+  "zscore": {
+    "label": "z-score"
+  }
+}

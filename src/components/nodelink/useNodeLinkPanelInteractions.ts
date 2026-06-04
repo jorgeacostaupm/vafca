@@ -1,13 +1,15 @@
 import { useCallback, useMemo } from "react";
+
+import { setSharedHoverState } from "@/components/hover/sharedHover";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   addSelectedLink,
-  clearHoveredCell,
-  clearHoveredNode,
+  addSelectedLinks,
   removeSelectedLink,
-  setHoveredCell,
-  setHoveredNode,
+  removeSelectedLinks,
 } from "@/store/slices/visualizationUi";
+import type { NodeLinkBrushLink } from "@/types/nodelink";
+import type { SelectedLink } from "@/types/visualizationUi";
 
 type UseNodeLinkPanelInteractionsArgs = {
   data: number[][];
@@ -32,8 +34,6 @@ export const useNodeLinkPanelInteractions = ({
 }: UseNodeLinkPanelInteractionsArgs) => {
   const dispatch = useAppDispatch();
   const selectedLinks = useAppSelector((state) => state.visualizationUi.selectedLinks);
-  const hoveredCell = useAppSelector((state) => state.visualizationUi.hoveredCell);
-  const hoveredNodeId = useAppSelector((state) => state.visualizationUi.hoveredNodeId);
 
   const resolvedLabels = useMemo(() => {
     const count = data.length;
@@ -79,37 +79,86 @@ export const useNodeLinkPanelInteractions = ({
 
   const handleLinkHover = useCallback(
     (payload: { rowId: string; colId: string }) => {
-      dispatch(setHoveredCell({ rowId: payload.rowId, colId: payload.colId }));
-      dispatch(clearHoveredNode());
+      setSharedHoverState({
+        type: "cell",
+        rowId: payload.rowId,
+        colId: payload.colId,
+      });
     },
-    [dispatch],
+    [],
   );
 
   const handleLinkLeave = useCallback(() => {
-    dispatch(clearHoveredCell());
-  }, [dispatch]);
+    setSharedHoverState(null);
+  }, []);
 
   const handleNodeHover = useCallback(
     (id: string) => {
-      dispatch(setHoveredNode(id));
-      dispatch(clearHoveredCell());
+      setSharedHoverState({ type: "node", nodeId: id });
     },
-    [dispatch],
+    [],
   );
 
   const handleNodeLeave = useCallback(() => {
-    dispatch(clearHoveredNode());
-  }, [dispatch]);
+    setSharedHoverState(null);
+  }, []);
+
+  const handleBrushSelectLinks = useCallback(
+    (payload: { links: NodeLinkBrushLink[] }) => {
+      const selectedIds = new Set(selectedLinks.map((link) => link.id));
+      const links: SelectedLink[] = [];
+
+      payload.links.forEach((link) => {
+        const directId = `${link.rowId}::${link.colId}`;
+        const reverseId = `${link.colId}::${link.rowId}`;
+        if (selectedIds.has(directId) || selectedIds.has(reverseId)) return;
+
+        selectedIds.add(directId);
+        links.push({
+          id: directId,
+          rowId: link.rowId,
+          colId: link.colId,
+          rowLabel: link.rowLabel,
+          colLabel: link.colLabel,
+          sources: [
+            {
+              compoundId,
+              matrixLabel,
+              value: link.value,
+            },
+          ],
+        });
+      });
+
+      if (links.length > 0) {
+        dispatch(addSelectedLinks(links));
+      }
+    },
+    [compoundId, dispatch, matrixLabel, selectedLinks],
+  );
+
+  const handleBrushDeselectLinks = useCallback(
+    (payload: { links: NodeLinkBrushLink[] }) => {
+      const ids = payload.links.flatMap((link) => [
+        `${link.rowId}::${link.colId}`,
+        `${link.colId}::${link.rowId}`,
+      ]);
+      if (ids.length > 0) {
+        dispatch(removeSelectedLinks(ids));
+      }
+    },
+    [dispatch],
+  );
 
   return {
     resolvedLabels,
     selectedLinkIds,
-    hoveredCell,
-    hoveredNodeId,
     handleSelect,
     handleLinkHover,
     handleLinkLeave,
     handleNodeHover,
     handleNodeLeave,
+    handleBrushSelectLinks,
+    handleBrushDeselectLinks,
   };
 };

@@ -1,5 +1,6 @@
-import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { useCallback } from "react";
+
 import type { StatRangeValue } from "@/types/matrixView";
 import type {
   ZoomableViewSettings,

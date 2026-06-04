@@ -1,14 +1,15 @@
-import { Alert, Radio, Space, Spin, Typography, Upload } from "antd";
 import type { UploadProps } from "antd";
+import { Alert, Radio, Space, Spin, Typography, Upload } from "antd";
 import { useState } from "react";
+
 import {
   DEFAULT_CONNECTIVITY_IMPORT_MODE,
   MAX_VISIBLE_IMPORT_ISSUES,
 } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
-  selectDatasetOperationsState,
   loadDatasetFromUploadedZip,
+  selectDatasetOperationsState,
 } from "@/store/slices/dataset";
 import { loadMatrixSummaries } from "@/store/slices/matrixSummaries";
 import type { ConnectivityImportMode } from "@/utils/import/types";

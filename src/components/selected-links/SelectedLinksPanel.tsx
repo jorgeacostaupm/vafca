@@ -1,19 +1,8 @@
 import { Space } from "antd";
 import { useCallback, useMemo } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { selectDatasetData } from "@/store/slices/dataset";
-import {
-  clearSelectedLinks,
-  downloadSelectedLinks,
-  removeSelectedLink,
-  setAtlasLinkIds,
-  toggleAtlasLinkId,
-} from "@/store/slices/visualizationUi";
+
 import SelectedLinksAtlas from "@/components/selected-links/SelectedLinksAtlas";
 import SelectedLinksControls from "@/components/selected-links/SelectedLinksControls";
-import SelectedLinksTable from "@/components/selected-links/SelectedLinksTable";
-import { useSelectedLinkMatrixSelection } from "@/components/selected-links/useSelectedLinkMatrixSelection";
-import { useSelectedLinkMatrixLookup } from "@/components/selected-links/useSelectedLinkMatrixLookup";
 import type {
   DownloadMode,
   MatrixOption,
@@ -24,12 +13,24 @@ import {
   buildRows,
   buildSourceLabelMap,
 } from "@/components/selected-links/selectedLinksPanel.utils";
+import SelectedLinksTable from "@/components/selected-links/SelectedLinksTable";
+import { useSelectedLinkMatrixLookup } from "@/components/selected-links/useSelectedLinkMatrixLookup";
+import { useSelectedLinkMatrixSelection } from "@/components/selected-links/useSelectedLinkMatrixSelection";
 import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
-import { buildMatrixLabel } from "@/utils/matrixViewUtils";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
+import {
+  clearSelectedLinks,
+  downloadSelectedLinks,
+  removeSelectedLink,
+  setAtlasLinkIds,
+  toggleAtlasLinkId,
+} from "@/store/slices/visualizationUi";
 import {
   getDatasetCatalogs,
   getDatasetMatrixStats,
 } from "@/utils/datasetAccessors";
+import { buildMatrixLabel } from "@/utils/matrixViewUtils";
 
 export default function SelectedLinksPanel() {
   const dispatch = useAppDispatch();

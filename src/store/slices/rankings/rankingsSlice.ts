@@ -1,12 +1,10 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type {
-  RankingHighlightItem,
-  RankingQuery,
-} from "@/types/rankings";
+
 import {
   DEFAULT_PANEL_GRID_CONFIG,
   DEFAULT_RANKING_PANEL_LAYOUT,
 } from "@/config/ui";
+import type { CatalogMatrixPrunePayload } from "@/store/slices/dataset/utils/catalogMatrixPruning";
 import {
   createDefaultRankingQueryForTarget,
   initialRankingsState,
@@ -14,8 +12,65 @@ import {
 import {
   recomputeRankingsForActiveFilters,
   runRankingQuery,
-} from "@/store/slices/rankings/rankingsThunks";
+} from "@/store/slices/rankings/thunks";
+import type {
+  RankingHighlightItem,
+  RankingQuery,
+} from "@/types/rankings";
 import type { RankingTarget } from "@/types/rankings";
+
+const pruneRankingQueryForCatalogItem = (
+  query: RankingQuery,
+  payload: CatalogMatrixPrunePayload,
+): RankingQuery => {
+  const invalidMatrixIds = new Set(payload.invalidMatrixIds);
+  const next: RankingQuery = { ...query };
+
+  if (
+    payload.catalog === "populations" &&
+    next.sourceType === "population" &&
+    next.sourceId === payload.id
+  ) {
+    delete next.sourceId;
+  }
+
+  if (payload.catalog === "measures" && next.measureId === payload.id) {
+    delete next.measureId;
+    delete next.statisticId;
+    delete next.layerIds;
+  }
+
+  if (payload.catalog === "stats" && next.statisticId === payload.id) {
+    delete next.statisticId;
+    delete next.layerIds;
+  }
+
+  if (payload.catalog === "layers" && next.layerIds?.includes(payload.id)) {
+    const layerIds = next.layerIds.filter((layerId) => layerId !== payload.id);
+    if (layerIds.length > 0) {
+      next.layerIds = layerIds;
+    } else {
+      delete next.layerIds;
+    }
+  }
+
+  if (next.matrixId && invalidMatrixIds.has(next.matrixId)) {
+    delete next.matrixId;
+  }
+
+  if (next.matrixIds) {
+    const matrixIds = next.matrixIds.filter(
+      (matrixId) => !invalidMatrixIds.has(matrixId),
+    );
+    if (matrixIds.length > 0) {
+      next.matrixIds = matrixIds;
+    } else {
+      delete next.matrixIds;
+    }
+  }
+
+  return next;
+};
 
 const rankingsSlice = createSlice({
   name: "rankings",
@@ -67,6 +122,21 @@ const rankingsSlice = createSlice({
         (id) => id !== action.payload.resultId,
       );
       state.layout = state.layout.filter((item) => item.i !== action.payload.resultId);
+    },
+    pruneRankingQueriesForDisabledCatalogItem(
+      state,
+      action: PayloadAction<CatalogMatrixPrunePayload>,
+    ) {
+      state.currentQuery = pruneRankingQueryForCatalogItem(
+        state.currentQuery,
+        action.payload,
+      );
+      state.queriesByTarget[state.currentQuery.target] = state.currentQuery;
+      Object.entries(state.queriesByTarget).forEach(([target, query]) => {
+        if (!query) return;
+        state.queriesByTarget[target as RankingTarget] =
+          pruneRankingQueryForCatalogItem(query, action.payload);
+      });
     },
   },
   extraReducers: (builder) => {
@@ -128,6 +198,7 @@ export const {
   setSelectedRankingItem,
   setRankingLayout,
   removeRankingResult,
+  pruneRankingQueriesForDisabledCatalogItem,
 } = rankingsSlice.actions;
 
 export default rankingsSlice.reducer;

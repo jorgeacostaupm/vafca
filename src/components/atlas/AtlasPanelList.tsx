@@ -1,4 +1,5 @@
-import { memo, type CSSProperties } from "react";
+import { type CSSProperties,memo } from "react";
+
 import { AtlasGroupedList } from "./AtlasGroupedList";
 import type { GroupTreeEntry } from "./panelTypes";
 

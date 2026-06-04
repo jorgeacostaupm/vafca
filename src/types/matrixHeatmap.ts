@@ -1,5 +1,29 @@
 import type { RefObject } from "react";
+
+import type { ScaleType } from "@/types/connectivityBundle";
 import type { MatrixValueRange } from "@/types/matrixView";
+import type {
+  MatrixColorScaleSettings,
+  MatrixVisualStyle,
+} from "@/types/visualizationUi";
+
+export type MatrixBrushMode = "zoom" | "selectLinks" | "deselectLinks";
+
+export type MatrixBrushCell = {
+  row: number;
+  col: number;
+  rowLabel: string;
+  colLabel: string;
+  value: number;
+};
+
+export type MatrixBrushPayload = {
+  rows: number[];
+  cols: number[];
+  rowLabels: string[];
+  colLabels: string[];
+  cells: MatrixBrushCell[];
+};
 
 export type HeatmapProps = {
   data: number[][];
@@ -7,6 +31,7 @@ export type HeatmapProps = {
   height: number;
   title?: string;
   valueLabel?: string;
+  symmetric?: boolean;
   labels?: string[];
   rowLabels?: string[];
   colLabels?: string[];
@@ -15,16 +40,19 @@ export type HeatmapProps = {
   labelAcronyms?: Record<string, string>;
   labelColors?: Record<string, string>;
   brushEnabled?: boolean;
+  brushMode?: MatrixBrushMode;
   showAllLabels?: boolean;
   selectedZoomLabels?: string[];
   legendMin?: number;
   legendMax?: number;
-  invertColorScale?: boolean;
+  scaleType?: ScaleType;
+  scaleCenter?: number | null;
+  colorScaleSettings?: MatrixColorScaleSettings;
+  visualStyle?: MatrixVisualStyle;
   valueFilters?: {
     measure?: [number, number] | null;
     stat?: MatrixValueRange;
   };
-  hoveredCell?: { rowId: string; colId: string } | null;
   selectedCells?: Array<{ row: number; col: number }>;
   svgRef?: RefObject<SVGSVGElement | null>;
   onCellHover?: (payload: {
@@ -37,6 +65,8 @@ export type HeatmapProps = {
     colLabel: string;
   }) => void;
   onCellLeave?: () => void;
+  onLabelHover?: (labelId: string) => void;
+  onLabelLeave?: () => void;
   onCellSelect?: (payload: {
     row: number;
     col: number;
@@ -46,11 +76,8 @@ export type HeatmapProps = {
     rowLabel: string;
     colLabel: string;
   }) => void;
-  onBrushZoom?: (payload: {
-    rows: number[];
-    cols: number[];
-    rowLabels: string[];
-    colLabels: string[];
-  }) => void;
+  onBrushZoom?: (payload: MatrixBrushPayload) => void;
+  onBrushSelectLinks?: (payload: MatrixBrushPayload) => void;
+  onBrushDeselectLinks?: (payload: MatrixBrushPayload) => void;
   onLabelToggle?: (label: string) => void;
 };

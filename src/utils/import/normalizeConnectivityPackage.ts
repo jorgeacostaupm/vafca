@@ -1,3 +1,15 @@
+import { isRecord, toSlug } from "@/utils/import/guards";
+import {
+  getImportMetadataFallbacks,
+  normalizeCatalogs,
+  normalizeManifest,
+} from "@/utils/import/normalizeCatalogs";
+import {
+  createConnectivityStateFromNormalized,
+  createMatrixOrderFromNormalized,
+} from "@/utils/import/normalizedDatasetAdapter";
+import { normalizeMatrices } from "@/utils/import/normalizeMatrices";
+import { normalizeRois } from "@/utils/import/normalizeRois";
 import type {
   ConnectivityImportMode,
   ConnectivityImportResult,
@@ -6,18 +18,6 @@ import type {
   RawConnectivityZipPackage,
 } from "@/utils/import/types";
 import { NORMALIZED_DATASET_SCHEMA_VERSION } from "@/utils/import/types";
-import { isRecord, toSlug } from "@/utils/import/guards";
-import {
-  getDefaultsFromManifest,
-  normalizeCatalogs,
-  normalizeManifest,
-} from "@/utils/import/normalizeCatalogs";
-import { normalizeMatrices } from "@/utils/import/normalizeMatrices";
-import { normalizeRois } from "@/utils/import/normalizeRois";
-import {
-  createConnectivityStateFromNormalized,
-  createMatrixOrderFromNormalized,
-} from "@/utils/import/normalizedDatasetAdapter";
 
 const getDatasetName = (manifest: Record<string, unknown>, fileName: string) =>
   typeof manifest.name === "string" && manifest.name.trim()
@@ -28,7 +28,7 @@ const createEmptyInference = (): NormalizedImportInference => ({
   generatedRois: false,
   generatedRoiIds: [],
   generatedMatrixIds: [],
-  defaultedFields: [],
+  inferredFields: [],
 });
 
 export const normalizeConnectivityPackage = (
@@ -40,10 +40,10 @@ export const normalizeConnectivityPackage = (
   const warnings = [...rawPackage.warnings];
   const inference = createEmptyInference();
   const manifest = normalizeManifest(rawPackage.manifest, strict, errors, warnings);
-  const defaults = getDefaultsFromManifest(manifest);
+  const fallbacks = getImportMetadataFallbacks(manifest);
   const matrices = normalizeMatrices({
     matrixFiles: rawPackage.matrixFiles,
-    defaults,
+    fallbacks,
     errors,
     warnings,
     inference,

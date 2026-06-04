@@ -1,6 +1,10 @@
 import type { RefObject } from "react";
+
 import type { CircularBundlePathPoint } from "@/types/circular";
+import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type { MatrixValueRange } from "@/types/matrixView";
+import type { ResolvedValueDomain } from "@/types/valueDomain";
+import type { MatrixVisualStyle } from "@/types/visualizationUi";
 
 export type NodeLinkValueFilters = {
   measure?: [number, number] | null;
@@ -16,14 +20,20 @@ export type NodeLinkPanelCommonProps = {
   valueFilters?: NodeLinkValueFilters;
   selectedZoomLabels?: string[];
   linkWidthRange?: [number, number];
+  valueDomain?: ResolvedValueDomain;
   brushEnabled?: boolean;
+  brushMode?: MatrixBrushMode;
   geometricZoomEnabled?: boolean;
   hideIsolatedNodes?: boolean;
+  selectionVisible?: boolean;
   circularLinkTension?: number;
   circularBundlingEnabled?: boolean;
-  diverging?: boolean;
+  circularPositiveLinkColor?: string;
+  circularNegativeLinkColor?: string;
   onLabelToggle?: (label: string) => void;
   onBrushZoom?: (payload: { labels: string[] }) => void;
+  onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
+  onBrushDeselectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
 };
 
 export type NodeLinkPresentationProps = {
@@ -33,10 +43,12 @@ export type NodeLinkPresentationProps = {
   nodeColors: Record<string, string>;
 };
 
+export type NetworkLinkColorResolver = (value: number) => string;
+
 export type NodeLinkInteractionProps = {
   selectedLinkIds: Set<string>;
-  hoveredCell?: { rowId: string; colId: string } | null;
-  hoveredNodeId?: string | null;
+  visualStyle: MatrixVisualStyle;
+  linkColorResolver: NetworkLinkColorResolver;
   onLinkSelect: (payload: {
     rowId: string;
     colId: string;
@@ -48,6 +60,14 @@ export type NodeLinkInteractionProps = {
   onLinkLeave?: () => void;
   onNodeHover?: (id: string) => void;
   onNodeLeave?: () => void;
+};
+
+export type NodeLinkBrushLink = {
+  rowId: string;
+  colId: string;
+  value: number;
+  rowLabel: string;
+  colLabel: string;
 };
 
 export type UndirectedLink = {

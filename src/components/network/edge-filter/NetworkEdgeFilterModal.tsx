@@ -1,5 +1,6 @@
+import { Alert, Button, Modal, Space, Tabs, Tag, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Modal, Space, Tag, Tabs, Typography } from "antd";
+
 import { DEFAULT_NETWORK_EDGE_FILTER_TAB } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
@@ -7,16 +8,17 @@ import {
   applyNetworkFilterFromDefinition,
   clearAggregatedNetworkEdgeFilter,
   clearNetworkEdgeFilter,
-  resolveNetworkFilterRuntime,
   type NetworkEdgeFilterMode,
+  resolveNetworkFilterRuntime,
 } from "@/store/slices/networkFilters";
+import type { MatrixFilterDefinition } from "@/types/edgeFilter";
 import {
   cloneMatrixFilterDefinition,
   createEmptyMatrixFilterDefinition,
 } from "@/utils/edgeFilter";
-import MatrixFilterGroupEditor from "./MatrixFilterGroupEditor";
+
 import { formatMatrixKindLabel, formatNetworkMatrixLabel } from "./edgeFilterLabels";
-import type { MatrixFilterDefinition } from "@/types/edgeFilter";
+import MatrixFilterGroupEditor from "./MatrixFilterGroupEditor";
 
 type NetworkEdgeFilterModalProps = {
   open: boolean;
@@ -87,7 +89,7 @@ export default function NetworkEdgeFilterModal({
   const matrixGroups = useMemo(() => {
     const groups = new Map<string, { value: string; label: string; searchText: string }[]>();
     matrices
-      .filter((matrix) => (isAggregated ? matrix.kind === "reduced" : matrix.kind !== "reduced"))
+      .filter((matrix) => (isAggregated ? matrix.kind === "aggregated" : matrix.kind !== "aggregated"))
       .forEach((matrix) => {
         const group = formatMatrixKindLabel(matrix);
         const label = formatNetworkMatrixLabel(matrix, dataset?.content?.catalogs);

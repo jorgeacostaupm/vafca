@@ -1,8 +1,21 @@
 import type * as d3 from "d3";
+
+import {
+  CIRCULAR_LINK_OPACITY,
+  CIRCULAR_NODE_HOVER_RADIUS_OFFSET,
+  NETWORK_LINK_HOVER_MIN_STROKE,
+  NETWORK_LINK_HOVER_STROKE_OFFSET,
+  NETWORK_LINK_SELECTED_MIN_STROKE,
+  NETWORK_LINK_SELECTED_OPACITY,
+} from "@/config/ui";
+import type {
+  CircularLink,
+  CircularNode,
+  NetworkLinkColorResolver,
+} from "@/types/nodelink";
+import type { MatrixVisualStyle } from "@/types/visualizationUi";
+import { getReadableTextColor } from "@/utils/groupingColoring";
 import { escapeHtml } from "@/utils/html";
-import { SELECTED_STROKE } from "@/components/nodelink/nodelinkShared";
-import { CIRCULAR_NODE_HOVER_RADIUS_OFFSET } from "@/config/ui";
-import type { CircularLink, CircularNode } from "@/types/nodelink";
 
 type CircularLinkSelection = d3.Selection<SVGPathElement, CircularLink, SVGGElement, unknown>;
 type CircularNodeSelection = d3.Selection<SVGCircleElement, CircularNode, SVGGElement, unknown>;
@@ -18,8 +31,9 @@ export const applyCircularHoverSelectionStyles = (args: {
   hoveredCell?: { rowId: string; colId: string } | null;
   hoveredNodeId?: string | null;
   selectedLinkIds: Set<string>;
+  visualStyle: MatrixVisualStyle;
+  linkColorResolver: NetworkLinkColorResolver;
   getNodeColor: (node: CircularNode) => string;
-  selectedColor: string;
 }) => {
   const {
     linkSelection,
@@ -31,8 +45,9 @@ export const applyCircularHoverSelectionStyles = (args: {
     hoveredCell,
     hoveredNodeId,
     selectedLinkIds,
+    visualStyle,
+    linkColorResolver,
     getNodeColor,
-    selectedColor,
   } = args;
   const hovered = hoveredCell ?? null;
   const hoveredNode = hoveredNodeId ?? null;
@@ -46,31 +61,45 @@ export const applyCircularHoverSelectionStyles = (args: {
   const isSelectedLink = (link: CircularLink) =>
     selectedLinkIds.has(`${link.rowId}::${link.colId}`) ||
     selectedLinkIds.has(`${link.colId}::${link.rowId}`);
+  const getBaseLinkOpacity = (link: CircularLink) =>
+    isSelectedLink(link) ? NETWORK_LINK_SELECTED_OPACITY : CIRCULAR_LINK_OPACITY;
+  const isSelectedNode = (node: CircularNode) =>
+    node.labelId !== undefined && zoomLabelSet?.has(node.labelId);
+  const getDisplayedLinkStrokeColor = (link: CircularLink) => {
+    if ((hovered && isHoveredLink(link)) || (hoveredNode && isHoveredNodeLink(link))) {
+      return visualStyle.highlightColor;
+    }
+    if (isSelectedLink(link)) return visualStyle.selectionColor;
+    return linkColorResolver(link.value);
+  };
 
   linkSelection
+    .attr("stroke", (link: CircularLink) => getDisplayedLinkStrokeColor(link))
     .attr("stroke-opacity", (link: CircularLink) => {
-      if (isSelectedLink(link)) {
-        if (hovered) return isHoveredLink(link) ? 1 : 0.25;
-        if (hoveredNode) return isHoveredNodeLink(link) ? 1 : 0.25;
-        return 0.9;
+      if ((hovered && isHoveredLink(link)) || (hoveredNode && isHoveredNodeLink(link))) {
+        return 1;
       }
-      if (hovered) {
-        if (isHoveredLink(link)) return 1;
-        return 0.2;
-      }
-      if (hoveredNode) {
-        if (isHoveredNodeLink(link)) return 1;
-        return 0.12;
-      }
-      return 0.6;
+      return getBaseLinkOpacity(link);
     })
     .attr("stroke-width", (link: CircularLink) => {
       const base = widthScale(Math.abs(link.value));
-      if (isSelectedLink(link)) return Math.max(base, SELECTED_STROKE);
-      if (hovered && isHoveredLink(link)) return Math.max(base + 0.8, SELECTED_STROKE);
-      if (hoveredNode && isHoveredNodeLink(link)) return Math.max(base + 0.8, SELECTED_STROKE);
+      if ((hovered && isHoveredLink(link)) || (hoveredNode && isHoveredNodeLink(link))) {
+        return Math.max(
+          base + NETWORK_LINK_HOVER_STROKE_OFFSET,
+          NETWORK_LINK_HOVER_MIN_STROKE,
+        );
+      }
+      if (isSelectedLink(link)) return Math.max(base, NETWORK_LINK_SELECTED_MIN_STROKE);
       return base;
     });
+
+  if (hovered) {
+    linkSelection.filter((link: CircularLink) => isHoveredLink(link)).raise();
+  }
+  if (hoveredNode) {
+    linkSelection.filter((link: CircularLink) => isHoveredNodeLink(link)).raise();
+  }
+  linkSelection.filter((link: CircularLink) => isSelectedLink(link)).raise();
 
   nodeSelection
     .attr("r", (node: CircularNode) => {
@@ -80,12 +109,13 @@ export const applyCircularHoverSelectionStyles = (args: {
     })
     .attr("fill", (node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);
-      if (hoveredNode === labelId) return selectedColor;
+      if (hoveredNode === labelId) return visualStyle.highlightColor;
+      if (isSelectedNode(node)) return visualStyle.selectionColor;
       return getNodeColor(node);
     })
     .attr("stroke", (node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);
-      return hoveredNode === labelId ? selectedColor : "none";
+      return hoveredNode === labelId ? visualStyle.highlightColor : "none";
     })
     .attr("stroke-width", (node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);
@@ -95,13 +125,14 @@ export const applyCircularHoverSelectionStyles = (args: {
   labelSelection
     .attr("fill", (node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);
-      if (hoveredNode === labelId) return selectedColor;
-      return node.labelId && zoomLabelSet?.has(node.labelId) ? "#1b2b38" : "#394b59";
+      if (hoveredNode === labelId) return visualStyle.highlightColor;
+      if (isSelectedNode(node)) return getReadableTextColor(visualStyle.selectionColor);
+      return "#394b59";
     })
     .attr("font-weight", (node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);
       if (hoveredNode === labelId) return 700;
-      return node.labelId && zoomLabelSet?.has(node.labelId) ? 700 : 400;
+      return isSelectedNode(node) ? 700 : 400;
     });
 };
 

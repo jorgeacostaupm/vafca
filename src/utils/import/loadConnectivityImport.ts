@@ -1,9 +1,9 @@
+import { normalizeConnectivityPackage } from "@/utils/import/normalizeConnectivityPackage";
+import { readConnectivityZip } from "@/utils/import/readConnectivityZip";
 import type {
   ConnectivityImportMode,
   ConnectivityImportResult,
 } from "@/utils/import/types";
-import { normalizeConnectivityPackage } from "@/utils/import/normalizeConnectivityPackage";
-import { readConnectivityZip } from "@/utils/import/readConnectivityZip";
 
 export const loadConnectivityImport = async (
   file: File,

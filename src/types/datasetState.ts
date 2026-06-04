@@ -1,12 +1,12 @@
 import type { EntityState } from "@reduxjs/toolkit";
+
 import type {
   Atlas,
   BundleMetadata,
   Catalogs,
   ConnectivityDataState,
-  MatrixRecord,
+  ConnectivityMatrix,
 } from "@/types/connectivityBundle";
-import type { ConnectivityDataset } from "@/types/datasets";
 
 export type DatasetContent = ConnectivityDataState;
 
@@ -47,7 +47,7 @@ export type DatasetState = {
   atlas: Atlas | null;
   roiOrderHash: string | null;
   catalogs: Catalogs | null;
-  matrices: EntityState<MatrixRecord, string>;
+  matrices: EntityState<ConnectivityMatrix, string>;
 };
 
 export type DatasetOperationsState = {
@@ -66,8 +66,4 @@ export type UpdateCatalogPayload = {
   catalog: keyof Catalogs;
   id: string;
   changes: Record<string, unknown>;
-};
-
-export type UpdateMetadataPayload = {
-  changes: Partial<ConnectivityDataset["metadata"]>;
 };

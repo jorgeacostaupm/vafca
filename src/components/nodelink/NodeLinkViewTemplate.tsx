@@ -1,7 +1,11 @@
 import type { ComponentType } from "react";
-import { useNodeLinkPanelInteractions } from "@/components/nodelink/useNodeLinkPanelInteractions";
+import { useMemo } from "react";
+
 import ViewPanelTemplate from "@/components/layout/ViewPanelTemplate";
+import { useNodeLinkPanelInteractions } from "@/components/nodelink/useNodeLinkPanelInteractions";
+import { createCircularLinkColorResolver } from "@/config/matrixColorScales";
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
+import { useMatrixColorEncoding } from "@/hooks/useMatrixColorEncoding";
 import type {
   NodeLinkInteractionProps,
   NodeLinkPanelCommonProps,
@@ -22,6 +26,8 @@ type NodeLinkViewTemplateProps<TExtra extends object> = NodeLinkPanelCommonProps
   rendererProps: TExtra;
 };
 
+const EMPTY_SELECTED_LINK_IDS = new Set<string>();
+
 export default function NodeLinkViewTemplate<TExtra extends object>({
   Renderer,
   rendererProps,
@@ -33,27 +39,43 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
   valueFilters,
   selectedZoomLabels,
   linkWidthRange,
+  valueDomain,
   circularLinkTension,
   circularBundlingEnabled,
+  circularPositiveLinkColor,
+  circularNegativeLinkColor,
   brushEnabled,
+  brushMode,
   geometricZoomEnabled,
   hideIsolatedNodes,
-  diverging = false,
+  selectionVisible = true,
   onLabelToggle,
   onBrushZoom,
 }: NodeLinkViewTemplateProps<TExtra>) {
   const { labelNames, labelTitles, labelAcronyms, nodeColors } =
     useAtlasLabelPresentation();
+  const { visualStyle, colorResolver: matrixLinkColorResolver } =
+    useMatrixColorEncoding(valueDomain);
+  const linkColorResolver = useMemo(
+    () =>
+      circularPositiveLinkColor && circularNegativeLinkColor
+        ? createCircularLinkColorResolver({
+            positive: circularPositiveLinkColor,
+            negative: circularNegativeLinkColor,
+          })
+        : matrixLinkColorResolver,
+    [circularNegativeLinkColor, circularPositiveLinkColor, matrixLinkColorResolver],
+  );
   const {
     resolvedLabels,
     selectedLinkIds,
-    hoveredCell,
-    hoveredNodeId,
     handleSelect,
     handleLinkHover,
     handleLinkLeave,
     handleNodeHover,
     handleNodeLeave,
+    handleBrushSelectLinks,
+    handleBrushDeselectLinks,
   } = useNodeLinkPanelInteractions({
     data,
     labels,
@@ -77,17 +99,20 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
           height={height}
           svgRef={svgRef}
           valueFilters={valueFilters}
-          selectedZoomLabels={selectedZoomLabels}
+          selectedZoomLabels={selectionVisible ? selectedZoomLabels : undefined}
           linkWidthRange={linkWidthRange}
+          valueDomain={valueDomain}
           circularLinkTension={circularLinkTension}
           circularBundlingEnabled={circularBundlingEnabled}
+          circularPositiveLinkColor={circularPositiveLinkColor}
+          circularNegativeLinkColor={circularNegativeLinkColor}
           brushEnabled={brushEnabled}
+          brushMode={brushMode}
           geometricZoomEnabled={geometricZoomEnabled}
           hideIsolatedNodes={hideIsolatedNodes}
-          diverging={diverging}
-          selectedLinkIds={selectedLinkIds}
-          hoveredCell={hoveredCell}
-          hoveredNodeId={hoveredNodeId}
+          selectedLinkIds={selectionVisible ? selectedLinkIds : EMPTY_SELECTED_LINK_IDS}
+          visualStyle={visualStyle}
+          linkColorResolver={linkColorResolver}
           onLabelToggle={onLabelToggle}
           onLinkSelect={handleSelect}
           onLinkHover={handleLinkHover}
@@ -95,6 +120,8 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
           onNodeHover={handleNodeHover}
           onNodeLeave={handleNodeLeave}
           onBrushZoom={onBrushZoom}
+          onBrushSelectLinks={handleBrushSelectLinks}
+          onBrushDeselectLinks={handleBrushDeselectLinks}
         />
       )}
     </ViewPanelTemplate>

@@ -1,10 +1,11 @@
+import { isRecord, isScalarTagValue } from "@/utils/import/guards";
+import { parseRoiImportRecord } from "@/utils/import/schemas/roiSchema";
 import type {
   ConnectivityImportIssue,
   NormalizedImportInference,
   NormalizedMatrix,
   NormalizedRoi,
 } from "@/utils/import/types";
-import { isRecord, isScalarTagValue } from "@/utils/import/guards";
 
 type NormalizeRoisArgs = {
   roisPayload: unknown | null;
@@ -98,20 +99,12 @@ export const normalizeRois = ({
   const seenIndexes = new Set<number>();
   const rois = roisPayload.flatMap((roi, position) => {
     const source = `rois.json[${position}]`;
-    if (!isRecord(roi)) {
-      errors.push({ source, path: source, message: "ROI entry must be an object." });
+    const record = parseRoiImportRecord(roi, source, errors);
+    if (!record) {
       return [];
     }
 
-    const index = roi.index;
-    if (typeof index !== "number" || !Number.isInteger(index) || index < 0) {
-      errors.push({
-        source,
-        path: `${source}.index`,
-        message: "ROI index must be an integer >= 0.",
-      });
-      return [];
-    }
+    const index = record.index;
     if (index >= size) {
       errors.push({
         source,
@@ -128,18 +121,18 @@ export const normalizeRois = ({
     }
     seenIndexes.add(index);
 
-    const label = typeof roi.label === "string" && roi.label.trim()
-      ? roi.label.trim()
+    const label = typeof record.label === "string" && record.label.trim()
+      ? record.label.trim()
       : `ROI-${index + 1}`;
-    const name = typeof roi.name === "string" && roi.name.trim()
-      ? roi.name.trim()
+    const name = typeof record.name === "string" && record.name.trim()
+      ? record.name.trim()
       : label;
-    const id = typeof roi.id === "string" && roi.id.trim()
-      ? roi.id.trim()
+    const id = typeof record.id === "string" && record.id.trim()
+      ? record.id.trim()
       : `roi-${index + 1}`;
 
-    if (!roi.id) inference.generatedRoiIds.push(id);
-    if (strict && !roi.id) {
+    if (!record.id) inference.generatedRoiIds.push(id);
+    if (strict && !record.id) {
       errors.push({
         source,
         path: `${source}.id`,
@@ -152,8 +145,8 @@ export const normalizeRois = ({
       id,
       label,
       name,
-      tags: normalizeTags(roi.tags, source, errors),
-      metadata: isRecord(roi.metadata) ? roi.metadata : {},
+      tags: normalizeTags(record.tags, source, errors),
+      metadata: record.metadata ?? {},
     }];
   });
 

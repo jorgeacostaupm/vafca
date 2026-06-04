@@ -1,18 +1,26 @@
 import * as d3 from "d3";
 import type { MutableRefObject } from "react";
-import {
-  DEFAULT_LINK_WIDTH_RANGE,
-  NODELINK_TOOLTIP_OFFSET,
-} from "@/components/nodelink/nodelinkShared";
-import { positionTooltipForPointer } from "@/components/nodelink/tooltipPosition";
-import { positionCircularTooltipForNode } from "@/components/circular/circularTooltipPosition";
+
+import { applyCircularBrushBehavior } from "@/components/circular/circularBrush";
 import { renderCircularElements } from "@/components/circular/circularRenderStrategies";
+import { positionCircularTooltipForNode } from "@/components/circular/circularTooltipPosition";
+import { positionTooltipForPointer } from "@/components/nodelink/tooltipPosition";
 import {
   CIRCULAR_NODE_RADIUS,
   CIRCULAR_TOOLTIP_EDGE_PADDING,
   CIRCULAR_TOOLTIP_OFFSET,
+  DEFAULT_LINK_WIDTH_RANGE,
+  NODELINK_TOOLTIP_OFFSET,
 } from "@/config/ui";
-import type { CircularLink, CircularNode } from "@/types/nodelink";
+import type { MatrixBrushMode } from "@/types/matrixHeatmap";
+import type {
+  CircularLink,
+  CircularNode,
+  NetworkLinkColorResolver,
+  NodeLinkBrushLink,
+} from "@/types/nodelink";
+import type { ResolvedValueDomain } from "@/types/valueDomain";
+import type { MatrixVisualStyle } from "@/types/visualizationUi";
 
 type CircularLinkSelection = d3.Selection<SVGPathElement, CircularLink, SVGGElement, unknown>;
 type CircularNodeSelection = d3.Selection<SVGCircleElement, CircularNode, SVGGElement, unknown>;
@@ -32,12 +40,15 @@ type CircularSceneRenderArgs = {
   degreeById: Map<string, number>;
   selectedZoomLabels?: string[];
   linkWidthRange?: [number, number];
+  valueDomain?: ResolvedValueDomain;
   circularLinkTension?: number;
   circularBundlingEnabled?: boolean;
   brushEnabled: boolean;
+  brushMode?: MatrixBrushMode;
   geometricZoomEnabled: boolean;
-  diverging?: boolean;
   selectedLinkIds: Set<string>;
+  visualStyle: MatrixVisualStyle;
+  linkColorResolver: NetworkLinkColorResolver;
   onLabelToggle?: (label: string) => void;
   onLinkSelect: (payload: {
     rowId: string;
@@ -51,6 +62,8 @@ type CircularSceneRenderArgs = {
   onNodeHover?: (id: string) => void;
   onNodeLeave?: () => void;
   onBrushZoom?: (payload: { labels: string[] }) => void;
+  onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
+  onBrushDeselectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   getNodeColor: (node: CircularNode) => string;
   valueLabel?: string;
   setLocalHoverActive: (active: boolean) => void;
@@ -69,18 +82,22 @@ type CircularSceneRenderResult = {
 const createWidthScale = ({
   links,
   linkWidthRange,
+  valueDomain,
 }: {
   links: CircularLink[];
   linkWidthRange?: [number, number];
+  valueDomain?: ResolvedValueDomain;
 }) => {
   const widthRange = linkWidthRange ?? DEFAULT_LINK_WIDTH_RANGE;
   const extent = d3.extent(links, (link: CircularLink) => Math.abs(link.value));
-  const extentMin = Number.isFinite(extent[0]) ? (extent[0] as number) : 0;
   const extentMax = Number.isFinite(extent[1]) ? (extent[1] as number) : 1;
+  const domainMax = valueDomain
+    ? Math.max(Math.abs(valueDomain.min), Math.abs(valueDomain.max))
+    : extentMax;
 
   return d3
     .scaleLinear()
-    .domain(extentMin === extentMax ? [0, extentMax || 1] : [extentMin, extentMax])
+    .domain([0, domainMax || extentMax || 1])
     .range(widthRange)
     .clamp(true);
 };
@@ -214,68 +231,6 @@ const applyZoomBehavior = ({
   svg.style("cursor", "grab");
 };
 
-const applyBrushBehavior = ({
-  svg,
-  width,
-  height,
-  labels,
-  nodes,
-  centerX,
-  centerY,
-  onBrushZoom,
-  zoomTransformRef,
-  hideTooltip,
-}: {
-  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
-  width: number;
-  height: number;
-  labels?: string[];
-  nodes: CircularNode[];
-  centerX: number;
-  centerY: number;
-  onBrushZoom?: (payload: { labels: string[] }) => void;
-  zoomTransformRef: MutableRefObject<d3.ZoomTransform>;
-  hideTooltip: () => void;
-}) => {
-  const brushLayer = svg.append("g").attr("class", "node-link-brush");
-  const brush = d3
-    .brush()
-    .extent([
-      [0, 0],
-      [width, height],
-    ])
-    .on("end", (event: d3.D3BrushEvent<unknown>) => {
-      if (!event.selection) return;
-      hideTooltip();
-
-      const [[x0, y0], [x1, y1]] = event.selection as [[number, number], [number, number]];
-      const transform = zoomTransformRef.current ?? d3.zoomIdentity;
-      const [minX, minY] = transform.invert([Math.min(x0, x1), Math.min(y0, y1)]);
-      const [maxX, maxY] = transform.invert([Math.max(x0, x1), Math.max(y0, y1)]);
-
-      const selectedIds: string[] = [];
-      nodes.forEach((node) => {
-        const x = node.x + centerX;
-        const y = node.y + centerY;
-        if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-          selectedIds.push(node.labelId ?? String(node.id));
-        }
-      });
-
-      const selectedSet = new Set(selectedIds);
-      const orderedSelection =
-        labels && labels.length > 0 ? labels.filter((label) => selectedSet.has(label)) : selectedIds;
-
-      if (orderedSelection.length > 0) {
-        onBrushZoom?.({ labels: orderedSelection });
-      }
-
-      brushLayer.call(brush.move, null);
-    });
-
-  brushLayer.call(brush);
-};
-
 export const renderCircularScene = ({
   svgElement,
   wrapperElement,
@@ -290,12 +245,15 @@ export const renderCircularScene = ({
   degreeById,
   selectedZoomLabels,
   linkWidthRange,
+  valueDomain,
   circularLinkTension,
   circularBundlingEnabled,
   brushEnabled,
+  brushMode = "zoom",
   geometricZoomEnabled,
-  diverging,
   selectedLinkIds,
+  visualStyle,
+  linkColorResolver,
   onLabelToggle,
   onLinkSelect,
   onLinkHover,
@@ -303,6 +261,8 @@ export const renderCircularScene = ({
   onNodeHover,
   onNodeLeave,
   onBrushZoom,
+  onBrushSelectLinks,
+  onBrushDeselectLinks,
   getNodeColor,
   valueLabel,
   setLocalHoverActive,
@@ -337,7 +297,7 @@ export const renderCircularScene = ({
     setLocalHoverActive,
   });
 
-  const widthScale = createWidthScale({ links, linkWidthRange });
+  const widthScale = createWidthScale({ links, linkWidthRange, valueDomain });
   const zoomLabelSet =
     selectedZoomLabels && selectedZoomLabels.length > 0 ? new Set(selectedZoomLabels) : null;
   const nodeRadius = CIRCULAR_NODE_RADIUS;
@@ -346,10 +306,11 @@ export const renderCircularScene = ({
     root,
     nodes,
     links,
-    diverging,
     labelNames,
     labelTitles,
     selectedLinkIds,
+    visualStyle,
+    linkColorResolver,
     widthScale,
     circularLinkTension,
     circularBundlingEnabled,
@@ -380,15 +341,19 @@ export const renderCircularScene = ({
   });
 
   if (brushEnabled) {
-    applyBrushBehavior({
+    applyCircularBrushBehavior({
       svg,
       width,
       height,
       labels,
-      nodes,
+      labelNames,
+      linkSelection: linkSelection as CircularLinkSelection,
+      brushMode,
       centerX,
       centerY,
       onBrushZoom,
+      onBrushSelectLinks,
+      onBrushDeselectLinks,
       zoomTransformRef,
       hideTooltip,
     });

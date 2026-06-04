@@ -1,17 +1,19 @@
-import { useCallback, useMemo, useRef, type PointerEvent } from "react";
-import { shallowEqual } from "react-redux";
 import { Button, Space, Typography } from "antd";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { selectDatasetData } from "@/store/slices/dataset";
+import { type PointerEvent,useCallback, useMemo, useRef } from "react";
+import { shallowEqual } from "react-redux";
+
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
-import { setAtlasPanelState } from "@/store/slices/visualizationUi";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   selectAtlasDisplayLabelsById,
   selectAtlasEnabledById,
 } from "@/store/slices/atlasUi";
+import { selectDatasetData } from "@/store/slices/dataset";
+import { setAtlasPanelState } from "@/store/slices/visualizationUi";
+import { getDatasetAtlasId } from "@/utils/datasetAccessors";
+
 import { useAtlasScene } from "./atlasPanelHooks";
 import { VIEWER_MIN_HEIGHT } from "./panelConstants";
-import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
 type AtlasPanelViewerProps = {
   enableMeshPoints: boolean;

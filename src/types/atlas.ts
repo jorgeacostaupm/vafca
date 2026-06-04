@@ -1,7 +1,5 @@
 import type { D3GroupingPaletteKey } from "@/config/groupingPalettes";
 
-export type AtlasMeshMode = "with_mesh_points" | "without_mesh_points";
-
 export type AtlasTagValue = string | number | boolean | null;
 
 export type AtlasRoiCoords = {

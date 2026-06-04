@@ -1,10 +1,17 @@
 import { Modal, Tabs } from "antd";
-import NetworkViewsSettingsTab from "./NetworkViewsSettingsTab";
-import NetworkRankingsSettingsTab from "./NetworkRankingsSettingsTab";
-import GroupingSettingsTab from "./GroupingSettingsTab";
-import HierarchySettingsTab from "./HierarchySettingsTab";
+
+import {
+  DEFAULT_NETWORK_SETTINGS_MODAL_TOP,
+  DEFAULT_NETWORK_SETTINGS_MODAL_WIDTH,
+  DEFAULT_NETWORK_SETTINGS_TAB,
+  GROUPING_NETWORK_SETTINGS_MODAL_WIDTH,
+} from "@/config/ui";
+
 import CircularSettingsTab from "./CircularSettingsTab";
-import { DEFAULT_NETWORK_SETTINGS_TAB } from "@/config/ui";
+import GroupingSettingsTab from "./GroupingSettingsTab";
+import MatrixSettingsTab from "./MatrixSettingsTab";
+import NetworkRankingsSettingsTab from "./NetworkRankingsSettingsTab";
+import NetworkViewsSettingsTab from "./NetworkViewsSettingsTab";
 
 export type NetworkVisualizationSettingsTabKey =
   | "views"
@@ -16,6 +23,7 @@ export type NetworkVisualizationSettingsTabKey =
 type NetworkVisualizationSettingsModalProps = {
   open: boolean;
   onClose: () => void;
+  onOpenAggregationModal?: () => void;
   activeTab?: NetworkVisualizationSettingsTabKey;
   onTabChange?: (tab: NetworkVisualizationSettingsTabKey) => void;
 };
@@ -23,20 +31,28 @@ type NetworkVisualizationSettingsModalProps = {
 export default function NetworkVisualizationSettingsModal({
   open,
   onClose,
+  onOpenAggregationModal,
   activeTab,
   onTabChange,
 }: NetworkVisualizationSettingsModalProps) {
+  const currentTab = activeTab ?? DEFAULT_NETWORK_SETTINGS_TAB;
+
   return (
     <Modal
       title="Visualization settings"
       open={open}
       onCancel={onClose}
       footer={null}
-      width={860}
+      width={
+        currentTab === "grouping"
+          ? GROUPING_NETWORK_SETTINGS_MODAL_WIDTH
+          : DEFAULT_NETWORK_SETTINGS_MODAL_WIDTH
+      }
+      style={{ top: DEFAULT_NETWORK_SETTINGS_MODAL_TOP }}
       destroyOnHidden
     >
       <Tabs
-        activeKey={activeTab ?? DEFAULT_NETWORK_SETTINGS_TAB}
+        activeKey={currentTab}
         onChange={(key) => onTabChange?.(key as NetworkVisualizationSettingsTabKey)}
         items={[
           {
@@ -52,7 +68,9 @@ export default function NetworkVisualizationSettingsModal({
           {
             key: "grouping",
             label: "Grouping",
-            children: <GroupingSettingsTab />,
+            children: (
+              <GroupingSettingsTab onOpenAggregationModal={onOpenAggregationModal} />
+            ),
           },
           {
             key: "circular",
@@ -62,7 +80,7 @@ export default function NetworkVisualizationSettingsModal({
           {
             key: "matrices",
             label: "Matrices",
-            children: <HierarchySettingsTab mode="matrix" />,
+            children: <MatrixSettingsTab />,
           },
         ]}
       />

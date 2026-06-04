@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef } from "react";
-import NodeLinkViewTemplate from "@/components/nodelink/NodeLinkViewTemplate";
+
 import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
+import NodeLinkViewTemplate from "@/components/nodelink/NodeLinkViewTemplate";
 import { useClassicNodeLinkScene } from "@/components/nodelink/useNodeLinkScene";
 import type {
   ClassicNode,
@@ -38,13 +39,14 @@ function NodeLink({
   valueFilters,
   selectedZoomLabels,
   linkWidthRange,
+  valueDomain,
   brushEnabled = false,
+  brushMode = "zoom",
   geometricZoomEnabled = false,
   hideIsolatedNodes = true,
-  diverging,
   selectedLinkIds,
-  hoveredCell,
-  hoveredNodeId,
+  visualStyle,
+  linkColorResolver,
   onLabelToggle,
   onLinkSelect,
   onLinkHover,
@@ -52,6 +54,8 @@ function NodeLink({
   onNodeHover,
   onNodeLeave,
   onBrushZoom,
+  onBrushSelectLinks,
+  onBrushDeselectLinks,
 }: NodeLinkProps) {
   const internalSvgRef = useRef<SVGSVGElement>(null);
   const svgRef = svgRefProp ?? internalSvgRef;
@@ -78,13 +82,14 @@ function NodeLink({
     valueFilters,
     selectedZoomLabels,
     linkWidthRange,
+    valueDomain,
     brushEnabled,
+    brushMode,
     geometricZoomEnabled,
     hideIsolatedNodes,
-    diverging,
     selectedLinkIds,
-    hoveredCell,
-    hoveredNodeId,
+    visualStyle,
+    linkColorResolver,
     onLabelToggle,
     onLinkSelect,
     onLinkHover,
@@ -92,6 +97,8 @@ function NodeLink({
     onNodeHover,
     onNodeLeave,
     onBrushZoom,
+    onBrushSelectLinks,
+    onBrushDeselectLinks,
     getNodeColor,
     valueLabel,
   });

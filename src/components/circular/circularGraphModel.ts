@@ -1,4 +1,3 @@
-import { buildCircularHierarchyBundleLayout } from "@/utils/circular/hierarchy";
 import { buildDegreeByLabelId, buildFilteredUndirectedLinks } from "@/components/nodelink/graphModel";
 import type { AtlasDefinition } from "@/types/atlas";
 import type {
@@ -7,6 +6,7 @@ import type {
   NodeLinkValueFilters,
   UndirectedLink,
 } from "@/types/nodelink";
+import { buildCircularHierarchyBundleLayout } from "@/utils/circular/hierarchy";
 
 const CIRCULAR_LAYOUT_MARGIN = 32;
 

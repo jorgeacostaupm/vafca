@@ -1,16 +1,18 @@
 import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Button, Card, Select, Space, Tooltip, Typography } from "antd";
-import {
-  createDraftMatrixFilterRule,
-  createEmptyMatrixFilterGroup,
-  MAX_MATRIX_FILTER_DEPTH,
-} from "@/utils/edgeFilter";
-import type { Catalogs, MatrixRecord } from "@/types/connectivityBundle";
+
+import type { Catalogs, ConnectivityMatrix, UiRangeMode } from "@/types/connectivityBundle";
 import type {
   LogicalOperator,
   MatrixFilterExpression,
   MatrixFilterGroup,
 } from "@/types/edgeFilter";
+import {
+  createDraftMatrixFilterRule,
+  createEmptyMatrixFilterGroup,
+  MAX_MATRIX_FILTER_DEPTH,
+} from "@/utils/edgeFilter";
+
 import MatrixFilterRuleEditor from "./MatrixFilterRuleEditor";
 
 type MatrixOptionGroup = {
@@ -22,10 +24,10 @@ type Props = {
   group: MatrixFilterGroup;
   isRoot?: boolean;
   depth?: number;
-  matrices: MatrixRecord[];
+  matrices: ConnectivityMatrix[];
   matrixGroups: MatrixOptionGroup[];
   catalogs?: Catalogs;
-  uiRangeMode: "logical_default" | "observed";
+  uiRangeMode: UiRangeMode;
   onChange: (group: MatrixFilterGroup) => void;
   onDelete?: () => void;
   onMoveUp?: () => void;

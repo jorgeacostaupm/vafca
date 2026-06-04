@@ -1,7 +1,6 @@
+import type { ConnectivityMatrix, MatrixViewData } from "@/types/connectivityBundle";
 import type { DatasetMeta, MatrixStats } from "@/types/datasetState";
-import type { MatrixRecord } from "@/types/connectivityBundle";
 import type { MatrixOrderEntry } from "@/types/matrixOrder";
-import type { ConnectivityMatrix } from "@/types/matrix";
 import type { MatrixSummary, StoredMatrix } from "@/types/matrixStore";
 import { materializeMatrixData } from "@/utils/connectivityMatrix";
 import { getMatrixPopulationIds } from "@/utils/matrixSource";
@@ -46,13 +45,14 @@ export const getDatasetAtlasId = (dataset: DatasetMeta | null | undefined) =>
 export const getDatasetAtlasLabel = (dataset: DatasetMeta | null | undefined) =>
   dataset?.content.atlas.name ?? "Unknown";
 
-export const toConnectivityMatrix = (matrix: MatrixRecord): ConnectivityMatrix => ({
+export const toMatrixViewData = (matrix: ConnectivityMatrix): MatrixViewData => ({
   id: matrix.id,
   layerId: matrix.context.layerId ?? "none",
   measureId: matrix.context.measureId,
   statId: matrix.stat.id,
   populationIds: getMatrixPopulationIds(matrix),
   data: materializeMatrixData(matrix),
+  symmetric: matrix.encoding.symmetric,
   dataStats: matrix.dataStats,
 });
 
@@ -60,14 +60,14 @@ export const getDatasetMatrixStats = (
   dataset: DatasetMeta | null | undefined,
 ): MatrixStats =>
   buildMatrixStats(
-    (dataset?.content.matrices ?? []).map(toConnectivityMatrix),
+    (dataset?.content.matrices ?? []).map(toMatrixViewData),
   );
 
-export const toStoredMatrix = (matrix: MatrixRecord): StoredMatrix => {
-  const connectivityMatrix = toConnectivityMatrix(matrix);
+export const toStoredMatrix = (matrix: ConnectivityMatrix): StoredMatrix => {
+  const matrixViewData = toMatrixViewData(matrix);
   return {
-    ...connectivityMatrix,
-    compoundId: createCompoundId(connectivityMatrix),
+    ...matrixViewData,
+    compoundId: createCompoundId(matrixViewData),
   };
 };
 
@@ -83,6 +83,7 @@ export const getDatasetMatrixSummaries = (
       statId: stored.statId,
       populationIds: stored.populationIds,
       size: stored.data.length,
+      symmetric: stored.symmetric,
     };
   });
 

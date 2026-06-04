@@ -1,8 +1,8 @@
+import type { MatrixViewData } from "@/types/connectivityBundle";
 import type { MatrixStats } from "@/types/datasetState";
-import type { ConnectivityMatrix } from "@/types/matrix";
 
 export const buildMatrixStats = (
-  matrices: ConnectivityMatrix[],
+  matrices: MatrixViewData[],
 ): MatrixStats => {
   const stats: MatrixStats = {
     total: matrices.length,

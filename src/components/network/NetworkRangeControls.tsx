@@ -1,5 +1,6 @@
 import { BarChartOutlined, DatabaseOutlined } from '@ant-design/icons'
 import { Form, Segmented } from 'antd'
+
 import { createNetworkSegmentedOption } from '@/components/network/segmentedOption'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectUiRangeMode, setUiRangeMode } from '@/store/slices/visualizationUi'
@@ -7,14 +8,14 @@ import type { UiRangeMode } from '@/types/connectivityBundle'
 
 const rangeModeOptions = [
   createNetworkSegmentedOption<UiRangeMode>(
-    'logical_default',
-    <DatabaseOutlined />,
-    'Catalog',
+    'view_observed',
+    <BarChartOutlined />,
+    'View',
   ),
   createNetworkSegmentedOption<UiRangeMode>(
-    'observed',
-    <BarChartOutlined />,
-    'Observed',
+    'catalog',
+    <DatabaseOutlined />,
+    'Catalog',
   ),
 ]
 

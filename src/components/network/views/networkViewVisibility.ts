@@ -1,10 +1,10 @@
 import { collectVisibleGraph } from "@/components/network/networkFormatting";
-import { filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
 import type { NetworkViewValueFilters } from "@/types/networkViews";
 import type {
   ComputedView,
   ViewVisibility,
 } from "@/types/networkVisualization";
+import { filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
 
 export const buildNetworkViewValueFilters = (
   computed: ComputedView,

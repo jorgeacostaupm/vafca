@@ -1,16 +1,18 @@
 import { configureStore } from '@reduxjs/toolkit'
-import datasetReducer from '@/store/slices/dataset'
-import datasetOperationsReducer from '@/store/slices/dataset/datasetOperationsSlice'
-import visualizationUiReducer from '@/store/slices/visualizationUi'
+
+import { rankingFilterListenerMiddleware } from '@/store/rankingFilterListeners'
 import atlasDefinitionReducer from '@/store/slices/atlasDefinition'
 import atlasUiReducer from '@/store/slices/atlasUi'
-import networkVisualizationReducer from '@/store/slices/networkVisualization'
+import datasetReducer from '@/store/slices/dataset'
+import datasetOperationsReducer from '@/store/slices/dataset/datasetOperationsSlice'
+import matrixSummariesReducer from '@/store/slices/matrixSummaries'
 import networkFiltersReducer from '@/store/slices/networkFilters'
 import networkLayoutReducer from '@/store/slices/networkLayout'
-import matrixSummariesReducer from '@/store/slices/matrixSummaries'
+import networkMeasuresReducer from '@/store/slices/networkMeasures'
+import networkVisualizationReducer from '@/store/slices/networkVisualization'
 import notificationsReducer from '@/store/slices/notifications'
 import rankingsReducer from '@/store/slices/rankings'
-import { rankingFilterListenerMiddleware } from '@/store/rankingFilterListeners'
+import visualizationUiReducer from '@/store/slices/visualizationUi'
 import { userNotificationListenerMiddleware } from '@/store/userNotificationListeners'
 
 export const store = configureStore({
@@ -22,6 +24,7 @@ export const store = configureStore({
     atlasDefinition: atlasDefinitionReducer,
     networkVisualization: networkVisualizationReducer,
     networkFilters: networkFiltersReducer,
+    networkMeasures: networkMeasuresReducer,
     networkLayout: networkLayoutReducer,
     matrixSummaries: matrixSummariesReducer,
     notifications: notificationsReducer,
@@ -29,9 +32,14 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
+      immutableCheck: {
+        warnAfter: 128,
+        ignoredPaths: ['dataset.matrices'],
+      },
       serializableCheck: {
         warnAfter: 128,
         ignoredActionPaths: ['meta.arg.file', 'meta.arg.files'],
+        ignoredPaths: ['dataset.matrices'],
       },
     }).prepend(
       rankingFilterListenerMiddleware.middleware,

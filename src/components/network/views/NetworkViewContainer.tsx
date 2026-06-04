@@ -1,12 +1,14 @@
+import { memo, useCallback } from "react";
+
 import NetworkViewFrame from "@/components/layout/NetworkViewFrame";
-import NetworkViewTypeSelector from "@/components/network/views/NetworkViewTypeSelector";
-import { resolveNetworkViewTitle } from "@/components/network/views/networkViewTitle";
 import NetworkViewActions from "@/components/network/views/NetworkViewActions";
 import NetworkViewRenderer from "@/components/network/views/NetworkViewRenderer";
 import {
   LoadingPanelBody,
   NetworkViewReloadButton,
 } from "@/components/network/views/NetworkViewStatus";
+import { resolveNetworkViewTitle } from "@/components/network/views/networkViewTitle";
+import NetworkViewTypeSelector from "@/components/network/views/NetworkViewTypeSelector";
 import { useNetworkViewModel } from "@/components/network/views/useNetworkViewModel";
 
 type NetworkViewContainerProps = {
@@ -14,11 +16,14 @@ type NetworkViewContainerProps = {
   onRemove: (id: string) => void;
 };
 
-export default function NetworkViewContainer({
+function NetworkViewContainer({
   viewId,
   onRemove,
 }: NetworkViewContainerProps) {
   const model = useNetworkViewModel(viewId);
+  const handleRemove = useCallback(() => {
+    onRemove(viewId);
+  }, [onRemove, viewId]);
 
   if (model.kind === "missing") return null;
 
@@ -26,7 +31,7 @@ export default function NetworkViewContainer({
     return (
       <NetworkViewFrame
         title={model.view.label}
-        onRemove={() => onRemove(model.view.id)}
+        onRemove={handleRemove}
         actions={<NetworkViewReloadButton viewId={model.view.id} />}
       >
         <LoadingPanelBody text="Loading matrix…" />
@@ -45,22 +50,24 @@ export default function NetworkViewContainer({
         <NetworkViewActions
           view={model.view}
           computed={model.computed}
+          adapted={model.adapted}
           isMatrixView={model.isMatrixView}
           viewTitle={viewTitle}
           svgRef={model.svgRef}
         />
       }
-      onRemove={() => onRemove(model.view.id)}
+      onRemove={handleRemove}
     >
       <NetworkViewRenderer
         view={model.view}
         computed={model.computed}
         adapted={model.adapted}
         isMatrixView={model.isMatrixView}
-        matrixLegendRange={model.matrixLegendRange}
         svgRef={model.svgRef}
         valueFilters={model.valueFilters}
       />
     </NetworkViewFrame>
   );
 }
+
+export default memo(NetworkViewContainer);
