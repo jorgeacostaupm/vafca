@@ -1,4 +1,4 @@
-import { createComparisonMatrix } from "@/networkDerivation/calculations/comparisonMatrixRecord";
+import { createComparisonNetwork } from "@/networkDerivation/calculations/comparisonNetworkRecord";
 import {
   computeWelchDf,
   divideOrNull,
@@ -13,11 +13,11 @@ import {
 } from "@/networkDerivation/calculations/methodRuntime";
 import { twoSidedStudentTPValue } from "@/networkDerivation/calculations/statistics";
 import type {
-  MatrixCalculationMethod,
-  MatrixCalculationMethodDefinition,
+  NetworkCalculationMethod,
+  NetworkCalculationMethodDefinition,
 } from "@/networkDerivation/calculations/types";
 import { EPSILON } from "@/networkDerivation/calculations/types";
-import type { MatrixCellValue } from "@/types/connectivityBundle";
+import type { MatrixCellValue } from "@/types/network";
 
 export const calculatePopulationWelchPValue = (
   tData: MatrixCellValue[][],
@@ -36,7 +36,7 @@ export const calculatePopulationWelchPValue = (
     }),
   );
 
-export const welchTTestDefinition: MatrixCalculationMethodDefinition = {
+export const welchTTestDefinition: NetworkCalculationMethodDefinition = {
   id: "population_welch_t",
   label: "Welch t-test",
   shortLabel: "Welch t",
@@ -46,8 +46,8 @@ export const welchTTestDefinition: MatrixCalculationMethodDefinition = {
   formulaText: "(left mean - right mean) / sqrt(std_left^2 / n_left + std_right^2 / n_right)",
   interpretation: "The sign follows left minus right; p-values use per-cell Welch-Satterthwaite df.",
   requirements: [
-    "Left and right population mean matrices",
-    "Left and right population std matrices",
+    "Left and right population mean networks",
+    "Left and right population std networks",
     "n_left > 1 and n_right > 1",
   ],
   requiredInputs: [
@@ -75,7 +75,7 @@ export const welchTTestDefinition: MatrixCalculationMethodDefinition = {
 const welchTOutput = welchTTestDefinition.outputs[0];
 const welchPValueOutput = welchTTestDefinition.associatedOutputs![0].outputs[0];
 
-export const calculatePopulationWelchT: MatrixCalculationMethod["calculate"] = ({
+export const calculatePopulationWelchT: NetworkCalculationMethod["calculate"] = ({
   request,
   state,
   result,
@@ -93,8 +93,8 @@ export const calculatePopulationWelchT: MatrixCalculationMethod["calculate"] = (
       );
       if (!resolved) return;
       result.warnings.push(...resolved.warnings);
-      const leftMean = resolved.matrices.leftMean!;
-      const rightMean = resolved.matrices.rightMean!;
+      const leftMean = resolved.networks.leftMean!;
+      const rightMean = resolved.networks.rightMean!;
       const n = resolvePopulationSampleSizesOrSkip(
         "population_welch_t",
         layerId,
@@ -106,8 +106,8 @@ export const calculatePopulationWelchT: MatrixCalculationMethod["calculate"] = (
         result.skipped,
       );
       if (!n) return;
-      const leftStd = resolved.matrices.leftStd!;
-      const rightStd = resolved.matrices.rightStd!;
+      const leftStd = resolved.networks.leftStd!;
+      const rightStd = resolved.networks.rightStd!;
       const dfData = createBinaryData(leftMean, (i, j) => {
         const stdLeft = getFiniteMatrixValueOrNull(leftStd, i, j);
         const stdRight = getFiniteMatrixValueOrNull(rightStd, i, j);
@@ -126,11 +126,11 @@ export const calculatePopulationWelchT: MatrixCalculationMethod["calculate"] = (
       const dependencies = [leftMean.id, rightMean.id, leftStd.id, rightStd.id];
       const runtime = { state, request, existingIds };
       const endpoints = {
-        left: { type: "population" as const, populationId: request.leftPopulationId, matrix: leftMean, n: n.nLeft },
-        right: { type: "population" as const, populationId: request.rightPopulationId, matrix: rightMean, n: n.nRight },
+        left: { type: "population" as const, populationId: request.leftPopulationId, network: leftMean, n: n.nLeft },
+        right: { type: "population" as const, populationId: request.rightPopulationId, network: rightMean, n: n.nRight },
       };
       maybePush(
-        createComparisonMatrix({
+        createComparisonNetwork({
           runtime,
           method: welchTTestDefinition,
           output: welchTOutput,
@@ -150,7 +150,7 @@ export const calculatePopulationWelchT: MatrixCalculationMethod["calculate"] = (
       );
       if (request.selectedAssociatedOutputs?.population_welch_t?.includes("welch_p_value")) {
         maybePush(
-          createComparisonMatrix({
+          createComparisonNetwork({
             runtime,
             method: welchTTestDefinition,
             output: welchPValueOutput,
@@ -173,7 +173,7 @@ export const calculatePopulationWelchT: MatrixCalculationMethod["calculate"] = (
   });
 };
 
-export const welchTTest: MatrixCalculationMethod = {
+export const welchTTest: NetworkCalculationMethod = {
   definition: welchTTestDefinition,
   calculate: calculatePopulationWelchT,
 };

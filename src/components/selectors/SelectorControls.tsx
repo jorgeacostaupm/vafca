@@ -32,20 +32,20 @@ export default function SelectorControls() {
     populations,
     layers,
     stats,
-    matrices,
+    networks,
     disabled,
     onPopulationChange,
     onMeasureChange,
     onStatChange,
     onLayerChange,
-    onMatrixChange,
+    onNetworkChange,
     onAddView,
   } = useNetworkSelectorModel();
 
   if (status === "loading") {
     return (
       <Typography.Text className="network-selector-controls__status">
-        Loading matrix list…
+        Loading network list…
       </Typography.Text>
     );
   }
@@ -74,19 +74,19 @@ export default function SelectorControls() {
       layout="vertical"
     >
       {controls.matrixSelectorMode === "combined" ? (
-        <div className="network-selector-controls__matrix-row">
+        <div className="network-selector-controls__network-row">
           <Form.Item
             label="Network"
-            className="network-selector-controls__matrix"
+            className="network-selector-controls__network"
           >
             <Select
               placeholder="Select network..."
               value={controls.selectedCompoundId || undefined}
-              onChange={onMatrixChange}
+              onChange={onNetworkChange}
               allowClear
               showSearch
               optionFilterProp="label"
-              options={matrices}
+              options={networks}
             />
           </Form.Item>
 

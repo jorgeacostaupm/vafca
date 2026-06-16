@@ -3,7 +3,7 @@ import { useMemo, useRef } from "react";
 import { resolveAllowedSet } from "@/components/network/networkFormatting";
 import { useNetworkViewComputationContext } from "@/components/network/views/networkViewComputationContext";
 import {
-  buildAdaptedNetworkViewData,
+  buildNetworkViewRenderData,
 } from "@/components/network/views/networkViewData";
 import {
   buildRuntimeAggregatedAllowedLinkIds,
@@ -37,42 +37,42 @@ export const useNetworkViewModel = (viewId: string) => {
     (state) => state.networkFilters.activeAggregatedEdgeMask,
   );
   const context = useNetworkViewComputationContext();
-  const matrixRecord = useMemo(
-    () => (view ? context.matrixByCompoundId[view.compoundId] ?? null : null),
-    [context.matrixByCompoundId, view],
+  const networkView = useMemo(
+    () => (view ? context.networkViewsByCompoundId[view.compoundId] ?? null : null),
+    [context.networkViewsByCompoundId, view],
   );
   const settings = view?.type === "matrix" ? matrixSettings : nodeLinkSettings;
   const computed = useMemo(
     () =>
-      view && matrixRecord
+      view && networkView
         ? resolveNetworkViewWithContext({
             view,
-            matrix: matrixRecord,
+            networkView,
             settings,
             nodeLinkSettings:
               view.type === "matrix" ? undefined : nodeLinkSettings,
             context,
           })
         : null,
-    [context, matrixRecord, nodeLinkSettings, settings, view],
+    [context, networkView, nodeLinkSettings, settings, view],
   );
-  const sourceMatrix = matrixRecord
-    ? context.dataset?.content?.matrixIndex[matrixRecord.id]
+  const sourceNetwork = networkView
+    ? context.dataset?.content?.networkIndex[networkView.id]
     : undefined;
-  const isAggregatedMatrix = sourceMatrix?.kind === "aggregated";
+  const isAggregatedNetwork = sourceNetwork?.derivation?.type === "aggregation";
   const targetIsFilterSource = Boolean(
     computed?.useAsNodeFilter || computed?.useAsLinkFilter,
   );
   const sourceFilters = useNetworkViewSourceFilters({
     targetViewId: viewId,
-    targetIsAggregated: Boolean(isAggregatedMatrix),
+    targetIsAggregated: Boolean(isAggregatedNetwork),
     targetIsFilterSource,
     context,
   });
 
   return useMemo(() => {
     if (!view) return { kind: "missing" as const, viewId };
-    if (!matrixRecord || !computed) {
+    if (!networkView || !computed) {
       return { kind: "loading" as const, view, svgRef };
     }
 
@@ -89,33 +89,33 @@ export const useNetworkViewModel = (viewId: string) => {
       "linkIds",
       sourceFilters.visibilityByViewId,
     );
-    const runtimeAllowedLinkIds = isAggregatedMatrix
+    const runtimeAllowedLinkIds = isAggregatedNetwork
       ? buildRuntimeAggregatedAllowedLinkIds({
           mask: activeAggregatedEdgeMask,
           dataset: context.dataset,
         })
       : buildRuntimeAllowedLinkIds({
           mask: activeEdgeMask,
-          matrixOrderIds: context.matrixOrderIds,
+          nodeOrderIds: context.nodeOrderIds,
           activeLabelIds: context.activeLabelIds,
         });
     const allowedLinkIds = combineAllowedLinkIds(
       crossViewAllowedLinkIds,
       runtimeAllowedLinkIds,
     );
-    const adapted = buildAdaptedNetworkViewData({
+    const renderData = buildNetworkViewRenderData({
       viewType: view.type,
       computed,
       valueFilters,
       allowedNodeIds,
       allowedLinkIds,
     });
-    const adaptedData = adapted.payload.data;
+    const renderedData = renderData.payload.data;
     const valueDomain = resolveValueDomain({
-      matrix: sourceMatrix ?? matrixRecord,
+      network: sourceNetwork ?? networkView,
       catalogs: getDatasetCatalogs(context.dataset),
       mode: context.uiRangeMode,
-      observedData: adaptedData,
+      observedData: renderedData,
     });
     return {
       kind: "ready" as const,
@@ -124,8 +124,8 @@ export const useNetworkViewModel = (viewId: string) => {
         ...computed,
         valueDomain,
       },
-      adapted,
-      matrixRecord,
+      renderData,
+      networkView,
       svgRef,
       valueFilters,
       isMatrixView: view.type === "matrix",
@@ -138,9 +138,9 @@ export const useNetworkViewModel = (viewId: string) => {
     activeEdgeMask,
     computed,
     context,
-    isAggregatedMatrix,
-    matrixRecord,
-    sourceMatrix,
+    isAggregatedNetwork,
+    networkView,
+    sourceNetwork,
     sourceFilters,
     svgRef,
     view,

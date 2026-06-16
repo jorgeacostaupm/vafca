@@ -1,18 +1,18 @@
-import type { MatrixKind } from "@/types/connectivityBundle";
+import type { NetworkSource } from "@/types/network";
 import type { NetworkMatrixSelectorMode } from "@/types/networkVisualization";
 
 export type NetworkSummaryStatus = "idle" | "loading" | "ready" | "error";
 export type NetworkSummaryScope = "complete" | "filtered";
 
 export type NetworkSummaryFieldId =
-  | "identity.matrixId"
+  | "identity.networkId"
   | "identity.label"
   | "identity.kind"
   | "identity.measure"
   | "identity.statistic"
   | "identity.layer"
   | "identity.population"
-  | "identity.matrixSize"
+  | "identity.dataSize"
   | "identity.nodeCount"
   | "identity.symmetric"
   | "identity.directed"
@@ -84,19 +84,19 @@ export type NetworkSummaryControlsState = {
 };
 
 export type NetworkSummaryIdentity = {
-  matrixId: string;
+  networkId: string;
   compoundId: string;
   label: string;
-  kind: MatrixKind;
+  kind: NetworkSource["type"];
   measureLabel: string;
   statisticLabel: string;
   layerLabel: string;
   populationLabel: string;
-  matrixSize: string;
+  dataSize: string;
   nodeCount: number;
   symmetric: boolean;
   directed: boolean;
-  networkKind: "roi" | "aggregated";
+  networkKind: "node" | "aggregated";
   scope: NetworkSummaryScope;
 };
 
@@ -171,7 +171,7 @@ export type NetworkLinkSummary = {
 export type NetworkGroupSummary = {
   id: string;
   label: string;
-  roiCount: number;
+  nodeCount: number;
   internalPossibleEdgeCount: number;
   internalEdgeCount: number;
   internalDensity: number | null;

@@ -4,7 +4,7 @@ import { useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
 import {
   getDatasetAtlasLabel,
-  getDatasetMatrixOrder,
+  getDatasetNodeOrder,
 } from "@/utils/datasetAccessors";
 
 export default function AtlasMetadataSummary() {
@@ -12,7 +12,7 @@ export default function AtlasMetadataSummary() {
 
   if (!data) return null;
 
-  const matrixOrder = getDatasetMatrixOrder(data);
+  const nodeOrder = getDatasetNodeOrder(data);
   const atlasLabel = getDatasetAtlasLabel(data);
 
   return (
@@ -23,8 +23,8 @@ export default function AtlasMetadataSummary() {
       </Space>
 
       <Space size={6}>
-        <Typography.Text strong>ROI count:</Typography.Text>
-        <Typography.Text type="secondary">{matrixOrder.length}</Typography.Text>
+        <Typography.Text strong>Node count:</Typography.Text>
+        <Typography.Text type="secondary">{nodeOrder.length}</Typography.Text>
       </Space>
     </Space>
   );

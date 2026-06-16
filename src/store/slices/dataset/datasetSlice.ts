@@ -7,14 +7,14 @@ import type {
 
 import { initialDatasetState } from './datasetTypes'
 import {
-  computeAggregatedMatrixFromVisualizationGroups,
-} from './thunks/computeAggregatedMatrices'
-import { computeDerivedMatrices } from './thunks/computeDerivedMatrices'
-import { recomputeAggregatedMatricesForActiveRois } from './thunks/recomputeAggregatedMatricesForActiveRois'
+  computeAggregatedNetworkFromVisualizationGroups,
+} from './thunks/computeAggregatedNetworks'
+import { computeDerivedNetworks } from './thunks/computeDerivedNetworks'
+import { recomputeAggregatedNetworksForActiveNodes } from './thunks/recomputeAggregatedNetworksForActiveNodes'
 import { updateDatasetCatalogItem } from './utils/catalogUpdate'
 import { hydrateDatasetStateFromContent } from './utils/datasetHydration'
-import { matricesAdapter } from './utils/matricesAdapter'
-import { registerGeneratedMatricesInDataset } from './utils/registerGeneratedMatrices'
+import { networksAdapter } from './utils/networksAdapter'
+import { registerGeneratedNetworksInDataset } from './utils/registerGeneratedNetworks'
 
 const datasetSlice = createSlice({
   name: 'dataset',
@@ -24,36 +24,37 @@ const datasetSlice = createSlice({
       hydrateDatasetStateFromContent(state, action.payload.content)
     },
     clearDataset(state) {
-      state.schemaVersion = null
-      state.loadedBundle = null
-      state.atlas = null
-      state.roiOrderHash = null
+      state.id = null
+      state.label = null
+      state.description = null
+      state.createdAt = null
+      state.nodeSet = null
       state.catalogs = null
-      matricesAdapter.removeAll(state.matrices)
+      networksAdapter.removeAll(state.networks)
     },
     updateCatalogItem(state, action: PayloadAction<UpdateCatalogPayload>) {
       if (!state.catalogs) return
       updateDatasetCatalogItem(state.catalogs, action.payload)
     },
-    removeDatasetMatrices(state, action: PayloadAction<{ matrixIds: string[] }>) {
-      matricesAdapter.removeMany(state.matrices, action.payload.matrixIds)
+    removeDatasetNetworks(state, action: PayloadAction<{ networkIds: string[] }>) {
+      networksAdapter.removeMany(state.networks, action.payload.networkIds)
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(computeDerivedMatrices.fulfilled, (state, action) => {
-        if (!state.catalogs || action.payload.matrices.length === 0) return
-        registerGeneratedMatricesInDataset(state, action.payload.matrices)
+      .addCase(computeDerivedNetworks.fulfilled, (state, action) => {
+        if (!state.catalogs || action.payload.networks.length === 0) return
+        registerGeneratedNetworksInDataset(state, action.payload.networks)
       })
-      .addCase(computeAggregatedMatrixFromVisualizationGroups.fulfilled, (state, action) => {
-        const matrices = action.payload.matrices
-        if (!state.catalogs || matrices.length === 0) return
-        registerGeneratedMatricesInDataset(state, matrices)
+      .addCase(computeAggregatedNetworkFromVisualizationGroups.fulfilled, (state, action) => {
+        const networks = action.payload.networks
+        if (!state.catalogs || networks.length === 0) return
+        registerGeneratedNetworksInDataset(state, networks)
       })
-      .addCase(recomputeAggregatedMatricesForActiveRois.fulfilled, (state, action) => {
-        const matrices = action.payload.matrices
-        if (!state.catalogs || matrices.length === 0) return
-        registerGeneratedMatricesInDataset(state, matrices)
+      .addCase(recomputeAggregatedNetworksForActiveNodes.fulfilled, (state, action) => {
+        const networks = action.payload.networks
+        if (!state.catalogs || networks.length === 0) return
+        registerGeneratedNetworksInDataset(state, networks)
       })
   },
 })
@@ -61,7 +62,7 @@ const datasetSlice = createSlice({
 export const {
   setDataset,
   clearDataset,
-  removeDatasetMatrices,
+  removeDatasetNetworks,
   updateCatalogItem,
 } =
   datasetSlice.actions

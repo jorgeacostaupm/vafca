@@ -1,0 +1,24 @@
+.inline-notice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+  cursor: help;
+  line-height: 1;
+}
+
+.inline-notice:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--focus-ring);
+}
+
+.inline-notice--warning {
+  color: var(--color-warning);
+}
+
+.inline-notice--info {
+  color: var(--color-primary);
+}

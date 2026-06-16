@@ -2,7 +2,7 @@ import {
   toMatrixStatFilter,
   toNodeLinkStatFilter,
 } from "@/components/network/networkFormatting";
-import { buildCanonicalMatrixData } from "@/components/network/networkViewAdapters";
+import { buildCanonicalMatrixData } from "@/components/network/networkViewRenderData";
 import { buildLabelState } from "@/components/selectors/labelSelection";
 import { getZoomState } from "@/components/selectors/useViewSettingsState";
 import {
@@ -19,9 +19,9 @@ import {
   DEFAULT_CIRCULAR_BUNDLING_ENABLED,
   DEFAULT_CIRCULAR_LINK_TENSION,
 } from "@/types/circular";
-import type { RoiGroup, UiRangeMode } from "@/types/connectivityBundle";
 import type { DatasetMeta } from "@/types/datasetState";
-import type { StoredMatrix } from "@/types/matrixStore";
+import type { NodeGroup, UiRangeMode } from "@/types/network";
+import type { StoredNetworkView } from "@/types/networkViewStore";
 import type {
   ComputedView,
   MatrixNetworkViewSettings,
@@ -42,13 +42,13 @@ type ViewSettings =
 
 type ResolveComputedNetworkViewArgs = {
   view: NetworkViewDescriptor;
-  matrix: StoredMatrix;
+  networkView: StoredNetworkView;
   settings: ViewSettings;
   nodeLinkSettings?: NodeLinkNetworkViewSettings;
-  matrixOrderIds: string[];
+  nodeOrderIds: string[];
   atlasOrderLength: number;
   activeLabelIds: string[];
-  matrixActiveLabelIds: string[];
+  matrixViewActiveLabelIds: string[];
   circularHierarchyCategoryOrder: Record<string, string[]>;
   matrixHierarchyCategoryOrder: Record<string, string[]>;
   dataset: DatasetMeta | null;
@@ -56,7 +56,7 @@ type ResolveComputedNetworkViewArgs = {
 };
 
 const sortAggregatedGroupsByCategoryOrder = (
-  groups: RoiGroup[],
+  groups: NodeGroup[],
   fields: string[],
   categoryOrder: Record<string, string[]>,
 ) =>
@@ -90,37 +90,36 @@ const sortAggregatedGroupsByCategoryOrder = (
 
 export const resolveComputedNetworkView = ({
   view,
-  matrix,
+  networkView,
   settings,
   nodeLinkSettings,
-  matrixOrderIds,
+  nodeOrderIds,
   atlasOrderLength,
   activeLabelIds,
-  matrixActiveLabelIds,
+  matrixViewActiveLabelIds,
   circularHierarchyCategoryOrder,
   matrixHierarchyCategoryOrder,
   dataset,
   uiRangeMode,
 }: ResolveComputedNetworkViewArgs): ComputedView => {
   const catalogs = getDatasetCatalogs(dataset);
-  const sourceMatrix = dataset?.content?.matrixIndex[matrix.id] ?? matrix;
-  const sourceSymmetric =
-    "encoding" in sourceMatrix ? sourceMatrix.encoding.symmetric : matrix.symmetric;
+  const sourceNetwork = dataset?.content?.networkIndex[networkView.id];
+  const sourceSymmetric = sourceNetwork
+    ? sourceNetwork.data.format === "matrix"
+      ? sourceNetwork.data.symmetric
+      : !sourceNetwork.data.directed
+    : networkView.symmetric;
   const matrixSettings =
     view.type === "matrix" ? (settings as MatrixNetworkViewSettings | undefined) : undefined;
   const storedAggregatedLabels =
-    "kind" in sourceMatrix &&
-    sourceMatrix.kind === "aggregated" &&
-    sourceMatrix.geometry.roiOrder
-      ? sourceMatrix.geometry.roiOrder
+    sourceNetwork?.derivation?.type === "aggregation"
+      ? sourceNetwork.nodeIds
       : null;
   const orderedAggregatedLabels =
-    "kind" in sourceMatrix &&
-    sourceMatrix.kind === "aggregated" &&
-    sourceMatrix.aggregation
+    sourceNetwork?.derivation?.type === "aggregation"
       ? sortAggregatedGroupsByCategoryOrder(
-          sourceMatrix.aggregation.groups,
-          sourceMatrix.aggregation.fields,
+          sourceNetwork.derivation.groups,
+          sourceNetwork.derivation.fields,
           view.type === "matrix"
             ? matrixHierarchyCategoryOrder
             : circularHierarchyCategoryOrder,
@@ -128,11 +127,11 @@ export const resolveComputedNetworkView = ({
       : storedAggregatedLabels;
   const zoomState = getZoomState(settings);
   const viewActiveLabelIds =
-    view.type === "matrix" ? matrixActiveLabelIds : activeLabelIds;
-  const viewMatrixOrderIds = storedAggregatedLabels ?? matrixOrderIds;
+    view.type === "matrix" ? matrixViewActiveLabelIds : activeLabelIds;
+  const viewNodeOrderIds = storedAggregatedLabels ?? nodeOrderIds;
   const activeIdsForView = orderedAggregatedLabels ?? viewActiveLabelIds;
   const labelState = buildLabelState({
-    matrixOrderIds: viewMatrixOrderIds,
+    nodeOrderIds: viewNodeOrderIds,
     atlasOrderLength: storedAggregatedLabels
       ? storedAggregatedLabels.length
       : atlasOrderLength,
@@ -146,14 +145,14 @@ export const resolveComputedNetworkView = ({
       ? toMatrixStatFilter(settings?.statRange)
       : toNodeLinkStatFilter(settings?.statRange);
   const canonical = buildCanonicalMatrixData({
-    matrixData: matrix.data,
+    matrixData: networkView.data,
     labels: labelState.labels,
     rowLabelSelection: labelState.rowLabelSelection,
     colLabelSelection: labelState.colLabelSelection,
     hideIsolatedNodes: false,
   });
   const valueDomain = resolveValueDomain({
-    matrix: sourceMatrix,
+    network: sourceNetwork ?? networkView,
     catalogs,
     mode: uiRangeMode,
     observedData: canonical.data,

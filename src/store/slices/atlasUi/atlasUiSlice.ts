@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
 import { DEFAULT_D3_GROUPING_PALETTE } from '@/config/groupingPalettes'
 import type { AtlasLabel, AtlasState } from '@/types/atlas'
-import type { MatrixOrderEntry } from '@/types/matrixOrder'
+import type { NodeOrderEntry } from '@/types/nodeOrder'
 
 import {
   type AtlasColorPalettePayload,
@@ -96,7 +96,7 @@ export const {
 } = atlasUiSlice.actions
 
 export const buildAtlasState = (
-  items: MatrixOrderEntry[],
+  items: NodeOrderEntry[],
   previous?: AtlasState,
 ): AtlasState => {
   const order = items.map((item) => item.id)

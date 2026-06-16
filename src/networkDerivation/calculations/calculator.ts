@@ -1,35 +1,35 @@
-import { getMatrixCalculationMethod } from "@/networkDerivation/calculations/methods";
-import { validateMatrixCalculationRequest } from "@/networkDerivation/calculations/resolution";
+import { getNetworkCalculationMethod } from "@/networkDerivation/calculations/methods";
+import { validateNetworkCalculationRequest } from "@/networkDerivation/calculations/resolution";
 import type {
-  MatrixCalculationBatchRequest,
-  MatrixCalculationResult,
-  MatrixCalculationState,
+  NetworkCalculationBatchRequest,
+  NetworkCalculationResult,
+  NetworkCalculationState,
 } from "@/networkDerivation/calculations/types";
 
-export const calculateDerivedMatrices = (
-  request: MatrixCalculationBatchRequest,
-  state: MatrixCalculationState,
-): MatrixCalculationResult => {
-  const validation = validateMatrixCalculationRequest(request, state);
+export const calculateDerivedNetworks = (
+  request: NetworkCalculationBatchRequest,
+  state: NetworkCalculationState,
+): NetworkCalculationResult => {
+  const validation = validateNetworkCalculationRequest(request, state);
   if (!validation.valid) {
     return {
-      matrices: [],
+      networks: [],
       warnings: validation.errors,
       skipped: [],
       existing: [],
     };
   }
 
-  const result: MatrixCalculationResult = {
-    matrices: [],
+  const result: NetworkCalculationResult = {
+    networks: [],
     warnings: [],
     skipped: [],
     existing: [],
   };
-  const existingIds = new Set(state.matrices.map((matrix) => matrix.id));
+  const existingIds = new Set(state.networks.map((network) => network.id));
 
   request.operations.forEach((operation) => {
-    getMatrixCalculationMethod(operation)?.calculate({
+    getNetworkCalculationMethod(operation)?.calculate({
       request,
       state,
       result,

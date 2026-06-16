@@ -1,16 +1,10 @@
 import type { EntityState } from "@reduxjs/toolkit";
 
-import type {
-  Atlas,
-  BundleMetadata,
-  Catalogs,
-  ConnectivityDataState,
-  ConnectivityMatrix,
-} from "@/types/connectivityBundle";
+import type { Catalogs, Network, NetworkDataset, NodeSet } from "@/types/network";
 
-export type DatasetContent = ConnectivityDataState;
+export type DatasetContent = NetworkDataset;
 
-export type MatrixStats = {
+export type NetworkStats = {
   total: number;
   byStat: Record<string, number>;
   byMeasure: Record<string, number>;
@@ -22,32 +16,33 @@ export type DatasetMeta = {
   content: DatasetContent;
 };
 
-export type MatrixUploadError = {
+export type NetworkImportError = {
   source: string;
-  matrixId?: string;
+  networkId?: string;
   message: string;
 };
 
-export type MatrixUploadResult = {
+export type NetworkImportSummary = {
   files: number;
-  validMatrices: number;
-  invalidMatrices: number;
-  errors: MatrixUploadError[];
-  warnings?: MatrixUploadError[];
+  validNetworks: number;
+  invalidNetworks: number;
+  errors: NetworkImportError[];
+  warnings?: NetworkImportError[];
 };
 
-export type MatrixUploadRejected = {
+export type NetworkImportRejected = {
   message: string;
-  result?: MatrixUploadResult;
+  result?: NetworkImportSummary;
 };
 
 export type DatasetState = {
-  schemaVersion: DatasetContent["schemaVersion"] | null;
-  loadedBundle: BundleMetadata | null;
-  atlas: Atlas | null;
-  roiOrderHash: string | null;
+  id: string | null;
+  label: string | null;
+  description: string | null;
+  createdAt: string | null;
+  nodeSet: NodeSet | null;
   catalogs: Catalogs | null;
-  matrices: EntityState<ConnectivityMatrix, string>;
+  networks: EntityState<Network, string>;
 };
 
 export type DatasetOperationsState = {
@@ -55,9 +50,9 @@ export type DatasetOperationsState = {
   error: string | null;
   downloadStatus: "idle" | "loading" | "ready" | "error";
   downloadError: string | null;
-  matrixUploadStatus: "idle" | "loading" | "ready" | "error";
-  matrixUploadError: string | null;
-  lastMatrixUpload: MatrixUploadResult | null;
+  networkImportStatus: "idle" | "loading" | "ready" | "error";
+  networkImportError: string | null;
+  lastNetworkImport: NetworkImportSummary | null;
   derivedCalculationStatus: "idle" | "loading" | "ready" | "error";
   derivedCalculationError: string | null;
 };

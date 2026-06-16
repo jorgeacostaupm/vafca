@@ -1,11 +1,11 @@
 import type { ZoomSelection } from "@/types/networkVisualization";
 import type { SelectedLink } from "@/types/visualizationUi";
 
-export type NetworkZoomSelectionMode = "rois" | "links" | "union";
+export type NetworkZoomSelectionMode = "nodes" | "links" | "union";
 
 type BuildNetworkZoomSelectionArgs = {
   mode: NetworkZoomSelectionMode;
-  selectedRoiIds: string[];
+  selectedNodeIds: string[];
   selectedLinks: SelectedLink[];
   availableLabels: string[];
 };
@@ -25,15 +25,15 @@ const addLabel = ({
 
 export const buildNetworkZoomSelection = ({
   mode,
-  selectedRoiIds,
+  selectedNodeIds,
   selectedLinks,
   availableLabels,
 }: BuildNetworkZoomSelectionArgs): ZoomSelection => {
   const labels = new Set<string>();
   const allowedLabels = availableLabels.length > 0 ? new Set(availableLabels) : null;
 
-  if (mode === "rois" || mode === "union") {
-    selectedRoiIds.forEach((label) => addLabel({ labels, label, allowedLabels }));
+  if (mode === "nodes" || mode === "union") {
+    selectedNodeIds.forEach((label) => addLabel({ labels, label, allowedLabels }));
   }
 
   if (mode === "links" || mode === "union") {

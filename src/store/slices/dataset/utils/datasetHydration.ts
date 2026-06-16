@@ -1,15 +1,16 @@
 import type { DatasetContent, DatasetState } from '@/types/datasetState'
 
-import { matricesAdapter } from './matricesAdapter'
+import { networksAdapter } from './networksAdapter'
 
 export const hydrateDatasetStateFromContent = (
   state: DatasetState,
   content: DatasetContent,
 ) => {
-  state.schemaVersion = content.schemaVersion
-  state.loadedBundle = content.loadedBundle
-  state.atlas = content.atlas
-  state.roiOrderHash = content.roiOrderHash
+  state.id = content.id
+  state.label = content.label
+  state.description = content.description ?? null
+  state.createdAt = content.createdAt ?? null
+  state.nodeSet = content.nodeSet
   state.catalogs = content.catalogs
-  matricesAdapter.setAll(state.matrices, content.matrices)
+  networksAdapter.setAll(state.networks, content.networks)
 }

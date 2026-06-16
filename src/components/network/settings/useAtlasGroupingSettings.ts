@@ -16,9 +16,9 @@ import {
 } from "@/store/slices/atlasUi";
 import { selectDatasetData } from "@/store/slices/dataset";
 import type { AtlasColorCategoryItem } from "@/types/atlasPanel";
-import { getCommonRoiFields, humanizeFieldName } from "@/utils/atlas/atlasDefinition";
+import { getCommonNodeFields } from "@/utils/atlas/atlasDefinition";
 import { getDatasetAtlasId } from "@/utils/datasetAccessors";
-import { buildRoiGroupingColorCategories } from "@/utils/groupingColoring";
+import { buildNodeGroupingColorCategories } from "@/utils/groupingColoring";
 
 type AtlasGroupingSettingsOptions = {
   previewColorFields?: string[];
@@ -37,7 +37,7 @@ export const useAtlasGroupingSettings = ({
   const atlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
 
   const availableFields = useMemo(
-    () => getCommonRoiFields(atlasDefinition),
+    () => getCommonNodeFields(atlasDefinition),
     [atlasDefinition],
   );
 
@@ -61,16 +61,14 @@ export const useAtlasGroupingSettings = ({
   const colorCategories = useMemo<AtlasColorCategoryItem[]>(() => {
     const includedIds = new Set(enabledIds);
 
-    return buildRoiGroupingColorCategories({
+    return buildNodeGroupingColorCategories({
       atlasDefinition,
       groupingFields: effectiveColorFields,
       colorPalette: effectiveColorPalette,
       includedIds,
     }).map((entry) => ({
       key: entry.key,
-      label: effectiveColorFields
-        .map((field, index) => `${humanizeFieldName(field)}: ${entry.values[index]}`)
-        .join(" · "),
+      label: entry.values.join(" · "),
       count: entry.count,
       color: entry.color,
     }));

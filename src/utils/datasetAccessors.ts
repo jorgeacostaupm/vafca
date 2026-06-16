@@ -1,13 +1,18 @@
-import type { ConnectivityMatrix, MatrixViewData } from "@/types/connectivityBundle";
-import type { DatasetMeta, MatrixStats } from "@/types/datasetState";
-import type { MatrixOrderEntry } from "@/types/matrixOrder";
-import type { MatrixSummary, StoredMatrix } from "@/types/matrixStore";
-import { materializeMatrixData } from "@/utils/connectivityMatrix";
-import { getMatrixPopulationIds } from "@/utils/matrixSource";
-import { buildMatrixStats } from "@/utils/matrixStats";
-import { createCompoundId } from "@/utils/matrixStore";
+import type { DatasetMeta, NetworkStats } from "@/types/datasetState";
+import type { Network } from "@/types/network";
+import type {
+  NetworkSummaryItem,
+  StoredNetworkView,
+} from "@/types/networkViewStore";
+import type { NodeOrderEntry } from "@/types/nodeOrder";
+import { isDirectedNetwork, materializeNetworkMatrix } from "@/utils/networkData";
+import {
+  createNetworkCompoundId,
+  getNetworkPopulationIds,
+} from "@/utils/networkMetadata";
+import { buildNetworkStats } from "@/utils/networkStats";
 
-const toMatrixOrderTags = (tags: Record<string, unknown>) =>
+const toNodeOrderTags = (tags: Record<string, unknown>) =>
   Object.fromEntries(
     Object.entries(tags).filter(
       (entry): entry is [string, string | number | boolean | null] => {
@@ -25,57 +30,55 @@ const toMatrixOrderTags = (tags: Record<string, unknown>) =>
 export const getDatasetCatalogs = (dataset: DatasetMeta | null | undefined) =>
   dataset?.content.catalogs;
 
-export const getDatasetMatrixOrder = (
+export const getDatasetNodeOrder = (
   dataset: DatasetMeta | null | undefined,
-): MatrixOrderEntry[] =>
-  [...(dataset?.content.atlas.rois ?? [])]
-    .sort((a, b) => a.index - b.index)
-    .map((roi) => ({
-      id: String(roi.id),
-      label: roi.name,
-      name: roi.name,
-      acronym: roi.label,
-      tags: toMatrixOrderTags(roi.tags),
-      metadata: roi.metadata,
+): NodeOrderEntry[] =>
+  [...(dataset?.content.nodeSet.nodes ?? [])]
+    .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+    .map((node) => ({
+      id: String(node.id),
+      label: node.name ?? node.label,
+      name: node.name,
+      acronym: node.label,
+      tags: toNodeOrderTags(node.tags),
+      metadata: node.metadata,
     }));
 
 export const getDatasetAtlasId = (dataset: DatasetMeta | null | undefined) =>
-  dataset?.content.atlas.id;
+  dataset?.content.nodeSet.id;
 
 export const getDatasetAtlasLabel = (dataset: DatasetMeta | null | undefined) =>
-  dataset?.content.atlas.name ?? "Unknown";
+  dataset?.content.nodeSet.label ?? "Unknown";
 
-export const toMatrixViewData = (matrix: ConnectivityMatrix): MatrixViewData => ({
-  id: matrix.id,
-  layerId: matrix.context.layerId ?? "none",
-  measureId: matrix.context.measureId,
-  statId: matrix.stat.id,
-  populationIds: getMatrixPopulationIds(matrix),
-  data: materializeMatrixData(matrix),
-  symmetric: matrix.encoding.symmetric,
-  dataStats: matrix.dataStats,
-});
-
-export const getDatasetMatrixStats = (
+export const getDatasetNetworkStats = (
   dataset: DatasetMeta | null | undefined,
-): MatrixStats =>
-  buildMatrixStats(
-    (dataset?.content.matrices ?? []).map(toMatrixViewData),
+): NetworkStats =>
+  buildNetworkStats(
+    (dataset?.content.networks ?? []).map(toStoredNetworkView),
   );
 
-export const toStoredMatrix = (matrix: ConnectivityMatrix): StoredMatrix => {
-  const matrixViewData = toMatrixViewData(matrix);
+export const toStoredNetworkView = (network: Network): StoredNetworkView => {
+  const networkViewData = {
+    id: network.id,
+    layerId: network.context.layerId ?? "none",
+    measureId: network.measureId,
+    statId: network.statisticId,
+    populationIds: getNetworkPopulationIds(network),
+    data: materializeNetworkMatrix(network),
+    symmetric: !isDirectedNetwork(network),
+    dataStats: network.dataStats,
+  };
   return {
-    ...matrixViewData,
-    compoundId: createCompoundId(matrixViewData),
+    ...networkViewData,
+    compoundId: createNetworkCompoundId(network),
   };
 };
 
-export const getDatasetMatrixSummaries = (
+export const getDatasetNetworkSummaries = (
   dataset: DatasetMeta | null | undefined,
-): MatrixSummary[] =>
-  (dataset?.content.matrices ?? []).map((matrix) => {
-    const stored = toStoredMatrix(matrix);
+): NetworkSummaryItem[] =>
+  (dataset?.content.networks ?? []).map((network) => {
+    const stored = toStoredNetworkView(network);
     return {
       compoundId: stored.compoundId,
       layerId: stored.layerId,
@@ -87,10 +90,10 @@ export const getDatasetMatrixSummaries = (
     };
   });
 
-export const getDatasetMatrixByCompoundId = (
+export const getDatasetNetworkByCompoundId = (
   dataset: DatasetMeta | null | undefined,
   compoundId: string,
-): StoredMatrix | undefined =>
-  (dataset?.content.matrices ?? [])
-    .map(toStoredMatrix)
-    .find((matrix) => matrix.compoundId === compoundId);
+): StoredNetworkView | undefined =>
+  (dataset?.content.networks ?? [])
+    .map(toStoredNetworkView)
+    .find((network) => network.compoundId === compoundId);

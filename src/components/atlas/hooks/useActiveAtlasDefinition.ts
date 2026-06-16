@@ -28,7 +28,7 @@ export const useActiveAtlasDefinition = () => {
     return {
       id: datasetAtlasId ?? "active-atlas",
       name: datasetAtlasLabel,
-      rois: atlasOrder.map((id, index) => {
+      nodes: atlasOrder.map((id, index) => {
         const label = labelsById[id];
         return {
           index,

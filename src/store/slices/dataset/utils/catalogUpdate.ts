@@ -1,5 +1,5 @@
-import type { Catalogs } from '@/types/connectivityBundle'
 import type { UpdateCatalogPayload } from '@/types/datasetState'
+import type { Catalogs } from '@/types/network'
 
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value)
@@ -53,7 +53,7 @@ const normalizeCatalogChanges = (
     return normalizeMeasureChanges(existing, changes)
   }
 
-  if (catalog === 'stats') {
+  if (catalog === 'statistics') {
     return normalizeRangeChanges(changes)
   }
 

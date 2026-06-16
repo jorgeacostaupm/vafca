@@ -16,7 +16,7 @@ type Props = {
 
 const columns: ColumnsType<NetworkNodeSummary> = [
   {
-    title: "ROI",
+    title: "Node",
     dataIndex: "label",
     key: "label",
   },
@@ -43,7 +43,7 @@ const columns: ColumnsType<NetworkNodeSummary> = [
 
 const isolatedColumns: ColumnsType<NetworkNodeSummary> = [
   {
-    title: "ROI",
+    title: "Node",
     dataIndex: "label",
     key: "label",
   },
@@ -67,10 +67,10 @@ export default function NetworkSummaryNodeTable({
 
   return (
     <section className="network-summary-section">
-      <Typography.Text strong>ROIs and nodes</Typography.Text>
+      <Typography.Text strong>Nodes and nodes</Typography.Text>
       {showTop ? (
         <div className="network-summary-table-block">
-          <Typography.Text type="secondary">Top ROIs by degree</Typography.Text>
+          <Typography.Text type="secondary">Top Nodes by degree</Typography.Text>
           <Table
             className="network-summary-table"
             rowKey="id"
@@ -83,7 +83,7 @@ export default function NetworkSummaryNodeTable({
       ) : null}
       {showIsolated ? (
         <div className="network-summary-table-block">
-          <Typography.Text type="secondary">Isolated ROIs</Typography.Text>
+          <Typography.Text type="secondary">Isolated Nodes</Typography.Text>
           <Table
             className="network-summary-table"
             rowKey="id"

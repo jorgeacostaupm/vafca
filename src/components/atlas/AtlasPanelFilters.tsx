@@ -62,7 +62,7 @@ export function AtlasPanelFilters({
         <Typography.Text type="secondary">Search</Typography.Text>
         <Search
           allowClear
-          placeholder="Search ROI label or id"
+          placeholder="Search Node label or id"
           value={query}
           onChange={(event) => handleQueryChange(event.target.value)}
         />
@@ -87,7 +87,7 @@ export function AtlasPanelFilters({
             onClick={() =>
               dispatch(
                 setAtlasPanelState({
-                  roiVisibilityDraft: Object.fromEntries(
+                  nodeVisibilityDraft: Object.fromEntries(
                     atlasOrder.map((id) => [id, true]),
                   ),
                 }),
@@ -101,7 +101,7 @@ export function AtlasPanelFilters({
             onClick={() =>
               dispatch(
                 setAtlasPanelState({
-                  roiVisibilityDraft: Object.fromEntries(
+                  nodeVisibilityDraft: Object.fromEntries(
                     atlasOrder.map((id) => [id, false]),
                   ),
                 }),

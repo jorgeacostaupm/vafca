@@ -15,13 +15,13 @@ import { selectDatasetContent } from "@/store/slices/dataset";
 
 function CatalogManagementSections() {
   const stats = useAppSelector(
-    (state) => selectDatasetContent(state)?.catalogs.stats ?? {},
+    (state) => selectDatasetContent(state)?.catalogs.statistics ?? {},
   );
-  const matrices = useAppSelector(
-    (state) => selectDatasetContent(state)?.matrices ?? [],
+  const networks = useAppSelector(
+    (state) => selectDatasetContent(state)?.networks ?? [],
   );
-  const statUsageById = useMemo(() => buildStatUsageById(matrices), [matrices]);
-  const { matrixStats, comparisonStats } = useMemo(
+  const statUsageById = useMemo(() => buildStatUsageById(networks), [networks]);
+  const { networkStats, comparisonStats } = useMemo(
     () =>
       Object.values(stats).reduce(
         (groups, stat) => {
@@ -32,12 +32,12 @@ function CatalogManagementSections() {
           if (group === "comparison") {
             groups.comparisonStats.push(stat);
           } else {
-            groups.matrixStats.push(stat);
+            groups.networkStats.push(stat);
           }
           return groups;
         },
         {
-          matrixStats: [] as typeof stats[keyof typeof stats][],
+          networkStats: [] as typeof stats[keyof typeof stats][],
           comparisonStats: [] as typeof stats[keyof typeof stats][],
         },
       ),
@@ -61,7 +61,7 @@ function CatalogManagementSections() {
       children: (
         <StatCatalogSection
           title="Matrix statistics"
-          stats={matrixStats}
+          stats={networkStats}
           emptyMessage="No matrix statistics available."
         />
       ),

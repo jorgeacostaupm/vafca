@@ -108,7 +108,7 @@
   align-items: end;
 }
 
-.network-selector-controls__matrix-row {
+.network-selector-controls__network-row {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) auto;
   gap: var(--space-2);
@@ -148,13 +148,13 @@
 
   .network-segmented-setting .ant-segmented,
   .network-selector-controls__filter-grid,
-  .network-selector-controls__matrix-row,
+  .network-selector-controls__network-row,
   .network-selector-controls__add {
     width: 100%;
   }
 
   .network-selector-controls__filter-grid,
-  .network-selector-controls__matrix-row {
+  .network-selector-controls__network-row {
     grid-template-columns: 1fr;
   }
 

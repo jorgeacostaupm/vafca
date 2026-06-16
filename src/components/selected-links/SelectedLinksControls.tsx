@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 import type {
   DownloadMode,
-  MatrixOption,
+  NetworkOption,
 } from "@/components/selected-links/selectedLinksPanel.types";
 
 type SelectedLinksControlsProps = {
@@ -12,11 +12,11 @@ type SelectedLinksControlsProps = {
   downloading: boolean;
   onDownload: (mode: DownloadMode) => void;
   onClear: () => void;
-  matrixOptions: MatrixOption[];
-  selectedMatrixIds: string[];
-  matrixOptionsLoading: boolean;
-  loadingMatrices: boolean;
-  onSelectedMatrixIdsChange: (ids: string[]) => void;
+  networkOptions: NetworkOption[];
+  selectedNetworkIds: string[];
+  networkOptionsLoading: boolean;
+  loadingNetworks: boolean;
+  onSelectedNetworkIdsChange: (ids: string[]) => void;
 };
 
 export default function SelectedLinksControls({
@@ -24,22 +24,22 @@ export default function SelectedLinksControls({
   downloading,
   onDownload,
   onClear,
-  matrixOptions,
-  selectedMatrixIds,
-  matrixOptionsLoading,
-  loadingMatrices,
-  onSelectedMatrixIdsChange,
+  networkOptions,
+  selectedNetworkIds,
+  networkOptionsLoading,
+  loadingNetworks,
+  onSelectedNetworkIdsChange,
 }: SelectedLinksControlsProps) {
   const downloadMenu = useMemo<MenuProps>(
     () => ({
       items: [
         {
           key: "all",
-          label: "Download all available matrices",
+          label: "Download all available networks",
         },
         {
           key: "viewer",
-          label: "Download selected matrices",
+          label: "Download selected networks",
         },
       ],
       onClick: ({ key }) => {
@@ -74,21 +74,21 @@ export default function SelectedLinksControls({
         Select links in the table to highlight them in the atlas.
       </Typography.Text>
       <Space direction="vertical" size={6} style={{ width: "100%" }}>
-        <Typography.Text strong>Additional matrices</Typography.Text>
+        <Typography.Text strong>Additional networks</Typography.Text>
         <Select
           mode="multiple"
           allowClear
-          options={matrixOptions}
+          options={networkOptions}
           optionFilterProp="label"
-          placeholder="Select matrices to show extra values"
-          value={selectedMatrixIds}
-          loading={matrixOptionsLoading}
+          placeholder="Select networks to show extra values"
+          value={selectedNetworkIds}
+          loading={networkOptionsLoading}
           style={{ width: "100%" }}
-          onChange={(value) => onSelectedMatrixIdsChange(value)}
+          onChange={(value) => onSelectedNetworkIdsChange(value)}
         />
-        {selectedMatrixIds.length > 0 && loadingMatrices ? (
+        {selectedNetworkIds.length > 0 && loadingNetworks ? (
           <Typography.Text type="secondary">
-            Loading matrix values…
+            Loading network values…
           </Typography.Text>
         ) : null}
       </Space>

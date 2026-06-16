@@ -7,16 +7,16 @@ import type { RuntimeEdgeMask } from "@/types/edgeFilter";
 
 export const buildRuntimeAllowedLinkIds = ({
   mask,
-  matrixOrderIds,
+  nodeOrderIds,
   activeLabelIds,
 }: {
   mask: RuntimeEdgeMask | null;
-  matrixOrderIds: string[];
+  nodeOrderIds: string[];
   activeLabelIds: string[];
 }) =>
   buildRuntimeMaskLinkSet(
     mask,
-    matrixOrderIds.length > 0 ? matrixOrderIds : activeLabelIds,
+    nodeOrderIds.length > 0 ? nodeOrderIds : activeLabelIds,
   );
 
 export const buildRuntimeAggregatedAllowedLinkIds = ({
@@ -29,11 +29,11 @@ export const buildRuntimeAggregatedAllowedLinkIds = ({
   buildRuntimeMaskLinkSet(
     mask,
     mask
-      ? Object.values(dataset?.content?.matrixIndex ?? {}).find(
-          (matrix) =>
-            matrix.kind === "aggregated" &&
-            matrix.geometry.roiOrder?.length === mask.values.length,
-        )?.geometry.roiOrder ?? []
+      ? dataset?.content?.networks.find(
+          (network) =>
+            network.derivation?.type === "aggregation" &&
+            network.nodeIds.length === mask.values.length,
+        )?.nodeIds ?? []
       : [],
   );
 

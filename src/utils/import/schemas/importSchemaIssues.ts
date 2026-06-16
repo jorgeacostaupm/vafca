@@ -1,11 +1,11 @@
 import type { z } from "zod";
 
-import type { ConnectivityImportIssue } from "@/utils/import/types";
+import type { NetworkImportIssue } from "@/utils/import/types";
 
 export const addZodIssues = (
   zodIssues: z.core.$ZodIssue[],
   source: string,
-  errors: ConnectivityImportIssue[],
+  errors: NetworkImportIssue[],
 ) => {
   zodIssues.forEach((issue) => {
     const issuePath = issue.path.length > 0

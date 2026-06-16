@@ -1,4 +1,4 @@
-import { createComparisonMatrix } from "@/networkDerivation/calculations/comparisonMatrixRecord";
+import { createComparisonNetwork } from "@/networkDerivation/calculations/comparisonNetworkRecord";
 import { divideOrNull, getFiniteMatrixValueOrNull } from "@/networkDerivation/calculations/matrixMath";
 import {
   createBinaryData,
@@ -6,12 +6,12 @@ import {
   maybePush,
 } from "@/networkDerivation/calculations/methodRuntime";
 import type {
-  MatrixCalculationMethod,
-  MatrixCalculationMethodDefinition,
+  NetworkCalculationMethod,
+  NetworkCalculationMethodDefinition,
 } from "@/networkDerivation/calculations/types";
 import { EPSILON } from "@/networkDerivation/calculations/types";
 
-export const populationReferenceZScoreDefinition: MatrixCalculationMethodDefinition = {
+export const populationReferenceZScoreDefinition: NetworkCalculationMethodDefinition = {
   id: "population_reference_zscore",
   label: "Population vs reference population z-score",
   shortLabel: "Reference z-score",
@@ -21,9 +21,9 @@ export const populationReferenceZScoreDefinition: MatrixCalculationMethodDefinit
   formulaText: "(target mean - reference mean) / reference std",
   interpretation: "The sign follows target minus reference; swapping populations changes the sign and meaning.",
   requirements: [
-    "Target population mean matrix",
-    "Reference population mean matrix",
-    "Reference population std matrix",
+    "Target population mean network",
+    "Reference population mean network",
+    "Reference population std network",
   ],
   requiredInputs: [
     { role: "targetMean", label: "Target mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
@@ -51,7 +51,7 @@ export const populationReferenceZScoreDefinition: MatrixCalculationMethodDefinit
 
 const referenceZScoreOutput = populationReferenceZScoreDefinition.outputs[0];
 
-export const calculatePopulationReferenceZScore: MatrixCalculationMethod["calculate"] = ({
+export const calculatePopulationReferenceZScore: NetworkCalculationMethod["calculate"] = ({
   request,
   state,
   result,
@@ -69,9 +69,9 @@ export const calculatePopulationReferenceZScore: MatrixCalculationMethod["calcul
       );
       if (!resolved) return;
       result.warnings.push(...resolved.warnings);
-      const targetMean = resolved.matrices.targetMean!;
-      const referenceMean = resolved.matrices.referenceMean!;
-      const referenceStd = resolved.matrices.referenceStd!;
+      const targetMean = resolved.networks.targetMean!;
+      const referenceMean = resolved.networks.referenceMean!;
+      const referenceStd = resolved.networks.referenceStd!;
       const data = createBinaryData(targetMean, (i, j) => {
         const left = getFiniteMatrixValueOrNull(targetMean, i, j);
         const right = getFiniteMatrixValueOrNull(referenceMean, i, j);
@@ -80,13 +80,13 @@ export const calculatePopulationReferenceZScore: MatrixCalculationMethod["calcul
         return divideOrNull(left - right, std);
       });
       maybePush(
-        createComparisonMatrix({
+        createComparisonNetwork({
           runtime: { state, request, existingIds },
           method: populationReferenceZScoreDefinition,
           output: referenceZScoreOutput,
           endpoints: {
-            left: { type: "population", populationId: request.leftPopulationId, matrix: targetMean },
-            right: { type: "population", populationId: request.referencePopulationId, matrix: referenceMean },
+            left: { type: "population", populationId: request.leftPopulationId, network: targetMean },
+            right: { type: "population", populationId: request.referencePopulationId, network: referenceMean },
           },
           dependencies: [targetMean.id, referenceMean.id, referenceStd.id],
           calculation: {
@@ -95,7 +95,7 @@ export const calculatePopulationReferenceZScore: MatrixCalculationMethod["calcul
             formula: "(target_mean - reference_mean) / reference_std",
             statParameters: { epsilon: EPSILON },
             comparisonParameters: {
-              referenceStdMatrixId: referenceStd.id,
+              referenceStdNetworkId: referenceStd.id,
               epsilon: EPSILON,
             },
             provenanceExtra: { epsilon: EPSILON },
@@ -108,7 +108,7 @@ export const calculatePopulationReferenceZScore: MatrixCalculationMethod["calcul
   });
 };
 
-export const populationReferenceZScore: MatrixCalculationMethod = {
+export const populationReferenceZScore: NetworkCalculationMethod = {
   definition: populationReferenceZScoreDefinition,
   calculate: calculatePopulationReferenceZScore,
 };

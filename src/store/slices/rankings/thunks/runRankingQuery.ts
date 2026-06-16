@@ -18,7 +18,7 @@ export const runRankingQuery = createAsyncThunk<
     return rejectWithValue('No dataset is loaded.')
   }
 
-  const activeRois = new Set(
+  const activeNodes = new Set(
     state.atlasUi.order.filter((id) =>
       isAtlasLabelEnabled(state.atlasUi.labelsById[id]),
     ),
@@ -35,7 +35,7 @@ export const runRankingQuery = createAsyncThunk<
   const result = computeRanking({
     datasetContent,
     query,
-    activeRois,
+    activeNodes,
     activeFilterMask,
   })
   const seq = state.rankings.nextResultSeq

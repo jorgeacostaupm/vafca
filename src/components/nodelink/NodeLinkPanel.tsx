@@ -27,7 +27,7 @@ type NodeLinkProps = Omit<NodeLinkPanelCommonProps, "compoundId"> &
 
 function NodeLink({
   data,
-  matrixLabel,
+  networkLabel,
   labels,
   labelNames,
   labelTitles,
@@ -68,7 +68,7 @@ function NodeLink({
     [nodeColors],
   );
 
-  const valueLabel = useMemo(() => buildTooltipValueLabel(matrixLabel), [matrixLabel]);
+  const valueLabel = useMemo(() => buildTooltipValueLabel(networkLabel), [networkLabel]);
 
   const { wrapperRef, tooltipRef } = useClassicNodeLinkScene({
     data,

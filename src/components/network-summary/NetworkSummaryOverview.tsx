@@ -29,14 +29,14 @@ export default function NetworkSummaryOverview({ summary, settings }: Props) {
     visible(key) ? { key, label, value } : null;
 
   const identityItems = [
-    item("identity.matrixId", "Matrix ID", summary.identity.matrixId),
+    item("identity.networkId", "Network ID", summary.identity.networkId),
     item("identity.label", "Label", summary.identity.label),
     item("identity.kind", "Type", summary.identity.kind),
     item("identity.measure", "Measure", summary.identity.measureLabel),
     item("identity.statistic", "Statistic", summary.identity.statisticLabel),
     item("identity.layer", "Layer", summary.identity.layerLabel),
     item("identity.population", "Population", summary.identity.populationLabel),
-    item("identity.matrixSize", "Matrix size", summary.identity.matrixSize),
+    item("identity.dataSize", "Data size", summary.identity.dataSize),
     item(
       "identity.nodeCount",
       "Nodes",

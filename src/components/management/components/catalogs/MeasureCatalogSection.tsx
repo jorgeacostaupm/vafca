@@ -8,7 +8,7 @@ import {
 } from "@/components/management/utils/catalogValues";
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetContent } from "@/store/slices/dataset";
-import type { MeasureCatalogEntry } from "@/types/connectivityBundle";
+import type { Measure } from "@/types/network";
 
 type MeasureDraft = {
   id: string;
@@ -19,7 +19,7 @@ type MeasureDraft = {
   max?: number;
 };
 
-type EditableMeasure = MeasureCatalogEntry & { enabled?: boolean };
+type EditableMeasure = Measure & { enabled?: boolean };
 
 const toDraft = (measure: EditableMeasure): MeasureDraft => ({
   id: measure.id,

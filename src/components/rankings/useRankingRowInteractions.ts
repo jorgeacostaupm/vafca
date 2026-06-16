@@ -11,14 +11,14 @@ import type { RankingHighlightItem, RankingRow } from "@/types/rankings";
 export const getRankingHighlightItem = (
   row: RankingRow,
 ): RankingHighlightItem | undefined => {
-  if (row.type === "matrix") return undefined;
-  if (row.type === "roi") return { type: "roi", roiId: row.roiId };
+  if (row.type === "network") return undefined;
+  if (row.type === "node") return { type: "node", nodeId: row.nodeId };
   return {
     type: "link",
     sourceId: row.sourceId,
     targetId: row.targetId,
     endpointType: row.endpointType,
-    matrixIds: row.valuesByMatrix ? Object.keys(row.valuesByMatrix) : undefined,
+    networkIds: row.valuesByNetwork ? Object.keys(row.valuesByNetwork) : undefined,
   };
 };
 
@@ -39,8 +39,8 @@ export const useRankingRowInteractions = () => {
         });
         return;
       }
-      if (item.type === "roi") {
-        setSharedHoverState({ type: "node", nodeId: item.roiId });
+      if (item.type === "node") {
+        setSharedHoverState({ type: "node", nodeId: item.nodeId });
       }
     },
     [],

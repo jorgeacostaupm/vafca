@@ -22,7 +22,7 @@ type UseMatrixHeatmapControllerArgs = {
   colLabels?: string[];
   labelNames?: Record<string, string>;
   compoundId: string;
-  matrixLabel: string;
+  networkLabel: string;
   symmetric: boolean;
 };
 
@@ -43,7 +43,7 @@ export const useMatrixHeatmapController = ({
   colLabels,
   labelNames,
   compoundId,
-  matrixLabel,
+  networkLabel,
   symmetric,
 }: UseMatrixHeatmapControllerArgs) => {
   const dispatch = useAppDispatch();
@@ -145,7 +145,7 @@ export const useMatrixHeatmapController = ({
           sources: [
             {
               compoundId,
-              matrixLabel,
+              networkLabel,
               value: payload.value,
             },
           ],
@@ -157,7 +157,7 @@ export const useMatrixHeatmapController = ({
       dispatch,
       labelIndexById,
       labelNames,
-      matrixLabel,
+      networkLabel,
       selectedLinks,
       symmetric,
     ],
@@ -194,7 +194,7 @@ export const useMatrixHeatmapController = ({
           sources: [
             {
               compoundId,
-              matrixLabel,
+              networkLabel,
               value: cell.value,
             },
           ],
@@ -210,7 +210,7 @@ export const useMatrixHeatmapController = ({
       dispatch,
       labelIndexById,
       labelNames,
-      matrixLabel,
+      networkLabel,
       selectedLinks,
       symmetric,
     ],

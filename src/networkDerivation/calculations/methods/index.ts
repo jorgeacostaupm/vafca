@@ -6,12 +6,12 @@ import { subjectZScoreVsPopulation } from "@/networkDerivation/calculations/meth
 import { twoSampleZTest } from "@/networkDerivation/calculations/methods/twoSampleZTest";
 import { welchTTest } from "@/networkDerivation/calculations/methods/welchTTest";
 import type {
-  MatrixCalculationMethod,
-  MatrixCalculationMethodDefinition,
-  MatrixCalculationOperation,
+  NetworkCalculationMethod,
+  NetworkCalculationMethodDefinition,
+  NetworkCalculationOperation,
 } from "@/networkDerivation/calculations/types";
 
-const methods: MatrixCalculationMethod[] = [
+const methods: NetworkCalculationMethod[] = [
   subjectZScoreVsPopulation,
   subjectDifference,
   populationReferenceZScore,
@@ -21,7 +21,7 @@ const methods: MatrixCalculationMethod[] = [
   welchTTest,
 ];
 
-const definitions: MatrixCalculationMethodDefinition[] = [
+const definitions: NetworkCalculationMethodDefinition[] = [
   subjectZScoreVsPopulation.definition,
   subjectDifference.definition,
   populationReferenceZScore.definition,
@@ -33,20 +33,20 @@ const definitions: MatrixCalculationMethodDefinition[] = [
 
 const methodById = Object.fromEntries(
   methods.map((method) => [method.definition.id, method]),
-) as Record<MatrixCalculationOperation, MatrixCalculationMethod>;
+) as Record<NetworkCalculationOperation, NetworkCalculationMethod>;
 
 const definitionById = Object.fromEntries(
   definitions.map((definition) => [definition.id, definition]),
-) as Record<MatrixCalculationOperation, MatrixCalculationMethodDefinition>;
+) as Record<NetworkCalculationOperation, NetworkCalculationMethodDefinition>;
 
-export const getMatrixCalculationMethodDefinitions = () => definitions;
+export const getNetworkCalculationMethodDefinitions = () => definitions;
 
-export const getMatrixCalculationMethodDefinition = (
-  operation: MatrixCalculationOperation,
+export const getNetworkCalculationMethodDefinition = (
+  operation: NetworkCalculationOperation,
 ) => definitionById[operation];
 
-export const getMatrixCalculationMethod = (operation: MatrixCalculationOperation) =>
+export const getNetworkCalculationMethod = (operation: NetworkCalculationOperation) =>
   methodById[operation];
 
-export { definitions as matrixCalculationMethodDefinitions };
-export { methods as matrixCalculationMethods };
+export { definitions as networkCalculationMethodDefinitions };
+export { methods as networkCalculationMethods };

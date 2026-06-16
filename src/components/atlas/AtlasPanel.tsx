@@ -8,7 +8,7 @@ import {
   selectAtlasLabelSearchTextById,
   selectAtlasOrder,
 } from "@/store/slices/atlasUi";
-import { getCommonRoiFields } from "@/utils/atlas/atlasDefinition";
+import { getCommonNodeFields } from "@/utils/atlas/atlasDefinition";
 import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
 
 import AtlasManagementModal from "./AtlasManagementModal";
@@ -24,9 +24,9 @@ import { useActiveAtlasDefinition } from "./hooks/useActiveAtlasDefinition";
 import { useAtlasPanelDerivedData } from "./hooks/useAtlasPanelDerivedData";
 import { useAtlasPanelNormalization } from "./hooks/useAtlasPanelNormalization";
 import {
-  buildEffectiveRoiEnabledMap,
-  countEnabledRois,
-} from "./roiVisibilityDraft";
+  buildEffectiveNodeEnabledMap,
+  countEnabledNodes,
+} from "./nodeVisibilityDraft";
 
 const EXPANDED_GROUPS = new Set<string>();
 
@@ -43,22 +43,22 @@ export default function AtlasPanel() {
   const atlasPanel = useAppSelector((state) => state.visualizationUi.atlasPanel);
   const effectiveEnabledById = useMemo(
     () =>
-      buildEffectiveRoiEnabledMap({
+      buildEffectiveNodeEnabledMap({
         order: atlasOrder,
         labelsById,
-        draft: atlasPanel.roiVisibilityDraft,
+        draft: atlasPanel.nodeVisibilityDraft,
       }),
-    [atlasOrder, atlasPanel.roiVisibilityDraft, labelsById],
+    [atlasOrder, atlasPanel.nodeVisibilityDraft, labelsById],
   );
   const effectiveEnabledCount = useMemo(
-    () => countEnabledRois(effectiveEnabledById),
+    () => countEnabledNodes(effectiveEnabledById),
     [effectiveEnabledById],
   );
 
   const stateAtlasDefinition = useActiveAtlasDefinition();
 
   const availableGroupFields = useMemo(
-    () => getCommonRoiFields(stateAtlasDefinition),
+    () => getCommonNodeFields(stateAtlasDefinition),
     [stateAtlasDefinition],
   );
 

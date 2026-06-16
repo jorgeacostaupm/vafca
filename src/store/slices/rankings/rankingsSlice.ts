@@ -1,10 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import {
-  DEFAULT_PANEL_GRID_CONFIG,
+  DEFAULT_NETWORK_PANEL_LAYOUT,
   DEFAULT_RANKING_PANEL_LAYOUT,
 } from "@/config/ui";
-import type { CatalogMatrixPrunePayload } from "@/store/slices/dataset/utils/catalogMatrixPruning";
+import type { CatalogNetworkPrunePayload } from "@/store/slices/dataset/utils/catalogNetworkPruning";
+import { addNetworkLayoutItem } from "@/store/slices/networkLayout";
 import {
   createDefaultRankingQueryForTarget,
   initialRankingsState,
@@ -21,9 +22,9 @@ import type { RankingTarget } from "@/types/rankings";
 
 const pruneRankingQueryForCatalogItem = (
   query: RankingQuery,
-  payload: CatalogMatrixPrunePayload,
+  payload: CatalogNetworkPrunePayload,
 ): RankingQuery => {
-  const invalidMatrixIds = new Set(payload.invalidMatrixIds);
+  const invalidNetworkIds = new Set(payload.invalidNetworkIds);
   const next: RankingQuery = { ...query };
 
   if (
@@ -40,7 +41,7 @@ const pruneRankingQueryForCatalogItem = (
     delete next.layerIds;
   }
 
-  if (payload.catalog === "stats" && next.statisticId === payload.id) {
+  if (payload.catalog === "statistics" && next.statisticId === payload.id) {
     delete next.statisticId;
     delete next.layerIds;
   }
@@ -54,18 +55,18 @@ const pruneRankingQueryForCatalogItem = (
     }
   }
 
-  if (next.matrixId && invalidMatrixIds.has(next.matrixId)) {
-    delete next.matrixId;
+  if (next.networkId && invalidNetworkIds.has(next.networkId)) {
+    delete next.networkId;
   }
 
-  if (next.matrixIds) {
-    const matrixIds = next.matrixIds.filter(
-      (matrixId) => !invalidMatrixIds.has(matrixId),
+  if (next.networkIds) {
+    const networkIds = next.networkIds.filter(
+      (networkId) => !invalidNetworkIds.has(networkId),
     );
-    if (matrixIds.length > 0) {
-      next.matrixIds = matrixIds;
+    if (networkIds.length > 0) {
+      next.networkIds = networkIds;
     } else {
-      delete next.matrixIds;
+      delete next.networkIds;
     }
   }
 
@@ -125,7 +126,7 @@ const rankingsSlice = createSlice({
     },
     pruneRankingQueriesForDisabledCatalogItem(
       state,
-      action: PayloadAction<CatalogMatrixPrunePayload>,
+      action: PayloadAction<CatalogNetworkPrunePayload>,
     ) {
       state.currentQuery = pruneRankingQueryForCatalogItem(
         state.currentQuery,
@@ -151,28 +152,18 @@ const rankingsSlice = createSlice({
         state.nextResultSeq += 1;
         state.resultsOrder.unshift(action.payload.id);
         state.resultsById[action.payload.id] = action.payload;
-        const panelsPerRow = Math.max(
-          1,
-          Math.floor(
-            DEFAULT_PANEL_GRID_CONFIG.columns / DEFAULT_RANKING_PANEL_LAYOUT.width,
-          ),
-        );
-        const x =
-          DEFAULT_RANKING_PANEL_LAYOUT.initialX +
-          (state.layout.length % panelsPerRow) * DEFAULT_RANKING_PANEL_LAYOUT.width;
-        const y =
-          DEFAULT_RANKING_PANEL_LAYOUT.initialY +
-          Math.floor(state.layout.length / panelsPerRow) *
-            DEFAULT_RANKING_PANEL_LAYOUT.height;
         state.layout = [
           {
             i: action.payload.id,
-            x,
-            y,
+            x: DEFAULT_RANKING_PANEL_LAYOUT.initialX,
+            y: DEFAULT_RANKING_PANEL_LAYOUT.initialY,
             w: DEFAULT_RANKING_PANEL_LAYOUT.width,
             h: DEFAULT_RANKING_PANEL_LAYOUT.height,
           },
-          ...state.layout,
+          ...state.layout.map((entry) => ({
+            ...entry,
+            y: entry.y + DEFAULT_RANKING_PANEL_LAYOUT.height,
+          })),
         ];
       })
       .addCase(runRankingQuery.rejected, (state, action) => {
@@ -186,6 +177,16 @@ const rankingsSlice = createSlice({
             state.resultsById[result.id] = result;
           }
         });
+      })
+      .addCase(addNetworkLayoutItem, (state, action) => {
+        const yOffset =
+          action.payload.yOffset ??
+          action.payload.defaultH ??
+          DEFAULT_NETWORK_PANEL_LAYOUT.height;
+        state.layout = state.layout.map((entry) => ({
+          ...entry,
+          y: entry.y + yOffset,
+        }));
       });
   },
 });

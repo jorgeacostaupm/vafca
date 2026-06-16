@@ -5,7 +5,7 @@ import type { AtlasDefinition } from "@/types/atlas";
 import {
   buildFieldOptionsByField,
   buildGroupedRows,
-  buildRoiFieldValuesById,
+  buildNodeFieldValuesById,
   filterIds,
 } from "./panelDataUtils";
 
@@ -40,8 +40,8 @@ export const useAtlasPanelData = ({
 }) => {
   const normalizedQuery = query.trim().toLowerCase();
 
-  const roiFieldValuesById = useMemo(
-    () => buildRoiFieldValuesById(atlasDefinition, groupByFields),
+  const nodeFieldValuesById = useMemo(
+    () => buildNodeFieldValuesById(atlasDefinition, groupByFields),
     [atlasDefinition, groupByFields],
   );
 
@@ -51,7 +51,7 @@ export const useAtlasPanelData = ({
         groupByFields,
         orderedIds,
         labelSearchTextById,
-        roiFieldValuesById,
+        nodeFieldValuesById,
         normalizedQuery,
         selectedFilters,
       }),
@@ -59,7 +59,7 @@ export const useAtlasPanelData = ({
       groupByFields,
       orderedIds,
       labelSearchTextById,
-      roiFieldValuesById,
+      nodeFieldValuesById,
       normalizedQuery,
       selectedFilters,
     ],
@@ -70,14 +70,14 @@ export const useAtlasPanelData = ({
       filterIds({
         orderedIds,
         labelSearchTextById,
-        roiFieldValuesById,
+        nodeFieldValuesById,
         normalizedQuery,
         selectedFilters,
       }),
     [
       orderedIds,
       labelSearchTextById,
-      roiFieldValuesById,
+      nodeFieldValuesById,
       normalizedQuery,
       selectedFilters,
     ],
@@ -88,10 +88,10 @@ export const useAtlasPanelData = ({
       buildGroupedRows({
         filteredIds,
         groupByFields,
-        roiFieldValuesById,
+        nodeFieldValuesById,
         collapsedGroups,
       }),
-    [filteredIds, groupByFields, roiFieldValuesById, collapsedGroups],
+    [filteredIds, groupByFields, nodeFieldValuesById, collapsedGroups],
   );
 
   const totalCount = orderedIds.length;

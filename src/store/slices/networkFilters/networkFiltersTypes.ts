@@ -1,23 +1,23 @@
 import type {
-  MatrixFilterDefinition,
-  MatrixFilterValidationResult,
   NetworkEdgeDomain,
+  NetworkFilterDefinition,
+  NetworkFilterValidationResult,
   RuntimeEdgeMask,
 } from "@/types/edgeFilter";
 
-export type NetworkEdgeFilterMode = "roi" | "aggregated";
+export type NetworkEdgeFilterMode = "original" | "aggregated";
 
 export type NetworkFilterRuntime = {
   edgeDomain: NetworkEdgeDomain | null;
-  normalizedFilter: MatrixFilterDefinition;
-  validation: MatrixFilterValidationResult;
+  normalizedFilter: NetworkFilterDefinition;
+  validation: NetworkFilterValidationResult;
   mask: RuntimeEdgeMask | null;
 };
 
 export type NetworkFiltersState = {
-  activeNetworkFilter: MatrixFilterDefinition | null;
+  activeNetworkFilter: NetworkFilterDefinition | null;
   activeEdgeMask: RuntimeEdgeMask | null;
-  activeAggregatedNetworkFilter: MatrixFilterDefinition | null;
+  activeAggregatedNetworkFilter: NetworkFilterDefinition | null;
   activeAggregatedEdgeMask: RuntimeEdgeMask | null;
 };
 

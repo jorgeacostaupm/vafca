@@ -1,16 +1,19 @@
 import { EPSILON } from "@/networkDerivation/calculations/types";
-import type { ConnectivityMatrix,MatrixCellValue } from "@/types/connectivityBundle";
-import { getMatrixValue } from "@/utils/connectivityMatrix";
+import type { MatrixCellValue, Network } from "@/types/network";
+import { getNetworkValue } from "@/utils/networkData";
 
 export const isFiniteMatrixValue = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
 export const getFiniteMatrixValueOrNull = (
-  matrix: ConnectivityMatrix,
+  network: Network,
   i: number,
   j: number,
 ) => {
-  const value = getMatrixValue(matrix, i, j);
+  const sourceNodeId = network.nodeIds[i];
+  const targetNodeId = network.nodeIds[j];
+  if (!sourceNodeId || !targetNodeId) return null;
+  const value = getNetworkValue(network, sourceNodeId, targetNodeId);
   return isFiniteMatrixValue(value) ? value : null;
 };
 

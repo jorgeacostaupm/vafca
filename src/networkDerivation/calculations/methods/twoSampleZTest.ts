@@ -1,4 +1,4 @@
-import { createComparisonMatrix } from "@/networkDerivation/calculations/comparisonMatrixRecord";
+import { createComparisonNetwork } from "@/networkDerivation/calculations/comparisonNetworkRecord";
 import { divideOrNull, getFiniteMatrixValueOrNull } from "@/networkDerivation/calculations/matrixMath";
 import {
   alternative,
@@ -9,11 +9,11 @@ import {
 } from "@/networkDerivation/calculations/methodRuntime";
 import { twoSidedNormalPValue } from "@/networkDerivation/calculations/statistics";
 import type {
-  MatrixCalculationMethod,
-  MatrixCalculationMethodDefinition,
+  NetworkCalculationMethod,
+  NetworkCalculationMethodDefinition,
 } from "@/networkDerivation/calculations/types";
 import { EPSILON } from "@/networkDerivation/calculations/types";
-import type { MatrixCellValue } from "@/types/connectivityBundle";
+import type { MatrixCellValue } from "@/types/network";
 
 export const calculatePopulationTwoSampleZPValue = (zData: MatrixCellValue[][]) =>
   zData.map((row) =>
@@ -24,7 +24,7 @@ export const calculatePopulationTwoSampleZPValue = (zData: MatrixCellValue[][]) 
     ),
   );
 
-export const twoSampleZTestDefinition: MatrixCalculationMethodDefinition = {
+export const twoSampleZTestDefinition: NetworkCalculationMethodDefinition = {
   id: "population_two_sample_z_test",
   label: "Two-sample Z test",
   shortLabel: "Z test",
@@ -34,8 +34,8 @@ export const twoSampleZTestDefinition: MatrixCalculationMethodDefinition = {
   formulaText: "((left mean - right mean) - hypothesized difference) / sqrt(std_left^2 / n_left + std_right^2 / n_right)",
   interpretation: "The sign follows left minus right after subtracting the hypothesized difference.",
   requirements: [
-    "Left and right population mean matrices",
-    "Left and right population std matrices",
+    "Left and right population mean networks",
+    "Left and right population std networks",
     "n_left > 1 and n_right > 1",
   ],
   requiredInputs: [
@@ -64,7 +64,7 @@ export const twoSampleZTestDefinition: MatrixCalculationMethodDefinition = {
 const twoSampleZOutput = twoSampleZTestDefinition.outputs[0];
 const twoSampleZPValueOutput = twoSampleZTestDefinition.associatedOutputs![0].outputs[0];
 
-export const calculatePopulationTwoSampleZTest: MatrixCalculationMethod["calculate"] = ({
+export const calculatePopulationTwoSampleZTest: NetworkCalculationMethod["calculate"] = ({
   request,
   state,
   result,
@@ -82,8 +82,8 @@ export const calculatePopulationTwoSampleZTest: MatrixCalculationMethod["calcula
       );
       if (!resolved) return;
       result.warnings.push(...resolved.warnings);
-      const leftMean = resolved.matrices.leftMean!;
-      const rightMean = resolved.matrices.rightMean!;
+      const leftMean = resolved.networks.leftMean!;
+      const rightMean = resolved.networks.rightMean!;
       const n = resolvePopulationSampleSizesOrSkip(
         "population_two_sample_z_test",
         layerId,
@@ -95,8 +95,8 @@ export const calculatePopulationTwoSampleZTest: MatrixCalculationMethod["calcula
         result.skipped,
       );
       if (!n) return;
-      const leftStd = resolved.matrices.leftStd!;
-      const rightStd = resolved.matrices.rightStd!;
+      const leftStd = resolved.networks.leftStd!;
+      const rightStd = resolved.networks.rightStd!;
       const hypothesizedDifference = request.hypothesizedDifference ?? 0;
       const data = createBinaryData(leftMean, (i, j) => {
         const left = getFiniteMatrixValueOrNull(leftMean, i, j);
@@ -110,11 +110,11 @@ export const calculatePopulationTwoSampleZTest: MatrixCalculationMethod["calcula
       const dependencies = [leftMean.id, rightMean.id, leftStd.id, rightStd.id];
       const runtime = { state, request, existingIds };
       const endpoints = {
-        left: { type: "population" as const, populationId: request.leftPopulationId, matrix: leftMean, n: n.nLeft },
-        right: { type: "population" as const, populationId: request.rightPopulationId, matrix: rightMean, n: n.nRight },
+        left: { type: "population" as const, populationId: request.leftPopulationId, network: leftMean, n: n.nLeft },
+        right: { type: "population" as const, populationId: request.rightPopulationId, network: rightMean, n: n.nRight },
       };
       maybePush(
-        createComparisonMatrix({
+        createComparisonNetwork({
           runtime,
           method: twoSampleZTestDefinition,
           output: twoSampleZOutput,
@@ -140,7 +140,7 @@ export const calculatePopulationTwoSampleZTest: MatrixCalculationMethod["calcula
       );
       if (request.selectedAssociatedOutputs?.population_two_sample_z_test?.includes("two_sample_z_p_value")) {
         maybePush(
-          createComparisonMatrix({
+          createComparisonNetwork({
             runtime,
             method: twoSampleZTestDefinition,
             output: twoSampleZPValueOutput,
@@ -163,7 +163,7 @@ export const calculatePopulationTwoSampleZTest: MatrixCalculationMethod["calcula
   });
 };
 
-export const twoSampleZTest: MatrixCalculationMethod = {
+export const twoSampleZTest: NetworkCalculationMethod = {
   definition: twoSampleZTestDefinition,
   calculate: calculatePopulationTwoSampleZTest,
 };

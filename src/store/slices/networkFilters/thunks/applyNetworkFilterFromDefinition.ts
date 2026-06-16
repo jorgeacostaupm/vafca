@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import { selectDatasetData } from "@/store/slices/dataset";
-import type { MatrixFilterDefinition } from "@/types/edgeFilter";
+import type { NetworkFilterDefinition } from "@/types/edgeFilter";
 import type { RootState } from "@/types/store";
 
 import { resolveNetworkFilterRuntime } from "../networkFiltersRuntime";
@@ -18,7 +18,7 @@ export const applyNetworkFilterFromDefinition = createAsyncThunk<
   NetworkFilterRuntime,
   {
     mode: NetworkEdgeFilterMode;
-    definition: MatrixFilterDefinition;
+    definition: NetworkFilterDefinition;
   },
   { state: RootState; rejectValue: string }
 >(

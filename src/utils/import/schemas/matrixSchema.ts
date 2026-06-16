@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { addZodIssues } from "@/utils/import/schemas/importSchemaIssues";
-import type { ConnectivityImportIssue, ConnectivityImportMode } from "@/utils/import/types";
+import type { NetworkImportIssue, NetworkImportMode } from "@/utils/import/types";
 
 export const MatrixLayoutSchema = z.enum([
   "full",
@@ -47,9 +47,9 @@ export type MatrixImportRecord = z.infer<typeof MatrixImportPayloadSchema>;
 
 export const parseMatrixImportRecord = (
   payload: unknown,
-  mode: ConnectivityImportMode,
+  mode: NetworkImportMode,
   source: string,
-  errors: ConnectivityImportIssue[],
+  errors: NetworkImportIssue[],
 ): MatrixImportRecord | null => {
   const schema = mode === "strict"
     ? StrictMatrixPayloadSchema

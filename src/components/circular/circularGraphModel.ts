@@ -1,4 +1,12 @@
 import { buildDegreeByLabelId, buildFilteredUndirectedLinks } from "@/components/nodelink/graphModel";
+import {
+  CIRCULAR_LABEL_FALLBACK_CHAR_WIDTH_RATIO,
+  CIRCULAR_LABEL_FONT_SIZE,
+  CIRCULAR_LABEL_OFFSET,
+  CIRCULAR_LABEL_SELECTION_BACKGROUND_PADDING_X,
+  CIRCULAR_LAYOUT_EDGE_PADDING,
+  CIRCULAR_NODE_RADIUS,
+} from "@/config/ui";
 import type { AtlasDefinition } from "@/types/atlas";
 import type {
   CircularLink,
@@ -7,8 +15,6 @@ import type {
   UndirectedLink,
 } from "@/types/nodelink";
 import { buildCircularHierarchyBundleLayout } from "@/utils/circular/hierarchy";
-
-const CIRCULAR_LAYOUT_MARGIN = 32;
 
 type BuildCircularGraphDataArgs = {
   data: number[][];
@@ -27,6 +33,71 @@ type VisibleNodeRef = {
   originalIndex: number;
   fallbackOrder: number;
   labelId: string;
+};
+
+let measureCircularLabelText: ((label: string) => number) | null | undefined;
+
+const getCircularLabelTextMeasure = () => {
+  if (measureCircularLabelText !== undefined) return measureCircularLabelText;
+  if (typeof document === "undefined") {
+    measureCircularLabelText = null;
+    return measureCircularLabelText;
+  }
+
+  const context = document.createElement("canvas").getContext("2d");
+  if (!context) {
+    measureCircularLabelText = null;
+    return measureCircularLabelText;
+  }
+
+  context.font = `${CIRCULAR_LABEL_FONT_SIZE}px sans-serif`;
+  measureCircularLabelText = (label: string) => context.measureText(label).width;
+  return measureCircularLabelText;
+};
+
+const getCircularLabelTextWidth = (label: string) => {
+  const measureText = getCircularLabelTextMeasure();
+  if (measureText) return measureText(label);
+  // ponytail: fallback for non-DOM runs; browser canvas measurement is the precise path.
+  return label.length * CIRCULAR_LABEL_FONT_SIZE * CIRCULAR_LABEL_FALLBACK_CHAR_WIDTH_RATIO;
+};
+
+const getCircularNodeLabel = ({
+  item,
+  labels,
+  labelNames,
+}: {
+  item: VisibleNodeRef;
+  labels?: string[];
+  labelNames?: Record<string, string>;
+}) => {
+  const labelId = labels?.[item.originalIndex];
+  return labelId ? labelNames?.[labelId] ?? labelId : String(item.originalIndex);
+};
+
+const resolveCircularLayoutRadius = ({
+  width,
+  height,
+  nodeLabels,
+}: {
+  width: number;
+  height: number;
+  nodeLabels: string[];
+}) => {
+  const outerRadius = Math.min(width, height) / 2;
+  // ponytail: global widest-label clearance; upgrade to per-angle clearance if this over-shrinks views.
+  const maxLabelWidth = nodeLabels.reduce(
+    (maxWidth, label) => Math.max(maxWidth, getCircularLabelTextWidth(label)),
+    0,
+  );
+  const labelClearance =
+    maxLabelWidth +
+    CIRCULAR_LABEL_OFFSET +
+    CIRCULAR_LABEL_SELECTION_BACKGROUND_PADDING_X +
+    CIRCULAR_NODE_RADIUS +
+    CIRCULAR_LAYOUT_EDGE_PADDING;
+
+  return Math.max(0, outerRadius - labelClearance);
 };
 
 const buildVisibleNodeRefs = ({
@@ -74,7 +145,7 @@ const buildCircularNodes = ({
       layout?.angle ??
       (count > 0 ? (visibleIndex / count) * Math.PI * 2 - Math.PI / 2 : 0);
     const labelId = labels?.[item.originalIndex];
-    const displayLabel = labelId ? labelNames?.[labelId] ?? labelId : String(item.originalIndex);
+    const displayLabel = getCircularNodeLabel({ item, labels, labelNames });
 
     return {
       id: visibleIndex,
@@ -113,7 +184,14 @@ export const buildCircularGraphData = ({
     degreeById,
   });
 
-  const radius = Math.max(0, Math.min(width, height) / 2 - CIRCULAR_LAYOUT_MARGIN);
+  const visibleNodeLabels = visibleOriginalIndices.map((item) =>
+    getCircularNodeLabel({ item, labels, labelNames }),
+  );
+  const radius = resolveCircularLayoutRadius({
+    width,
+    height,
+    nodeLabels: visibleNodeLabels,
+  });
   const hierarchyLayout = buildCircularHierarchyBundleLayout({
     labelIds: visibleOriginalIndices.map((item) => item.labelId),
     radius,

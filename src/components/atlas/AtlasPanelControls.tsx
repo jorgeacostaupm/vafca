@@ -3,13 +3,13 @@ import { useCallback, useMemo } from "react";
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setLabelsEnabledMap } from "@/store/slices/atlasUi";
-import { recomputeAggregatedMatricesForActiveRois } from "@/store/slices/dataset";
+import { recomputeAggregatedNetworksForActiveNodes } from "@/store/slices/dataset";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 
 import {
-  buildEffectiveRoiEnabledMap,
-  countChangedRois,
-} from "./roiVisibilityDraft";
+  buildEffectiveNodeEnabledMap,
+  countChangedNodes,
+} from "./nodeVisibilityDraft";
 
 type AtlasPanelControlsProps = {
   totalCount: number;
@@ -22,12 +22,12 @@ export function AtlasPanelControls({
 }: AtlasPanelControlsProps) {
   const dispatch = useAppDispatch();
   const { draft, labelsById, order } = useAppSelector((state) => ({
-    draft: state.visualizationUi.atlasPanel.roiVisibilityDraft,
+    draft: state.visualizationUi.atlasPanel.nodeVisibilityDraft,
     labelsById: state.atlasUi.labelsById,
     order: state.atlasUi.order,
   }));
   const pendingCount = useMemo(
-    () => countChangedRois({ order, labelsById, draft }),
+    () => countChangedNodes({ order, labelsById, draft }),
     [draft, labelsById, order],
   );
 
@@ -35,15 +35,15 @@ export function AtlasPanelControls({
     if (!draft) return;
     dispatch(
       setLabelsEnabledMap(
-        buildEffectiveRoiEnabledMap({ order, labelsById, draft }),
+        buildEffectiveNodeEnabledMap({ order, labelsById, draft }),
       ),
     );
-    dispatch(setAtlasPanelState({ roiVisibilityDraft: null }));
-    void dispatch(recomputeAggregatedMatricesForActiveRois());
+    dispatch(setAtlasPanelState({ nodeVisibilityDraft: null }));
+    void dispatch(recomputeAggregatedNetworksForActiveNodes());
   }, [dispatch, draft, labelsById, order]);
 
   const handleDiscard = useCallback(() => {
-    dispatch(setAtlasPanelState({ roiVisibilityDraft: null }));
+    dispatch(setAtlasPanelState({ nodeVisibilityDraft: null }));
   }, [dispatch]);
 
   return (
@@ -54,10 +54,10 @@ export function AtlasPanelControls({
       >
         <Space direction="vertical" size={2}>
           <Typography.Title level={4} style={{ margin: 0 }}>
-            ROIs Management
+            Nodes Management
           </Typography.Title>
           <Typography.Text type="secondary">
-            {totalCount} ROIs · {enabledCount} active
+            {totalCount} Nodes · {enabledCount} active
           </Typography.Text>
         </Space>
         <Space>
@@ -66,7 +66,7 @@ export function AtlasPanelControls({
             onClick={handleApply}
             disabled={pendingCount === 0}
           >
-            Apply ROIs
+            Apply Nodes
           </Button>
           <Button onClick={handleDiscard} disabled={pendingCount === 0}>
             Discard
@@ -75,7 +75,7 @@ export function AtlasPanelControls({
       </Space>
       {pendingCount > 0 ? (
         <Typography.Text type="secondary">
-          {pendingCount} pending ROI visibility change
+          {pendingCount} pending Node visibility change
           {pendingCount === 1 ? "" : "s"}
         </Typography.Text>
       ) : null}

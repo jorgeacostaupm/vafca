@@ -34,7 +34,7 @@ function NetworkViewContainer({
         onRemove={handleRemove}
         actions={<NetworkViewReloadButton viewId={model.view.id} />}
       >
-        <LoadingPanelBody text="Loading matrix…" />
+        <LoadingPanelBody text="Loading network…" />
       </NetworkViewFrame>
     );
   }
@@ -50,7 +50,7 @@ function NetworkViewContainer({
         <NetworkViewActions
           view={model.view}
           computed={model.computed}
-          adapted={model.adapted}
+          renderData={model.renderData}
           isMatrixView={model.isMatrixView}
           viewTitle={viewTitle}
           svgRef={model.svgRef}
@@ -61,7 +61,7 @@ function NetworkViewContainer({
       <NetworkViewRenderer
         view={model.view}
         computed={model.computed}
-        adapted={model.adapted}
+        renderData={model.renderData}
         isMatrixView={model.isMatrixView}
         svgRef={model.svgRef}
         valueFilters={model.valueFilters}

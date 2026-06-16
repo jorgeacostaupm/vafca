@@ -1,6 +1,6 @@
-import type { UiRangeMode } from "@/types/connectivityBundle";
 import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type { MatrixValueRange, StatRangeValue } from "@/types/matrixView";
+import type { UiRangeMode } from "@/types/network";
 import type { ResolvedValueDomain } from "@/types/valueDomain";
 
 export type NetworkViewType = "matrix" | "circular" | "classic";
@@ -107,9 +107,9 @@ export type CanonicalMatrixData = {
   colLabels: string[];
 };
 
-export type AdaptedMatrixViewData = CanonicalMatrixData;
+export type MatrixViewRenderData = CanonicalMatrixData;
 
-export type AdaptedNodeLinkViewData = {
+export type NodeLinkViewRenderData = {
   data: number[][];
   labels: string[];
 };

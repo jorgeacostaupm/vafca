@@ -9,8 +9,8 @@ import {
 import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlasUi'
 import type { AtlasDefinition } from '@/types/atlas'
 import type { RootState } from '@/types/store'
-import { buildMatrixDerivedAtlasSource } from '@/utils/atlas/matrixDerivedAtlas'
-import { getDatasetMatrixOrder } from '@/utils/datasetAccessors'
+import { buildNodeDerivedAtlasSource } from '@/utils/atlas/nodeDerivedAtlas'
+import { getDatasetNodeOrder } from '@/utils/datasetAccessors'
 
 import { selectDatasetData } from '../datasetSelectors'
 import { clearDataset } from '../datasetSlice'
@@ -60,7 +60,7 @@ export const initializeDatasetAndDerivedState = createAsyncThunk<
 
     if (data) {
       if (!config.loadTestAtlas) {
-        const atlasSource = buildMatrixDerivedAtlasSource(getDatasetMatrixOrder(data))
+        const atlasSource = buildNodeDerivedAtlasSource(getDatasetNodeOrder(data))
         if (atlasSource) {
           dispatch(setUploadedAtlas(atlasSource))
         }

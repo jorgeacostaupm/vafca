@@ -7,7 +7,7 @@ export type GroupedRow =
       groupKey: string;
       count: number;
     }
-  | { type: "roi"; key: string; id: string; level: number };
+  | { type: "node"; key: string; id: string; level: number };
 
 export type AtlasColorCategoryItem = {
   key: string;

@@ -4,9 +4,9 @@ import { resolveComputedNetworkView } from "@/components/network/views/networkVi
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetViewData } from "@/store/slices/dataset";
-import type { UiRangeMode } from "@/types/connectivityBundle";
 import type { DatasetMeta } from "@/types/datasetState";
-import type { StoredMatrix } from "@/types/matrixStore";
+import type { UiRangeMode } from "@/types/network";
+import type { StoredNetworkView } from "@/types/networkViewStore";
 import type {
   ComputedView,
   MatrixNetworkViewSettings,
@@ -16,10 +16,10 @@ import type {
 
 export type NetworkViewComputationContext = {
   dataset: DatasetMeta | null;
-  matrixByCompoundId: Record<string, StoredMatrix>;
-  matrixOrderIds: string[];
+  networkViewsByCompoundId: Record<string, StoredNetworkView>;
+  nodeOrderIds: string[];
   activeLabelIds: string[];
-  matrixActiveLabelIds: string[];
+  matrixViewActiveLabelIds: string[];
   atlasOrderLength: number;
   circularHierarchyCategoryOrder: Record<string, string[]>;
   matrixHierarchyCategoryOrder: Record<string, string[]>;
@@ -28,26 +28,26 @@ export type NetworkViewComputationContext = {
 
 export const resolveNetworkViewWithContext = ({
   view,
-  matrix,
+  networkView,
   settings,
   nodeLinkSettings,
   context,
 }: {
   view: NetworkViewDescriptor;
-  matrix: StoredMatrix;
+  networkView: StoredNetworkView;
   settings?: MatrixNetworkViewSettings | NodeLinkNetworkViewSettings;
   nodeLinkSettings?: NodeLinkNetworkViewSettings;
   context: NetworkViewComputationContext;
 }): ComputedView =>
   resolveComputedNetworkView({
     view,
-    matrix,
+    networkView,
     settings,
     nodeLinkSettings,
-    matrixOrderIds: context.matrixOrderIds,
+    nodeOrderIds: context.nodeOrderIds,
     atlasOrderLength: context.atlasOrderLength,
     activeLabelIds: context.activeLabelIds,
-    matrixActiveLabelIds: context.matrixActiveLabelIds,
+    matrixViewActiveLabelIds: context.matrixViewActiveLabelIds,
     circularHierarchyCategoryOrder: context.circularHierarchyCategoryOrder,
     matrixHierarchyCategoryOrder: context.matrixHierarchyCategoryOrder,
     dataset: context.dataset,
@@ -55,22 +55,22 @@ export const resolveNetworkViewWithContext = ({
   });
 
 export const useNetworkViewComputationContextValue = () => {
-  const { dataset, matrixByCompoundId } = useAppSelector(selectDatasetViewData);
+  const { dataset, networkViewsByCompoundId } = useAppSelector(selectDatasetViewData);
   const atlas = useAppSelector((state) => state.atlasUi);
   const uiRangeMode = useAppSelector(
     (state) => state.visualizationUi.uiRangeMode,
   );
-  const { matrixOrderIds, activeLabelIds } = useAtlasLabelPresentation();
-  const { activeLabelIds: matrixActiveLabelIds } = useAtlasLabelPresentation({
+  const { nodeOrderIds, activeLabelIds } = useAtlasLabelPresentation();
+  const { activeLabelIds: matrixViewActiveLabelIds } = useAtlasLabelPresentation({
     useMatrixHierarchyOrder: true,
   });
   return useMemo(
     () => ({
       dataset,
-      matrixByCompoundId,
-      matrixOrderIds,
+      networkViewsByCompoundId,
+      nodeOrderIds,
       activeLabelIds,
-      matrixActiveLabelIds,
+      matrixViewActiveLabelIds,
       atlasOrderLength: atlas.order.length,
       circularHierarchyCategoryOrder: atlas.circularHierarchyCategoryOrder,
       matrixHierarchyCategoryOrder: atlas.matrixHierarchyCategoryOrder,
@@ -82,9 +82,9 @@ export const useNetworkViewComputationContextValue = () => {
       atlas.matrixHierarchyCategoryOrder,
       atlas.order.length,
       dataset,
-      matrixByCompoundId,
-      matrixActiveLabelIds,
-      matrixOrderIds,
+      networkViewsByCompoundId,
+      matrixViewActiveLabelIds,
+      nodeOrderIds,
       uiRangeMode,
     ],
   );

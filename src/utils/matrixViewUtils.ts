@@ -1,11 +1,11 @@
-import type { Catalogs } from "@/types/connectivityBundle";
 import type { StatRangeValue } from "@/types/matrixView";
+import type { Catalogs } from "@/types/network";
 
 type PopulationCatalogsLike = {
   populations?: Record<string, { label?: string } | undefined>;
 };
 
-type MatrixSummaryLike = {
+type NetworkSummaryLike = {
   populationIds: string[];
   measureId: string;
   statId: string;
@@ -96,7 +96,7 @@ export const buildDefaultRanges = (
 };
 
 export const buildDefaultStatRanges = (
-  stats: Catalogs["stats"] | undefined,
+  stats: Catalogs["statistics"] | undefined,
 ) => {
   if (!stats) return {} as Record<string, StatRangeValue>;
   return Object.entries(stats).reduce<Record<string, StatRangeValue>>(
@@ -142,7 +142,7 @@ export const getLegendRange = (
   catalogs?: Catalogs,
 ) => {
   if (!catalogs) return { min: undefined, max: undefined };
-  const statRange = catalogs.stats[statId];
+  const statRange = catalogs.statistics[statId];
   const measureRange = catalogs.measures[measureId];
   const hasStatRange =
     Number.isFinite(statRange?.min) && Number.isFinite(statRange?.max);
@@ -169,8 +169,8 @@ export const getLegendRange = (
   };
 };
 
-export const buildMatrixLabel = (
-  summary: MatrixSummaryLike,
+export const buildNetworkSummaryLabel = (
+  summary: NetworkSummaryLike,
   catalogs?: Catalogs,
 ) => {
   const populationLabel = formatPopulationSetLabel(
@@ -178,7 +178,7 @@ export const buildMatrixLabel = (
     catalogs,
   );
   const measureLabel = toLabel(catalogs?.measures[summary.measureId]?.label);
-  const statLabel = toLabel(catalogs?.stats[summary.statId]?.label);
+  const statLabel = toLabel(catalogs?.statistics[summary.statId]?.label);
   const layerLabel = toLabel(catalogs?.layers[summary.layerId]?.label);
   return `${populationLabel} · ${measureLabel} · ${statLabel} · ${layerLabel}`;
 };

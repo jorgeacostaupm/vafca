@@ -26,7 +26,7 @@ export default function AtlasUploader({
 
   const uploadedSummary = useMemo(() => {
     if (!uploaded) return null;
-    return `${uploaded.fileName} · ${uploaded.atlas.rois.length} ROIs`;
+    return `${uploaded.fileName} · ${uploaded.atlas.nodes.length} Nodes`;
   }, [uploaded]);
 
   const beforeUpload: UploadProps["beforeUpload"] = async (file) => {
@@ -54,7 +54,7 @@ export default function AtlasUploader({
       >
         <p className="ant-upload-text">Drag and drop a JSON atlas file here</p>
         <p className="ant-upload-hint">
-          The parser validates structure and ROI ids. ROI mesh_points are used
+          The parser validates structure and Node ids. Node mesh_points are used
           by the atlas viewer when they are present and valid.
         </p>
       </Dragger>

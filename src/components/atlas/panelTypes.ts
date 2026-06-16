@@ -1,11 +1,11 @@
 import type { GroupedRow } from "@/types/atlasPanel";
 
 export type GroupRow = Extract<GroupedRow, { type: "group" }>;
-export type RoiRow = Extract<GroupedRow, { type: "roi" }>;
+export type NodeRow = Extract<GroupedRow, { type: "node" }>;
 
-export type RoiTreeNode = {
-  type: "roiNode";
-  row: RoiRow;
+export type NodeTreeNode = {
+  type: "node";
+  row: NodeRow;
 };
 
 export type GroupTreeNode = {
@@ -14,4 +14,4 @@ export type GroupTreeNode = {
   children: GroupTreeEntry[];
 };
 
-export type GroupTreeEntry = RoiTreeNode | GroupTreeNode;
+export type GroupTreeEntry = NodeTreeNode | GroupTreeNode;

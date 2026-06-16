@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 
 import { selectDatasetData } from '@/store/slices/dataset'
 import type { RootState } from '@/types/store'
-import { getDatasetMatrixByCompoundId } from '@/utils/datasetAccessors'
+import { getDatasetNetworkByCompoundId } from '@/utils/datasetAccessors'
 
 import { setNetworkViewStatus } from '../networkVisualizationSlice'
 import type { NetworkViewFormattingError } from '../networkVisualizationTypes'
@@ -23,7 +23,7 @@ export const markNetworkViewFormatting = createAsyncThunk<
       return rejectWithValue(payload)
     }
 
-    const matrix = getDatasetMatrixByCompoundId(
+    const matrix = getDatasetNetworkByCompoundId(
       selectDatasetData(getState()),
       target.compoundId,
     )

@@ -1,26 +1,24 @@
 import {
   DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS,
-  DEFAULT_ROI_RANKING_ALLOW_AUTOCONNECTIONS,
+  DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS,
 } from "@/config/ui";
-import type {
-  ConnectivityDataState,
-  ConnectivityMatrix,
-} from "@/types/connectivityBundle";
+import type { Network, NetworkDataset } from "@/types/network";
 import type {
   LinkRankingRow,
-  MatrixRankingRow,
+  NetworkRankingRow,
+  NodeRankingRow,
   RankingQuery,
   RankingResult,
-  RoiRankingRow,
 } from "@/types/rankings";
-import { iterateMatrixEdges } from "@/utils/connectivityMatrix";
+import { getNetworkValue, isDirectedNetwork } from "@/utils/networkData";
 import {
-  getMatrixAggregationGroupingKey,
-  getMatrixLabel,
-  getMatrixSource,
-  resolveMatrixEndpointIds,
-  resolveRankingMatrixCollection,
-} from "@/utils/rankings/rankingMatrixMetadata";
+  getNetworkAggregationGroupingKey,
+  getNetworkLabel,
+  getNetworkSource,
+  getRankingNetworkKind,
+  resolveNetworkEndpointIds,
+  resolveRankingNetworkCollection,
+} from "@/utils/rankings/rankingNetworkMetadata";
 
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
@@ -73,71 +71,88 @@ const scoreValues = (values: number[], metric?: string, threshold = 0) => {
   }
 };
 
+function* iterateNetworkValues(network: Network) {
+  const directed = isDirectedNetwork(network);
+  for (let i = 0; i < network.nodeIds.length; i += 1) {
+    const start = directed ? 0 : i;
+    for (let j = start; j < network.nodeIds.length; j += 1) {
+      const sourceId = network.nodeIds[i];
+      const targetId = network.nodeIds[j];
+      if (!sourceId || !targetId) continue;
+      yield {
+        i,
+        j,
+        value: getNetworkValue(network, sourceId, targetId),
+      };
+    }
+  }
+}
+
 const getEndpointLabel = (
-  connectivity: ConnectivityDataState,
+  dataset: NetworkDataset,
   id: string,
-  matrix?: ConnectivityMatrix,
+  network?: Network,
 ) =>
-  matrix?.aggregation?.groups.find((group) => group.id === id)?.label ??
-  connectivity.atlas.rois.find((roi) => roi.id === id)?.label ??
-  connectivity.atlas.rois.find((roi) => String(roi.atlasId) === id)?.label ??
+  (network?.derivation?.type === "aggregation"
+    ? network.derivation.groups.find((group) => group.id === id)?.label
+    : undefined) ??
+  dataset.nodeSet.nodes.find((node) => node.id === id)?.label ??
+  dataset.nodeSet.nodes.find((node) => String(node.metadata.atlasId) === id)?.label ??
   id;
 
-const getEndpointGroup = (connectivity: ConnectivityDataState, id: string) => {
-  const roi = connectivity.atlas.rois.find((item) => item.id === id);
-  const network = roi?.tags.network ?? roi?.tags.group ?? roi?.tags.region;
-  return typeof network === "string" ? network : undefined;
+const getEndpointGroup = (dataset: NetworkDataset, id: string) => {
+  const node = dataset.nodeSet.nodes.find((item) => item.id === id);
+  const group = node?.tags.network ?? node?.tags.group ?? node?.tags.region;
+  return typeof group === "string" ? group : undefined;
 };
 
-const getActiveRoiIds = (activeLabels: Set<string> | null) => activeLabels;
+const getActiveNodeIds = (activeLabels: Set<string> | null) => activeLabels;
 
 const isEligibleEdge = (
-  matrix: ConnectivityMatrix,
-  connectivity: ConnectivityDataState,
+  network: Network,
   i: number,
   j: number,
-  activeRois: Set<string> | null,
+  activeNodes: Set<string> | null,
   activeFilterMask: boolean[][] | null,
 ) => {
-  const ids = resolveMatrixEndpointIds(matrix, connectivity);
+  const ids = resolveNetworkEndpointIds(network);
   const sourceId = ids[i];
   const targetId = ids[j];
   if (!sourceId || !targetId) return false;
-  if (matrix.kind !== "aggregated") {
-    const active = getActiveRoiIds(activeRois);
+  if (network.derivation?.type !== "aggregation") {
+    const active = getActiveNodeIds(activeNodes);
     if (active && (!active.has(sourceId) || !active.has(targetId))) return false;
   }
-  if (activeFilterMask && matrix.kind !== "aggregated") {
+  if (activeFilterMask && network.derivation?.type !== "aggregation") {
     return Boolean(activeFilterMask[i]?.[j] ?? activeFilterMask[j]?.[i]);
   }
   return true;
 };
 
 type CalculationContext = {
-  datasetContent: ConnectivityDataState;
+  datasetContent: NetworkDataset;
   query: RankingQuery;
-  activeRois: Set<string> | null;
+  activeNodes: Set<string> | null;
   activeFilterMask: boolean[][] | null;
 };
 
-export const computeMatrixRanking = ({
-  datasetContent: connectivity,
+export const computeNetworkRanking = ({
+  datasetContent: dataset,
   query,
-  activeRois,
+  activeNodes,
   activeFilterMask,
 }: CalculationContext): Omit<RankingResult, "id" | "createdAt"> => {
-  const matrices = resolveRankingMatrixCollection(connectivity, query);
-  const rows = matrices
-    .map<MatrixRankingRow | null>((matrix) => {
+  const networks = resolveRankingNetworkCollection(dataset, query);
+  const rows = networks
+    .map<NetworkRankingRow | null>((network) => {
       const values: number[] = [];
-      for (const edge of iterateMatrixEdges(matrix)) {
+      for (const edge of iterateNetworkValues(network)) {
         if (
           !isEligibleEdge(
-            matrix,
-            connectivity,
+            network,
             edge.i,
             edge.j,
-            activeRois,
+            activeNodes,
             activeFilterMask,
           )
         ) {
@@ -147,24 +162,24 @@ export const computeMatrixRanking = ({
       }
       const score = scoreValues(values, query.metric, query.threshold);
       if (!Number.isFinite(score)) return null;
-      const source = getMatrixSource(matrix);
+      const source = getNetworkSource(network);
       return {
-        type: "matrix",
+        type: "network",
         rank: 0,
-        matrixId: matrix.id,
-        label: getMatrixLabel(matrix, connectivity),
+        networkId: network.id,
+        label: getNetworkLabel(network, dataset),
         sourceType: source.sourceType,
         sourceId: source.sourceId,
-        matrixKind: matrix.kind,
-        aggregationGroupingKey: getMatrixAggregationGroupingKey(matrix),
-        measureId: matrix.context.measureId,
-        statisticId: matrix.stat.id,
-        layerId: matrix.context.layerId ?? "none",
+        networkKind: getRankingNetworkKind(network),
+        aggregationGroupingKey: getNetworkAggregationGroupingKey(network),
+        measureId: network.measureId,
+        statisticId: network.statisticId,
+        layerId: network.context.layerId ?? "none",
         score,
         nLinksUsed: values.length,
       };
     })
-    .filter((row): row is MatrixRankingRow => Boolean(row));
+    .filter((row): row is NetworkRankingRow => Boolean(row));
 
   const rankedRows = sortRows(rows, query.metric)
     .slice(0, query.topN)
@@ -175,13 +190,13 @@ export const computeMatrixRanking = ({
 const getLinkKey = (a: string, b: string) => [a, b].sort().join("__");
 
 export const computeLinkRanking = ({
-  datasetContent: connectivity,
+  datasetContent: dataset,
   query,
-  activeRois,
+  activeNodes,
   activeFilterMask,
 }: CalculationContext): Omit<RankingResult, "id" | "createdAt"> => {
-  const matrices = resolveRankingMatrixCollection(connectivity, query);
-  const expanded = query.linkCollectionMode === "expanded" || matrices.length <= 1;
+  const networks = resolveRankingNetworkCollection(dataset, query);
+  const expanded = query.linkCollectionMode === "expanded" || networks.length <= 1;
   const allowAutoconnections =
     query.allowLinkRankingAutoconnections ??
     DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS;
@@ -190,28 +205,27 @@ export const computeLinkRanking = ({
     {
       sourceId: string;
       targetId: string;
-      valuesByMatrix: Record<string, number>;
+      valuesByNetwork: Record<string, number>;
       valuesByLayer: Record<string, number[]>;
       values: number[];
-      bestMatrixId?: string;
+      bestNetworkId?: string;
       bestLayerId?: string;
       bestValue?: number;
     }
   >();
 
   const rows: LinkRankingRow[] = [];
-  matrices.forEach((matrix) => {
-    const endpoints = resolveMatrixEndpointIds(matrix, connectivity);
-    for (const edge of iterateMatrixEdges(matrix)) {
+  networks.forEach((network) => {
+    const endpoints = resolveNetworkEndpointIds(network);
+    for (const edge of iterateNetworkValues(network)) {
       if (!allowAutoconnections && edge.i === edge.j) continue;
       if (!isFiniteNumber(edge.value)) continue;
       if (
         !isEligibleEdge(
-          matrix,
-          connectivity,
+          network,
           edge.i,
           edge.j,
-          activeRois,
+          activeNodes,
           activeFilterMask,
         )
       ) {
@@ -229,15 +243,15 @@ export const computeLinkRanking = ({
           rank: 0,
           sourceId,
           targetId,
-          endpointType: matrix.kind === "aggregated" ? "group" : "roi",
-          sourceLabel: getEndpointLabel(connectivity, sourceId, matrix),
-          targetLabel: getEndpointLabel(connectivity, targetId, matrix),
+          endpointType: network.derivation?.type === "aggregation" ? "group" : "node",
+          sourceLabel: getEndpointLabel(dataset, sourceId, network),
+          targetLabel: getEndpointLabel(dataset, targetId, network),
           score,
-          valuesByMatrix: { [matrix.id]: edge.value },
-          valuesByLayer: { [matrix.context.layerId ?? "none"]: edge.value },
-          bestMatrixId: matrix.id,
-          bestLayerId: matrix.context.layerId ?? "none",
-          nMatricesUsed: 1,
+          valuesByNetwork: { [network.id]: edge.value },
+          valuesByLayer: { [network.context.layerId ?? "none"]: edge.value },
+          bestNetworkId: network.id,
+          bestLayerId: network.context.layerId ?? "none",
+          nNetworksUsed: 1,
         });
         continue;
       }
@@ -248,19 +262,19 @@ export const computeLinkRanking = ({
         {
           sourceId,
           targetId,
-          valuesByMatrix: {},
+          valuesByNetwork: {},
           valuesByLayer: {},
           values: [],
         };
-      const layerId = matrix.context.layerId ?? "none";
-      group.valuesByMatrix[matrix.id] = edge.value;
+      const layerId = network.context.layerId ?? "none";
+      group.valuesByNetwork[network.id] = edge.value;
       group.valuesByLayer[layerId] = [...(group.valuesByLayer[layerId] ?? []), edge.value];
       group.values.push(edge.value);
       const comparable = Math.abs(edge.value);
       if (group.bestValue === undefined || comparable > Math.abs(group.bestValue)) {
         group.bestValue = edge.value;
-        group.bestMatrixId = matrix.id;
-        group.bestLayerId = matrix.context.layerId ?? "none";
+        group.bestNetworkId = network.id;
+        group.bestLayerId = network.context.layerId ?? "none";
       }
       grouped.set(key, group);
     }
@@ -275,20 +289,20 @@ export const computeLinkRanking = ({
         rank: 0,
         sourceId: group.sourceId,
         targetId: group.targetId,
-        endpointType: matrices[0]?.kind === "aggregated" ? "group" : "roi",
-        sourceLabel: getEndpointLabel(connectivity, group.sourceId, matrices[0]),
-        targetLabel: getEndpointLabel(connectivity, group.targetId, matrices[0]),
+        endpointType: networks[0]?.derivation?.type === "aggregation" ? "group" : "node",
+        sourceLabel: getEndpointLabel(dataset, group.sourceId, networks[0]),
+        targetLabel: getEndpointLabel(dataset, group.targetId, networks[0]),
         score,
-        valuesByMatrix: group.valuesByMatrix,
+        valuesByNetwork: group.valuesByNetwork,
         valuesByLayer: Object.fromEntries(
           Object.entries(group.valuesByLayer).map(([layerId, values]) => [
             layerId,
             mean(values),
           ]),
         ),
-        bestMatrixId: group.bestMatrixId,
+        bestNetworkId: group.bestNetworkId,
         bestLayerId: group.bestLayerId,
-        nMatricesUsed: group.values.length,
+        nNetworksUsed: group.values.length,
       });
     });
   }
@@ -299,59 +313,58 @@ export const computeLinkRanking = ({
   return { query, rows: rankedRows, totalEligibleItems: rows.length };
 };
 
-export const computeRoiRanking = ({
-  datasetContent: connectivity,
+export const computeNodeRanking = ({
+  datasetContent: dataset,
   query,
-  activeRois,
+  activeNodes,
   activeFilterMask,
 }: CalculationContext): Omit<RankingResult, "id" | "createdAt"> => {
-  const matrices = resolveRankingMatrixCollection(connectivity, query).filter(
-    (matrix) => matrix.kind !== "aggregated",
+  const networks = resolveRankingNetworkCollection(dataset, query).filter(
+    (network) => network.derivation?.type !== "aggregation",
   );
   const allowAutoconnections =
-    query.allowRoiRankingAutoconnections ??
-    DEFAULT_ROI_RANKING_ALLOW_AUTOCONNECTIONS;
+    query.allowNodeRankingAutoconnections ??
+    DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS;
   const scores = new Map<string, number[]>();
-  const addRoiScore = (roiId: string | undefined, value: number) => {
-    if (!roiId) return;
-    const values = scores.get(roiId) ?? [];
+  const addNodeScore = (nodeId: string | undefined, value: number) => {
+    if (!nodeId) return;
+    const values = scores.get(nodeId) ?? [];
     values.push(value);
-    scores.set(roiId, values);
+    scores.set(nodeId, values);
   };
 
-  matrices.forEach((matrix) => {
-    const endpoints = resolveMatrixEndpointIds(matrix, connectivity);
-    for (const edge of iterateMatrixEdges(matrix)) {
+  networks.forEach((network) => {
+    const endpoints = resolveNetworkEndpointIds(network);
+    for (const edge of iterateNetworkValues(network)) {
       if (!allowAutoconnections && edge.i === edge.j) continue;
       if (!isFiniteNumber(edge.value)) continue;
       if (
         !isEligibleEdge(
-          matrix,
-          connectivity,
+          network,
           edge.i,
           edge.j,
-          activeRois,
+          activeNodes,
           activeFilterMask,
         )
       ) {
         continue;
       }
-      addRoiScore(endpoints[edge.i], edge.value);
+      addNodeScore(endpoints[edge.i], edge.value);
       if (edge.i !== edge.j) {
-        addRoiScore(endpoints[edge.j], edge.value);
+        addNodeScore(endpoints[edge.j], edge.value);
       }
     }
   });
 
-  const rows: RoiRankingRow[] = Array.from(scores.entries())
-    .map(([roiId, values]) => {
+  const rows: NodeRankingRow[] = Array.from(scores.entries())
+    .map(([nodeId, values]) => {
       const score = scoreValues(values, query.metric, query.threshold);
       return {
-        type: "roi" as const,
+        type: "node" as const,
         rank: 0,
-        roiId,
-        label: getEndpointLabel(connectivity, roiId),
-        group: getEndpointGroup(connectivity, roiId),
+        nodeId,
+        label: getEndpointLabel(dataset, nodeId),
+        group: getEndpointGroup(dataset, nodeId),
         score,
         nIncidentLinks: values.length,
         meanValue: mean(values),
@@ -367,7 +380,7 @@ export const computeRoiRanking = ({
 };
 
 export const computeRanking = (context: CalculationContext) => {
-  if (context.query.target === "matrices") return computeMatrixRanking(context);
+  if (context.query.target === "networks") return computeNetworkRanking(context);
   if (context.query.target === "links") return computeLinkRanking(context);
-  return computeRoiRanking(context);
+  return computeNodeRanking(context);
 };

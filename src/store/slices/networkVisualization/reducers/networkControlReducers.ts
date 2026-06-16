@@ -1,6 +1,6 @@
 import type { PayloadAction, SliceCaseReducers } from '@reduxjs/toolkit'
 
-import type { CatalogMatrixPrunePayload } from '@/store/slices/dataset/utils/catalogMatrixPruning'
+import type { CatalogNetworkPrunePayload } from '@/store/slices/dataset/utils/catalogNetworkPruning'
 import type { NetworkSelectorControlsState } from '@/types/networkVisualization'
 
 import {
@@ -13,7 +13,7 @@ const populationKeyIncludes = (populationKey: string, populationId: string) =>
 
 const clearDisabledCatalogFields = (
   controls: NetworkSelectorControlsState,
-  payload: CatalogMatrixPrunePayload,
+  payload: CatalogNetworkPrunePayload,
   invalidCompoundIds: Set<string>,
 ) => {
   if (payload.catalog === 'populations' && populationKeyIncludes(controls.populationKey, payload.id)) {
@@ -33,7 +33,7 @@ const clearDisabledCatalogFields = (
     return
   }
 
-  if (payload.catalog === 'stats' && controls.statId === payload.id) {
+  if (payload.catalog === 'statistics' && controls.statId === payload.id) {
     controls.statId = ''
     controls.layerId = ''
     controls.selectedCompoundId = ''
@@ -83,7 +83,7 @@ export const networkControlReducers = {
   },
   pruneNetworkSelectionForDisabledCatalogItem(
     state,
-    action: PayloadAction<CatalogMatrixPrunePayload>,
+    action: PayloadAction<CatalogNetworkPrunePayload>,
   ) {
     const invalidCompoundIds = new Set(action.payload.invalidCompoundIds)
     clearDisabledCatalogFields(state.controls, action.payload, invalidCompoundIds)
@@ -107,7 +107,7 @@ export const networkControlReducers = {
         delete state.nodeLinkSettingsByViewId[viewId]
         return false
       }
-      if (action.payload.catalog === 'stats' && view.statId === action.payload.id) {
+      if (action.payload.catalog === 'statistics' && view.statId === action.payload.id) {
         delete state.viewsById[viewId]
         delete state.matrixSettingsByViewId[viewId]
         delete state.nodeLinkSettingsByViewId[viewId]

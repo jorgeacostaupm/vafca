@@ -45,7 +45,7 @@ export default function Circulas({
 
 function CircularNodeLink({
   data,
-  matrixLabel,
+  networkLabel,
   labels,
   labelNames,
   labelTitles,
@@ -115,8 +115,8 @@ function CircularNodeLink({
     [nodeColors],
   );
   const valueLabel = useMemo(
-    () => buildTooltipValueLabel(matrixLabel),
-    [matrixLabel],
+    () => buildTooltipValueLabel(networkLabel),
+    [networkLabel],
   );
 
   const {

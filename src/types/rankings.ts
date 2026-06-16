@@ -1,14 +1,14 @@
-import type { MatrixKind } from "@/types/connectivityBundle";
 import type { NetworkLayoutItem } from "@/types/networkVisualization";
 
-export type RankingTarget = "matrices" | "links" | "rois";
+export type RankingTarget = "networks" | "links" | "nodes";
+export type RankingNetworkKind = "population" | "subject" | "comparison" | "aggregation";
 export type RankingMode =
-  | "singleMatrix"
-  | "matrixCollection";
+  | "singleNetwork"
+  | "networkCollection";
 export type RankingTopN = 10 | 25 | 50 | 100 | 250 | 500;
 export type RankingScope =
   | "allLinks"
-  | "activeRois"
+  | "activeNodes"
   | "activeFilter"
   | "selectedLinks";
 export type LinkCollectionRankingMode = "aggregated" | "expanded";
@@ -18,40 +18,40 @@ export type RankingHighlightItem =
       type: "link";
       sourceId: string;
       targetId: string;
-      endpointType: "roi" | "group";
-      matrixIds?: string[];
+      endpointType: "node" | "group";
+      networkIds?: string[];
     }
-  | { type: "roi"; roiId: string };
+  | { type: "node"; nodeId: string };
 
 export type RankingQuery = {
   target: RankingTarget;
   mode: RankingMode;
   linkCollectionMode?: LinkCollectionRankingMode;
   allowLinkRankingAutoconnections: boolean;
-  allowRoiRankingAutoconnections: boolean;
+  allowNodeRankingAutoconnections: boolean;
   sourceType?: "population" | "subject" | "comparison";
   sourceId?: string;
-  matrixKind?: MatrixKind;
+  networkKind?: RankingNetworkKind;
   aggregationGroupingKey?: string;
   measureId?: string;
   statisticId?: string;
   layerIds?: string[];
-  matrixId?: string;
-  matrixIds?: string[];
+  networkId?: string;
+  networkIds?: string[];
   scope: RankingScope;
   metric?: string;
   threshold?: number;
   topN: RankingTopN;
 };
 
-export type MatrixRankingRow = {
-  type: "matrix";
+export type NetworkRankingRow = {
+  type: "network";
   rank: number;
-  matrixId: string;
+  networkId: string;
   label: string;
   sourceType?: "population" | "subject" | "comparison";
   sourceId?: string;
-  matrixKind?: MatrixKind;
+  networkKind?: RankingNetworkKind;
   aggregationGroupingKey?: string;
   measureId?: string;
   statisticId?: string;
@@ -65,21 +65,21 @@ export type LinkRankingRow = {
   rank: number;
   sourceId: string;
   targetId: string;
-  endpointType: "roi" | "group";
+  endpointType: "node" | "group";
   sourceLabel: string;
   targetLabel: string;
   score: number;
-  valuesByMatrix?: Record<string, number>;
+  valuesByNetwork?: Record<string, number>;
   valuesByLayer?: Record<string, number>;
-  bestMatrixId?: string;
+  bestNetworkId?: string;
   bestLayerId?: string;
-  nMatricesUsed?: number;
+  nNetworksUsed?: number;
 };
 
-export type RoiRankingRow = {
-  type: "roi";
+export type NodeRankingRow = {
+  type: "node";
   rank: number;
-  roiId: string;
+  nodeId: string;
   label: string;
   group?: string;
   score: number;
@@ -88,7 +88,9 @@ export type RoiRankingRow = {
   maxValue?: number;
 };
 
-export type RankingRow = MatrixRankingRow | LinkRankingRow | RoiRankingRow;
+export type RankingRow = NetworkRankingRow | LinkRankingRow | NodeRankingRow;
+
+export type EdgeRankingRow = LinkRankingRow;
 
 export type RankingResult = {
   id: string;

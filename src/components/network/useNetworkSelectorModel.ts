@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 
 import { useNetworkViewLifecycle } from "@/components/network/useNetworkViewLifecycle";
-import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
-import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
+import { useNetworkFilterOptions } from "@/components/selectors/useNetworkFilterOptions";
+import { useNetworkSummaries } from "@/hooks/useNetworkSummaries";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
 import {
@@ -11,9 +11,9 @@ import {
 } from "@/store/slices/networkVisualization";
 import {
   getDatasetCatalogs,
-  getDatasetMatrixStats,
+  getDatasetNetworkStats,
 } from "@/utils/datasetAccessors";
-import { buildMatrixLabel, normalizePopulationKey } from "@/utils/matrixViewUtils";
+import { buildNetworkSummaryLabel, normalizePopulationKey } from "@/utils/matrixViewUtils";
 
 export const useNetworkSelectorModel = () => {
   const dispatch = useAppDispatch();
@@ -21,8 +21,8 @@ export const useNetworkSelectorModel = () => {
   const catalogs = getDatasetCatalogs(dataset);
   const atlas = useAppSelector((state) => state.atlasUi);
   const controls = useAppSelector((state) => state.networkVisualization.controls);
-  const matrixStats = getDatasetMatrixStats(dataset);
-  const { summaries, status, error } = useMatrixSummaries(matrixStats.total);
+  const networkStats = getDatasetNetworkStats(dataset);
+  const { summaries, status, error } = useNetworkSummaries(networkStats.total);
 
   const {
     populationOptions,
@@ -30,9 +30,9 @@ export const useNetworkSelectorModel = () => {
     statOptions,
     layerOptions,
     matches,
-    allMatrixOptions,
-    selectableMatrixSummaries,
-  } = useMatrixFilterOptions({
+    allNetworkOptions,
+    selectableNetworkSummaries,
+  } = useNetworkFilterOptions({
     dataset,
     atlas,
     summaries,
@@ -102,7 +102,7 @@ export const useNetworkSelectorModel = () => {
     [dispatch],
   );
 
-  const handleMatrixChange = useCallback(
+  const handleNetworkChange = useCallback(
     (value?: string) => {
       if (!value) {
         const shouldClearFields = controls.matrixSelectorMode === "combined";
@@ -118,13 +118,13 @@ export const useNetworkSelectorModel = () => {
         return;
       }
 
-      const summary = selectableMatrixSummaries.find(
+      const summary = selectableNetworkSummaries.find(
         (item) => item.compoundId === value,
       );
       if (!summary) {
-        console.info("[matrix-selector] selected matrix was not found", {
+        console.info("[network-selector] selected network was not found", {
           selectedValue: value,
-          availableCompoundIds: selectableMatrixSummaries.map(
+          availableCompoundIds: selectableNetworkSummaries.map(
             (item) => item.compoundId,
           ),
         });
@@ -132,14 +132,14 @@ export const useNetworkSelectorModel = () => {
         return;
       }
 
-      const matchingSummaries = selectableMatrixSummaries.filter(
+      const matchingSummaries = selectableNetworkSummaries.filter(
         (item) => item.compoundId === value,
       );
-      const matchingOptions = allMatrixOptions.filter(
+      const matchingOptions = allNetworkOptions.filter(
         (option) => option.value === value,
       );
       const derivedPopulationKey = normalizePopulationKey(summary.populationIds);
-      console.info("[matrix-selector] selected matrix metadata", {
+      console.info("[network-selector] selected network metadata", {
         selectedValue: value,
         selectorValueFields: {
           compoundId: summary.compoundId,
@@ -150,12 +150,12 @@ export const useNetworkSelectorModel = () => {
           normalizedPopulationKey: derivedPopulationKey,
         },
         selectorDisplayFields: {
-          label: buildMatrixLabel(summary, catalogs),
+          label: buildNetworkSummaryLabel(summary, catalogs),
           populationLabel: summary.populationIds
             .map((id) => catalogs?.populations[id]?.label ?? id)
             .join(" vs "),
           measureLabel: catalogs?.measures[summary.measureId]?.label ?? summary.measureId,
-          statLabel: catalogs?.stats[summary.statId]?.label ?? summary.statId,
+          statLabel: catalogs?.statistics[summary.statId]?.label ?? summary.statId,
           layerLabel: catalogs?.layers[summary.layerId]?.label ?? summary.layerId,
         },
         summary,
@@ -180,15 +180,15 @@ export const useNetworkSelectorModel = () => {
       controls,
       catalogs,
       dispatch,
-      allMatrixOptions,
-      selectableMatrixSummaries,
+      allNetworkOptions,
+      selectableNetworkSummaries,
     ],
   );
 
   const handleAddView = useCallback(() => {
     if (!controls.selectedCompoundId) return;
 
-    const summary = selectableMatrixSummaries.find(
+    const summary = selectableNetworkSummaries.find(
       (item) => item.compoundId === controls.selectedCompoundId,
     );
     if (!summary) return;
@@ -197,7 +197,7 @@ export const useNetworkSelectorModel = () => {
       addNetworkViewAndFormat({
         type: controls.viewType,
         compoundId: summary.compoundId,
-        label: buildMatrixLabel(summary, catalogs),
+        label: buildNetworkSummaryLabel(summary, catalogs),
         measureId: summary.measureId,
         statId: summary.statId,
       }),
@@ -207,7 +207,7 @@ export const useNetworkSelectorModel = () => {
     controls.viewType,
     catalogs,
     dispatch,
-    selectableMatrixSummaries,
+    selectableNetworkSummaries,
   ]);
 
   return {
@@ -218,7 +218,7 @@ export const useNetworkSelectorModel = () => {
     populations: populationOptions,
     layers: layerOptions,
     stats: statOptions,
-    matrices: allMatrixOptions,
+    networks: allNetworkOptions,
     disabled: {
       measures: !controls.populationKey,
       stats: !controls.measureId,
@@ -228,7 +228,7 @@ export const useNetworkSelectorModel = () => {
     onMeasureChange: handleMeasureChange,
     onStatChange: handleStatChange,
     onLayerChange: handleLayerChange,
-    onMatrixChange: handleMatrixChange,
+    onNetworkChange: handleNetworkChange,
     onAddView: handleAddView,
   };
 };

@@ -11,14 +11,14 @@ import {
   type NetworkEdgeFilterMode,
   resolveNetworkFilterRuntime,
 } from "@/store/slices/networkFilters";
-import type { MatrixFilterDefinition } from "@/types/edgeFilter";
+import type { NetworkFilterDefinition } from "@/types/edgeFilter";
 import {
-  cloneMatrixFilterDefinition,
-  createEmptyMatrixFilterDefinition,
+  cloneNetworkFilterDefinition,
+  createEmptyNetworkFilterDefinition,
 } from "@/utils/edgeFilter";
 
-import { formatMatrixKindLabel, formatNetworkMatrixLabel } from "./edgeFilterLabels";
-import MatrixFilterGroupEditor from "./MatrixFilterGroupEditor";
+import { formatNetworkFilterOptionLabel, formatNetworkSourceTypeLabel } from "./edgeFilterLabels";
+import NetworkFilterGroupEditor from "./NetworkFilterGroupEditor";
 
 type NetworkEdgeFilterModalProps = {
   open: boolean;
@@ -36,10 +36,10 @@ export default function NetworkEdgeFilterModal({
   const [selectedMode, setSelectedMode] =
     useState<NetworkEdgeFilterMode | null>(null);
 
-  const [drafts, setDrafts] = useState<Record<NetworkEdgeFilterMode, MatrixFilterDefinition>>(
+  const [drafts, setDrafts] = useState<Record<NetworkEdgeFilterMode, NetworkFilterDefinition>>(
     () => ({
-      roi: createEmptyMatrixFilterDefinition(globalRangeMode),
-      aggregated: createEmptyMatrixFilterDefinition(globalRangeMode),
+      original: createEmptyNetworkFilterDefinition(globalRangeMode),
+      aggregated: createEmptyNetworkFilterDefinition(globalRangeMode),
     }),
   );
   const mode = selectedMode ?? DEFAULT_NETWORK_EDGE_FILTER_TAB;
@@ -49,9 +49,9 @@ export default function NetworkEdgeFilterModal({
     : networkFilters.activeEdgeMask;
   const draft = drafts[mode];
 
-  const matrices = useMemo(
-    () => dataset?.content?.matrices ?? [],
-    [dataset?.content?.matrices],
+  const networks = useMemo(
+    () => dataset?.content?.networks ?? [],
+    [dataset?.content?.networks],
   );
 
   useEffect(() => {
@@ -59,18 +59,18 @@ export default function NetworkEdgeFilterModal({
     // Initialize editable drafts whenever the modal is opened.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDrafts({
-      roi: networkFilters.activeNetworkFilter
+      original: networkFilters.activeNetworkFilter
         ? {
-            ...cloneMatrixFilterDefinition(networkFilters.activeNetworkFilter),
+            ...cloneNetworkFilterDefinition(networkFilters.activeNetworkFilter),
             uiRangeMode: globalRangeMode,
           }
-        : createEmptyMatrixFilterDefinition(globalRangeMode),
+        : createEmptyNetworkFilterDefinition(globalRangeMode),
       aggregated: networkFilters.activeAggregatedNetworkFilter
         ? {
-            ...cloneMatrixFilterDefinition(networkFilters.activeAggregatedNetworkFilter),
+            ...cloneNetworkFilterDefinition(networkFilters.activeAggregatedNetworkFilter),
             uiRangeMode: globalRangeMode,
           }
-        : createEmptyMatrixFilterDefinition(globalRangeMode),
+        : createEmptyNetworkFilterDefinition(globalRangeMode),
     });
   }, [
     globalRangeMode,
@@ -79,31 +79,35 @@ export default function NetworkEdgeFilterModal({
     networkFilters.activeNetworkFilter,
   ]);
 
-  const setCurrentDraft = (nextDraft: MatrixFilterDefinition) => {
+  const setCurrentDraft = (nextDraft: NetworkFilterDefinition) => {
     setDrafts((current) => ({
       ...current,
       [mode]: nextDraft,
     }));
   };
 
-  const matrixGroups = useMemo(() => {
+  const networkGroups = useMemo(() => {
     const groups = new Map<string, { value: string; label: string; searchText: string }[]>();
-    matrices
-      .filter((matrix) => (isAggregated ? matrix.kind === "aggregated" : matrix.kind !== "aggregated"))
-      .forEach((matrix) => {
-        const group = formatMatrixKindLabel(matrix);
-        const label = formatNetworkMatrixLabel(matrix, dataset?.content?.catalogs);
+    networks
+      .filter((network) =>
+        isAggregated
+          ? network.derivation?.type === "aggregation"
+          : network.derivation?.type !== "aggregation",
+      )
+      .forEach((network) => {
+        const group = formatNetworkSourceTypeLabel(network);
+        const label = formatNetworkFilterOptionLabel(network, dataset?.content?.catalogs);
         const option = {
-          value: matrix.id,
+          value: network.id,
           label,
-          searchText: `${label} ${matrix.id} ${matrix.context.layerId ?? ""} ${matrix.context.measureId} ${matrix.stat.id}`,
+          searchText: `${label} ${network.id} ${network.context.layerId ?? ""} ${network.measureId} ${network.statisticId}`,
         };
         groups.set(group, [...(groups.get(group) ?? []), option]);
       });
     return ["Population", "Subject", "Comparison", "Aggregated"]
       .filter((label) => groups.has(label))
       .map((label) => ({ label, options: groups.get(label) ?? [] }));
-  }, [dataset?.content?.catalogs, isAggregated, matrices]);
+  }, [dataset?.content?.catalogs, isAggregated, networks]);
 
   const runtime = useMemo(
     () =>
@@ -148,7 +152,7 @@ export default function NetworkEdgeFilterModal({
           key="clear-draft"
           onClick={() =>
             setCurrentDraft(
-              createEmptyMatrixFilterDefinition(globalRangeMode),
+              createEmptyNetworkFilterDefinition(globalRangeMode),
             )
           }
         >
@@ -177,16 +181,16 @@ export default function NetworkEdgeFilterModal({
           activeKey={mode}
           onChange={(key) => setSelectedMode(key as NetworkEdgeFilterMode)}
           items={[
-            { key: "roi", label: "Original" },
+            { key: "original", label: "Original" },
             { key: "aggregated", label: "Aggregated" },
           ]}
         />
 
-        <MatrixFilterGroupEditor
+        <NetworkFilterGroupEditor
           group={draft.root}
           isRoot
-          matrices={matrices}
-          matrixGroups={matrixGroups}
+          networks={networks}
+          networkGroups={networkGroups}
           catalogs={dataset?.content?.catalogs}
           uiRangeMode={globalRangeMode}
           onChange={(root) =>

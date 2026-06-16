@@ -1,14 +1,15 @@
 import type { DatasetState } from '@/types/datasetState'
 
-import { matricesAdapter } from './utils/matricesAdapter'
+import { networksAdapter } from './utils/networksAdapter'
 
 export type DatasetSliceState = DatasetState
 
 export const initialDatasetState: DatasetSliceState = {
-  schemaVersion: null,
-  loadedBundle: null,
-  atlas: null,
-  roiOrderHash: null,
+  id: null,
+  label: null,
+  description: null,
+  createdAt: null,
+  nodeSet: null,
   catalogs: null,
-  matrices: matricesAdapter.getInitialState(),
+  networks: networksAdapter.getInitialState(),
 }

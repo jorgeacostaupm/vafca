@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import {
   clearDataset,
-  computeDerivedMatrices,
+  computeDerivedNetworks,
   loadDatasetFromUploadedZip,
   loadInitialDataset,
 } from "@/store/slices/dataset";
@@ -94,7 +94,7 @@ const networkMeasuresSlice = createSlice({
         state.error = null;
         state.controls.selectedCompoundId = "";
       })
-      .addCase(computeDerivedMatrices.fulfilled, (state) => {
+      .addCase(computeDerivedNetworks.fulfilled, (state) => {
         state.summary = null;
         state.status = "idle";
         state.error = null;

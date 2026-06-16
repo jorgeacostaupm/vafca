@@ -1,4 +1,4 @@
-import { createComparisonMatrix } from "@/networkDerivation/calculations/comparisonMatrixRecord";
+import { createComparisonNetwork } from "@/networkDerivation/calculations/comparisonNetworkRecord";
 import { getFiniteMatrixValueOrNull } from "@/networkDerivation/calculations/matrixMath";
 import {
   createBinaryData,
@@ -6,11 +6,11 @@ import {
   maybePush,
 } from "@/networkDerivation/calculations/methodRuntime";
 import type {
-  MatrixCalculationMethod,
-  MatrixCalculationMethodDefinition,
+  NetworkCalculationMethod,
+  NetworkCalculationMethodDefinition,
 } from "@/networkDerivation/calculations/types";
 
-export const populationDifferenceDefinition: MatrixCalculationMethodDefinition = {
+export const populationDifferenceDefinition: NetworkCalculationMethodDefinition = {
   id: "population_difference",
   label: "Difference between population means",
   shortLabel: "Difference",
@@ -19,7 +19,7 @@ export const populationDifferenceDefinition: MatrixCalculationMethodDefinition =
   description: "Subtracts the right population mean from the left population mean.",
   formulaText: "left mean - right mean",
   interpretation: "Positive values indicate higher mean connectivity in the left population.",
-  requirements: ["Left population mean matrix", "Right population mean matrix"],
+  requirements: ["Left population mean network", "Right population mean network"],
   requiredInputs: [
     { role: "leftMean", label: "Left mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
     { role: "rightMean", label: "Right mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
@@ -45,7 +45,7 @@ export const populationDifferenceDefinition: MatrixCalculationMethodDefinition =
 
 const differenceOutput = populationDifferenceDefinition.outputs[0];
 
-export const calculatePopulationDifference: MatrixCalculationMethod["calculate"] = ({
+export const calculatePopulationDifference: NetworkCalculationMethod["calculate"] = ({
   request,
   state,
   result,
@@ -63,21 +63,21 @@ export const calculatePopulationDifference: MatrixCalculationMethod["calculate"]
       );
       if (!resolved) return;
       result.warnings.push(...resolved.warnings);
-      const leftMean = resolved.matrices.leftMean!;
-      const rightMean = resolved.matrices.rightMean!;
+      const leftMean = resolved.networks.leftMean!;
+      const rightMean = resolved.networks.rightMean!;
       const data = createBinaryData(leftMean, (i, j) => {
         const left = getFiniteMatrixValueOrNull(leftMean, i, j);
         const right = getFiniteMatrixValueOrNull(rightMean, i, j);
         return left === null || right === null ? null : left - right;
       });
       maybePush(
-        createComparisonMatrix({
+        createComparisonNetwork({
           runtime: { state, request, existingIds },
           method: populationDifferenceDefinition,
           output: differenceOutput,
           endpoints: {
-            left: { type: "population", populationId: request.leftPopulationId, matrix: leftMean },
-            right: { type: "population", populationId: request.rightPopulationId, matrix: rightMean },
+            left: { type: "population", populationId: request.leftPopulationId, network: leftMean },
+            right: { type: "population", populationId: request.rightPopulationId, network: rightMean },
           },
           dependencies: [leftMean.id, rightMean.id],
           calculation: {
@@ -85,8 +85,8 @@ export const calculatePopulationDifference: MatrixCalculationMethod["calculate"]
             statMethod: "left_minus_right",
             formula: "left_mean - right_mean",
             comparisonParameters: {
-              leftMeanMatrixId: leftMean.id,
-              rightMeanMatrixId: rightMean.id,
+              leftMeanNetworkId: leftMean.id,
+              rightMeanNetworkId: rightMean.id,
             },
           },
           labelMode: "minus",
@@ -98,7 +98,7 @@ export const calculatePopulationDifference: MatrixCalculationMethod["calculate"]
   });
 };
 
-export const populationDifference: MatrixCalculationMethod = {
+export const populationDifference: NetworkCalculationMethod = {
   definition: populationDifferenceDefinition,
   calculate: calculatePopulationDifference,
 };

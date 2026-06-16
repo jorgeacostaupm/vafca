@@ -3,7 +3,6 @@ import { useEffect } from 'react'
 
 import AtlasPanel from '@/components/atlas'
 import NetworkVisualizationTab from '@/components/network/NetworkVisualizationTab'
-import NetworkSummaryTab from '@/components/network-summary/NetworkSummaryTab'
 import UserNotificationHost from '@/components/notifications/UserNotificationHost'
 import SelectedLinksPanel from '@/components/selected-links/SelectedLinksPanel'
 import { initialDataConfig } from '@/config/initialData'
@@ -34,11 +33,6 @@ function App() {
               key: 'atlas',
               label: 'Atlas',
               children: <AtlasPanel />,
-            },
-            {
-              key: 'summaries',
-              label: 'Summaries',
-              children: <NetworkSummaryTab />,
             },
             {
               key: 'links',

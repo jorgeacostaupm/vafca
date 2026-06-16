@@ -56,14 +56,14 @@ export const useNetworkViewSourceFilters = ({
 
   return useMemo(() => {
     if (targetIsAggregated || targetIsFilterSource) return emptySourceFilters;
-    const matrix = source
-      ? context.matrixByCompoundId[source.view.compoundId] ?? null
+    const networkView = source
+      ? context.networkViewsByCompoundId[source.view.compoundId] ?? null
       : null;
     const computed =
-      source && matrix
+      source && networkView
         ? resolveNetworkViewWithContext({
             view: source.view,
-            matrix,
+            networkView,
             settings: source.settings,
             nodeLinkSettings:
               source.view.type === "matrix"

@@ -1,4 +1,4 @@
-import { createComparisonMatrix } from "@/networkDerivation/calculations/comparisonMatrixRecord";
+import { createComparisonNetwork } from "@/networkDerivation/calculations/comparisonNetworkRecord";
 import { divideOrNull, getFiniteMatrixValueOrNull } from "@/networkDerivation/calculations/matrixMath";
 import {
   createBinaryData,
@@ -6,24 +6,24 @@ import {
   maybePush,
 } from "@/networkDerivation/calculations/methodRuntime";
 import type {
-  MatrixCalculationMethod,
-  MatrixCalculationMethodDefinition,
+  NetworkCalculationMethod,
+  NetworkCalculationMethodDefinition,
 } from "@/networkDerivation/calculations/types";
 import { EPSILON } from "@/networkDerivation/calculations/types";
 
-export const subjectZScoreVsPopulationDefinition: MatrixCalculationMethodDefinition = {
+export const subjectZScoreVsPopulationDefinition: NetworkCalculationMethodDefinition = {
   id: "subject_zscore_vs_population",
   label: "Subject vs reference population z-score",
   shortLabel: "Subject z-score",
   scope: "subject_vs_population",
   category: "descriptive_standardization",
-  description: "Standardizes a subject matrix against a reference population mean and standard deviation.",
+  description: "Standardizes a subject network against a reference population mean and standard deviation.",
   formulaText: "(subject - reference population mean) / reference population std",
   interpretation: "Positive values are above the reference population mean; negative values are below it.",
   requirements: [
-    "Subject value matrix",
-    "Reference population mean matrix",
-    "Reference population std matrix",
+    "Subject value network",
+    "Reference population mean network",
+    "Reference population std network",
   ],
   requiredInputs: [
     { role: "subjectValue", label: "Subject value", kind: "subject", statId: "value", sourceLevel: "subject", required: true },
@@ -51,7 +51,7 @@ export const subjectZScoreVsPopulationDefinition: MatrixCalculationMethodDefinit
 
 const subjectZScoreOutput = subjectZScoreVsPopulationDefinition.outputs[0];
 
-export const calculateSubjectZScoreVsPopulation: MatrixCalculationMethod["calculate"] = ({
+export const calculateSubjectZScoreVsPopulation: NetworkCalculationMethod["calculate"] = ({
   request,
   state,
   result,
@@ -71,9 +71,9 @@ export const calculateSubjectZScoreVsPopulation: MatrixCalculationMethod["calcul
         );
         if (!resolved) return;
         result.warnings.push(...resolved.warnings);
-        const subjectValue = resolved.matrices.subjectValue!;
-        const referenceMean = resolved.matrices.referenceMean!;
-        const referenceStd = resolved.matrices.referenceStd!;
+        const subjectValue = resolved.networks.subjectValue!;
+        const referenceMean = resolved.networks.referenceMean!;
+        const referenceStd = resolved.networks.referenceStd!;
         const data = createBinaryData(subjectValue, (i, j) => {
           const value = getFiniteMatrixValueOrNull(subjectValue, i, j);
           const mean = getFiniteMatrixValueOrNull(referenceMean, i, j);
@@ -82,13 +82,13 @@ export const calculateSubjectZScoreVsPopulation: MatrixCalculationMethod["calcul
           return divideOrNull(value - mean, std);
         });
         maybePush(
-          createComparisonMatrix({
+          createComparisonNetwork({
             runtime: { state, request, existingIds },
             method: subjectZScoreVsPopulationDefinition,
             output: subjectZScoreOutput,
             endpoints: {
-              left: { type: "subject", subjectId, matrix: subjectValue },
-              right: { type: "population", populationId: request.referencePopulationId, matrix: referenceMean },
+              left: { type: "subject", subjectId, network: subjectValue },
+              right: { type: "population", populationId: request.referencePopulationId, network: referenceMean },
             },
             dependencies: [subjectValue.id, referenceMean.id, referenceStd.id],
             calculation: {
@@ -97,9 +97,9 @@ export const calculateSubjectZScoreVsPopulation: MatrixCalculationMethod["calcul
               formula: "(subject - reference_population_mean) / reference_population_std",
               statParameters: { epsilon: EPSILON },
               comparisonParameters: {
-                subjectValueMatrixId: subjectValue.id,
-                referenceMeanMatrixId: referenceMean.id,
-                referenceStdMatrixId: referenceStd.id,
+                subjectValueNetworkId: subjectValue.id,
+                referenceMeanNetworkId: referenceMean.id,
+                referenceStdNetworkId: referenceStd.id,
                 epsilon: EPSILON,
               },
               provenanceExtra: { epsilon: EPSILON },
@@ -113,7 +113,7 @@ export const calculateSubjectZScoreVsPopulation: MatrixCalculationMethod["calcul
   });
 };
 
-export const subjectZScoreVsPopulation: MatrixCalculationMethod = {
+export const subjectZScoreVsPopulation: NetworkCalculationMethod = {
   definition: subjectZScoreVsPopulationDefinition,
   calculate: calculateSubjectZScoreVsPopulation,
 };

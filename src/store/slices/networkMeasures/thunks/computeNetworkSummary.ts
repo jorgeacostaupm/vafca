@@ -3,7 +3,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { selectDatasetData } from "@/store/slices/dataset";
 import type { NetworkSummaryResult } from "@/types/networkMeasures";
 import type { RootState } from "@/types/store";
-import { getDatasetMatrixByCompoundId } from "@/utils/datasetAccessors";
+import { getDatasetNetworkByCompoundId } from "@/utils/datasetAccessors";
 import { buildNetworkSummary } from "@/utils/networkMeasures/networkSummary";
 
 export const computeNetworkSummary = createAsyncThunk<
@@ -22,15 +22,18 @@ export const computeNetworkSummary = createAsyncThunk<
     return rejectWithValue("Select a network before computing the summary.");
   }
 
-  const storedMatrix = getDatasetMatrixByCompoundId(dataset, compoundId);
-  const matrix = storedMatrix ? dataset.content.matrixIndex[storedMatrix.id] : undefined;
-  if (!matrix) {
-    return rejectWithValue("The selected matrix is not available.");
+  const storedNetwork = getDatasetNetworkByCompoundId(dataset, compoundId);
+  const network = storedNetwork
+    ? dataset.content.networkIndex[storedNetwork.id]
+    : undefined;
+  if (!network) {
+    return rejectWithValue("The selected network is not available.");
   }
 
   return buildNetworkSummary({
-    connectivity: dataset.content,
-    matrix,
+    dataset: dataset.content,
+    network,
+    nodeSet: dataset.content.nodeSet,
     activeGroupingFields: state.atlasUi.colorFields,
     options: {
       includeDiagonal: state.networkMeasures.settings.includeDiagonal,

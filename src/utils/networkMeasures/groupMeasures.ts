@@ -34,7 +34,7 @@ const resolveGroupingFields = (
   return {
     fields: [],
     source: "unavailable",
-    unavailableReason: "No scalar ROI tag fields are available.",
+    unavailableReason: "No scalar node tag fields are available.",
   };
 };
 
@@ -74,7 +74,7 @@ export const buildGroupSummaries = ({
     const next: NetworkGroupSummary = {
       id,
       label,
-      roiCount: 0,
+      nodeCount: 0,
       internalPossibleEdgeCount: 0,
       internalEdgeCount: 0,
       internalDensity: null,
@@ -88,18 +88,18 @@ export const buildGroupSummaries = ({
 
   nodeGroups.forEach((group) => {
     const summary = ensureGroup(group.id, group.label);
-    summary.roiCount += 1;
+    summary.nodeCount += 1;
   });
 
   const nodeCount = graph.nodes.length;
   summaries.forEach((summary) => {
     const internalWithoutDiagonal = graph.directed
-      ? summary.roiCount * Math.max(0, summary.roiCount - 1)
-      : (summary.roiCount * Math.max(0, summary.roiCount - 1)) / 2;
+      ? summary.nodeCount * Math.max(0, summary.nodeCount - 1)
+      : (summary.nodeCount * Math.max(0, summary.nodeCount - 1)) / 2;
     summary.internalPossibleEdgeCount =
-      internalWithoutDiagonal + (includeDiagonal ? summary.roiCount : 0);
+      internalWithoutDiagonal + (includeDiagonal ? summary.nodeCount : 0);
     summary.externalPossibleEdgeCount =
-      summary.roiCount * Math.max(0, nodeCount - summary.roiCount);
+      summary.nodeCount * Math.max(0, nodeCount - summary.nodeCount);
   });
 
   graph.edges.forEach((edge) => {

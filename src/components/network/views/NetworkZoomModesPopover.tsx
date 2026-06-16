@@ -3,7 +3,7 @@ import { Button, InputNumber, Popover, Slider } from "antd";
 import { useMemo, useState } from "react";
 
 import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
-import type { buildAdaptedNetworkViewData } from "@/components/network/views/networkViewData";
+import type { buildNetworkViewRenderData } from "@/components/network/views/networkViewData";
 import {
   MAX_NETWORK_PERCENT_ZOOM_PERCENT,
   MIN_NETWORK_PERCENT_ZOOM_PERCENT,
@@ -30,7 +30,7 @@ import {
 type NetworkZoomModesPopoverProps = {
   view: ComputedView["view"];
   computed: ComputedView;
-  adapted: ReturnType<typeof buildAdaptedNetworkViewData>;
+  renderData: ReturnType<typeof buildNetworkViewRenderData>;
 };
 
 type ZoomButtonConfig = {
@@ -42,36 +42,36 @@ type ZoomButtonConfig = {
 };
 
 const NETWORK_ZOOM_SELECTION_MODES: NetworkZoomSelectionMode[] = [
-  "rois",
+  "nodes",
   "links",
   "union",
 ];
 
-const getAdaptedMatrix = (
-  adapted: ReturnType<typeof buildAdaptedNetworkViewData>,
+const getRenderDataMatrix = (
+  renderData: ReturnType<typeof buildNetworkViewRenderData>,
 ) =>
-  adapted.type === "matrix"
+  renderData.type === "matrix"
     ? {
-        data: adapted.payload.data,
-        rowLabels: adapted.payload.rowLabels,
-        colLabels: adapted.payload.colLabels,
+        data: renderData.payload.data,
+        rowLabels: renderData.payload.rowLabels,
+        colLabels: renderData.payload.colLabels,
       }
     : {
-        data: adapted.payload.data,
-        rowLabels: adapted.payload.labels,
-        colLabels: adapted.payload.labels,
+        data: renderData.payload.data,
+        rowLabels: renderData.payload.labels,
+        colLabels: renderData.payload.labels,
       };
 
 export default function NetworkZoomModesPopover({
   view,
   computed,
-  adapted,
+  renderData,
 }: NetworkZoomModesPopoverProps) {
   const dispatch = useAppDispatch();
   const selectedLinks = useAppSelector(selectSelectedLinks);
   const networkControls = useAppSelector(selectNetworkControls);
   const zoomTargetsByType = useNetworkZoomTargets();
-  const adaptedMatrix = useMemo(() => getAdaptedMatrix(adapted), [adapted]);
+  const renderDataMatrix = useMemo(() => getRenderDataMatrix(renderData), [renderData]);
   const [draftPercent, setDraftPercent] = useState(computed.zoomLinkPercent);
 
   const zoomSelections = useMemo(
@@ -81,7 +81,7 @@ export default function NetworkZoomModesPopover({
           ...selections,
           [mode]: buildNetworkZoomSelection({
             mode,
-            selectedRoiIds: computed.orderedZoomLabels,
+            selectedNodeIds: computed.orderedZoomLabels,
             selectedLinks,
             availableLabels: computed.availableLabels,
           }),
@@ -101,13 +101,13 @@ export default function NetworkZoomModesPopover({
   const hasPercentLinks = useMemo(
     () =>
       hasPercentZoomLinks({
-        ...adaptedMatrix,
+        ...renderDataMatrix,
         symmetric: computed.symmetric,
         includeAutoconnections:
           networkControls.percentZoomIncludeAutoconnections,
       }),
     [
-      adaptedMatrix,
+      renderDataMatrix,
       computed.symmetric,
       networkControls.percentZoomIncludeAutoconnections,
     ],
@@ -146,7 +146,7 @@ export default function NetworkZoomModesPopover({
 
   const buildPercentSelection = (mode: PercentZoomMode) =>
     buildPercentZoomSelection({
-      ...adaptedMatrix,
+      ...renderDataMatrix,
       symmetric: computed.symmetric,
       mode,
       percent: draftPercent,
@@ -195,9 +195,9 @@ export default function NetworkZoomModesPopover({
       <div className="network-zoom-modes__grid">
         {[
           {
-            label: "Selected ROIs",
-            getSelection: () => zoomSelections.rois,
-            disabled: !zoomSelections.rois,
+            label: "Selected nodes",
+            getSelection: () => zoomSelections.nodes,
+            disabled: !zoomSelections.nodes,
           },
           {
             label: "Selected links",
@@ -205,7 +205,7 @@ export default function NetworkZoomModesPopover({
             disabled: !zoomSelections.links,
           },
           {
-            label: "ROIs + links",
+            label: "Nodes + links",
             getSelection: () => zoomSelections.union,
             disabled: !zoomSelections.union,
           },

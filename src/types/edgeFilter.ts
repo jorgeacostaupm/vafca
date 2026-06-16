@@ -1,8 +1,8 @@
-import type { ConnectivityMatrix, UiRangeMode } from "@/types/connectivityBundle";
+import type { Network, UiRangeMode } from "@/types/network";
 
 export type LogicalOperator = "AND" | "OR";
 
-export type MatrixFilterRuleOperator =
+export type NetworkFilterRuleOperator =
   | "between"
   | "outside"
   | "lt"
@@ -13,12 +13,12 @@ export type MatrixFilterRuleOperator =
   | "abs_between"
   | "negative_and_positive_ranges";
 
-export type MatrixFilterRule = {
+export type NetworkFilterRule = {
   type: "rule";
   id: string;
   joinOperator?: LogicalOperator;
-  matrixId: string;
-  operator: MatrixFilterRuleOperator;
+  networkId: string;
+  operator: NetworkFilterRuleOperator;
   min: number | null;
   max: number | null;
   negativeMin?: number | null;
@@ -29,18 +29,20 @@ export type MatrixFilterRule = {
   includeMax: boolean;
 };
 
-export type MatrixFilterGroup = {
+export type NetworkFilterGroup = {
   type: "group";
   id: string;
   operator: LogicalOperator;
   joinOperator?: LogicalOperator;
-  children: MatrixFilterExpression[];
+  children: NetworkFilterExpression[];
 };
 
-export type MatrixFilterExpression = MatrixFilterRule | MatrixFilterGroup;
+export type NetworkFilterExpression =
+  | NetworkFilterRule
+  | NetworkFilterGroup;
 
-export type MatrixFilterDefinition = {
-  root: MatrixFilterGroup;
+export type NetworkFilterDefinition = {
+  root: NetworkFilterGroup;
   uiRangeMode: UiRangeMode;
 };
 
@@ -54,27 +56,27 @@ export type RuntimeEdgeMask = {
 export type NetworkEdgeDomain = {
   key: string;
   label: string;
-  kind: "roi" | "aggregated";
+  kind: "nodes" | "aggregated";
   rows: number;
   cols: number;
-  roiCount: number;
+  nodeCount: number;
   directed: boolean;
   labelIds: string[];
 };
 
-export type MatrixIndex = Record<string, ConnectivityMatrix>;
+export type NetworkIndex = Record<string, Network>;
 
-export type MatrixFilterValidationIssue = {
+export type NetworkFilterValidationIssue = {
   id: string;
   severity: "error" | "warning";
   message: string;
   expressionId?: string;
 };
 
-export type MatrixFilterValidationResult = {
+export type NetworkFilterValidationResult = {
   valid: boolean;
-  errors: MatrixFilterValidationIssue[];
-  warnings: MatrixFilterValidationIssue[];
+  errors: NetworkFilterValidationIssue[];
+  warnings: NetworkFilterValidationIssue[];
 };
 
 export type RuntimeEdgeMaskOptions = {

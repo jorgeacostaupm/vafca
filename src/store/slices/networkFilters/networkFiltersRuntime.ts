@@ -1,26 +1,26 @@
-import type { UiRangeMode } from "@/types/connectivityBundle";
 import type { DatasetMeta } from "@/types/datasetState";
 import type {
-  MatrixFilterDefinition,
-  MatrixFilterValidationResult,
   NetworkEdgeDomain,
+  NetworkFilterDefinition,
+  NetworkFilterValidationResult,
 } from "@/types/edgeFilter";
-import { getDatasetMatrixOrder } from "@/utils/datasetAccessors";
+import type { UiRangeMode } from "@/types/network";
+import { getDatasetNodeOrder } from "@/utils/datasetAccessors";
 import {
   buildAggregatedEdgeDomain,
   buildNetworkEdgeDomain,
   createRuntimeEdgeMask,
-  normalizeMatrixFilterDefinitionForRanges,
-  validateMatrixFilterDefinition,
+  normalizeNetworkFilterDefinitionForRanges,
+  validateNetworkFilterDefinition,
 } from "@/utils/edgeFilter";
-import { normalizeMatrixOrder } from "@/utils/matrixOrder";
+import { normalizeNodeOrder } from "@/utils/nodeOrder";
 
 import type {
   NetworkEdgeFilterMode,
   NetworkFilterRuntime,
 } from "./networkFiltersTypes";
 
-const createMissingDomainValidation = (): MatrixFilterValidationResult => ({
+const createMissingDomainValidation = (): NetworkFilterValidationResult => ({
   valid: false,
   errors: [
     {
@@ -38,10 +38,10 @@ export const resolveNetworkFilterEdgeDomain = (
 ): NetworkEdgeDomain | null => {
   if (mode === "aggregated") return buildAggregatedEdgeDomain(dataset);
 
-  const matrixOrderIds = normalizeMatrixOrder(getDatasetMatrixOrder(dataset)).map(
+  const nodeOrderIds = normalizeNodeOrder(getDatasetNodeOrder(dataset)).map(
     (item) => item.id,
   );
-  return buildNetworkEdgeDomain(dataset, matrixOrderIds);
+  return buildNetworkEdgeDomain(dataset, nodeOrderIds);
 };
 
 export const resolveNetworkFilterRuntime = ({
@@ -51,21 +51,21 @@ export const resolveNetworkFilterRuntime = ({
   uiRangeMode,
 }: {
   mode: NetworkEdgeFilterMode;
-  definition: MatrixFilterDefinition;
+  definition: NetworkFilterDefinition;
   dataset: DatasetMeta | null;
   uiRangeMode: UiRangeMode;
 }): NetworkFilterRuntime => {
   const content = dataset?.content;
-  const matrixIndex = content?.matrixIndex ?? {};
+  const networkIndex = content?.networkIndex ?? {};
   const edgeDomain = resolveNetworkFilterEdgeDomain(mode, dataset);
-  const normalizedFilter = normalizeMatrixFilterDefinitionForRanges(
+  const normalizedFilter = normalizeNetworkFilterDefinitionForRanges(
     definition,
-    matrixIndex,
+    networkIndex,
     content?.catalogs,
     uiRangeMode,
   );
   const validation = edgeDomain
-    ? validateMatrixFilterDefinition(normalizedFilter, matrixIndex, edgeDomain)
+    ? validateNetworkFilterDefinition(normalizedFilter, networkIndex, edgeDomain)
     : createMissingDomainValidation();
 
   return {
@@ -74,7 +74,7 @@ export const resolveNetworkFilterRuntime = ({
     validation,
     mask:
       edgeDomain && validation.valid
-        ? createRuntimeEdgeMask(normalizedFilter, matrixIndex, edgeDomain)
+        ? createRuntimeEdgeMask(normalizedFilter, networkIndex, edgeDomain)
         : null,
   };
 };

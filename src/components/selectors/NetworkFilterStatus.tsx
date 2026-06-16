@@ -28,7 +28,7 @@ export default function NetworkFilterStatus() {
           closable
           onClose={() => dispatch(clearNetworkEdgeFilter())}
         >
-          ROI edges: {activeMask.selectedCount} / {activeMask.totalCount}
+          Original links: {activeMask.selectedCount} / {activeMask.totalCount}
         </Tag>
       ) : null}
       {activeAggregatedMask ? (

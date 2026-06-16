@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { useEffect, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import {
   createHeatmapColorResolver,
@@ -14,7 +14,7 @@ import {
   MATRIX_COLOR_PREVIEW_HORIZONTAL_PADDING,
   MATRIX_COLOR_PREVIEW_MIN_LENGTH,
 } from "@/config/ui";
-import type { ScaleType } from "@/types/connectivityBundle";
+import type { ScaleType } from "@/types/network";
 import type { MatrixColorScaleSettings } from "@/types/visualizationUi";
 
 type MatrixColorScalePreviewProps = {
@@ -28,33 +28,33 @@ export default function MatrixColorScalePreview({
 }: MatrixColorScalePreviewProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const gradientId = `matrix-scale-preview-${useId().replace(/:/g, "")}`;
   const [containerWidth, setContainerWidth] = useState(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
 
-    const updateWidth = () => {
-      setContainerWidth(wrapper.getBoundingClientRect().width);
-    };
-    updateWidth();
+    const updateWidth = (width: number) =>
+      setContainerWidth((currentWidth) => {
+        const nextWidth = Math.max(0, Math.round(width));
+        return currentWidth === nextWidth ? currentWidth : nextWidth;
+      });
+
+    updateWidth(wrapper.getBoundingClientRect().width);
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
-      setContainerWidth(entry?.contentRect.width ?? 0);
+      updateWidth(entry?.contentRect.width ?? 0);
     });
     observer.observe(wrapper);
 
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!svgRef.current) return;
-    const svgWidth =
-      containerWidth > 0
-        ? containerWidth
-        : MATRIX_COLOR_PREVIEW_MIN_LENGTH +
-          MATRIX_COLOR_PREVIEW_HORIZONTAL_PADDING * 2;
+  useLayoutEffect(() => {
+    if (!svgRef.current || containerWidth <= 0) return;
+    const svgWidth = containerWidth;
     const legendLength = Math.max(
       svgWidth - MATRIX_COLOR_PREVIEW_HORIZONTAL_PADDING * 2,
       0,
@@ -91,8 +91,9 @@ export default function MatrixColorScalePreview({
       discreteSteps: settings.discretize ? settings.discreteSteps : null,
       orientation: "horizontal",
       thickness: MATRIX_COLOR_LEGEND_THICKNESS,
+      gradientId,
     });
-  }, [containerWidth, scaleType, settings]);
+  }, [containerWidth, gradientId, scaleType, settings]);
 
   const svgWidth =
     containerWidth > 0

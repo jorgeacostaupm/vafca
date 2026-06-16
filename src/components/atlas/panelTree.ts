@@ -1,6 +1,6 @@
 import type { GroupedRow } from "@/types/atlasPanel";
 
-import type { GroupTreeEntry, GroupTreeNode, RoiTreeNode } from "./panelTypes";
+import type { GroupTreeEntry, GroupTreeNode, NodeTreeNode } from "./panelTypes";
 
 export const buildGroupTreeEntries = (rows: GroupedRow[]): GroupTreeEntry[] => {
   const roots: GroupTreeEntry[] = [];
@@ -27,15 +27,15 @@ export const buildGroupTreeEntries = (rows: GroupedRow[]): GroupTreeEntry[] => {
       return;
     }
 
-    const roiNode: RoiTreeNode = {
-      type: "roiNode",
+    const node: NodeTreeNode = {
+      type: "node",
       row,
     };
     const parent = groupStack[groupStack.length - 1];
     if (parent) {
-      parent.children.push(roiNode);
+      parent.children.push(node);
     } else {
-      roots.push(roiNode);
+      roots.push(node);
     }
   });
 

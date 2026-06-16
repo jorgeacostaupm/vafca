@@ -4,9 +4,9 @@ import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlasUi'
 import type { RootState } from '@/types/store'
 import {
   getDatasetAtlasId,
-  getDatasetMatrixOrder,
+  getDatasetNodeOrder,
 } from '@/utils/datasetAccessors'
-import { normalizeMatrixOrder } from '@/utils/matrixOrder'
+import { normalizeNodeOrder } from '@/utils/nodeOrder'
 
 import { selectDatasetData } from '../datasetSelectors'
 import {
@@ -23,11 +23,11 @@ export const syncDatasetDerivedState = createAsyncThunk<
   const data = selectDatasetData(state)
   if (!data) return
 
-  const matrixOrder = normalizeMatrixOrder(getDatasetMatrixOrder(data))
-  if (matrixOrder.length === 0) return
+  const nodeOrder = normalizeNodeOrder(getDatasetNodeOrder(data))
+  if (nodeOrder.length === 0) return
 
   const atlasId = getDatasetAtlasId(data)
   const atlasDefinition = resolveAtlasDefinition(state, atlasId)
-  const atlasOrder = buildAtlasOrder(matrixOrder, atlasDefinition)
+  const atlasOrder = buildAtlasOrder(nodeOrder, atlasDefinition)
   dispatch(setAtlasLabels(buildAtlasState(atlasOrder, state.atlasUi)))
 })

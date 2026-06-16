@@ -6,7 +6,7 @@ import {
   MATRIX_COLOR_LEGEND_THICKNESS,
   MATRIX_COLOR_LEGEND_VERTICAL_OFFSET,
 } from "@/config/ui";
-import type { ScaleType } from "@/types/connectivityBundle";
+import type { ScaleType } from "@/types/network";
 import type { MatrixColorScaleSettings } from "@/types/visualizationUi";
 
 type HeatmapLegendOrientation = "vertical" | "horizontal";
@@ -93,6 +93,7 @@ export const renderHeatmapLegend = (args: {
   thickness?: number;
   origin?: { x: number; y: number };
   plotOffset?: number;
+  gradientId?: string;
 }) => {
   const {
     svg,
@@ -105,6 +106,7 @@ export const renderHeatmapLegend = (args: {
     thickness = MATRIX_COLOR_LEGEND_THICKNESS,
     origin = { x: 0, y: 0 },
     plotOffset = orientation === "vertical" ? MATRIX_COLOR_LEGEND_VERTICAL_OFFSET : 0,
+    gradientId,
   } = args;
 
   const legendLength = Math.max(length, 0);
@@ -127,7 +129,8 @@ export const renderHeatmapLegend = (args: {
     .tickValues(buildLegendTicks(legendRange, normalizedDiscreteSteps))
     .tickFormat(buildLegendTickFormatter(legendRange));
 
-  const legendGradientId = `legend-${Math.random().toString(36).slice(2)}`;
+  const legendGradientId =
+    gradientId ?? `legend-${Math.random().toString(36).slice(2)}`;
   const defs = svg.append("defs");
   const linearGradient = defs
     .append("linearGradient")

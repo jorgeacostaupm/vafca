@@ -2,22 +2,22 @@ import {
   D3_GROUPING_PALETTES,
   type D3GroupingPaletteKey,
 } from "@/config/groupingPalettes";
-import type { AtlasDefinition, AtlasRoi } from "@/types/atlas";
-import { getRoiFieldValue, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
+import type { AtlasDefinition, AtlasNode } from "@/types/atlas";
+import { getNodeFieldValue, normalizeNodeFieldValue } from "@/utils/atlas/atlasDefinition";
 
-type RoiGroupingColorCategory = {
+type NodeGroupingColorCategory = {
   key: string;
   values: string[];
   count: number;
   color: string;
 };
 
-const buildRoiGroupingValues = (roi: AtlasRoi, groupingFields: string[]) =>
-  groupingFields.map((field) => normalizeRoiFieldValue(getRoiFieldValue(roi, field)));
+const buildNodeGroupingValues = (node: AtlasNode, groupingFields: string[]) =>
+  groupingFields.map((field) => normalizeNodeFieldValue(getNodeFieldValue(node, field)));
 
 export const buildGroupingColorCategoryKey = (values: string[]) => values.join("||");
 
-export const buildRoiGroupingColorCategories = ({
+export const buildNodeGroupingColorCategories = ({
   atlasDefinition,
   groupingFields,
   colorPalette,
@@ -27,17 +27,17 @@ export const buildRoiGroupingColorCategories = ({
   groupingFields: string[];
   colorPalette: D3GroupingPaletteKey;
   includedIds?: Set<string>;
-}): RoiGroupingColorCategory[] => {
-  if (!atlasDefinition?.rois?.length || groupingFields.length === 0) return [];
+}): NodeGroupingColorCategory[] => {
+  if (!atlasDefinition?.nodes?.length || groupingFields.length === 0) return [];
 
   const palette = D3_GROUPING_PALETTES[colorPalette].palette;
   const categories = new Map<string, { values: string[]; count: number }>();
 
-  atlasDefinition.rois.forEach((roi) => {
-    const id = String(roi.id);
+  atlasDefinition.nodes.forEach((node) => {
+    const id = String(node.id);
     if (includedIds && !includedIds.has(id)) return;
 
-    const values = buildRoiGroupingValues(roi, groupingFields);
+    const values = buildNodeGroupingValues(node, groupingFields);
     const key = buildGroupingColorCategoryKey(values);
     const current = categories.get(key);
     if (current) {
@@ -57,7 +57,7 @@ export const buildRoiGroupingColorCategories = ({
     }));
 };
 
-export const buildRoiGroupingColorById = ({
+export const buildNodeGroupingColorById = ({
   atlasDefinition,
   groupingFields,
   colorPalette,
@@ -66,35 +66,35 @@ export const buildRoiGroupingColorById = ({
   groupingFields: string[];
   colorPalette: D3GroupingPaletteKey;
 }) => {
-  if (!atlasDefinition?.rois?.length) {
+  if (!atlasDefinition?.nodes?.length) {
     return {} as Record<string, string>;
   }
   const palette = D3_GROUPING_PALETTES[colorPalette].palette;
   const fallbackColor = palette[0] ?? "#4e79a7";
   if (groupingFields.length === 0) {
-    return atlasDefinition.rois.reduce<Record<string, string>>((acc, roi) => {
-      acc[String(roi.id)] = fallbackColor;
-      acc[String(roi.atlasId)] = fallbackColor;
+    return atlasDefinition.nodes.reduce<Record<string, string>>((acc, node) => {
+      acc[String(node.id)] = fallbackColor;
+      acc[String(node.atlasId)] = fallbackColor;
       return acc;
     }, {});
   }
 
-  const categories = buildRoiGroupingColorCategories({
+  const categories = buildNodeGroupingColorCategories({
     atlasDefinition,
     groupingFields,
     colorPalette,
   });
   const colorByCategory = new Map(categories.map((entry) => [entry.key, entry.color]));
 
-  return atlasDefinition.rois.reduce<Record<string, string>>((acc, roi) => {
-    const id = String(roi.id);
+  return atlasDefinition.nodes.reduce<Record<string, string>>((acc, node) => {
+    const id = String(node.id);
     const key = buildGroupingColorCategoryKey(
-      buildRoiGroupingValues(roi, groupingFields),
+      buildNodeGroupingValues(node, groupingFields),
     );
     const color = colorByCategory.get(key);
     if (color) {
       acc[id] = color;
-      acc[String(roi.atlasId)] = color;
+      acc[String(node.atlasId)] = color;
     }
     return acc;
   }, {});

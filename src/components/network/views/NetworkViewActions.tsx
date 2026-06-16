@@ -14,7 +14,7 @@ import ChartDownloadButton from "@/components/common/ChartDownloadButton";
 import NetworkFilterRolePopover from "@/components/network/NetworkFilterRolePopover";
 import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
 import NetworkBrushControls from "@/components/network/views/NetworkBrushControls";
-import type { buildAdaptedNetworkViewData } from "@/components/network/views/networkViewData";
+import type { buildNetworkViewRenderData } from "@/components/network/views/networkViewData";
 import NetworkZoomModesPopover from "@/components/network/views/NetworkZoomModesPopover";
 import { useAppDispatch } from "@/store/hooks";
 import {
@@ -37,7 +37,7 @@ type SharedPanelSettingsPatch = Partial<
 type NetworkViewActionsProps = {
   view: ComputedView["view"];
   computed: ComputedView;
-  adapted: ReturnType<typeof buildAdaptedNetworkViewData>;
+  renderData: ReturnType<typeof buildNetworkViewRenderData>;
   isMatrixView: boolean;
   viewTitle: string;
   svgRef: RefObject<SVGSVGElement | null>;
@@ -46,7 +46,7 @@ type NetworkViewActionsProps = {
 export default function NetworkViewActions({
   view,
   computed,
-  adapted,
+  renderData,
   isMatrixView,
   viewTitle,
   svgRef,
@@ -147,7 +147,7 @@ export default function NetworkViewActions({
           })
         }
       />
-      <NetworkZoomModesPopover view={view} computed={computed} adapted={adapted} />
+      <NetworkZoomModesPopover view={view} computed={computed} renderData={renderData} />
       <Button
         size="small"
         type="text"

@@ -1,52 +1,69 @@
-import type { Catalogs, ConnectivityMatrix } from "@/types/connectivityBundle";
-import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
+import type { Catalogs, Network } from "@/types/network";
+import { getNetworkPopulationIds } from "@/utils/networkMetadata";
 
-export const formatMatrixSourceLabel = (
-  matrix: ConnectivityMatrix,
+const formatPopulationSetLabel = (
+  populationIds: string[],
   catalogs?: Catalogs,
 ) => {
-  if (matrix.source.level === "subject") {
-    return catalogs?.subjects[matrix.source.subjectId]?.label ?? matrix.source.subjectId;
+  if (populationIds.length === 0) return "No population";
+  return populationIds
+    .map((id) => catalogs?.populations[id]?.label ?? id)
+    .join(" + ");
+};
+
+export const formatNetworkSourceLabel = (
+  network: Network,
+  catalogs?: Catalogs,
+) => {
+  if (network.derivation?.type === "aggregation") {
+    return `Aggregated from ${network.derivation.baseNetworkId}`;
   }
-  if (matrix.source.level === "population") {
-    return formatPopulationSetLabel(matrix.source.populationIds, catalogs);
+  if (network.source.type === "subject") {
+    return catalogs?.subjects[network.source.subjectId]?.label ?? network.source.subjectId;
   }
-  if (matrix.source.level === "aggregation") {
-    return `Aggregated from ${matrix.source.baseMatrixId}`;
+  if (network.source.type === "population") {
+    return catalogs?.populations[network.source.populationId]?.label ?? network.source.populationId;
   }
   const left =
-    matrix.source.left.label ??
-    (matrix.source.left.populationIds
-      ? formatPopulationSetLabel(matrix.source.left.populationIds, catalogs)
-      : undefined) ??
-    matrix.source.left.subjectId ??
+    network.source.left.label ??
+    (network.source.left.type === "population"
+      ? catalogs?.populations[network.source.left.populationId]?.label ??
+        network.source.left.populationId
+      : catalogs?.subjects[network.source.left.subjectId]?.label ??
+        network.source.left.subjectId) ??
     "Left";
   const right =
-    matrix.source.right.label ??
-    (matrix.source.right.populationIds
-      ? formatPopulationSetLabel(matrix.source.right.populationIds, catalogs)
-      : undefined) ??
-    matrix.source.right.subjectId ??
+    network.source.right.label ??
+    (network.source.right.type === "population"
+      ? catalogs?.populations[network.source.right.populationId]?.label ??
+        network.source.right.populationId
+      : catalogs?.subjects[network.source.right.subjectId]?.label ??
+        network.source.right.subjectId) ??
     "Right";
   return `${left} vs ${right}`;
 };
 
-export const formatMatrixKindLabel = (matrix: ConnectivityMatrix) => {
-  if (matrix.kind === "aggregated") return "Aggregated";
-  if (matrix.source.level === "population") return "Population";
-  if (matrix.source.level === "subject") return "Subject";
+export const formatNetworkSourceTypeLabel = (network: Network) => {
+  if (network.derivation?.type === "aggregation") return "Aggregated";
+  if (network.source.type === "population") return "Population";
+  if (network.source.type === "subject") return "Subject";
   return "Comparison";
 };
 
-export const formatNetworkMatrixLabel = (
-  matrix: ConnectivityMatrix,
+export const formatNetworkFilterOptionLabel = (
+  network: Network,
   catalogs?: Catalogs,
 ) => {
-  const source = formatMatrixSourceLabel(matrix, catalogs);
-  const layer = matrix.context.layerId
-    ? catalogs?.layers[matrix.context.layerId]?.label ?? matrix.context.layerId
+  const source = formatNetworkSourceLabel(network, catalogs);
+  const layer = network.context.layerId
+    ? catalogs?.layers[network.context.layerId]?.label ?? network.context.layerId
     : "No layer";
-  const measure = catalogs?.measures[matrix.context.measureId]?.label ?? matrix.context.measureId;
-  const stat = catalogs?.stats[matrix.stat.id]?.label ?? matrix.stat.id;
-  return matrix.label ?? `${source} · ${layer} · ${measure} · ${stat}`;
+  const measure = catalogs?.measures[network.measureId]?.label ?? network.measureId;
+  const statistic =
+    catalogs?.statistics[network.statisticId]?.label ?? network.statisticId;
+  const populationLabel = formatPopulationSetLabel(
+    getNetworkPopulationIds(network),
+    catalogs,
+  );
+  return network.label ?? `${source} · ${populationLabel} · ${layer} · ${measure} · ${statistic}`;
 };

@@ -15,12 +15,12 @@ import {
 } from "@/store/slices/atlasUi";
 import type { AtlasDefinition, AtlasState } from "@/types/atlas";
 import type { CircularPreviewLink } from "@/types/circular";
-import { getCommonRoiFields } from "@/utils/atlas/atlasDefinition";
+import { getCommonNodeFields } from "@/utils/atlas/atlasDefinition";
 import {
   buildCircularHierarchyBundleLayout,
   buildCircularHierarchyLayout,
 } from "@/utils/circular/hierarchy";
-import { buildRoiGroupingColorById } from "@/utils/groupingColoring";
+import { buildNodeGroupingColorById } from "@/utils/groupingColoring";
 
 type UseManagementHierarchyArgs = {
   atlas: AtlasState;
@@ -81,11 +81,11 @@ export const useManagementHierarchy = ({
   const colorPalette = previewColorPalette ?? atlas.colorPalette;
 
   const availableHierarchyFields = useMemo(
-    () => getCommonRoiFields(atlasDefinition),
+    () => getCommonNodeFields(atlasDefinition),
     [atlasDefinition],
   );
 
-  const activeRoiIds = useMemo(() => {
+  const activeNodeIds = useMemo(() => {
     const enabled = atlas.order.filter((id) => atlas.labelsById[id]?.enabled !== false);
     return enabled.length > 0 ? enabled : atlas.order;
   }, [atlas.labelsById, atlas.order]);
@@ -95,14 +95,14 @@ export const useManagementHierarchy = ({
   const circularPreviewBundleLayout = useMemo(
     () =>
       buildCircularHierarchyBundleLayout({
-        labelIds: activeRoiIds.slice(0, 220),
+        labelIds: activeNodeIds.slice(0, 220),
         radius: previewRadius,
         atlasDefinition,
         hierarchyFields,
         categoryOrder: atlas.circularHierarchyCategoryOrder,
       }),
     [
-      activeRoiIds,
+      activeNodeIds,
       previewRadius,
       atlasDefinition,
       hierarchyFields,
@@ -124,14 +124,14 @@ export const useManagementHierarchy = ({
   const matrixPreviewLayout = useMemo(
     () =>
       buildCircularHierarchyLayout({
-        labelIds: activeRoiIds.slice(0, 220),
+        labelIds: activeNodeIds.slice(0, 220),
         radius: 1,
         atlasDefinition,
         hierarchyFields,
         categoryOrder: atlas.matrixHierarchyCategoryOrder,
       }),
     [
-      activeRoiIds,
+      activeNodeIds,
       atlasDefinition,
       hierarchyFields,
       atlas.matrixHierarchyCategoryOrder,
@@ -148,7 +148,7 @@ export const useManagementHierarchy = ({
 
   const previewNodeColors = useMemo(
     () =>
-      buildRoiGroupingColorById({
+      buildNodeGroupingColorById({
         atlasDefinition,
         groupingFields: hierarchyFields,
         colorPalette,
@@ -162,13 +162,13 @@ export const useManagementHierarchy = ({
         atlasDefinition,
         hierarchyFields,
         categoryOrder: atlas.circularHierarchyCategoryOrder,
-        sourceIds: activeRoiIds,
+        sourceIds: activeNodeIds,
       }),
     [
       atlasDefinition,
       hierarchyFields,
       atlas.circularHierarchyCategoryOrder,
-      activeRoiIds,
+      activeNodeIds,
     ],
   );
 
@@ -178,19 +178,19 @@ export const useManagementHierarchy = ({
         atlasDefinition,
         hierarchyFields,
         categoryOrder: atlas.matrixHierarchyCategoryOrder,
-        sourceIds: activeRoiIds,
+        sourceIds: activeNodeIds,
       }),
     [
       atlasDefinition,
       hierarchyFields,
       atlas.matrixHierarchyCategoryOrder,
-      activeRoiIds,
+      activeNodeIds,
     ],
   );
 
   useEffect(() => {
     if (!syncCategoryOrder) return;
-    if (!atlasDefinition?.rois?.length) return;
+    if (!atlasDefinition?.nodes?.length) return;
     const valid = atlas.colorFields.filter((field) =>
       availableHierarchyFields.includes(field),
     );
@@ -226,7 +226,7 @@ export const useManagementHierarchy = ({
   ]);
 
   return {
-    activeRoiIds,
+    activeNodeIds,
     previewRadius,
     circularPreviewLayout,
     circularPreviewLinks,

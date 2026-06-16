@@ -4,7 +4,7 @@ import { Form, Segmented } from 'antd'
 import { createNetworkSegmentedOption } from '@/components/network/segmentedOption'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectUiRangeMode, setUiRangeMode } from '@/store/slices/visualizationUi'
-import type { UiRangeMode } from '@/types/connectivityBundle'
+import type { UiRangeMode } from '@/types/network'
 
 const rangeModeOptions = [
   createNetworkSegmentedOption<UiRangeMode>(

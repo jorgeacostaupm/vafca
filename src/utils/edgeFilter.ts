@@ -1,26 +1,25 @@
-import type { ConnectivityMatrix } from "@/types/connectivityBundle";
-import type { Catalogs } from "@/types/connectivityBundle";
 import type { DatasetMeta } from "@/types/datasetState";
 import type {
   LogicalOperator,
-  MatrixFilterDefinition,
-  MatrixFilterExpression,
-  MatrixFilterGroup,
-  MatrixFilterRule,
-  MatrixFilterRuleOperator,
-  MatrixFilterValidationIssue,
-  MatrixFilterValidationResult,
-  MatrixIndex,
   NetworkEdgeDomain,
+  NetworkFilterDefinition,
+  NetworkFilterExpression,
+  NetworkFilterGroup,
+  NetworkFilterRule,
+  NetworkFilterRuleOperator,
+  NetworkFilterValidationIssue,
+  NetworkFilterValidationResult,
+  NetworkIndex,
   RuntimeEdgeMask,
   RuntimeEdgeMaskOptions,
 } from "@/types/edgeFilter";
-import { getMatrixValue } from "@/utils/connectivityMatrix";
-import { resolveValueDomain } from "@/utils/valueDomain";
+import type { Catalogs, Network, UiRangeMode } from "@/types/network";
+import { getNetworkValue, isDirectedNetwork } from "@/utils/networkData";
+import { computeNetworkDataStats } from "@/utils/networkDataStats";
 
-export const MAX_MATRIX_FILTER_DEPTH = 5;
+export const MAX_NETWORK_FILTER_DEPTH = 5;
 
-const ruleOperators = new Set<MatrixFilterRuleOperator>([
+const ruleOperators = new Set<NetworkFilterRuleOperator>([
   "between",
   "outside",
   "lt",
@@ -34,55 +33,138 @@ const ruleOperators = new Set<MatrixFilterRuleOperator>([
 
 const groupOperators = new Set<LogicalOperator>(["AND", "OR"]);
 
-export const createMatrixFilterId = (prefix: string) =>
+export const createNetworkFilterId = (prefix: string) =>
   `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 
-export const createEmptyMatrixFilterGroup = (
+export const createEmptyNetworkFilterGroup = (
   operator: LogicalOperator = "AND",
-): MatrixFilterGroup => ({
+): NetworkFilterGroup => ({
   type: "group",
-  id: createMatrixFilterId("group"),
+  id: createNetworkFilterId("group"),
   operator,
   children: [],
 });
 
-export const createEmptyMatrixFilterDefinition = (
-  uiRangeMode: MatrixFilterDefinition["uiRangeMode"] = "view_observed",
-): MatrixFilterDefinition => ({
-  root: createEmptyMatrixFilterGroup("AND"),
+export const createEmptyNetworkFilterDefinition = (
+  uiRangeMode: NetworkFilterDefinition["uiRangeMode"] = "view_observed",
+): NetworkFilterDefinition => ({
+  root: createEmptyNetworkFilterGroup("AND"),
   uiRangeMode,
 });
 
-export const createDraftMatrixFilterRule = (
-  matrix?: ConnectivityMatrix,
-): MatrixFilterRule => {
-  return {
-    type: "rule",
-    id: createMatrixFilterId("rule"),
-    matrixId: matrix?.id ?? "",
-    operator: "between",
-    min: null,
-    max: null,
-    includeMin: true,
-    includeMax: true,
-  };
+export const createDraftNetworkFilterRule = (
+  network?: Network,
+): NetworkFilterRule => ({
+  type: "rule",
+  id: createNetworkFilterId("rule"),
+  networkId: network?.id ?? "",
+  operator: "between",
+  min: null,
+  max: null,
+  includeMin: true,
+  includeMax: true,
+});
+
+export const cloneNetworkFilterDefinition = (
+  definition: NetworkFilterDefinition,
+): NetworkFilterDefinition =>
+  JSON.parse(JSON.stringify(definition)) as NetworkFilterDefinition;
+
+type ResolvedNetworkRange = {
+  min: number;
+  max: number;
+  scaleType: "sequential" | "diverging";
 };
 
-export const cloneMatrixFilterDefinition = (
-  definition: MatrixFilterDefinition,
-): MatrixFilterDefinition => JSON.parse(JSON.stringify(definition)) as MatrixFilterDefinition;
+const normalizeRange = (
+  range: [number, number] | null | undefined,
+): [number, number] | null => {
+  if (!range) return null;
+  const [a, b] = range;
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  return a <= b ? [a, b] : [b, a];
+};
+
+const expandFlatRange = (range: [number, number]): [number, number] => {
+  const [min, max] = range;
+  if (min !== max) return range;
+  const delta = Math.abs(min) > 0 ? Math.abs(min) * 0.05 : 1;
+  return [min - delta, max + delta];
+};
+
+const expectedRangeFromBounds = (entry?: { min?: number; max?: number }) =>
+  normalizeRange(
+    Number.isFinite(entry?.min) && Number.isFinite(entry?.max)
+      ? [entry?.min as number, entry?.max as number]
+      : null,
+  );
+
+const getObservedRange = (network: Network) => {
+  const stats = network.dataStats ?? computeNetworkDataStats(network);
+  const { min, max } = stats.allValues;
+  return min === null || max === null ? null : ([min, max] as [number, number]);
+};
+
+const symmetricAroundCenter = (
+  range: [number, number] | null,
+  center: number,
+): [number, number] | null => {
+  if (!range) return null;
+  const delta = Math.max(Math.abs(range[0] - center), Math.abs(range[1] - center));
+  return [center - delta, center + delta];
+};
+
+export const resolveNetworkFilterRange = ({
+  network,
+  catalogs,
+  mode,
+}: {
+  network: Network;
+  catalogs: Catalogs | undefined;
+  mode: UiRangeMode;
+}): ResolvedNetworkRange => {
+  const statistic = catalogs?.statistics[network.statisticId];
+  const measure = catalogs?.measures[network.measureId];
+  const scaleType =
+    statistic?.scaleType ?? (statistic?.center === 0 ? "diverging" : "sequential");
+  const center = statistic?.center ?? (scaleType === "diverging" ? 0 : null);
+  const observed = getObservedRange(network);
+  const statisticRange =
+    normalizeRange(statistic?.expectedRange) ?? expectedRangeFromBounds(statistic);
+  const measureRange =
+    normalizeRange(measure?.expectedRange) ??
+    normalizeRange(
+      Number.isFinite(measure?.valueDomain?.min) &&
+        Number.isFinite(measure?.valueDomain?.max)
+        ? [measure?.valueDomain?.min as number, measure?.valueDomain?.max as number]
+        : null,
+    ) ??
+    expectedRangeFromBounds(measure);
+  const catalogRange = statisticRange ?? measureRange;
+  const fallback: [number, number] =
+    scaleType === "diverging" ? [-1, 1] : [0, 1];
+  const source =
+    mode === "catalog"
+      ? catalogRange ?? (center === null ? observed : symmetricAroundCenter(observed, center))
+      : center === null
+        ? observed ?? catalogRange
+        : symmetricAroundCenter(observed, center) ?? catalogRange;
+  const [min, max] = expandFlatRange(source ?? fallback);
+
+  return { min, max, scaleType };
+};
 
 const normalizeRuleForRange = (
-  rule: MatrixFilterRule,
-  matrixIndex: MatrixIndex,
+  rule: NetworkFilterRule,
+  networkIndex: NetworkIndex,
   catalogs: Catalogs | undefined,
-  uiRangeMode: MatrixFilterDefinition["uiRangeMode"],
-): MatrixFilterRule => {
-  const matrix = matrixIndex[rule.matrixId];
-  if (!matrix) return { ...rule, operator: "between" };
+  uiRangeMode: NetworkFilterDefinition["uiRangeMode"],
+): NetworkFilterRule => {
+  const network = networkIndex[rule.networkId];
+  if (!network) return { ...rule, operator: "between" };
 
-  const range = resolveValueDomain({
-    matrix,
+  const range = resolveNetworkFilterRange({
+    network,
     catalogs,
     mode: uiRangeMode,
   });
@@ -112,15 +194,15 @@ const normalizeRuleForRange = (
 };
 
 const normalizeExpressionForRanges = (
-  expression: MatrixFilterExpression,
-  matrixIndex: MatrixIndex,
+  expression: NetworkFilterExpression,
+  networkIndex: NetworkIndex,
   catalogs: Catalogs | undefined,
-  uiRangeMode: MatrixFilterDefinition["uiRangeMode"],
-): MatrixFilterExpression => {
+  uiRangeMode: NetworkFilterDefinition["uiRangeMode"],
+): NetworkFilterExpression => {
   if (expression.type === "rule") {
     return normalizeRuleForRange(
       expression,
-      matrixIndex,
+      networkIndex,
       catalogs,
       uiRangeMode,
     );
@@ -129,53 +211,51 @@ const normalizeExpressionForRanges = (
   return {
     ...expression,
     children: expression.children.map((child) =>
-      normalizeExpressionForRanges(
-        child,
-        matrixIndex,
-        catalogs,
-        uiRangeMode,
-      ),
+      normalizeExpressionForRanges(child, networkIndex, catalogs, uiRangeMode),
     ),
   };
 };
 
-export const normalizeMatrixFilterDefinitionForRanges = (
-  definition: MatrixFilterDefinition,
-  matrixIndex: MatrixIndex,
+export const normalizeNetworkFilterDefinitionForRanges = (
+  definition: NetworkFilterDefinition,
+  networkIndex: NetworkIndex,
   catalogs: Catalogs | undefined,
-  uiRangeMode: MatrixFilterDefinition["uiRangeMode"],
-): MatrixFilterDefinition => ({
+  uiRangeMode: NetworkFilterDefinition["uiRangeMode"],
+): NetworkFilterDefinition => ({
   ...definition,
   uiRangeMode,
   root: normalizeExpressionForRanges(
     definition.root,
-    matrixIndex,
+    networkIndex,
     catalogs,
     uiRangeMode,
-  ) as MatrixFilterGroup,
+  ) as NetworkFilterGroup,
 });
 
 export const buildNetworkEdgeDomain = (
   dataset: DatasetMeta | null,
   labelIds: string[],
 ): NetworkEdgeDomain | null => {
-  const connectivity = dataset?.content;
-  const firstMatrix = connectivity?.matrices.find((matrix) => matrix.kind !== "aggregated");
-  if (!connectivity || !firstMatrix) return null;
+  const content = dataset?.content;
+  const firstNetwork = content?.networks.find(
+    (network) => network.derivation?.type !== "aggregation",
+  );
+  if (!content || !firstNetwork) return null;
 
-  const [rows, cols] = firstMatrix.geometry.shape;
-  const directed = connectivity.matrices.some((matrix) => !matrix.encoding.symmetric);
-  const roiCount = labelIds.length > 0 ? labelIds.length : rows;
-  const key = `${firstMatrix.geometry.atlasId}:${rows}x${cols}:${connectivity.roiOrderHash}`;
-  const atlasName = connectivity.atlas.name || firstMatrix.geometry.atlasId;
+  const rows = firstNetwork.nodeIds.length;
+  const cols = rows;
+  const directed = content.networks.some(isDirectedNetwork);
+  const nodeCount = labelIds.length > 0 ? labelIds.length : rows;
+  const key = `${content.nodeSet.id}:${rows}x${cols}:${labelIds.join("|")}`;
+  const label = `${content.nodeSet.label} · ${nodeCount} ${content.nodeSet.terminology.plural} · ${rows}x${cols}`;
 
   return {
     key,
-    label: `${atlasName} · ${roiCount} ROIs · ${rows}x${cols}`,
-    kind: "roi",
+    label,
+    kind: "nodes",
     rows,
     cols,
-    roiCount,
+    nodeCount,
     directed,
     labelIds,
   };
@@ -184,39 +264,39 @@ export const buildNetworkEdgeDomain = (
 export const buildAggregatedEdgeDomain = (
   dataset: DatasetMeta | null,
 ): NetworkEdgeDomain | null => {
-  const matrix = dataset?.content?.matrices.find(
-    (item) => item.kind === "aggregated" && item.geometry.roiOrder,
+  const network = dataset?.content?.networks.find(
+    (item) => item.derivation?.type === "aggregation",
   );
-  if (!matrix?.geometry.roiOrder) return null;
-  const [rows, cols] = matrix.geometry.shape;
-  const labels = matrix.geometry.roiOrder;
+  if (!network) return null;
+  const rows = network.nodeIds.length;
+  const labels = network.nodeIds;
   return {
-    key: `${matrix.geometry.atlasId}:${rows}x${cols}:${labels.join("|")}`,
-    label: `${rows} ROI groups · ${rows}x${cols}`,
+    key: `${network.nodeSetId}:${rows}x${rows}:${labels.join("|")}`,
+    label: `${rows} node groups · ${rows}x${rows}`,
     kind: "aggregated",
     rows,
-    cols,
-    roiCount: labels.length,
-    directed: !matrix.encoding.symmetric,
+    cols: rows,
+    nodeCount: labels.length,
+    directed: isDirectedNetwork(network),
     labelIds: labels,
   };
 };
 
 const addIssue = (
-  target: MatrixFilterValidationIssue[],
-  severity: MatrixFilterValidationIssue["severity"],
+  target: NetworkFilterValidationIssue[],
+  severity: NetworkFilterValidationIssue["severity"],
   message: string,
   expressionId?: string,
 ) => {
   target.push({
-    id: createMatrixFilterId(severity),
+    id: createNetworkFilterId(severity),
     severity,
     message,
     expressionId,
   });
 };
 
-const requiredValuesMissing = (rule: MatrixFilterRule) => {
+const requiredValuesMissing = (rule: NetworkFilterRule) => {
   if (["between", "outside", "abs_between"].includes(rule.operator)) {
     return rule.min === null || rule.max === null;
   }
@@ -235,33 +315,38 @@ const requiredValuesMissing = (rule: MatrixFilterRule) => {
 };
 
 const validateRule = (
-  rule: MatrixFilterRule,
-  matrixIndex: MatrixIndex,
+  rule: NetworkFilterRule,
+  networkIndex: NetworkIndex,
   edgeDomain: NetworkEdgeDomain,
-  errors: MatrixFilterValidationIssue[],
-  warnings: MatrixFilterValidationIssue[],
+  errors: NetworkFilterValidationIssue[],
+  warnings: NetworkFilterValidationIssue[],
 ) => {
-  if (!rule.matrixId) addIssue(errors, "error", "Select a matrix for every rule.", rule.id);
-  const matrix = matrixIndex[rule.matrixId];
-  if (rule.matrixId && !matrix) {
-    addIssue(errors, "error", "The selected matrix is not available.", rule.id);
+  if (!rule.networkId) {
+    addIssue(errors, "error", "Select a network for every rule.", rule.id);
   }
-  if (matrix && edgeDomain.kind === "roi" && matrix.kind === "aggregated") {
-    addIssue(errors, "error", "Aggregated matrices require Filter aggregated edges.", rule.id);
+  const network = networkIndex[rule.networkId];
+  if (rule.networkId && !network) {
+    addIssue(errors, "error", "The selected network is not available.", rule.id);
   }
-  if (matrix && edgeDomain.kind === "aggregated") {
+  if (
+    network &&
+    edgeDomain.kind === "nodes" &&
+    network.derivation?.type === "aggregation"
+  ) {
+    addIssue(errors, "error", "Aggregated networks require Filter aggregated edges.", rule.id);
+  }
+  if (network && edgeDomain.kind === "aggregated") {
     const sameShape =
-      matrix.geometry.shape[0] === edgeDomain.rows &&
-      matrix.geometry.shape[1] === edgeDomain.cols;
+      network.nodeIds.length === edgeDomain.rows &&
+      network.nodeIds.length === edgeDomain.cols;
     const sameOrder =
-      Array.isArray(matrix.geometry.roiOrder) &&
-      matrix.geometry.roiOrder.length === edgeDomain.labelIds.length &&
-      matrix.geometry.roiOrder.every((id, index) => id === edgeDomain.labelIds[index]);
-    if (matrix.kind !== "aggregated" || !sameShape || !sameOrder) {
+      network.nodeIds.length === edgeDomain.labelIds.length &&
+      network.nodeIds.every((id, index) => id === edgeDomain.labelIds[index]);
+    if (network.derivation?.type !== "aggregation" || !sameShape || !sameOrder) {
       addIssue(
         errors,
         "error",
-        "No se puede usar una matriz ROI × ROI directamente para filtrar una matriz agregada. Primero genera una versión agregada compatible de esa matriz.",
+        "No se puede usar una red de nodos directamente para filtrar una red agregada. Primero genera una version agregada compatible de esa red.",
         rule.id,
       );
     }
@@ -293,20 +378,17 @@ const validateRule = (
   ) {
     addIssue(errors, "error", "Positive range minimum cannot be greater than its maximum.", rule.id);
   }
-  if (matrix?.dataStats) {
-    const nullish = matrix.dataStats.allValues.nullCount;
-    if (nullish > 0) {
-      addIssue(warnings, "warning", "The selected matrix contains values that predicates will ignore.", rule.id);
-    }
+  if (network?.dataStats?.allValues.nullCount) {
+    addIssue(warnings, "warning", "The selected network contains values that predicates will ignore.", rule.id);
   }
 };
 
 const validateExpression = (
-  expression: MatrixFilterExpression,
-  matrixIndex: MatrixIndex,
+  expression: NetworkFilterExpression,
+  networkIndex: NetworkIndex,
   edgeDomain: NetworkEdgeDomain,
-  errors: MatrixFilterValidationIssue[],
-  warnings: MatrixFilterValidationIssue[],
+  errors: NetworkFilterValidationIssue[],
+  warnings: NetworkFilterValidationIssue[],
   seen: Set<string>,
   depth: number,
   maxDepth: number,
@@ -323,7 +405,7 @@ const validateExpression = (
     addIssue(errors, "error", "Select a valid AND/OR connector.", expression.id);
   }
   if (expression.type === "rule") {
-    validateRule(expression, matrixIndex, edgeDomain, errors, warnings);
+    validateRule(expression, networkIndex, edgeDomain, errors, warnings);
     return;
   }
   if (!groupOperators.has(expression.operator)) {
@@ -333,18 +415,27 @@ const validateExpression = (
     addIssue(errors, "error", "Every group must contain at least one rule or group.", expression.id);
   }
   expression.children.forEach((child) =>
-      validateExpression(child, matrixIndex, edgeDomain, errors, warnings, seen, depth + 1, maxDepth),
+    validateExpression(
+      child,
+      networkIndex,
+      edgeDomain,
+      errors,
+      warnings,
+      seen,
+      depth + 1,
+      maxDepth,
+    ),
   );
 };
 
-export const validateMatrixFilterDefinition = (
-  filter: MatrixFilterDefinition,
-  matrixIndex: MatrixIndex,
+export const validateNetworkFilterDefinition = (
+  filter: NetworkFilterDefinition,
+  networkIndex: NetworkIndex,
   edgeDomain: NetworkEdgeDomain,
   options?: RuntimeEdgeMaskOptions,
-): MatrixFilterValidationResult => {
-  const errors: MatrixFilterValidationIssue[] = [];
-  const warnings: MatrixFilterValidationIssue[] = [];
+): NetworkFilterValidationResult => {
+  const errors: NetworkFilterValidationIssue[] = [];
+  const warnings: NetworkFilterValidationIssue[] = [];
 
   if (!edgeDomain || edgeDomain.rows <= 0 || edgeDomain.cols <= 0) {
     addIssue(errors, "error", "The network edge domain is not available.");
@@ -354,13 +445,13 @@ export const validateMatrixFilterDefinition = (
   } else {
     validateExpression(
       filter.root,
-      matrixIndex,
+      networkIndex,
       edgeDomain,
       errors,
       warnings,
       new Set(),
       1,
-      options?.maxDepth ?? MAX_MATRIX_FILTER_DEPTH,
+      options?.maxDepth ?? MAX_NETWORK_FILTER_DEPTH,
     );
   }
 
@@ -379,15 +470,18 @@ const compareRange = (
   return aboveMin && belowMax;
 };
 
-export const evaluateMatrixFilterRule = (
-  rule: MatrixFilterRule,
+export const evaluateNetworkFilterRule = (
+  rule: NetworkFilterRule,
   i: number,
   j: number,
-  matrixIndex: MatrixIndex,
+  networkIndex: NetworkIndex,
 ): boolean => {
-  const matrix = matrixIndex[rule.matrixId];
-  if (!matrix) return false;
-  const value = getMatrixValue(matrix, i, j);
+  const network = networkIndex[rule.networkId];
+  if (!network) return false;
+  const sourceNodeId = network.nodeIds[i];
+  const targetNodeId = network.nodeIds[j];
+  if (!sourceNodeId || !targetNodeId) return false;
+  const value = getNetworkValue(network, sourceNodeId, targetNodeId);
   if (value === null || !Number.isFinite(value)) return false;
 
   switch (rule.operator) {
@@ -396,7 +490,9 @@ export const evaluateMatrixFilterRule = (
         ? compareRange(value, rule.min, rule.max, rule.includeMin, rule.includeMax)
         : false;
     case "outside":
-      return rule.min !== null && rule.max !== null ? value < rule.min || value > rule.max : false;
+      return rule.min !== null && rule.max !== null
+        ? value < rule.min || value > rule.max
+        : false;
     case "lt":
       return rule.max !== null ? value < rule.max : false;
     case "lte":
@@ -429,22 +525,22 @@ export const evaluateMatrixFilterRule = (
   }
 };
 
-export const evaluateMatrixFilterExpression = (
-  expression: MatrixFilterExpression,
+export const evaluateNetworkFilterExpression = (
+  expression: NetworkFilterExpression,
   i: number,
   j: number,
-  matrixIndex: MatrixIndex,
+  networkIndex: NetworkIndex,
 ): boolean => {
   if (expression.type === "rule") {
-    return evaluateMatrixFilterRule(expression, i, j, matrixIndex);
+    return evaluateNetworkFilterRule(expression, i, j, networkIndex);
   }
   if (expression.children.length === 0) return false;
 
   const [firstChild, ...remainingChildren] = expression.children;
-  let result = evaluateMatrixFilterExpression(firstChild, i, j, matrixIndex);
+  let result = evaluateNetworkFilterExpression(firstChild, i, j, networkIndex);
 
   for (const child of remainingChildren) {
-    const next = evaluateMatrixFilterExpression(child, i, j, matrixIndex);
+    const next = evaluateNetworkFilterExpression(child, i, j, networkIndex);
     const joinOperator = child.joinOperator ?? expression.operator;
     result = joinOperator === "AND" ? result && next : result || next;
   }
@@ -453,8 +549,8 @@ export const evaluateMatrixFilterExpression = (
 };
 
 export const createRuntimeEdgeMask = (
-  filter: MatrixFilterDefinition,
-  matrixIndex: MatrixIndex,
+  filter: NetworkFilterDefinition,
+  networkIndex: NetworkIndex,
   edgeDomain: NetworkEdgeDomain,
 ): RuntimeEdgeMask => {
   const values = Array.from({ length: edgeDomain.rows }, () =>
@@ -468,7 +564,7 @@ export const createRuntimeEdgeMask = (
       if (!edgeDomain.directed && j < i) continue;
 
       totalCount += 1;
-      const selected = evaluateMatrixFilterExpression(filter.root, i, j, matrixIndex);
+      const selected = evaluateNetworkFilterExpression(filter.root, i, j, networkIndex);
       values[i][j] = selected;
       if (!edgeDomain.directed && i !== j) values[j][i] = selected;
       if (selected) selectedCount += 1;

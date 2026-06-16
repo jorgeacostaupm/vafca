@@ -5,10 +5,10 @@ import atlasDefinitionReducer from '@/store/slices/atlasDefinition'
 import atlasUiReducer from '@/store/slices/atlasUi'
 import datasetReducer from '@/store/slices/dataset'
 import datasetOperationsReducer from '@/store/slices/dataset/datasetOperationsSlice'
-import matrixSummariesReducer from '@/store/slices/matrixSummaries'
 import networkFiltersReducer from '@/store/slices/networkFilters'
 import networkLayoutReducer from '@/store/slices/networkLayout'
 import networkMeasuresReducer from '@/store/slices/networkMeasures'
+import networkSummariesReducer from '@/store/slices/networkSummaries'
 import networkVisualizationReducer from '@/store/slices/networkVisualization'
 import notificationsReducer from '@/store/slices/notifications'
 import rankingsReducer from '@/store/slices/rankings'
@@ -26,7 +26,7 @@ export const store = configureStore({
     networkFilters: networkFiltersReducer,
     networkMeasures: networkMeasuresReducer,
     networkLayout: networkLayoutReducer,
-    matrixSummaries: matrixSummariesReducer,
+    networkSummaries: networkSummariesReducer,
     notifications: notificationsReducer,
     rankings: rankingsReducer,
   },
@@ -34,12 +34,12 @@ export const store = configureStore({
     getDefaultMiddleware({
       immutableCheck: {
         warnAfter: 128,
-        ignoredPaths: ['dataset.matrices'],
+        ignoredPaths: ['dataset.networks'],
       },
       serializableCheck: {
         warnAfter: 128,
         ignoredActionPaths: ['meta.arg.file', 'meta.arg.files'],
-        ignoredPaths: ['dataset.matrices'],
+        ignoredPaths: ['dataset.networks'],
       },
     }).prepend(
       rankingFilterListenerMiddleware.middleware,

@@ -5,12 +5,12 @@ import {
   pruneInvalidNetworkViews,
   syncNetworkSelectedCompoundId,
 } from "@/store/slices/networkVisualization";
-import type { MatrixSummary } from "@/types/matrixStore";
+import type { NetworkSummaryItem } from "@/types/networkViewStore";
 
 type UseNetworkViewLifecycleArgs = {
-  matches: MatrixSummary[];
+  matches: NetworkSummaryItem[];
   summariesStatus: "idle" | "loading" | "ready" | "error";
-  summaries: MatrixSummary[];
+  summaries: NetworkSummaryItem[];
 };
 
 export const useNetworkViewLifecycle = ({

@@ -25,7 +25,7 @@ export const recomputeRankingsForActiveFilters = createAsyncThunk<
 
     if (existingResults.length === 0) return []
 
-    const activeRois = new Set(
+    const activeNodes = new Set(
       state.atlasUi.order.filter((id) =>
         isAtlasLabelEnabled(state.atlasUi.labelsById[id]),
       ),
@@ -36,7 +36,7 @@ export const recomputeRankingsForActiveFilters = createAsyncThunk<
       const result = computeRanking({
         datasetContent,
         query: existing.query,
-        activeRois,
+        activeNodes,
         activeFilterMask,
       })
       return {

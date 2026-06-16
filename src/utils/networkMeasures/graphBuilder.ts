@@ -1,10 +1,10 @@
-import type {
-  ConnectivityDataState,
-  ConnectivityMatrix,
-} from "@/types/connectivityBundle";
+import type { Network, NodeSet, NodeTagValue } from "@/types/network";
 import type { NetworkSummaryComputeOptions } from "@/types/networkMeasures";
-import { getMatrixValue } from "@/utils/connectivityMatrix";
-import { resolveMatrixEndpointIds } from "@/utils/rankings/rankingMatrixMetadata";
+import {
+  getNetworkNodeIds,
+  isDirectedNetwork,
+  materializeNetworkMatrix,
+} from "@/utils/networkData";
 
 export type NetworkMeasureNode = {
   id: string;
@@ -22,7 +22,7 @@ export type NetworkMeasureEdge = {
 };
 
 export type NetworkMeasureGraph = {
-  matrix: ConnectivityMatrix;
+  network: Network;
   directed: boolean;
   nodes: NetworkMeasureNode[];
   edges: NetworkMeasureEdge[];
@@ -35,73 +35,34 @@ export type NetworkMeasureGraph = {
   negativeEdgeCount: number;
 };
 
-const isScalarTagValue = (
-  value: unknown,
-): value is string | number | boolean | null =>
-  typeof value === "string" ||
-  typeof value === "number" ||
-  typeof value === "boolean" ||
-  value === null;
-
-const getRoiTags = (
-  connectivity: ConnectivityDataState,
-  id: string,
-): Record<string, string | number | boolean | null> => {
-  const roi =
-    connectivity.atlas.rois.find((item) => item.id === id) ??
-    connectivity.atlas.rois.find((item) => String(item.atlasId) === id);
-  if (!roi) return {};
-
-  return Object.fromEntries(
-    Object.entries(roi.tags).filter((entry): entry is [
-      string,
-      string | number | boolean | null,
-    ] => isScalarTagValue(entry[1])),
-  );
-};
-
-const getEndpointTags = (
-  matrix: ConnectivityMatrix,
-  connectivity: ConnectivityDataState,
-  id: string,
-) =>
-  matrix.aggregation?.groups.find((group) => group.id === id)?.criteria ??
-  getRoiTags(connectivity, id);
-
-const getEndpointLabel = (
-  matrix: ConnectivityMatrix,
-  connectivity: ConnectivityDataState,
-  id: string,
-) =>
-  matrix.aggregation?.groups.find((group) => group.id === id)?.label ??
-  connectivity.atlas.rois.find((roi) => roi.id === id)?.label ??
-  connectivity.atlas.rois.find((roi) => String(roi.atlasId) === id)?.label ??
-  id;
-
 const createEdgeId = (sourceId: string, targetId: string, directed: boolean) =>
   directed
     ? `${sourceId}::${targetId}`
     : [sourceId, targetId].sort().join("::");
 
+const buildNodeMap = (nodeSet: NodeSet) =>
+  new Map(nodeSet.nodes.map((node) => [node.id, node] as const));
+
 export const buildNetworkMeasureGraph = ({
-  connectivity,
-  matrix,
+  network,
+  nodeSet,
   options,
 }: {
-  connectivity: ConnectivityDataState;
-  matrix: ConnectivityMatrix;
+  network: Network;
+  nodeSet: NodeSet;
   options: NetworkSummaryComputeOptions;
 }): NetworkMeasureGraph => {
-  const [rows, cols] = matrix.geometry.shape;
-  const endpointIds = resolveMatrixEndpointIds(matrix, connectivity);
-  const nodeCount = Math.max(rows, endpointIds.length);
-  const directed = !matrix.encoding.symmetric;
-  const nodes = Array.from({ length: nodeCount }, (_, index) => {
-    const id = endpointIds[index] ?? String(index);
+  const matrix = materializeNetworkMatrix(network);
+  const nodeIds = getNetworkNodeIds(network);
+  const nodeById = buildNodeMap(nodeSet);
+  const nodeCount = nodeIds.length;
+  const directed = isDirectedNetwork(network);
+  const nodes = nodeIds.map((id) => {
+    const node = nodeById.get(id);
     return {
       id,
-      label: getEndpointLabel(matrix, connectivity, id),
-      tags: getEndpointTags(matrix, connectivity, id),
+      label: node?.label ?? id,
+      tags: node?.tags ?? ({} as Record<string, NodeTagValue>),
     };
   });
 
@@ -113,14 +74,14 @@ export const buildNetworkMeasureGraph = ({
   let positiveEdgeCount = 0;
   let negativeEdgeCount = 0;
 
-  for (let i = 0; i < rows; i += 1) {
+  for (let i = 0; i < nodeCount; i += 1) {
     const start = directed ? 0 : i;
-    for (let j = start; j < cols; j += 1) {
+    for (let j = start; j < nodeCount; j += 1) {
       if (!options.includeDiagonal && i === j) continue;
       evaluatedEdgeCount += 1;
 
-      const value = getMatrixValue(matrix, i, j);
-      if (value === null || !Number.isFinite(value)) {
+      const value = matrix[i]?.[j] ?? NaN;
+      if (!Number.isFinite(value)) {
         invalidEdgeCount += 1;
         continue;
       }
@@ -149,7 +110,7 @@ export const buildNetworkMeasureGraph = ({
   }
 
   return {
-    matrix,
+    network,
     directed,
     nodes,
     edges,

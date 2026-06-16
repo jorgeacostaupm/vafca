@@ -1,31 +1,31 @@
 import type { InitialDataConfig } from '@/config/initialData'
 import type { AtlasDefinition } from '@/types/atlas'
-import type { MatrixOrderEntry } from '@/types/matrixOrder'
+import type { NodeOrderEntry } from '@/types/nodeOrder'
 import type { RootState } from '@/types/store'
 
 export const buildAtlasOrder = (
-  matrixOrder: MatrixOrderEntry[],
+  nodeOrder: NodeOrderEntry[],
   atlasDefinition: AtlasDefinition | null,
 ) => {
-  if (matrixOrder.length === 0) return []
-  if (!atlasDefinition?.rois?.length) return matrixOrder
+  if (nodeOrder.length === 0) return []
+  if (!atlasDefinition?.nodes?.length) return nodeOrder
 
-  const roiById = new Map(
-    atlasDefinition.rois.flatMap((roi) => [
-      [String(roi.id), roi] as const,
-      [String(roi.atlasId), roi] as const,
+  const nodeById = new Map(
+    atlasDefinition.nodes.flatMap((node) => [
+      [String(node.id), node] as const,
+      [String(node.atlasId), node] as const,
     ]),
   )
-  return matrixOrder.map((entry) => {
-    const roi = roiById.get(entry.id)
-    if (!roi) return entry
+  return nodeOrder.map((entry) => {
+    const node = nodeById.get(entry.id)
+    if (!node) return entry
     return {
       ...entry,
-      name: roi.name ?? entry.name ?? entry.label,
-      label: roi.name ?? entry.label,
-      acronym: roi.label ?? entry.label,
-      tags: roi.tags,
-      metadata: roi.metadata,
+      name: node.name ?? entry.name ?? entry.label,
+      label: node.name ?? entry.label,
+      acronym: node.label ?? entry.label,
+      tags: node.tags,
+      metadata: node.metadata,
     }
   })
 }
@@ -40,14 +40,14 @@ export const resolveAtlasDefinition = (state: RootState, atlasId?: string) => {
 
 export const buildAtlasOrderFromDefinition = (
   atlasDefinition: AtlasDefinition,
-): MatrixOrderEntry[] =>
-  atlasDefinition.rois.map((roi) => ({
-    id: String(roi.id),
-    label: roi.name ?? roi.label ?? String(roi.id),
-    name: roi.name ?? roi.label ?? String(roi.id),
-    acronym: roi.label ?? roi.name ?? String(roi.id),
-    tags: roi.tags,
-    metadata: roi.metadata,
+): NodeOrderEntry[] =>
+  atlasDefinition.nodes.map((node) => ({
+    id: String(node.id),
+    label: node.name ?? node.label ?? String(node.id),
+    name: node.name ?? node.label ?? String(node.id),
+    acronym: node.label ?? node.name ?? String(node.id),
+    tags: node.tags,
+    metadata: node.metadata,
   }))
 
 export const getInitialDataFileName = (

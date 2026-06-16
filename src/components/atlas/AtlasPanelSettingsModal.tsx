@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 import {
   atlasSupports3d,
-  getCommonRoiFields,
+  getCommonNodeFields,
   getDefaultGroupByFields,
   humanizeFieldName,
 } from "@/utils/atlas/atlasDefinition";
@@ -32,7 +32,7 @@ export default function AtlasPanelSettingsModal({
   const atlasDefinition = useActiveAtlasDefinition();
 
   const availableGroupFields = useMemo(
-    () => getCommonRoiFields(atlasDefinition),
+    () => getCommonNodeFields(atlasDefinition),
     [atlasDefinition],
   );
 
@@ -159,7 +159,7 @@ export default function AtlasPanelSettingsModal({
               type="info"
               showIcon
               message="No grouping fields selected"
-              description="ROIs are shown without categorical grouping."
+              description="Nodes are shown without categorical grouping."
               action={
                 canApplySuggestedFields ? (
                   <Button size="small" onClick={handleApplySuggestedGroupFields}>

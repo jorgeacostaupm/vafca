@@ -48,23 +48,21 @@ export default function GroupingHierarchyPreviews({
 
   return (
     <div className="network-settings-grouping__previews">
-      <MatrixHierarchyPreview
-        matrixPreviewIds={hierarchy.matrixPreviewIds}
-        activeRoiCount={hierarchy.activeRoiIds.length}
-        nodeColors={hierarchy.previewNodeColors}
-        displayWidth={GROUPING_MATRIX_HIERARCHY_PREVIEW_WIDTH}
-        displayHeight={GROUPING_HIERARCHY_PREVIEW_HEIGHT}
-        orientation="vertical"
-      />
       <CircularHierarchyPreview
         layout={hierarchy.circularPreviewLayout}
         previewLinks={hierarchy.circularPreviewLinks}
-        activeRoiCount={hierarchy.activeRoiIds.length}
         previewRadius={hierarchy.previewRadius}
         nodeColors={hierarchy.previewNodeColors}
         linkTension={circularLinkTension}
         bundlingEnabled={circularBundlingEnabled}
         displayWidth={GROUPING_CIRCULAR_HIERARCHY_PREVIEW_WIDTH}
+      />
+      <MatrixHierarchyPreview
+        matrixPreviewIds={hierarchy.matrixPreviewIds}
+        nodeColors={hierarchy.previewNodeColors}
+        displayWidth={GROUPING_MATRIX_HIERARCHY_PREVIEW_WIDTH}
+        displayHeight={GROUPING_HIERARCHY_PREVIEW_HEIGHT}
+        orientation="horizontal"
       />
     </div>
   );

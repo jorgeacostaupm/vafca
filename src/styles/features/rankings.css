@@ -79,11 +79,11 @@
   text-align: center;
 }
 
-.ranking-result__table--rois .ant-pagination-total-text {
+.ranking-result__table--nodes .ant-pagination-total-text {
   margin-inline-end: auto;
 }
 
-.ranking-result__table--rois .ranking-result__pagination-summary {
+.ranking-result__table--nodes .ranking-result__pagination-summary {
   display: inline-flex;
 }
 

@@ -1,5 +1,5 @@
 import { applyLinkMask, applyNodeMask } from "@/components/network/networkFormatting";
-import { adaptDataByViewType } from "@/components/network/networkViewAdapters";
+import { toRenderDataByViewType } from "@/components/network/networkViewRenderData";
 import type { NetworkViewValueFilters } from "@/types/networkViews";
 import type { ComputedView, NetworkViewType } from "@/types/networkVisualization";
 import { filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
@@ -140,7 +140,7 @@ const buildMaskedNodeLinkData = ({
   return maskedNodeLink;
 };
 
-export const buildAdaptedNetworkViewData = ({
+export const buildNetworkViewRenderData = ({
   viewType,
   computed,
   valueFilters,
@@ -163,7 +163,7 @@ export const buildAdaptedNetworkViewData = ({
       allowedLinkIds,
       zoomAllowedLinkIds,
     });
-    return adaptDataByViewType("matrix", {
+    return toRenderDataByViewType("matrix", {
       data: maskedMatrix.data,
       rowLabels: maskedMatrix.rowLabels ?? [],
       colLabels: maskedMatrix.colLabels ?? [],
@@ -176,7 +176,7 @@ export const buildAdaptedNetworkViewData = ({
     allowedLinkIds,
     zoomAllowedLinkIds,
   });
-  return adaptDataByViewType(viewType, {
+  return toRenderDataByViewType(viewType, {
     data: maskedNodeLink.data,
     rowLabels: maskedNodeLink.rowLabels ?? [],
     colLabels: maskedNodeLink.rowLabels ?? [],

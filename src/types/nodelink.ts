@@ -15,7 +15,7 @@ export type NodeLinkPanelCommonProps = {
   data: number[][];
   labels?: string[];
   compoundId: string;
-  matrixLabel: string;
+  networkLabel: string;
   svgRef?: RefObject<SVGSVGElement | null>;
   valueFilters?: NodeLinkValueFilters;
   selectedZoomLabels?: string[];

@@ -4,7 +4,7 @@ import type {
   CategoryOrderMap,
   MoveDirection,
 } from "@/components/management/types";
-import { getRoiFieldValue, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
+import { getNodeFieldValue, normalizeNodeFieldValue } from "@/utils/atlas/atlasDefinition";
 import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
 
 const moveItem = (
@@ -43,14 +43,14 @@ export const buildCategoryOrderEditors = ({
   categoryOrder,
   sourceIds,
 }: BuildCategoryOrderEditorsArgs): CategoryOrderEditor[] => {
-  if (!atlasDefinition?.rois?.length || hierarchyFields.length === 0) {
+  if (!atlasDefinition?.nodes?.length || hierarchyFields.length === 0) {
     return [];
   }
 
-  const roiById = new Map(
-    atlasDefinition.rois.flatMap((roi) => [
-      [String(roi.id), roi] as const,
-      [String(roi.atlasId), roi] as const,
+  const nodeById = new Map(
+    atlasDefinition.nodes.flatMap((node) => [
+      [String(node.id), node] as const,
+      [String(node.atlasId), node] as const,
     ]),
   );
 
@@ -63,9 +63,9 @@ export const buildCategoryOrderEditors = ({
     }
   >();
 
-  sourceIds.forEach((roiId) => {
-    const roi = roiById.get(roiId);
-    if (!roi) return;
+  sourceIds.forEach((nodeId) => {
+    const node = nodeById.get(nodeId);
+    if (!node) return;
 
     const parentValues: string[] = [];
     hierarchyFields.forEach((field, fieldIndex) => {
@@ -77,7 +77,7 @@ export const buildCategoryOrderEditors = ({
           values: new Set<string>(),
         });
       }
-      const value = normalizeRoiFieldValue(getRoiFieldValue(roi, field));
+      const value = normalizeNodeFieldValue(getNodeFieldValue(node, field));
       editorMap.get(orderKey)?.values.add(value);
       parentValues.push(value);
     });

@@ -1,8 +1,8 @@
 import * as d3 from "d3";
 
-import type { AtlasDefinition, AtlasRoi } from "@/types/atlas";
+import type { AtlasDefinition, AtlasNode } from "@/types/atlas";
 import type { CircularBundlePathPoint, CircularHierarchyLayoutPoint } from "@/types/circular";
-import { getRoiFieldValue, normalizeRoiFieldValue } from "@/utils/atlas/atlasDefinition";
+import { getNodeFieldValue, normalizeNodeFieldValue } from "@/utils/atlas/atlasDefinition";
 
 type CircularHierarchyLayoutParams = {
   labelIds: string[];
@@ -107,7 +107,7 @@ const toHierarchyData = (
 const buildHierarchyRoot = (
   labelIds: string[],
   hierarchyFields: string[],
-  roiById: Map<string, AtlasRoi>,
+  nodeById: Map<string, AtlasNode>,
 ) => {
   const root: MutableHierarchyNode = {
     key: "root",
@@ -116,10 +116,10 @@ const buildHierarchyRoot = (
   };
 
   labelIds.forEach((labelId, inputOrder) => {
-    const roi = roiById.get(labelId);
+    const node = nodeById.get(labelId);
     let cursor = root;
     hierarchyFields.forEach((field) => {
-      const key = normalizeRoiFieldValue(getRoiFieldValue(roi, field));
+      const key = normalizeNodeFieldValue(getNodeFieldValue(node, field));
       let next = cursor.children.get(key);
       if (!next) {
         next = {
@@ -163,17 +163,17 @@ export const buildCircularHierarchyBundleLayout = ({
   if (labelIds.length === 0) return buildUniformBundleLayout(labelIds, radius);
 
   const cleanFields = hierarchyFields.filter((field) => field.trim().length > 0);
-  if (!atlasDefinition?.rois?.length || cleanFields.length === 0) {
+  if (!atlasDefinition?.nodes?.length || cleanFields.length === 0) {
     return buildUniformBundleLayout(labelIds, radius);
   }
 
-  const roiById = new Map(
-    atlasDefinition.rois.flatMap((roi) => [
-      [String(roi.id), roi] as const,
-      [String(roi.atlasId), roi] as const,
+  const nodeById = new Map(
+    atlasDefinition.nodes.flatMap((node) => [
+      [String(node.id), node] as const,
+      [String(node.atlasId), node] as const,
     ]),
   );
-  const hierarchyRoot = buildHierarchyRoot(labelIds, cleanFields, roiById);
+  const hierarchyRoot = buildHierarchyRoot(labelIds, cleanFields, nodeById);
   const hierarchyData = toHierarchyData(hierarchyRoot, 0, [], categoryOrder);
   const root = d3.hierarchy<HierarchyDataNode>(
     hierarchyData,

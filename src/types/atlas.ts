@@ -1,22 +1,14 @@
 import type { D3GroupingPaletteKey } from "@/config/groupingPalettes";
+import type { NodeCoordinates, NodeTagValue } from "@/types/network";
 
-export type AtlasTagValue = string | number | boolean | null;
-
-export type AtlasRoiCoords = {
-  x: number;
-  y: number;
-  z: number;
-  space?: string;
-};
-
-export type AtlasRoi = {
+export type AtlasNode = {
   index: number;
   id: string;
   atlasId: string | number;
   name: string;
   label: string;
-  tags: Record<string, AtlasTagValue>;
-  coords?: AtlasRoiCoords | null;
+  tags: Record<string, NodeTagValue>;
+  coords?: NodeCoordinates | null;
   metadata?: Record<string, unknown>;
   mesh_points?: number[][];
 };
@@ -28,7 +20,7 @@ export type AtlasDefinition = {
   version?: string;
   space?: string;
   coordinateSystem?: string;
-  rois: AtlasRoi[];
+  nodes: AtlasNode[];
 };
 
 export type AtlasSource = {
@@ -41,7 +33,7 @@ export type AtlasLabel = {
   label: string;
   name?: string;
   acronym?: string;
-  tags?: Record<string, AtlasTagValue>;
+  tags?: Record<string, NodeTagValue>;
   metadata?: Record<string, unknown>;
   enabled: boolean;
 };

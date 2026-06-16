@@ -1,4 +1,4 @@
-import type { ScaleType, UiRangeMode } from "@/types/connectivityBundle";
+import type { ScaleType, UiRangeMode } from "@/types/network";
 
 export type HoveredCell =
   | {
@@ -16,7 +16,7 @@ export type SelectedLink = {
   directed?: boolean;
   sources: Array<{
     compoundId: string;
-    matrixLabel: string;
+    networkLabel: string;
     value: number;
   }>;
 };
@@ -27,7 +27,7 @@ export type AtlasPanelState = {
   groupByFieldsInitialized: boolean;
   selectedFilters: Record<string, string>;
   collapsedGroups: string[];
-  roiVisibilityDraft: Record<string, boolean> | null;
+  nodeVisibilityDraft: Record<string, boolean> | null;
   viewerHeight: number;
   is3dAvailable: boolean;
 };
@@ -53,6 +53,8 @@ export type MatrixVisualStyle = {
   selectionColor: string;
 };
 
+export type NodeLinkVisualStyle = MatrixVisualStyle;
+
 export type VisualizationUiState = {
   hoveredCell: HoveredCell;
   hoveredNodeId: string | null;
@@ -62,5 +64,6 @@ export type VisualizationUiState = {
   selectedLinksDownloadError: string | null;
   uiRangeMode: UiRangeMode;
   matrixColorSettings: MatrixColorSettingsState;
+  nodeLinkVisualStyle: NodeLinkVisualStyle;
   atlasPanel: AtlasPanelState;
 };

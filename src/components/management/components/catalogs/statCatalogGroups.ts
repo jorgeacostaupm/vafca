@@ -1,4 +1,4 @@
-import type { ConnectivityMatrix, StatCatalogEntry } from "@/types/connectivityBundle";
+import type { Network, Statistic } from "@/types/network";
 
 export type StatCatalogGroup = "matrix" | "comparison";
 
@@ -26,18 +26,18 @@ const MATRIX_STAT_CATEGORIES = new Set([
 ]);
 
 export const classifyStatCatalogItem = (
-  stat: Pick<StatCatalogEntry, "id" | "category">,
-  matrices: ConnectivityMatrix[],
+  stat: Pick<Statistic, "id" | "category">,
+  networks: Network[],
 ): StatCatalogGroup => {
-  const usage = buildStatUsageById(matrices)[stat.id];
+  const usage = buildStatUsageById(networks)[stat.id];
   return classifyStatCatalogItemWithUsage(stat, usage);
 };
 
-export const buildStatUsageById = (matrices: ConnectivityMatrix[]): StatUsageById =>
-  matrices.reduce<StatUsageById>((usageById, matrix) => {
-    const statId = matrix.stat.id;
+export const buildStatUsageById = (networks: Network[]): StatUsageById =>
+  networks.reduce<StatUsageById>((usageById, network) => {
+    const statId = network.statisticId;
     const current = usageById[statId] ?? { comparison: false, matrix: false };
-    if (matrix.kind === "comparison") {
+    if (network.source.type === "comparison") {
       current.comparison = true;
     } else {
       current.matrix = true;
@@ -47,7 +47,7 @@ export const buildStatUsageById = (matrices: ConnectivityMatrix[]): StatUsageByI
   }, {});
 
 export const classifyStatCatalogItemWithUsage = (
-  stat: Pick<StatCatalogEntry, "id" | "category">,
+  stat: Pick<Statistic, "id" | "category">,
   usage?: StatUsageById[string],
 ): StatCatalogGroup => {
   if (usage?.comparison) return "comparison";

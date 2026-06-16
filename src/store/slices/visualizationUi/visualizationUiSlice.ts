@@ -4,8 +4,8 @@ import {
   cloneMatrixColorSettings,
   resetMatrixScaleInteractionColors,
 } from '@/config/matrixColorScales'
-import type { CatalogMatrixPrunePayload } from '@/store/slices/dataset/utils/catalogMatrixPruning'
-import type { ScaleType, UiRangeMode } from '@/types/connectivityBundle'
+import type { CatalogNetworkPrunePayload } from '@/store/slices/dataset/utils/catalogNetworkPruning'
+import type { ScaleType, UiRangeMode } from '@/types/network'
 import type {
   AtlasPanelState,
   HoveredCell,
@@ -76,7 +76,7 @@ const visualizationUiSlice = createSlice({
     },
     pruneSelectedLinksForDisabledCatalogItem(
       state,
-      action: PayloadAction<CatalogMatrixPrunePayload>,
+      action: PayloadAction<CatalogNetworkPrunePayload>,
     ) {
       const invalidCompoundIds = new Set(action.payload.invalidCompoundIds)
       state.selectedLinks = state.selectedLinks
@@ -159,6 +159,20 @@ const visualizationUiSlice = createSlice({
       }
       state.matrixColorSettings.draft[scaleType].selectionColor = color
     },
+    setNodeLinkInteractionColor(
+      state,
+      action: PayloadAction<{
+        colorRole: 'highlight' | 'selection'
+        color: string
+      }>,
+    ) {
+      const { colorRole, color } = action.payload
+      if (colorRole === 'highlight') {
+        state.nodeLinkVisualStyle.highlightColor = color
+        return
+      }
+      state.nodeLinkVisualStyle.selectionColor = color
+    },
     applyMatrixColorSettings(state) {
       state.matrixColorSettings.applied = cloneMatrixColorSettings(
         state.matrixColorSettings.draft,
@@ -211,6 +225,7 @@ export const {
   setDraftMatrixColorInvert,
   setDraftMatrixColorDiscreteSteps,
   setDraftMatrixInteractionColor,
+  setNodeLinkInteractionColor,
   applyMatrixColorSettings,
   resetDraftMatrixColorSettings,
   setAtlasPanelState,

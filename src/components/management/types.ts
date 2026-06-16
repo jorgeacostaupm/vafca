@@ -1,5 +1,5 @@
 import type { AtlasDefinition } from "@/types/atlas";
-import type { Catalogs } from "@/types/connectivityBundle";
+import type { Catalogs } from "@/types/network";
 
 export type CatalogKey = keyof Catalogs;
 

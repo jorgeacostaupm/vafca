@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { addZodIssues } from "@/utils/import/schemas/importSchemaIssues";
-import type { ConnectivityImportIssue } from "@/utils/import/types";
+import type { NetworkImportIssue } from "@/utils/import/types";
 
 export const CatalogsImportSchema = z.record(z.string(), z.unknown());
 
@@ -10,7 +10,7 @@ export type CatalogsImportRecord = z.infer<typeof CatalogsImportSchema>;
 export const parseCatalogsImportRecord = (
   payload: unknown,
   source: string,
-  errors: ConnectivityImportIssue[],
+  errors: NetworkImportIssue[],
 ): CatalogsImportRecord | null => {
   const result = CatalogsImportSchema.safeParse(payload);
 

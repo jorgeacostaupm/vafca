@@ -1,7 +1,7 @@
 import { getCompactor } from 'react-grid-layout'
 
-import type { UiRangeMode } from '@/types/connectivityBundle'
 import type { MatrixBrushMode } from '@/types/matrixHeatmap'
+import type { UiRangeMode } from '@/types/network'
 import type { NetworkSummaryFieldId } from '@/types/networkMeasures'
 import type { NetworkMatrixSelectorMode, NetworkViewType } from '@/types/networkVisualization'
 import type { LinkCollectionRankingMode, RankingTarget, RankingTopN } from '@/types/rankings'
@@ -36,6 +36,8 @@ export const MATRIX_COLOR_PREVIEW_HORIZONTAL_PADDING = 18
 export const MATRIX_COLOR_PREVIEW_MIN_LENGTH = 140
 export const MATRIX_COLOR_LEGEND_THICKNESS = 10
 export const MATRIX_COLOR_LEGEND_VERTICAL_OFFSET = 16
+export const DEFAULT_NODE_LINK_HIGHLIGHT_COLOR = '#d64545'
+export const DEFAULT_NODE_LINK_SELECTION_COLOR = '#f0b429'
 
 // Matrix overlay defaults.
 export const MATRIX_HOVER_AXIS_GAP = 1.2
@@ -70,7 +72,7 @@ export const DEFAULT_RANKING_TARGET: RankingTarget = 'links'
 export const DEFAULT_RANKING_TOP_N: RankingTopN = 50
 export const DEFAULT_LINK_COLLECTION_RANKING_MODE: LinkCollectionRankingMode = 'aggregated'
 export const DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS = false
-export const DEFAULT_ROI_RANKING_ALLOW_AUTOCONNECTIONS = false
+export const DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS = false
 export const RANKING_TOP_N_OPTIONS = [10, 25, 50, 100, 250, 500] as const
 
 // Network summary defaults.
@@ -88,14 +90,14 @@ export const NETWORK_SUMMARY_FIELD_GROUPS: Array<{
     key: 'identity',
     label: 'Identity',
     fields: [
-      { id: 'identity.matrixId', label: 'Matrix ID' },
-      { id: 'identity.label', label: 'Matrix label' },
-      { id: 'identity.kind', label: 'Matrix type' },
+      { id: 'identity.networkId', label: 'Network ID' },
+      { id: 'identity.label', label: 'Network label' },
+      { id: 'identity.kind', label: 'Network type' },
       { id: 'identity.measure', label: 'Measure' },
       { id: 'identity.statistic', label: 'Statistic' },
       { id: 'identity.layer', label: 'Layer' },
       { id: 'identity.population', label: 'Population' },
-      { id: 'identity.matrixSize', label: 'Matrix size' },
+      { id: 'identity.dataSize', label: 'Data size' },
       { id: 'identity.nodeCount', label: 'Nodes' },
       { id: 'identity.symmetric', label: 'Symmetric' },
       { id: 'identity.directed', label: 'Directed' },
@@ -162,12 +164,12 @@ export const NETWORK_SUMMARY_FIELD_GROUPS: Array<{
     key: 'tables',
     label: 'Tables',
     fields: [
-      { id: 'nodes.topByDegree', label: 'Top ROIs by degree' },
-      { id: 'nodes.isolated', label: 'Isolated ROIs' },
+      { id: 'nodes.topByDegree', label: 'Top nodes by degree' },
+      { id: 'nodes.isolated', label: 'Isolated nodes' },
       { id: 'links.topAbs', label: 'Top links by absolute value' },
       { id: 'links.topPositive', label: 'Top positive links' },
       { id: 'links.topNegative', label: 'Top negative links' },
-      { id: 'groups.summary', label: 'Atlas group summary' },
+      { id: 'groups.summary', label: 'Node group summary' },
     ],
   },
 ]
@@ -193,32 +195,33 @@ export const DEFAULT_RANKING_PANEL_LAYOUT = {
 // Network settings modal defaults.
 export const DEFAULT_NETWORK_SETTINGS_TAB = 'views'
 export const DEFAULT_NETWORK_SETTINGS_MODAL_WIDTH = 860
-export const GROUPING_NETWORK_SETTINGS_MODAL_WIDTH = 1120
 export const DEFAULT_NETWORK_SETTINGS_MODAL_TOP = 48
 export const DEFAULT_HIERARCHY_SETTINGS_TAB = 'configuration'
-export const DEFAULT_NETWORK_EDGE_FILTER_TAB = 'roi'
+export const DEFAULT_NETWORK_EDGE_FILTER_TAB = 'original'
 export const MIN_GROUPING_COLOR_PREVIEW_ITEMS = 7
 export const CIRCULAR_HIERARCHY_PREVIEW_WIDTH = 390
 export const MATRIX_HIERARCHY_PREVIEW_WIDTH = 520
 export const MATRIX_HIERARCHY_PREVIEW_HEIGHT = 150
-export const GROUPING_HIERARCHY_PREVIEW_HEIGHT = 260
-export const GROUPING_MATRIX_HIERARCHY_PREVIEW_WIDTH = 168
-export const GROUPING_CIRCULAR_HIERARCHY_PREVIEW_WIDTH = 260
+export const GROUPING_HIERARCHY_PREVIEW_HEIGHT = 128
+export const GROUPING_MATRIX_HIERARCHY_PREVIEW_WIDTH = 452
+export const GROUPING_CIRCULAR_HIERARCHY_PREVIEW_WIDTH = 452
 
 // Data and calculation modal defaults.
 export const DEFAULT_DATA_MANAGEMENT_TAB = 'load'
 export const DEFAULT_CATALOG_MANAGEMENT_TAB = 'populations'
 export const DEFAULT_DERIVED_MATRIX_CALCULATION_TAB = 'comparison'
-export const DEFAULT_CONNECTIVITY_IMPORT_MODE = 'lenient'
+export const DEFAULT_NETWORK_IMPORT_MODE = 'lenient'
 export const MAX_VISIBLE_IMPORT_ISSUES = 5
 
 // Circular view defaults.
 export const DEFAULT_CIRCULAR_LINK_TENSION = 0.85
 export const DEFAULT_CIRCULAR_BUNDLING_ENABLED = true
 export const CIRCULAR_PREVIEW_FAKE_LINK_DENSITY = 0.02
+export const CIRCULAR_LAYOUT_EDGE_PADDING = 10
 export const CIRCULAR_NODE_RADIUS = 5
 export const CIRCULAR_NODE_HOVER_RADIUS_OFFSET = 2
 export const CIRCULAR_LABEL_FONT_SIZE = 11
+export const CIRCULAR_LABEL_FALLBACK_CHAR_WIDTH_RATIO = 0.58
 export const CIRCULAR_LABEL_OFFSET = 8
 export const CIRCULAR_LABEL_DY = 4
 export const CIRCULAR_LABEL_SELECTION_BACKGROUND_PADDING_X = 3

@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import {
   DEFAULT_MATRIX_COLOR_DISCRETE_STEPS,
 } from "@/config/ui";
-import type { ScaleType } from "@/types/connectivityBundle";
+import type { ScaleType } from "@/types/network";
 import type {
   MatrixColorScaleSettings,
   MatrixColorSettings,

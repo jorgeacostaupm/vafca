@@ -17,7 +17,7 @@
   width: 100%;
 }
 
-.network-summary-controls__matrix-row {
+.network-summary-controls__network-row {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) auto;
   gap: var(--space-3);
@@ -237,7 +237,7 @@
 }
 
 @media (max-width: 760px) {
-  .network-summary-controls__matrix-row,
+  .network-summary-controls__network-row,
   .network-summary-controls__filter-grid,
   .network-summary-executive,
   .network-summary-settings__options,

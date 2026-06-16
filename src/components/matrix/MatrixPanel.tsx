@@ -15,7 +15,7 @@ type MatrixHeatmapPanelProps = {
   rowLabels?: string[];
   colLabels?: string[];
   compoundId: string;
-  matrixLabel: string;
+  networkLabel: string;
   symmetric: boolean;
   svgRef?: RefObject<SVGSVGElement | null>;
   legendMin?: number;
@@ -43,7 +43,7 @@ export default function MatrixHeatmapPanel({
   rowLabels,
   colLabels,
   compoundId,
-  matrixLabel,
+  networkLabel,
   symmetric,
   svgRef,
   legendMin,
@@ -80,13 +80,13 @@ export default function MatrixHeatmapPanel({
     colLabels,
     labelNames,
     compoundId,
-    matrixLabel,
+    networkLabel,
     symmetric,
   });
 
   const valueLabel = useMemo(
-    () => buildTooltipValueLabel(matrixLabel),
-    [matrixLabel],
+    () => buildTooltipValueLabel(networkLabel),
+    [networkLabel],
   );
 
   return (

@@ -3,10 +3,10 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlasUi'
 import { selectDatasetData, syncDatasetDerivedState } from '@/store/slices/dataset'
 import type { RootState } from '@/types/store'
-import { buildMatrixDerivedAtlasSource } from '@/utils/atlas/matrixDerivedAtlas'
-import { checkAtlasMatrixCompatibility } from '@/utils/atlasCompatibility'
-import { getDatasetMatrixOrder } from '@/utils/datasetAccessors'
-import { normalizeMatrixOrder } from '@/utils/matrixOrder'
+import { buildNodeDerivedAtlasSource } from '@/utils/atlas/nodeDerivedAtlas'
+import { checkAtlasNodeCompatibility } from '@/utils/atlasCompatibility'
+import { getDatasetNodeOrder } from '@/utils/datasetAccessors'
+import { normalizeNodeOrder } from '@/utils/nodeOrder'
 
 import { setUploadedAtlas } from '../atlasDefinitionSlice'
 import { getUploadAtlasErrorMessage } from '../utils/atlasDefinitionThunkUtils'
@@ -25,18 +25,18 @@ export const uploadAtlasDefinitionAndSync = createAsyncThunk<
     try {
       const result = await dispatch(uploadAtlasDefinitionFromFile({ file })).unwrap()
 
-      const matrixOrder = getDatasetMatrixOrder(selectDatasetData(getState()))
-      const compatibility = checkAtlasMatrixCompatibility(matrixOrder, result.atlas)
+      const nodeOrder = getDatasetNodeOrder(selectDatasetData(getState()))
+      const compatibility = checkAtlasNodeCompatibility(nodeOrder, result.atlas)
       if (!compatibility.compatible) {
-        const matrixDerivedAtlas = buildMatrixDerivedAtlasSource(matrixOrder)
-        if (matrixDerivedAtlas) {
-          dispatch(setUploadedAtlas(matrixDerivedAtlas))
-          dispatch(setAtlasLabels(buildAtlasState(normalizeMatrixOrder(matrixOrder))))
+        const nodeDerivedAtlas = buildNodeDerivedAtlasSource(nodeOrder)
+        if (nodeDerivedAtlas) {
+          dispatch(setUploadedAtlas(nodeDerivedAtlas))
+          dispatch(setAtlasLabels(buildAtlasState(normalizeNodeOrder(nodeOrder))))
         }
         await dispatch(syncDatasetDerivedState())
         return {
           ...result,
-          compatibilityWarning: `${result.fileName} is not compatible with the loaded matrices. ${compatibility.reason} Using the matrix-derived atlas instead.`,
+          compatibilityWarning: `${result.fileName} is not compatible with the loaded node set. ${compatibility.reason} Using the node-derived atlas instead.`,
         }
       }
 

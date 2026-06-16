@@ -4,7 +4,6 @@ import {
   DEFAULT_NETWORK_SETTINGS_MODAL_TOP,
   DEFAULT_NETWORK_SETTINGS_MODAL_WIDTH,
   DEFAULT_NETWORK_SETTINGS_TAB,
-  GROUPING_NETWORK_SETTINGS_MODAL_WIDTH,
 } from "@/config/ui";
 
 import CircularSettingsTab from "./CircularSettingsTab";
@@ -43,13 +42,10 @@ export default function NetworkVisualizationSettingsModal({
       open={open}
       onCancel={onClose}
       footer={null}
-      width={
-        currentTab === "grouping"
-          ? GROUPING_NETWORK_SETTINGS_MODAL_WIDTH
-          : DEFAULT_NETWORK_SETTINGS_MODAL_WIDTH
-      }
+      width={DEFAULT_NETWORK_SETTINGS_MODAL_WIDTH}
       style={{ top: DEFAULT_NETWORK_SETTINGS_MODAL_TOP }}
-      destroyOnHidden
+      className="network-settings-modal"
+      forceRender
     >
       <Tabs
         activeKey={currentTab}
@@ -74,7 +70,7 @@ export default function NetworkVisualizationSettingsModal({
           },
           {
             key: "circular",
-            label: "Circular",
+            label: "Node-Link",
             children: <CircularSettingsTab />,
           },
           {

@@ -1,12 +1,12 @@
-import type { MatrixViewData } from "@/types/connectivityBundle";
+import type { StoredNetworkView } from "@/types/networkViewStore";
 import type { SelectedLink } from "@/types/visualizationUi";
 
-export type MatrixOption = {
+export type NetworkOption = {
   value: string;
   label: string;
 };
 
-export type MatrixColumn = {
+export type NetworkColumn = {
   compoundId: string;
   label: string;
 };
@@ -19,19 +19,19 @@ export type LinkRow = {
 
 export type DownloadMode = "all" | "viewer";
 
-export type MatrixLookup = Record<string, MatrixViewData | null>;
+export type NetworkLookup = Record<string, StoredNetworkView | null>;
 
 export type BuildLinkValuesParams = {
   link: SelectedLink;
-  layerIds: string[];
-  matrixLookup: MatrixLookup;
+  networkIds: string[];
+  networkLookup: NetworkLookup;
   atlasIndex: Map<string, number>;
 };
 
 export type BuildRowsParams = {
   links: SelectedLink[];
-  selectedMatrixIds: string[];
-  matrixLookup: MatrixLookup;
+  selectedNetworkIds: string[];
+  networkLookup: NetworkLookup;
   atlasIndex: Map<string, number>;
 };
 
@@ -49,8 +49,8 @@ export type SelectedLinksExportPayload = {
   exportedAt: string;
   mode: DownloadMode;
   linksCount: number;
-  layersCount: number;
-  layers: Array<{
+  networksCount: number;
+  networks: Array<{
     compoundId: string;
     label: string;
   }>;

@@ -1,47 +1,49 @@
 import type {
-  ConnectivityDataState,
-  ExpectedRange,
   MatrixLayout,
   RangeMode,
   ScaleType,
-} from "@/types/connectivityBundle";
-import type { MatrixOrderEntry } from "@/types/matrixOrder";
+  ValueRange,
+} from "@/types/network";
+import type { NetworkDataset } from "@/types/network";
+import type { NodeOrderEntry } from "@/types/nodeOrder";
 
 export const NORMALIZED_DATASET_SCHEMA_VERSION = "vafca-normalized-dataset-v1" as const;
 
-export type ConnectivityImportMode = "lenient" | "strict";
+export type NetworkImportMode = "lenient" | "strict";
 
-export type ConnectivityImportIssue = {
+export type NetworkImportIssue = {
   source: string;
   path: string;
   message: string;
 };
 
-export type RawZipMatrixFile = {
+export type ExpectedRange = ValueRange | null;
+
+export type RawMatrixFile = {
   source: string;
   payload: unknown;
 };
 
-export type RawConnectivityZipPackage = {
+export type RawNetworkPackage = {
   fileName: string;
   files: string[];
   manifest: unknown | null;
   catalogs: unknown | null;
   catalogFiles: Record<string, unknown>;
-  rois: unknown | null;
-  matrixFiles: RawZipMatrixFile[];
-  errors: ConnectivityImportIssue[];
-  warnings: ConnectivityImportIssue[];
+  nodeMetadata: unknown | null;
+  matrixFiles: RawMatrixFile[];
+  errors: NetworkImportIssue[];
+  warnings: NetworkImportIssue[];
 };
 
-export type ImportLayerCatalogItem = {
+export type LayerDraft = {
   id: string;
   label?: string;
   description?: string | null;
   enabled?: boolean;
 };
 
-export type ImportMeasureCatalogItem = {
+export type MeasureDraft = {
   id: string;
   label: string;
   min?: number;
@@ -51,7 +53,7 @@ export type ImportMeasureCatalogItem = {
   enabled?: boolean;
 };
 
-export type ImportStatCatalogItem = {
+export type StatisticDraft = {
   id: string;
   label: string;
   category?: string;
@@ -66,21 +68,21 @@ export type ImportStatCatalogItem = {
   useDataRange?: boolean;
 };
 
-export type ImportPopulationCatalogItem = {
+export type PopulationDraft = {
   id: string;
   label: string;
   description?: string | null;
   enabled?: boolean;
 };
 
-export type ImportCatalogs = {
-  layers: Record<string, ImportLayerCatalogItem>;
-  measures: Record<string, ImportMeasureCatalogItem>;
-  stats: Record<string, ImportStatCatalogItem>;
-  populations: Record<string, ImportPopulationCatalogItem>;
+export type CatalogsDraft = {
+  layers: Record<string, LayerDraft>;
+  measures: Record<string, MeasureDraft>;
+  statistics: Record<string, StatisticDraft>;
+  populations: Record<string, PopulationDraft>;
 };
 
-export type NormalizedRoi = {
+export type NodeDraft = {
   index: number;
   id: string;
   label: string;
@@ -89,14 +91,14 @@ export type NormalizedRoi = {
   metadata: Record<string, unknown>;
 };
 
-export type NormalizedMatrix = {
+export type ImportedNetworkDraft = {
   id: string;
   label: string;
   kind: "population" | "subject" | "comparison";
   layout: MatrixLayout;
   layerId: string;
   measureId: string;
-  statId: string;
+  statisticId: string;
   populationIds: string[];
   subjectId?: string;
   comparison?: {
@@ -115,10 +117,10 @@ export type NormalizedMatrix = {
   source: string;
 };
 
-export type NormalizedImportInference = {
-  generatedRois: boolean;
-  generatedRoiIds: string[];
-  generatedMatrixIds: string[];
+export type NetworkImportInference = {
+  generatedNodes: boolean;
+  generatedNodeIds: string[];
+  generatedNetworkIds: string[];
   inferredFields: Array<{
     source: string;
     field: string;
@@ -126,31 +128,31 @@ export type NormalizedImportInference = {
   }>;
 };
 
-export type NormalizedConnectivityDataset = {
+export type NetworkDatasetDraft = {
   schemaVersion: typeof NORMALIZED_DATASET_SCHEMA_VERSION;
   source: {
     format: "zip";
     fileName: string;
     importedAt: string;
-    importMode: ConnectivityImportMode;
+    importMode: NetworkImportMode;
   };
   manifest: Record<string, unknown>;
   atlas: {
     id: string;
     name: string;
-    rois: NormalizedRoi[];
+    nodes: NodeDraft[];
   };
-  catalogs: ImportCatalogs;
-  matrices: NormalizedMatrix[];
-  inference: NormalizedImportInference;
+  catalogs: CatalogsDraft;
+  networks: ImportedNetworkDraft[];
+  inference: NetworkImportInference;
   issues: {
-    errors: ConnectivityImportIssue[];
-    warnings: ConnectivityImportIssue[];
+    errors: NetworkImportIssue[];
+    warnings: NetworkImportIssue[];
   };
 };
 
-export type ConnectivityImportResult = {
-  normalized: NormalizedConnectivityDataset;
-  connectivity: ConnectivityDataState;
-  matrixOrder: MatrixOrderEntry[];
+export type NetworkImportResult = {
+  normalized: NetworkDatasetDraft;
+  dataset: NetworkDataset;
+  nodeOrder: NodeOrderEntry[];
 };

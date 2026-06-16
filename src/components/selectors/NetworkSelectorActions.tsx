@@ -7,16 +7,16 @@ import {
 import { Button, Space, Tooltip } from "antd";
 import { useState } from "react";
 
-import DerivedMatrixCalculationModal, {
-  type DerivedMatrixCalculationTab,
-} from "@/components/calculations/DerivedMatrixCalculationModal";
+import DerivedNetworkCalculationModal, {
+  type DerivedNetworkCalculationTab,
+} from "@/components/calculations/DerivedNetworkCalculationModal";
 import DataManagementModal from "@/components/management/DataManagementModal";
 import NetworkEdgeFilterModal from "@/components/network/edge-filter/NetworkEdgeFilterModal";
 import NetworkVisualizationSettingsModal, {
   type NetworkVisualizationSettingsTabKey,
 } from "@/components/network/settings/NetworkVisualizationSettingsModal";
 import { DEFAULT_NETWORK_SETTINGS_TAB } from "@/config/ui";
-import { getAvailableMatrixCalculations } from "@/networkDerivation/calculations";
+import { getAvailableNetworkCalculations } from "@/networkDerivation/calculations";
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetContent } from "@/store/slices/dataset";
 
@@ -97,7 +97,7 @@ function FilterAction() {
 
 type ComputeActionProps = {
   open: boolean;
-  initialTab: DerivedMatrixCalculationTab;
+  initialTab: DerivedNetworkCalculationTab;
   onOpen: () => void;
   onClose: () => void;
   onOpenGroupingSettings: () => void;
@@ -114,7 +114,7 @@ function ComputeAction({
     (state) => selectDatasetContent(state),
   );
   const calculationAvailable =
-    datasetContent && getAvailableMatrixCalculations(datasetContent).length > 0;
+    datasetContent && getAvailableNetworkCalculations(datasetContent).length > 0;
 
   return (
     <>
@@ -126,14 +126,14 @@ function ComputeAction({
         }
       >
         <Button
-          aria-label="Compute derived matrices"
+          aria-label="Compute derived networks"
           icon={<CalculatorOutlined />}
           disabled={!calculationAvailable}
           onClick={onOpen}
         />
       </Tooltip>
       {open ? (
-        <DerivedMatrixCalculationModal
+        <DerivedNetworkCalculationModal
           open={open}
           initialTab={initialTab}
           onClose={onClose}
@@ -151,7 +151,7 @@ export default function NetworkSelectorActions() {
   const [dataOpen, setDataOpen] = useState(false);
   const [computeOpen, setComputeOpen] = useState(false);
   const [computeInitialTab, setComputeInitialTab] =
-    useState<DerivedMatrixCalculationTab>("comparison");
+    useState<DerivedNetworkCalculationTab>("comparison");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] =
     useState<NetworkVisualizationSettingsTabKey>(DEFAULT_NETWORK_SETTINGS_TAB);
@@ -163,7 +163,7 @@ export default function NetworkSelectorActions() {
     setSettingsOpen(true);
   };
 
-  const openComputeModal = (tab: DerivedMatrixCalculationTab = "comparison") => {
+  const openComputeModal = (tab: DerivedNetworkCalculationTab = "comparison") => {
     setComputeInitialTab(tab);
     setComputeOpen(true);
   };

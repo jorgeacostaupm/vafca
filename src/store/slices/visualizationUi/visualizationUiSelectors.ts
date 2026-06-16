@@ -16,4 +16,6 @@ export const selectAppliedMatrixColorSettings = (state: RootState) =>
   state.visualizationUi.matrixColorSettings.applied
 export const selectDraftMatrixColorSettings = (state: RootState) =>
   state.visualizationUi.matrixColorSettings.draft
+export const selectNodeLinkVisualStyle = (state: RootState) =>
+  state.visualizationUi.nodeLinkVisualStyle
 export const selectAtlasPanelState = (state: RootState) => state.visualizationUi.atlasPanel

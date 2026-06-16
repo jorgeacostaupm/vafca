@@ -1,15 +1,15 @@
 import type {
-  ConnectivityDataState,
-  ConnectivityMatrix,
-  ExpectedRange,
-  MatrixKind,
+  Network,
+  NetworkDataset,
+  NetworkSource,
   RangeMode,
   ScaleType,
-} from "@/types/connectivityBundle";
+  ValueRange,
+} from "@/types/network";
 
 export const EPSILON = 1e-12;
 
-export type MatrixCalculationOperation =
+export type NetworkCalculationOperation =
   | "subject_zscore_vs_population"
   | "subject_difference"
   | "population_reference_zscore"
@@ -18,35 +18,35 @@ export type MatrixCalculationOperation =
   | "population_two_sample_z_test"
   | "population_welch_t";
 
-export type MatrixCalculationAssociatedOutputId =
+export type NetworkCalculationAssociatedOutputId =
   | "student_t_from_cohens_d"
   | "student_p_value_from_cohens_d"
   | "two_sample_z_p_value"
   | "welch_p_value";
 
-export type MatrixCalculationScope =
+export type NetworkCalculationScope =
   | "subject_vs_population"
   | "subject_vs_subject"
   | "population_vs_population";
 
-export type MatrixCalculationCategory =
+export type NetworkCalculationCategory =
   | "descriptive_standardization"
   | "group_comparison"
   | "effect_size"
   | "parametric_test";
 
-export type MatrixCalculationInputKind = Exclude<MatrixKind, "aggregated">;
+export type NetworkCalculationInputKind = NetworkSource["type"];
 
-export type MatrixCalculationInputSpec = {
+export type NetworkCalculationInputSpec = {
   role: string;
   label: string;
-  kind?: MatrixCalculationInputKind;
+  kind?: NetworkCalculationInputKind;
   statId?: string;
   sourceLevel?: "subject" | "population" | "comparison";
   required: boolean;
 };
 
-export type MatrixCalculationOutputSpec = {
+export type NetworkCalculationOutputSpec = {
   statId: string;
   statLabel: string;
   statCategory: "comparison" | "derived" | "aggregation";
@@ -57,53 +57,53 @@ export type MatrixCalculationOutputSpec = {
   scaleType: ScaleType;
   center: number | null;
   rangeMode: RangeMode;
-  expectedRange?: ExpectedRange;
+  expectedRange?: ValueRange | null;
   useDataRange?: boolean;
   description?: string | null;
 };
 
-export type MatrixCalculationAssociatedOutputSpec = {
-  id: MatrixCalculationAssociatedOutputId;
+export type NetworkCalculationAssociatedOutputSpec = {
+  id: NetworkCalculationAssociatedOutputId;
   label: string;
   description: string;
   defaultEnabled: boolean;
-  outputs: MatrixCalculationOutputSpec[];
+  outputs: NetworkCalculationOutputSpec[];
 };
 
-export type MatrixCalculationMethodDefinition = {
-  id: MatrixCalculationOperation;
+export type NetworkCalculationMethodDefinition = {
+  id: NetworkCalculationOperation;
   label: string;
   shortLabel: string;
-  scope: MatrixCalculationScope;
-  category: MatrixCalculationCategory;
+  scope: NetworkCalculationScope;
+  category: NetworkCalculationCategory;
   description: string;
   formulaText: string;
   formulaLatex?: string;
   interpretation: string;
   requirements: string[];
-  requiredInputs: MatrixCalculationInputSpec[];
-  outputs: MatrixCalculationOutputSpec[];
-  associatedOutputs?: MatrixCalculationAssociatedOutputSpec[];
+  requiredInputs: NetworkCalculationInputSpec[];
+  outputs: NetworkCalculationOutputSpec[];
+  associatedOutputs?: NetworkCalculationAssociatedOutputSpec[];
   requiresControlOrReference: boolean;
   recommendedUse?: string;
   warnings?: string[];
   assumptions?: string[];
 };
 
-export type MatrixCalculationMethodContext = {
-  request: MatrixCalculationBatchRequest;
-  state: MatrixCalculationState;
-  result: MatrixCalculationResult;
+export type NetworkCalculationMethodContext = {
+  request: NetworkCalculationBatchRequest;
+  state: NetworkCalculationState;
+  result: NetworkCalculationResult;
   existingIds: Set<string>;
 };
 
-export type MatrixCalculationMethod = {
-  definition: MatrixCalculationMethodDefinition;
-  calculate: (context: MatrixCalculationMethodContext) => void;
+export type NetworkCalculationMethod = {
+  definition: NetworkCalculationMethodDefinition;
+  calculate: (context: NetworkCalculationMethodContext) => void;
 };
 
-export type MatrixCalculationBatchRequest = {
-  operations: MatrixCalculationOperation[];
+export type NetworkCalculationBatchRequest = {
+  operations: NetworkCalculationOperation[];
   leftPopulationId?: string;
   rightPopulationId?: string;
   referencePopulationId?: string;
@@ -115,7 +115,7 @@ export type MatrixCalculationBatchRequest = {
   sessionId?: string | null;
   taskId?: string | null;
   selectedAssociatedOutputs?: Partial<
-    Record<MatrixCalculationOperation, MatrixCalculationAssociatedOutputId[]>
+    Record<NetworkCalculationOperation, NetworkCalculationAssociatedOutputId[]>
   >;
   outputIdPrefix?: string;
   hypothesizedDifference?: number;
@@ -134,13 +134,13 @@ export type CalculationInputRole =
   | "rightStd";
 
 export type ResolvedCalculationInputs = {
-  matrices: Partial<Record<CalculationInputRole, ConnectivityMatrix>>;
+  networks: Partial<Record<CalculationInputRole, Network>>;
   warnings: string[];
   missingRoles: CalculationInputRole[];
 };
 
-export type MatrixCalculationSkipped = {
-  operation: MatrixCalculationOperation;
+export type NetworkCalculationSkipped = {
+  operation: NetworkCalculationOperation;
   layerId: string;
   measureId: string;
   subjectId?: string;
@@ -151,8 +151,8 @@ export type MatrixCalculationSkipped = {
   missingInputs?: string[];
 };
 
-export type MatrixCalculationPreviewRow = {
-  operation: MatrixCalculationOperation;
+export type NetworkCalculationPreviewRow = {
+  operation: NetworkCalculationOperation;
   layerId: string;
   measureId: string;
   outputStatId: string;
@@ -162,11 +162,11 @@ export type MatrixCalculationPreviewRow = {
   warnings: string[];
 };
 
-export type MatrixCalculationResult = {
-  matrices: ConnectivityMatrix[];
+export type NetworkCalculationResult = {
+  networks: Network[];
   warnings: string[];
-  skipped: MatrixCalculationSkipped[];
-  existing: ConnectivityMatrix[];
+  skipped: NetworkCalculationSkipped[];
+  existing: Network[];
 };
 
-export type MatrixCalculationState = ConnectivityDataState;
+export type NetworkCalculationState = NetworkDataset;

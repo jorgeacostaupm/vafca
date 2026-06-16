@@ -4,7 +4,7 @@ import { memo, useCallback } from "react";
 import Circulas from "@/components/circular/Circulas";
 import MatrixHeatmapPanel from "@/components/matrix/MatrixPanel";
 import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
-import type { buildAdaptedNetworkViewData } from "@/components/network/views/networkViewData";
+import type { buildNetworkViewRenderData } from "@/components/network/views/networkViewData";
 import { NetworkViewStatusContent } from "@/components/network/views/NetworkViewStatus";
 import NodeLinkPanel from "@/components/nodelink/NodeLinkPanel";
 import { useAppDispatch } from "@/store/hooks";
@@ -17,7 +17,7 @@ import type { ComputedView } from "@/types/networkVisualization";
 type NetworkViewRendererProps = {
   view: ComputedView["view"];
   computed: ComputedView;
-  adapted: ReturnType<typeof buildAdaptedNetworkViewData>;
+  renderData: ReturnType<typeof buildNetworkViewRenderData>;
   isMatrixView: boolean;
   svgRef: RefObject<SVGSVGElement | null>;
   valueFilters: {
@@ -29,7 +29,7 @@ type NetworkViewRendererProps = {
 function NetworkViewRenderer({
   view,
   computed,
-  adapted,
+  renderData,
   isMatrixView,
   svgRef,
   valueFilters,
@@ -93,22 +93,22 @@ function NetworkViewRenderer({
   }
 
   if (isMatrixView) {
-    if (adapted.type !== "matrix") {
+    if (renderData.type !== "matrix") {
       return (
         <NetworkViewStatusContent
           viewId={view.id}
           status="error"
-          error="The view data could not be adapted as a matrix."
+          error="The view data could not be rendered as a matrix."
         />
       );
     }
     return (
       <MatrixHeatmapPanel
-        data={adapted.payload.data}
-        rowLabels={adapted.payload.rowLabels}
-        colLabels={adapted.payload.colLabels}
+        data={renderData.payload.data}
+        rowLabels={renderData.payload.rowLabels}
+        colLabels={renderData.payload.colLabels}
         compoundId={view.compoundId}
-        matrixLabel={view.label}
+        networkLabel={view.label}
         symmetric={computed.symmetric}
         svgRef={svgRef}
         legendMin={computed.valueDomain.min}
@@ -126,21 +126,21 @@ function NetworkViewRenderer({
     );
   }
 
-  if (adapted.type !== "node-link") {
+  if (renderData.type !== "node-link") {
     return (
       <NetworkViewStatusContent
         viewId={view.id}
         status="error"
-        error="The view data could not be adapted as a node-link graph."
+        error="The view data could not be rendered as a node-link graph."
       />
     );
   }
 
   const commonNodeLinkProps = {
-    data: adapted.payload.data,
-    labels: adapted.payload.labels,
+    data: renderData.payload.data,
+    labels: renderData.payload.labels,
     compoundId: view.compoundId,
-    matrixLabel: view.label,
+    networkLabel: view.label,
     svgRef,
     valueFilters,
     selectedZoomLabels: computed.zoomLabelSelection,

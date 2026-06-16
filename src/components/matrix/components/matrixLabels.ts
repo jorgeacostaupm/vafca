@@ -70,10 +70,10 @@ const resolveTooltipHtml = (args: {
   labelTitles?: Record<string, string>;
 }) => {
   const { id, linkCount, axis, labelNames, labelTitles } = args;
-  const roiName = resolveHeatmapTooltipLabel(id, labelNames, labelTitles);
+  const nodeName = resolveHeatmapTooltipLabel(id, labelNames, labelTitles);
   const axisLabel = axis === "row" ? "Row" : "Column";
   const linkLabel = linkCount === 1 ? "link" : "links";
-  return `<div><strong>${escapeHtml(roiName)}</strong></div><div>${axisLabel}: ${linkCount} ${linkLabel}</div>`;
+  return `<div><strong>${escapeHtml(nodeName)}</strong></div><div>${axisLabel}: ${linkCount} ${linkLabel}</div>`;
 };
 
 const resolveTextColor = (args: {

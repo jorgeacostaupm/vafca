@@ -4,15 +4,15 @@ import type {
   DownloadMode,
   ExportedLink,
   LinkRow,
-  MatrixColumn,
-  MatrixLookup,
-  MatrixOption,
+  NetworkColumn,
+  NetworkLookup,
+  NetworkOption,
   SelectedLinksExportPayload,
 } from "@/components/selected-links/selectedLinksPanel.types";
 import type { SelectedLink } from "@/types/visualizationUi";
 import { resolveMatrixValue } from "@/utils/matrixValue";
 
-export const buildMatrixLabelMap = (options: MatrixOption[]) => {
+export const buildNetworkSummaryLabelMap = (options: NetworkOption[]) => {
   return options.reduce<Record<string, string>>((acc, option) => {
     acc[option.value] = option.label;
     return acc;
@@ -24,29 +24,29 @@ export const buildSourceLabelMap = (links: SelectedLink[]) => {
   links.forEach((link) => {
     link.sources.forEach((source) => {
       if (!map.has(source.compoundId)) {
-        map.set(source.compoundId, source.matrixLabel);
+        map.set(source.compoundId, source.networkLabel);
       }
     });
   });
   return map;
 };
 
-export const resolveLayerLabel = (
+export const resolveNetworkLabel = (
   compoundId: string,
-  matrixLabelMap: Record<string, string>,
+  networkLabelMap: Record<string, string>,
   sourceLabelMap: Map<string, string>,
 ) => {
-  return matrixLabelMap[compoundId] ?? sourceLabelMap.get(compoundId) ?? compoundId;
+  return networkLabelMap[compoundId] ?? sourceLabelMap.get(compoundId) ?? compoundId;
 };
 
-export const buildMatrixColumns = (
-  selectedMatrixIds: string[],
-  matrixLabelMap: Record<string, string>,
+export const buildNetworkColumns = (
+  selectedNetworkIds: string[],
+  networkLabelMap: Record<string, string>,
   sourceLabelMap: Map<string, string>,
-): MatrixColumn[] => {
-  return selectedMatrixIds.map((compoundId) => ({
+): NetworkColumn[] => {
+  return selectedNetworkIds.map((compoundId) => ({
     compoundId,
-    label: resolveLayerLabel(compoundId, matrixLabelMap, sourceLabelMap),
+    label: resolveNetworkLabel(compoundId, networkLabelMap, sourceLabelMap),
   }));
 };
 
@@ -57,40 +57,40 @@ const buildSourceValueMap = (link: SelectedLink) => {
   }, {});
 };
 
-const resolveLayerValue = (
+const resolveNetworkValue = (
   sourceValueMap: Record<string, number>,
   compoundId: string,
   link: SelectedLink,
-  matrixLookup: MatrixLookup,
+  networkLookup: NetworkLookup,
   atlasIndex: Map<string, number>,
 ) => {
   if (compoundId in sourceValueMap) {
     return sourceValueMap[compoundId];
   }
 
-  const matrix = matrixLookup[compoundId];
+  const networkView = networkLookup[compoundId];
   const rowIndex = atlasIndex.get(link.rowId);
   const colIndex = atlasIndex.get(link.colId);
   const value =
-    rowIndex !== undefined && colIndex !== undefined && matrix?.data
-      ? resolveMatrixValue(matrix.data, rowIndex, colIndex)
+    rowIndex !== undefined && colIndex !== undefined && networkView?.data
+      ? resolveMatrixValue(networkView.data, rowIndex, colIndex)
       : undefined;
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 };
 
 export const buildLinkValues = ({
   link,
-  layerIds,
-  matrixLookup,
+  networkIds,
+  networkLookup,
   atlasIndex,
 }: BuildLinkValuesParams): Record<string, number | null> => {
   const sourceValueMap = buildSourceValueMap(link);
-  return layerIds.reduce<Record<string, number | null>>((acc, compoundId) => {
-    acc[compoundId] = resolveLayerValue(
+  return networkIds.reduce<Record<string, number | null>>((acc, compoundId) => {
+    acc[compoundId] = resolveNetworkValue(
       sourceValueMap,
       compoundId,
       link,
-      matrixLookup,
+      networkLookup,
       atlasIndex,
     );
     return acc;
@@ -99,8 +99,8 @@ export const buildLinkValues = ({
 
 export const buildRows = ({
   links,
-  selectedMatrixIds,
-  matrixLookup,
+  selectedNetworkIds,
+  networkLookup,
   atlasIndex,
 }: BuildRowsParams): LinkRow[] => {
   return links.map((link) => ({
@@ -108,8 +108,8 @@ export const buildRows = ({
     linkLabel: `${link.rowLabel} ${link.directed ? "→" : "↔"} ${link.colLabel}`,
     values: buildLinkValues({
       link,
-      layerIds: selectedMatrixIds,
-      matrixLookup,
+      networkIds: selectedNetworkIds,
+      networkLookup,
       atlasIndex,
     }),
   }));
@@ -117,8 +117,8 @@ export const buildRows = ({
 
 export const buildExportLinks = (
   links: SelectedLink[],
-  layerIds: string[],
-  matrixLookup: MatrixLookup,
+  networkIds: string[],
+  networkLookup: NetworkLookup,
   atlasIndex: Map<string, number>,
 ): ExportedLink[] => {
   return links.map((link) => ({
@@ -130,8 +130,8 @@ export const buildExportLinks = (
     directed: link.directed,
     values: buildLinkValues({
       link,
-      layerIds,
-      matrixLookup,
+      networkIds,
+      networkLookup,
       atlasIndex,
     }),
   }));
@@ -139,7 +139,7 @@ export const buildExportLinks = (
 
 export const buildExportPayload = (
   mode: DownloadMode,
-  layerIds: string[],
+  networkIds: string[],
   resolveLabel: (compoundId: string) => string,
   links: ExportedLink[],
 ): SelectedLinksExportPayload => {
@@ -147,8 +147,8 @@ export const buildExportPayload = (
     exportedAt: new Date().toISOString(),
     mode,
     linksCount: links.length,
-    layersCount: layerIds.length,
-    layers: layerIds.map((compoundId) => ({
+    networksCount: networkIds.length,
+    networks: networkIds.map((compoundId) => ({
       compoundId,
       label: resolveLabel(compoundId),
     })),
@@ -164,7 +164,7 @@ export const downloadExportPayload = (
     type: "application/json",
   });
   const datePart = new Date().toISOString().slice(0, 10);
-  const suffix = mode === "all" ? "all-layers" : "viewer-layers";
+  const suffix = mode === "all" ? "all-networks" : "viewer-networks";
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

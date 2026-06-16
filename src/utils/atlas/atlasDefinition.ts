@@ -1,13 +1,13 @@
 import type {
   AtlasDefinition,
-  AtlasRoi,
-  AtlasTagValue,
+  AtlasNode,
   AtlasValidationResult,
 } from "@/types/atlas";
+import type { NodeTagValue } from "@/types/network";
 
 const UNKNOWN_GROUP = "__unknown__";
 
-const CORE_ROI_FIELDS = new Set([
+const CORE_NODE_FIELDS = new Set([
   "index",
   "id",
   "atlasId",
@@ -19,7 +19,7 @@ const CORE_ROI_FIELDS = new Set([
   "mesh_points",
 ]);
 
-const PRESENTATION_ROI_FIELDS = new Set(["acronym"]);
+const PRESENTATION_NODE_FIELDS = new Set(["acronym"]);
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -32,9 +32,9 @@ const isValidPoint = (value: unknown): value is number[] => {
   return value.every(isFiniteNumber);
 };
 
-const hasValidMeshPoints = (roi: AtlasRoi) => {
-  if (!Array.isArray(roi.mesh_points) || roi.mesh_points.length < 4) return false;
-  return roi.mesh_points.every(isValidPoint);
+const hasValidMeshPoints = (node: AtlasNode) => {
+  if (!Array.isArray(node.mesh_points) || node.mesh_points.length < 4) return false;
+  return node.mesh_points.every(isValidPoint);
 };
 
 const normalizeFieldValue = (value: unknown) => {
@@ -58,12 +58,12 @@ const isValidAtlasId = (value: unknown): value is string | number =>
   (typeof value === "string" && value.trim().length > 0) ||
   (typeof value === "number" && Number.isFinite(value));
 
-const isTagValue = (value: unknown): value is AtlasTagValue => isScalar(value);
+const isTagValue = (value: unknown): value is NodeTagValue => isScalar(value);
 
-const normalizeTags = (value: unknown): Record<string, AtlasTagValue> => {
+const normalizeTags = (value: unknown): Record<string, NodeTagValue> => {
   if (!isObject(value)) return {};
   return Object.fromEntries(
-    Object.entries(value).filter((entry): entry is [string, AtlasTagValue] =>
+    Object.entries(value).filter((entry): entry is [string, NodeTagValue] =>
       isTagValue(entry[1]),
     ),
   );
@@ -87,36 +87,36 @@ const normalizeCoords = (value: unknown) => {
 
 const toAtlasPrefix = (atlasId: string) => atlasId.replace(/[^a-zA-Z0-9]+/g, "");
 
-const buildInternalRoiId = (atlasId: string, roiAtlasId: string | number) => {
+const buildInternalNodeId = (atlasId: string, nodeAtlasId: string | number) => {
   const prefix = toAtlasPrefix(atlasId) || "atlas";
-  if (typeof roiAtlasId === "number") {
-    return `${prefix}_${String(roiAtlasId).padStart(3, "0")}`;
+  if (typeof nodeAtlasId === "number") {
+    return `${prefix}_${String(nodeAtlasId).padStart(3, "0")}`;
   }
-  const numeric = Number(roiAtlasId);
+  const numeric = Number(nodeAtlasId);
   if (Number.isInteger(numeric)) {
     return `${prefix}_${String(numeric).padStart(3, "0")}`;
   }
-  return `${prefix}_${roiAtlasId.trim()}`;
+  return `${prefix}_${nodeAtlasId.trim()}`;
 };
 
-export const getRoiFieldValue = (roi: AtlasRoi | undefined | null, field: string) =>
-  roi?.tags?.[field] ?? (roi as unknown as Record<string, unknown> | null)?.[field];
+export const getNodeFieldValue = (node: AtlasNode | undefined | null, field: string) =>
+  node?.tags?.[field] ?? (node as unknown as Record<string, unknown> | null)?.[field];
 
 const getTagFieldNames = (atlas: AtlasDefinition | null) => {
-  if (!atlas?.rois?.length) return [];
+  if (!atlas?.nodes?.length) return [];
   const fields = new Set<string>();
-  atlas.rois.forEach((roi) => {
-    Object.keys(roi.tags ?? {}).forEach((field) => {
+  atlas.nodes.forEach((node) => {
+    Object.keys(node.tags ?? {}).forEach((field) => {
       fields.add(field);
     });
   });
   return Array.from(fields);
 };
 
-export const getCommonRoiFields = (atlas: AtlasDefinition | null) => {
-  if (!atlas?.rois?.length) return [];
+export const getCommonNodeFields = (atlas: AtlasDefinition | null) => {
+  if (!atlas?.nodes?.length) return [];
   return getTagFieldNames(atlas).filter((key) =>
-    atlas.rois.some((roi) => isScalar(getRoiFieldValue(roi, key))),
+    atlas.nodes.some((node) => isScalar(getNodeFieldValue(node, key))),
   );
 };
 
@@ -143,9 +143,9 @@ export const getDefaultGroupByFields = (fields: string[]) => {
 };
 
 export const atlasSupports3d = (atlas: AtlasDefinition | null) => {
-  if (!atlas?.rois?.length) return false;
+  if (!atlas?.nodes?.length) return false;
 
-  return atlas.rois.some(hasValidMeshPoints);
+  return atlas.nodes.some(hasValidMeshPoints);
 };
 
 export const validateAtlasDefinition = (
@@ -165,95 +165,95 @@ export const validateAtlasDefinition = (
     return { ok: false, error: "The atlas must include a 'name' string field." };
   }
 
-  const roisRaw = value.rois;
-  if (!Array.isArray(roisRaw) || roisRaw.length === 0) {
+  const nodesRaw = value.nodes ?? value.rois;
+  if (!Array.isArray(nodesRaw) || nodesRaw.length === 0) {
     return {
       ok: false,
-      error: "The atlas must include a non-empty 'rois' array.",
+      error: "The atlas must include a non-empty 'nodes' or 'rois' array.",
     };
   }
 
   const seenIds = new Set<string>();
   const seenIndexes = new Set<number>();
-  const rois: AtlasRoi[] = [];
+  const nodes: AtlasNode[] = [];
   const atlasId = id.trim();
 
-  for (let index = 0; index < roisRaw.length; index += 1) {
-    const roiRaw = roisRaw[index];
-    if (!isObject(roiRaw)) {
+  for (let index = 0; index < nodesRaw.length; index += 1) {
+    const nodeRaw = nodesRaw[index];
+    if (!isObject(nodeRaw)) {
       return {
         ok: false,
-        error: `ROI ${index + 1} is not a valid JSON object.`,
+        error: `Node ${index + 1} is not a valid JSON object.`,
       };
     }
 
-    const atlasRoiId = roiRaw.atlasId ?? roiRaw.id;
-    if (!isValidAtlasId(atlasRoiId)) {
+    const atlasNodeId = nodeRaw.atlasId ?? nodeRaw.id;
+    if (!isValidAtlasId(atlasNodeId)) {
       return {
         ok: false,
-        error: `ROI ${index + 1} must include a valid string or numeric 'atlasId'.`,
+        error: `Node ${index + 1} must include a valid string or numeric 'atlasId'.`,
       };
     }
 
-    const roiIndex = roiRaw.index;
+    const nodeIndex = nodeRaw.index;
     const normalizedIndex =
-      typeof roiIndex === "number" && Number.isInteger(roiIndex) ? roiIndex : index;
-    if (normalizedIndex < 0 || normalizedIndex >= roisRaw.length) {
-      return { ok: false, error: `ROI ${index + 1} has an out-of-range 'index'.` };
+      typeof nodeIndex === "number" && Number.isInteger(nodeIndex) ? nodeIndex : index;
+    if (normalizedIndex < 0 || normalizedIndex >= nodesRaw.length) {
+      return { ok: false, error: `Node ${index + 1} has an out-of-range 'index'.` };
     }
     if (seenIndexes.has(normalizedIndex)) {
-      return { ok: false, error: `Duplicate ROI index detected: ${normalizedIndex}.` };
+      return { ok: false, error: `Duplicate Node index detected: ${normalizedIndex}.` };
     }
     seenIndexes.add(normalizedIndex);
 
-    const name = roiRaw.name;
-    const label = roiRaw.label;
+    const name = nodeRaw.name;
+    const label = nodeRaw.label;
     if (typeof name !== "string" || name.trim().length === 0) {
-      return { ok: false, error: `ROI ${index + 1} must include a valid 'name'.` };
+      return { ok: false, error: `Node ${index + 1} must include a valid 'name'.` };
     }
     if (typeof label !== "string" || label.trim().length === 0) {
-      return { ok: false, error: `ROI ${index + 1} must include a valid 'label'.` };
+      return { ok: false, error: `Node ${index + 1} must include a valid 'label'.` };
     }
 
-    const roiId = roiRaw.atlasId === undefined
-      ? buildInternalRoiId(atlasId, atlasRoiId)
-      : roiRaw.id;
-    if (typeof roiId !== "string" || roiId.trim().length === 0) {
-      return { ok: false, error: `ROI ${index + 1} must include a valid string 'id'.` };
+    const nodeId = nodeRaw.atlasId === undefined
+      ? buildInternalNodeId(atlasId, atlasNodeId)
+      : nodeRaw.id;
+    if (typeof nodeId !== "string" || nodeId.trim().length === 0) {
+      return { ok: false, error: `Node ${index + 1} must include a valid string 'id'.` };
     }
-    const roiIdKey = String(roiId);
-    if (seenIds.has(roiIdKey)) {
-      return { ok: false, error: `Duplicate ROI ID detected: ${roiIdKey}.` };
+    const nodeIdKey = String(nodeId);
+    if (seenIds.has(nodeIdKey)) {
+      return { ok: false, error: `Duplicate Node ID detected: ${nodeIdKey}.` };
     }
-    seenIds.add(roiIdKey);
+    seenIds.add(nodeIdKey);
 
-    const tags = normalizeTags(roiRaw.tags);
-    Object.entries(roiRaw).forEach(([key, entryValue]) => {
-      if (CORE_ROI_FIELDS.has(key) || PRESENTATION_ROI_FIELDS.has(key)) return;
+    const tags = normalizeTags(nodeRaw.tags);
+    Object.entries(nodeRaw).forEach(([key, entryValue]) => {
+      if (CORE_NODE_FIELDS.has(key) || PRESENTATION_NODE_FIELDS.has(key)) return;
       if (isTagValue(entryValue)) tags[key] = entryValue;
     });
-    const metadata = normalizeMetadata(roiRaw.metadata);
-    PRESENTATION_ROI_FIELDS.forEach((key) => {
-      if (key in roiRaw) metadata[key] = roiRaw[key];
+    const metadata = normalizeMetadata(nodeRaw.metadata);
+    PRESENTATION_NODE_FIELDS.forEach((key) => {
+      if (key in nodeRaw) metadata[key] = nodeRaw[key];
     });
 
-    const roi: AtlasRoi = {
+    const node: AtlasNode = {
       index: normalizedIndex,
-      id: roiId.trim(),
-      atlasId: atlasRoiId,
+      id: nodeId.trim(),
+      atlasId: atlasNodeId,
       name,
       label,
       tags,
-      coords: normalizeCoords(roiRaw.coords),
+      coords: normalizeCoords(nodeRaw.coords),
       metadata,
-      ...(Array.isArray(roiRaw.mesh_points) ? { mesh_points: roiRaw.mesh_points as number[][] } : {}),
+      ...(Array.isArray(nodeRaw.mesh_points) ? { mesh_points: nodeRaw.mesh_points as number[][] } : {}),
     };
 
-    rois.push(roi);
+    nodes.push(node);
   }
 
-  if (seenIndexes.size !== roisRaw.length) {
-    return { ok: false, error: "Atlas ROI indexes must cover 0..N-1." };
+  if (seenIndexes.size !== nodesRaw.length) {
+    return { ok: false, error: "Atlas Node indexes must cover 0..N-1." };
   }
 
   const atlas: AtlasDefinition = {
@@ -264,13 +264,13 @@ export const validateAtlasDefinition = (
     space: typeof value.space === "string" ? value.space : undefined,
     coordinateSystem:
       typeof value.coordinateSystem === "string" ? value.coordinateSystem : undefined,
-    rois: rois.sort((a, b) => a.index - b.index),
+    nodes: nodes.sort((a, b) => a.index - b.index),
   };
 
   return {
     ok: true,
     atlas,
-    commonFields: getCommonRoiFields(atlas),
+    commonFields: getCommonNodeFields(atlas),
   };
 };
 
@@ -282,11 +282,11 @@ export const humanizeFieldName = (value: string) =>
     .trim()
     .replace(/^./, (char) => char.toUpperCase());
 
-export const normalizeRoiFieldValue = (value: unknown) => normalizeFieldValue(value);
+export const normalizeNodeFieldValue = (value: unknown) => normalizeFieldValue(value);
 
-export const countRoisWithoutValidMeshPoints = (atlas: AtlasDefinition | null) => {
-  if (!atlas?.rois?.length) return 0;
-  return atlas.rois.reduce((count, roi) => (hasValidMeshPoints(roi) ? count : count + 1), 0);
+export const countNodesWithoutValidMeshPoints = (atlas: AtlasDefinition | null) => {
+  if (!atlas?.nodes?.length) return 0;
+  return atlas.nodes.reduce((count, node) => (hasValidMeshPoints(node) ? count : count + 1), 0);
 };
 
 export { UNKNOWN_GROUP };

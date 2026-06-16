@@ -7,9 +7,9 @@ export const initialDatasetOperationsState: DatasetOperationsSliceState = {
   error: null,
   downloadStatus: 'idle',
   downloadError: null,
-  matrixUploadStatus: 'idle',
-  matrixUploadError: null,
-  lastMatrixUpload: null,
+  networkImportStatus: 'idle',
+  networkImportError: null,
+  lastNetworkImport: null,
   derivedCalculationStatus: 'idle',
   derivedCalculationError: null,
 }

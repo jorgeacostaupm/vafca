@@ -1,4 +1,4 @@
-import { createComparisonMatrix } from "@/networkDerivation/calculations/comparisonMatrixRecord";
+import { createComparisonNetwork } from "@/networkDerivation/calculations/comparisonNetworkRecord";
 import {
   computePooledStd,
   divideOrNull,
@@ -13,11 +13,11 @@ import {
 } from "@/networkDerivation/calculations/methodRuntime";
 import { twoSidedStudentTPValue } from "@/networkDerivation/calculations/statistics";
 import type {
-  MatrixCalculationMethod,
-  MatrixCalculationMethodDefinition,
+  NetworkCalculationMethod,
+  NetworkCalculationMethodDefinition,
 } from "@/networkDerivation/calculations/types";
 import { EPSILON } from "@/networkDerivation/calculations/types";
-import type { MatrixCellValue } from "@/types/connectivityBundle";
+import type { MatrixCellValue } from "@/types/network";
 
 export const calculateStudentTFromCohensD = (
   cohensDData: MatrixCellValue[][],
@@ -45,7 +45,7 @@ export const calculateStudentPValueFromCohensD = (
     ),
   );
 
-export const populationCohensDDefinition: MatrixCalculationMethodDefinition = {
+export const populationCohensDDefinition: NetworkCalculationMethodDefinition = {
   id: "population_cohens_d",
   label: "Cohen's d between populations",
   shortLabel: "Cohen's d",
@@ -55,8 +55,8 @@ export const populationCohensDDefinition: MatrixCalculationMethodDefinition = {
   formulaText: "(left mean - right mean) / pooled std",
   interpretation: "The sign follows left minus right; magnitude is expressed in pooled standard deviations.",
   requirements: [
-    "Left and right population mean matrices",
-    "Left and right population std matrices",
+    "Left and right population mean networks",
+    "Left and right population std networks",
     "n_left > 1 and n_right > 1",
   ],
   requiredInputs: [
@@ -105,7 +105,7 @@ const cohensDOutput = populationCohensDDefinition.outputs[0];
 const studentTOutput = populationCohensDDefinition.associatedOutputs![0].outputs[0];
 const studentPOutput = populationCohensDDefinition.associatedOutputs![1].outputs[0];
 
-export const calculatePopulationCohensD: MatrixCalculationMethod["calculate"] = ({
+export const calculatePopulationCohensD: NetworkCalculationMethod["calculate"] = ({
   request,
   state,
   result,
@@ -123,8 +123,8 @@ export const calculatePopulationCohensD: MatrixCalculationMethod["calculate"] = 
       );
       if (!resolved) return;
       result.warnings.push(...resolved.warnings);
-      const leftMean = resolved.matrices.leftMean!;
-      const rightMean = resolved.matrices.rightMean!;
+      const leftMean = resolved.networks.leftMean!;
+      const rightMean = resolved.networks.rightMean!;
       const n = resolvePopulationSampleSizesOrSkip(
         "population_cohens_d",
         layerId,
@@ -136,8 +136,8 @@ export const calculatePopulationCohensD: MatrixCalculationMethod["calculate"] = 
         result.skipped,
       );
       if (!n) return;
-      const leftStd = resolved.matrices.leftStd!;
-      const rightStd = resolved.matrices.rightStd!;
+      const leftStd = resolved.networks.leftStd!;
+      const rightStd = resolved.networks.rightStd!;
       const data = createBinaryData(leftMean, (i, j) => {
         const left = getFiniteMatrixValueOrNull(leftMean, i, j);
         const right = getFiniteMatrixValueOrNull(rightMean, i, j);
@@ -150,11 +150,11 @@ export const calculatePopulationCohensD: MatrixCalculationMethod["calculate"] = 
       const dependencies = [leftMean.id, rightMean.id, leftStd.id, rightStd.id];
       const runtime = { state, request, existingIds };
       const endpoints = {
-        left: { type: "population" as const, populationId: request.leftPopulationId, matrix: leftMean, n: n.nLeft },
-        right: { type: "population" as const, populationId: request.rightPopulationId, matrix: rightMean, n: n.nRight },
+        left: { type: "population" as const, populationId: request.leftPopulationId, network: leftMean, n: n.nLeft },
+        right: { type: "population" as const, populationId: request.rightPopulationId, network: rightMean, n: n.nRight },
       };
       maybePush(
-        createComparisonMatrix({
+        createComparisonNetwork({
           runtime,
           method: populationCohensDDefinition,
           output: cohensDOutput,
@@ -166,10 +166,10 @@ export const calculatePopulationCohensD: MatrixCalculationMethod["calculate"] = 
             formula: "(left_mean - right_mean) / pooled_std",
             statParameters: { epsilon: EPSILON },
             comparisonParameters: {
-              leftMeanMatrixId: leftMean.id,
-              rightMeanMatrixId: rightMean.id,
-              leftStdMatrixId: leftStd.id,
-              rightStdMatrixId: rightStd.id,
+              leftMeanNetworkId: leftMean.id,
+              rightMeanNetworkId: rightMean.id,
+              leftStdNetworkId: leftStd.id,
+              rightStdNetworkId: rightStd.id,
               epsilon: EPSILON,
             },
             provenanceExtra: { epsilon: EPSILON, nLeft: n.nLeft, nRight: n.nRight, alternative },
@@ -187,7 +187,7 @@ export const calculatePopulationCohensD: MatrixCalculationMethod["calculate"] = 
       const df = n.nLeft + n.nRight - 2;
       if (tData && selected.includes("student_t_from_cohens_d")) {
         maybePush(
-          createComparisonMatrix({
+          createComparisonNetwork({
             runtime,
             method: populationCohensDDefinition,
             output: studentTOutput,
@@ -209,7 +209,7 @@ export const calculatePopulationCohensD: MatrixCalculationMethod["calculate"] = 
       if (tData && selected.includes("student_p_value_from_cohens_d")) {
         const pData = calculateStudentPValueFromCohensD(tData, { df });
         maybePush(
-          createComparisonMatrix({
+          createComparisonNetwork({
             runtime,
             method: populationCohensDDefinition,
             output: studentPOutput,
@@ -232,7 +232,7 @@ export const calculatePopulationCohensD: MatrixCalculationMethod["calculate"] = 
   });
 };
 
-export const populationCohensD: MatrixCalculationMethod = {
+export const populationCohensD: NetworkCalculationMethod = {
   definition: populationCohensDDefinition,
   calculate: calculatePopulationCohensD,
 };

@@ -1,4 +1,3 @@
-import { Typography } from "antd";
 import * as d3 from "d3";
 
 import { PREVIEW_SIZE } from "@/components/management/constants";
@@ -12,7 +11,6 @@ import {
 type CircularHierarchyPreviewProps = {
   layout: CircularHierarchyLayoutPoint[];
   previewLinks?: CircularPreviewLink[];
-  activeRoiCount: number;
   previewRadius: number;
   nodeColors: Record<string, string>;
   linkTension?: number;
@@ -24,17 +22,19 @@ type CircularHierarchyPreviewProps = {
 const buildFallbackPath = (
   source: CircularHierarchyLayoutPoint,
   target: CircularHierarchyLayoutPoint,
+  linkTension: number,
 ) => {
+  const controlX = ((source.x + target.x) / 2) * (1 - linkTension);
+  const controlY = ((source.y + target.y) / 2) * (1 - linkTension);
   const path = d3.path();
   path.moveTo(source.x, source.y);
-  path.quadraticCurveTo(0, 0, target.x, target.y);
+  path.quadraticCurveTo(controlX, controlY, target.x, target.y);
   return path.toString();
 };
 
 function CircularHierarchyPreview({
   layout,
   previewLinks = [],
-  activeRoiCount,
   previewRadius,
   nodeColors,
   linkTension = DEFAULT_CIRCULAR_LINK_TENSION,
@@ -58,7 +58,7 @@ function CircularHierarchyPreview({
     const target = layoutByLabelId.get(link.targetLabelId);
     if (!source || !target) return null;
 
-    return buildFallbackPath(source, target);
+    return buildFallbackPath(source, target, linkTension);
   };
 
   return (
@@ -72,19 +72,6 @@ function CircularHierarchyPreview({
         padding: 8,
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 12,
-          alignItems: "center",
-        }}
-      >
-        <Typography.Text type="secondary">Circular preview</Typography.Text>
-        <Typography.Text type="secondary">
-          Showing {layout.length} / {activeRoiCount} ROIs
-        </Typography.Text>
-      </div>
       <svg
         width="100%"
         height={displayWidth}

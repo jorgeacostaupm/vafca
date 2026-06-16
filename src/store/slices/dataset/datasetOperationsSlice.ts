@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 import { initialDatasetOperationsState } from './datasetOperationsTypes'
-import { computeAggregatedMatrixFromVisualizationGroups } from './thunks/computeAggregatedMatrices'
-import { computeDerivedMatrices } from './thunks/computeDerivedMatrices'
+import { computeAggregatedNetworkFromVisualizationGroups } from './thunks/computeAggregatedNetworks'
+import { computeDerivedNetworks } from './thunks/computeDerivedNetworks'
 import { downloadCurrentDataset } from './thunks/exportDataset'
 import { loadInitialDataset } from './thunks/loadInitialDataset'
 import { loadDatasetFromUploadedZip } from './thunks/uploadDataset'
@@ -22,9 +22,9 @@ const datasetOperationsSlice = createSlice({
         state.error = null
         state.downloadStatus = 'idle'
         state.downloadError = null
-        state.matrixUploadStatus = 'idle'
-        state.matrixUploadError = null
-        state.lastMatrixUpload = null
+        state.networkImportStatus = 'idle'
+        state.networkImportError = null
+        state.lastNetworkImport = null
         state.derivedCalculationStatus = 'idle'
         state.derivedCalculationError = null
       })
@@ -50,54 +50,54 @@ const datasetOperationsSlice = createSlice({
         state.downloadError = action.payload ?? action.error.message ?? 'Failed to export dataset.'
       })
       .addCase(loadDatasetFromUploadedZip.pending, (state) => {
-        state.matrixUploadStatus = 'loading'
-        state.matrixUploadError = null
-        state.lastMatrixUpload = null
+        state.networkImportStatus = 'loading'
+        state.networkImportError = null
+        state.lastNetworkImport = null
       })
       .addCase(loadDatasetFromUploadedZip.fulfilled, (state, action) => {
         state.status = 'ready'
         state.error = null
-        state.matrixUploadStatus = 'ready'
-        state.matrixUploadError = null
-        state.lastMatrixUpload = {
+        state.networkImportStatus = 'ready'
+        state.networkImportError = null
+        state.lastNetworkImport = {
           files: action.payload.files,
-          validMatrices: action.payload.validMatrices,
-          invalidMatrices: action.payload.invalidMatrices,
+          validNetworks: action.payload.validNetworks,
+          invalidNetworks: action.payload.invalidNetworks,
           errors: action.payload.errors,
           warnings: action.payload.warnings,
         }
       })
       .addCase(loadDatasetFromUploadedZip.rejected, (state, action) => {
-        state.matrixUploadStatus = 'error'
-        state.matrixUploadError =
-          action.payload?.message ?? action.error.message ?? 'Failed to upload matrices.'
-        state.lastMatrixUpload = action.payload?.result ?? null
+        state.networkImportStatus = 'error'
+        state.networkImportError =
+          action.payload?.message ?? action.error.message ?? 'Failed to import networks.'
+        state.lastNetworkImport = action.payload?.result ?? null
       })
-      .addCase(computeDerivedMatrices.pending, (state) => {
+      .addCase(computeDerivedNetworks.pending, (state) => {
         state.derivedCalculationStatus = 'loading'
         state.derivedCalculationError = null
       })
-      .addCase(computeDerivedMatrices.fulfilled, (state) => {
+      .addCase(computeDerivedNetworks.fulfilled, (state) => {
         state.derivedCalculationStatus = 'ready'
         state.derivedCalculationError = null
       })
-      .addCase(computeDerivedMatrices.rejected, (state, action) => {
+      .addCase(computeDerivedNetworks.rejected, (state, action) => {
         state.derivedCalculationStatus = 'error'
         state.derivedCalculationError =
-          action.payload ?? action.error.message ?? 'Failed to compute derived matrices.'
+          action.payload ?? action.error.message ?? 'Failed to compute derived networks.'
       })
-      .addCase(computeAggregatedMatrixFromVisualizationGroups.pending, (state) => {
+      .addCase(computeAggregatedNetworkFromVisualizationGroups.pending, (state) => {
         state.derivedCalculationStatus = 'loading'
         state.derivedCalculationError = null
       })
-      .addCase(computeAggregatedMatrixFromVisualizationGroups.fulfilled, (state) => {
+      .addCase(computeAggregatedNetworkFromVisualizationGroups.fulfilled, (state) => {
         state.derivedCalculationStatus = 'ready'
         state.derivedCalculationError = null
       })
-      .addCase(computeAggregatedMatrixFromVisualizationGroups.rejected, (state, action) => {
+      .addCase(computeAggregatedNetworkFromVisualizationGroups.rejected, (state, action) => {
         state.derivedCalculationStatus = 'error'
         state.derivedCalculationError =
-          action.payload ?? action.error.message ?? 'Failed to compute aggregated matrix.'
+          action.payload ?? action.error.message ?? 'Failed to compute aggregated network.'
       })
   },
 })

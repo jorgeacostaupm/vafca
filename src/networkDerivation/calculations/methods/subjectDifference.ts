@@ -1,4 +1,4 @@
-import { createComparisonMatrix } from "@/networkDerivation/calculations/comparisonMatrixRecord";
+import { createComparisonNetwork } from "@/networkDerivation/calculations/comparisonNetworkRecord";
 import { getFiniteMatrixValueOrNull } from "@/networkDerivation/calculations/matrixMath";
 import {
   createBinaryData,
@@ -6,20 +6,20 @@ import {
   maybePush,
 } from "@/networkDerivation/calculations/methodRuntime";
 import type {
-  MatrixCalculationMethod,
-  MatrixCalculationMethodDefinition,
+  NetworkCalculationMethod,
+  NetworkCalculationMethodDefinition,
 } from "@/networkDerivation/calculations/types";
 
-export const subjectDifferenceDefinition: MatrixCalculationMethodDefinition = {
+export const subjectDifferenceDefinition: NetworkCalculationMethodDefinition = {
   id: "subject_difference",
   label: "Difference between subjects",
   shortLabel: "Subject difference",
   scope: "subject_vs_subject",
   category: "group_comparison",
-  description: "Subtracts the right subject connectivity matrix from the left subject matrix.",
+  description: "Subtracts the right subject network from the left subject network.",
   formulaText: "left subject - right subject",
   interpretation: "Positive values indicate higher connectivity in the left subject.",
-  requirements: ["Left subject value matrix", "Right subject value matrix"],
+  requirements: ["Left subject value network", "Right subject value network"],
   requiredInputs: [
     { role: "leftSubjectValue", label: "Left subject", kind: "subject", statId: "value", sourceLevel: "subject", required: true },
     { role: "rightSubjectValue", label: "Right subject", kind: "subject", statId: "value", sourceLevel: "subject", required: true },
@@ -45,7 +45,7 @@ export const subjectDifferenceDefinition: MatrixCalculationMethodDefinition = {
 
 const subjectDifferenceOutput = subjectDifferenceDefinition.outputs[0];
 
-export const calculateSubjectDifference: MatrixCalculationMethod["calculate"] = ({
+export const calculateSubjectDifference: NetworkCalculationMethod["calculate"] = ({
   request,
   state,
   result,
@@ -67,8 +67,8 @@ export const calculateSubjectDifference: MatrixCalculationMethod["calculate"] = 
         );
         if (!resolved) return;
         result.warnings.push(...resolved.warnings);
-        const leftSubject = resolved.matrices.leftSubjectValue!;
-        const rightSubject = resolved.matrices.rightSubjectValue!;
+        const leftSubject = resolved.networks.leftSubjectValue!;
+        const rightSubject = resolved.networks.rightSubjectValue!;
         const data = createBinaryData(leftSubject, (i, j) => {
           const left = getFiniteMatrixValueOrNull(leftSubject, i, j);
           const right = getFiniteMatrixValueOrNull(rightSubject, i, j);
@@ -76,13 +76,13 @@ export const calculateSubjectDifference: MatrixCalculationMethod["calculate"] = 
         });
 
         maybePush(
-          createComparisonMatrix({
+          createComparisonNetwork({
             runtime: { state, request, existingIds },
             method: subjectDifferenceDefinition,
             output: subjectDifferenceOutput,
             endpoints: {
-              left: { type: "subject", subjectId, matrix: leftSubject },
-              right: { type: "subject", subjectId: request.rightSubjectId!, matrix: rightSubject },
+              left: { type: "subject", subjectId, network: leftSubject },
+              right: { type: "subject", subjectId: request.rightSubjectId!, network: rightSubject },
             },
             dependencies: [leftSubject.id, rightSubject.id],
             calculation: {
@@ -90,8 +90,8 @@ export const calculateSubjectDifference: MatrixCalculationMethod["calculate"] = 
               statMethod: "left_minus_right",
               formula: "left_subject - right_subject",
               comparisonParameters: {
-                leftSubjectMatrixId: leftSubject.id,
-                rightSubjectMatrixId: rightSubject.id,
+                leftSubjectNetworkId: leftSubject.id,
+                rightSubjectNetworkId: rightSubject.id,
               },
             },
             labelMode: "minus",
@@ -104,7 +104,7 @@ export const calculateSubjectDifference: MatrixCalculationMethod["calculate"] = 
   });
 };
 
-export const subjectDifference: MatrixCalculationMethod = {
+export const subjectDifference: NetworkCalculationMethod = {
   definition: subjectDifferenceDefinition,
   calculate: calculateSubjectDifference,
 };

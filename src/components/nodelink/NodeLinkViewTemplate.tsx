@@ -6,6 +6,8 @@ import { useNodeLinkPanelInteractions } from "@/components/nodelink/useNodeLinkP
 import { createCircularLinkColorResolver } from "@/config/matrixColorScales";
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { useMatrixColorEncoding } from "@/hooks/useMatrixColorEncoding";
+import { useAppSelector } from "@/store/hooks";
+import { selectNodeLinkVisualStyle } from "@/store/slices/visualizationUi";
 import type {
   NodeLinkInteractionProps,
   NodeLinkPanelCommonProps,
@@ -34,7 +36,7 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
   data,
   labels,
   compoundId,
-  matrixLabel,
+  networkLabel,
   svgRef,
   valueFilters,
   selectedZoomLabels,
@@ -54,8 +56,8 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
 }: NodeLinkViewTemplateProps<TExtra>) {
   const { labelNames, labelTitles, labelAcronyms, nodeColors } =
     useAtlasLabelPresentation();
-  const { visualStyle, colorResolver: matrixLinkColorResolver } =
-    useMatrixColorEncoding(valueDomain);
+  const visualStyle = useAppSelector(selectNodeLinkVisualStyle);
+  const { colorResolver: matrixLinkColorResolver } = useMatrixColorEncoding(valueDomain);
   const linkColorResolver = useMemo(
     () =>
       circularPositiveLinkColor && circularNegativeLinkColor
@@ -80,7 +82,7 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
     data,
     labels,
     compoundId,
-    matrixLabel,
+    networkLabel,
   });
 
   return (
@@ -94,7 +96,7 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
           labelTitles={labelTitles}
           labelAcronyms={labelAcronyms}
           nodeColors={nodeColors}
-          matrixLabel={matrixLabel}
+          networkLabel={networkLabel}
           width={width}
           height={height}
           svgRef={svgRef}

@@ -1,47 +1,47 @@
 import { createSelector } from '@reduxjs/toolkit'
 
-import type { ConnectivityMatrix } from '@/types/connectivityBundle'
 import type { DatasetContent, DatasetMeta } from '@/types/datasetState'
-import type { StoredMatrix } from '@/types/matrixStore'
+import type { Network } from '@/types/network'
+import type { StoredNetworkView } from '@/types/networkViewStore'
 import type { RootState } from '@/types/store'
-import { toStoredMatrix } from '@/utils/datasetAccessors'
+import { toStoredNetworkView } from '@/utils/datasetAccessors'
 
-import { matricesAdapter } from './utils/matricesAdapter'
+import { networksAdapter } from './utils/networksAdapter'
 
 export const selectDatasetState = (state: RootState) => state.dataset
-const matrixSelectors = matricesAdapter.getSelectors(
-  (state: RootState) => state.dataset.matrices,
+const networkSelectors = networksAdapter.getSelectors(
+  (state: RootState) => state.dataset.networks,
 )
 
-export const selectAllDatasetMatrices = matrixSelectors.selectAll
-export const selectDatasetMatrixById = matrixSelectors.selectById
-export const selectDatasetMatrixEntities = matrixSelectors.selectEntities
+export const selectAllDatasetNetworks = networkSelectors.selectAll
+export const selectDatasetNetworkById = networkSelectors.selectById
+export const selectDatasetNetworkEntities = networkSelectors.selectEntities
 
 export const selectDatasetContent = createSelector(
   [
     selectDatasetState,
-    selectAllDatasetMatrices,
-    selectDatasetMatrixEntities,
+    selectAllDatasetNetworks,
+    selectDatasetNetworkEntities,
   ],
-  (dataset, matrices, matrixEntities): DatasetContent | null => {
+  (dataset, networks, networkEntities): DatasetContent | null => {
     if (
-      dataset.schemaVersion === null ||
-      dataset.loadedBundle === null ||
-      dataset.atlas === null ||
-      dataset.catalogs === null ||
-      dataset.roiOrderHash === null
+      dataset.id === null ||
+      dataset.label === null ||
+      dataset.nodeSet === null ||
+      dataset.catalogs === null
     ) {
       return null
     }
 
     return {
-      schemaVersion: dataset.schemaVersion,
-      loadedBundle: dataset.loadedBundle,
-      atlas: dataset.atlas,
-      roiOrderHash: dataset.roiOrderHash,
+      id: dataset.id,
+      label: dataset.label,
+      description: dataset.description,
+      createdAt: dataset.createdAt,
+      nodeSet: dataset.nodeSet,
       catalogs: dataset.catalogs,
-      matrices,
-      matrixIndex: matrixEntities as Record<string, ConnectivityMatrix>,
+      networks,
+      networkIndex: networkEntities as Record<string, Network>,
     }
   },
 )
@@ -51,22 +51,22 @@ export const selectDatasetData = createSelector(
   (content): DatasetMeta | null => (content ? { content } : null),
 )
 
-const selectMatrixByCompoundId = createSelector(
-  [selectAllDatasetMatrices],
-  (matrices) =>
+const selectNetworkViewsByCompoundId = createSelector(
+  [selectAllDatasetNetworks],
+  (networks) =>
     Object.fromEntries(
-      matrices.map((matrix) => {
-        const stored = toStoredMatrix(matrix)
+      networks.map((network) => {
+        const stored = toStoredNetworkView(network)
         return [stored.compoundId, stored]
       }),
-    ) as Record<string, StoredMatrix>,
+    ) as Record<string, StoredNetworkView>,
 )
 
 export const selectDatasetViewData = createSelector(
-  [selectDatasetData, selectMatrixByCompoundId],
-  (dataset, matrixByCompoundId) => ({
+  [selectDatasetData, selectNetworkViewsByCompoundId],
+  (dataset, networkViewsByCompoundId) => ({
     dataset,
-    matrixByCompoundId,
+    networkViewsByCompoundId,
   }),
 )
 export const selectDatasetOperationsState = (state: RootState) =>

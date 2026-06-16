@@ -5,26 +5,26 @@ import { buildAtlasState, setAtlasLabels } from '@/store/slices/atlasUi'
 import type { AtlasDefinition } from '@/types/atlas'
 import type {
   DatasetMeta,
-  MatrixStats,
-  MatrixUploadRejected,
-  MatrixUploadResult,
+  NetworkImportRejected,
+  NetworkImportSummary,
+  NetworkStats,
 } from '@/types/datasetState'
-import type { MatrixOrderItem } from '@/types/matrixOrder'
-import type { ConnectivityImportMode } from '@/utils/import/types'
-import { normalizeMatrixOrder } from '@/utils/matrixOrder'
+import type { NodeOrderItem } from '@/types/nodeOrder'
+import type { NetworkImportMode } from '@/utils/import/types'
+import { normalizeNodeOrder } from '@/utils/nodeOrder'
 
 import { setDataset } from '../datasetSlice'
 import { importDatasetFromUploadedZip } from '../utils/datasetImport'
 
 export const loadDatasetFromUploadedZip = createAsyncThunk<
-  MatrixUploadResult & {
+  NetworkImportSummary & {
     datasetMeta: DatasetMeta
-    matrixStats: MatrixStats
-    matrixOrder?: MatrixOrderItem[] | null
+    networkStats: NetworkStats
+    nodeOrder?: NodeOrderItem[] | null
     atlasCompatibilityWarning?: string
   },
-  { files: File[]; resetAtlas?: boolean; mode?: ConnectivityImportMode },
-  { rejectValue: MatrixUploadRejected }
+  { files: File[]; resetAtlas?: boolean; mode?: NetworkImportMode },
+  { rejectValue: NetworkImportRejected }
 >(
   'dataset/loadDatasetFromUploadedZip',
   async ({ files, mode = 'lenient' }, { dispatch, rejectWithValue }) => {
@@ -48,27 +48,31 @@ export const loadDatasetFromUploadedZip = createAsyncThunk<
       dispatch(
         setUploadedAtlas({
           atlas: {
-            id: datasetMeta.content.atlas.id,
-            name: datasetMeta.content.atlas.name,
-            rois: datasetMeta.content.atlas.rois.map((roi) => ({
-              ...roi,
-              tags: roi.tags as AtlasDefinition['rois'][number]['tags'],
-              coords: roi.coords as AtlasDefinition['rois'][number]['coords'],
-              metadata: roi.metadata,
+            id: datasetMeta.content.nodeSet.id,
+            name: datasetMeta.content.nodeSet.label,
+            nodes: datasetMeta.content.nodeSet.nodes.map((node, index) => ({
+              index: node.index ?? index,
+              id: node.id,
+              atlasId: node.index ?? index,
+              name: node.name ?? node.label,
+              label: node.label,
+              tags: node.tags as AtlasDefinition['nodes'][number]['tags'],
+              coords: node.coords as AtlasDefinition['nodes'][number]['coords'],
+              metadata: node.metadata,
             })),
           } satisfies AtlasDefinition,
           fileName: files[0].name,
         }),
       )
       dispatch(
-        setAtlasLabels(buildAtlasState(normalizeMatrixOrder(importedDataset.matrixOrder))),
+        setAtlasLabels(buildAtlasState(normalizeNodeOrder(importedDataset.nodeOrder))),
       )
 
       return {
         ...result,
         datasetMeta,
-        matrixStats: importedDataset.matrixStats,
-        matrixOrder: importedDataset.matrixOrder,
+        networkStats: importedDataset.networkStats,
+        nodeOrder: importedDataset.nodeOrder,
       }
     } catch (error) {
       return rejectWithValue({

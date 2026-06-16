@@ -4,33 +4,33 @@ import type { DownloadMode } from '@/components/selected-links/selectedLinksPane
 import {
   buildExportLinks,
   buildExportPayload,
-  buildMatrixLabelMap,
+  buildNetworkSummaryLabelMap,
   buildSourceLabelMap,
   downloadExportPayload,
-  resolveLayerLabel,
+  resolveNetworkLabel,
 } from '@/components/selected-links/selectedLinksPanel.utils'
 import { selectDatasetData } from '@/store/slices/dataset'
 import type { RootState } from '@/types/store'
 import {
   getDatasetCatalogs,
-  getDatasetMatrixByCompoundId,
+  getDatasetNetworkByCompoundId,
 } from '@/utils/datasetAccessors'
-import { buildMatrixLabel } from '@/utils/matrixViewUtils'
+import { buildNetworkSummaryLabel } from '@/utils/matrixViewUtils'
 
 export type DownloadSelectedLinksResult = {
   mode: DownloadMode
   linksCount: number
-  layersCount: number
-  failedLayerIds: string[]
+  networksCount: number
+  failedNetworkIds: string[]
 }
 
 export const downloadSelectedLinks = createAsyncThunk<
   DownloadSelectedLinksResult,
-  { mode: DownloadMode; selectedMatrixIds: string[] },
+  { mode: DownloadMode; selectedNetworkIds: string[] },
   { state: RootState; rejectValue: string }
 >(
   'visualizationUi/downloadSelectedLinks',
-  async ({ mode, selectedMatrixIds }, { getState, rejectWithValue }) => {
+  async ({ mode, selectedNetworkIds }, { getState, rejectWithValue }) => {
     const state = getState()
     const { selectedLinks, atlasLinkIds } = state.visualizationUi
 
@@ -43,59 +43,59 @@ export const downloadSelectedLinks = createAsyncThunk<
       return rejectWithValue('No links available to download.')
     }
 
-    const allMatrixIds = Array.from(
-      new Set(state.matrixSummaries.summaries.map((summary) => summary.compoundId)),
+    const allNetworkIds = Array.from(
+      new Set(state.networkSummaries.summaries.map((summary) => summary.compoundId)),
     )
-    const layerIds =
+    const networkIds =
       mode === 'all'
-        ? allMatrixIds
-        : selectedMatrixIds.filter((id) => allMatrixIds.includes(id))
-    if (layerIds.length === 0) {
-      return rejectWithValue('No layers selected for download.')
+        ? allNetworkIds
+        : selectedNetworkIds.filter((id) => allNetworkIds.includes(id))
+    if (networkIds.length === 0) {
+      return rejectWithValue('No networks selected for download.')
     }
 
     const nextState = getState()
     const dataset = selectDatasetData(nextState)
-    const matrixLookup = Object.fromEntries(
-      layerIds.map((compoundId) => [
+    const networkLookup = Object.fromEntries(
+      networkIds.map((compoundId) => [
         compoundId,
-        getDatasetMatrixByCompoundId(dataset, compoundId) ?? null,
+        getDatasetNetworkByCompoundId(dataset, compoundId) ?? null,
       ]),
     )
     const atlasIndex = new Map(nextState.atlasUi.order.map((id, index) => [id, index]))
-    const matrixLabelMap = buildMatrixLabelMap(
-      nextState.matrixSummaries.summaries.map((summary) => ({
+    const networkLabelMap = buildNetworkSummaryLabelMap(
+      nextState.networkSummaries.summaries.map((summary) => ({
         value: summary.compoundId,
-        label: buildMatrixLabel(summary, getDatasetCatalogs(selectDatasetData(nextState))),
+        label: buildNetworkSummaryLabel(summary, getDatasetCatalogs(selectDatasetData(nextState))),
       })),
     )
     const sourceLabelMap = buildSourceLabelMap(linksToDownload)
-    const resolveLayerLabelById = (compoundId: string) =>
-      resolveLayerLabel(compoundId, matrixLabelMap, sourceLabelMap)
+    const resolveNetworkLabelById = (compoundId: string) =>
+      resolveNetworkLabel(compoundId, networkLabelMap, sourceLabelMap)
 
     const exportLinks = buildExportLinks(
       linksToDownload,
-      layerIds,
-      matrixLookup,
+      networkIds,
+      networkLookup,
       atlasIndex,
     )
     const payload = buildExportPayload(
       mode,
-      layerIds,
-      resolveLayerLabelById,
+      networkIds,
+      resolveNetworkLabelById,
       exportLinks,
     )
     downloadExportPayload(payload, mode)
 
-    const failedLayerIds = layerIds.filter((compoundId) => {
-      return matrixLookup[compoundId] === null
+    const failedNetworkIds = networkIds.filter((compoundId) => {
+      return networkLookup[compoundId] === null
     })
 
     return {
       mode,
       linksCount: exportLinks.length,
-      layersCount: layerIds.length,
-      failedLayerIds,
+      networksCount: networkIds.length,
+      failedNetworkIds,
     }
   },
 )

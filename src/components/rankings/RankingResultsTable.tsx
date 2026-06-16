@@ -10,8 +10,8 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectDatasetContent } from '@/store/slices/dataset'
 import { addNetworkViewAndFormat } from '@/store/slices/networkVisualization'
 import { addSelectedLink, removeSelectedLink } from '@/store/slices/visualizationUi'
-import type { LinkRankingRow, MatrixRankingRow, RankingResult, RankingRow } from '@/types/rankings'
-import { getMatrixCompoundId } from '@/utils/rankings/rankingMatrixMetadata'
+import type { LinkRankingRow, NetworkRankingRow, RankingResult, RankingRow } from '@/types/rankings'
+import { getNetworkCompoundId } from '@/utils/rankings/rankingNetworkMetadata'
 
 type Props = {
   result: RankingResult
@@ -70,19 +70,19 @@ export default function RankingResultsTable({ result }: Props) {
     [selectedLinks],
   )
 
-  const matrixLinksCountLabel = useMemo(() => {
-    if (result.query.target !== 'matrices') return undefined
-    const counts = result.rows.flatMap((row) => (row.type === 'matrix' ? [row.nLinksUsed] : []))
+  const networkLinksCountLabel = useMemo(() => {
+    if (result.query.target !== 'networks') return undefined
+    const counts = result.rows.flatMap((row) => (row.type === 'network' ? [row.nLinksUsed] : []))
     if (counts.length === 0) return undefined
     const min = Math.min(...counts)
     const max = Math.max(...counts)
     return min === max ? `# links ${min}` : `# links ${min}-${max}`
   }, [result.query.target, result.rows])
 
-  const roiIncidentLinksCountLabel = useMemo(() => {
-    if (result.query.target !== 'rois') return undefined
+  const nodeIncidentLinksCountLabel = useMemo(() => {
+    if (result.query.target !== 'nodes') return undefined
     const counts = result.rows.flatMap((row) =>
-      row.type === 'roi' ? [row.nIncidentLinks] : [],
+      row.type === 'node' ? [row.nIncidentLinks] : [],
     )
     if (counts.length === 0) return undefined
     const min = Math.min(...counts)
@@ -91,11 +91,11 @@ export default function RankingResultsTable({ result }: Props) {
   }, [result.query.target, result.rows])
 
   const paginationTotalLabel =
-    matrixLinksCountLabel ?? roiIncidentLinksCountLabel
+    networkLinksCountLabel ?? nodeIncidentLinksCountLabel
 
   const createSelectedLink = useCallback((row: LinkRankingRow) => {
     const { direct } = getLinkIds(row)
-    const sourceMatrix = datasetContent?.matrixIndex[row.bestMatrixId ?? result.query.matrixId ?? '']
+    const sourceNetwork = datasetContent?.networkIndex[row.bestNetworkId ?? result.query.networkId ?? '']
     return {
       id: direct,
       rowId: row.sourceId,
@@ -104,13 +104,13 @@ export default function RankingResultsTable({ result }: Props) {
       colLabel: row.targetLabel,
       sources: [
         {
-          compoundId: sourceMatrix ? getMatrixCompoundId(sourceMatrix) : '',
-          matrixLabel: row.bestLayerId ?? 'Ranking',
+          compoundId: sourceNetwork ? getNetworkCompoundId(sourceNetwork) : '',
+          networkLabel: row.bestLayerId ?? 'Ranking',
           value: row.score,
         },
       ],
     }
-  }, [datasetContent, result.query.matrixId])
+  }, [datasetContent, result.query.networkId])
 
   const addLink = useCallback((row: LinkRankingRow) => {
     const { direct, reverse } = getLinkIds(row)
@@ -168,16 +168,16 @@ export default function RankingResultsTable({ result }: Props) {
     </Space>
   ), [addRankingLinks, removeRankingLinks])
 
-  const openMatrixView = useCallback((row: MatrixRankingRow) => {
-    const matrix = datasetContent?.matrixIndex[row.matrixId]
-    if (!matrix) return
+  const openNetworkView = useCallback((row: NetworkRankingRow) => {
+    const network = datasetContent?.networkIndex[row.networkId]
+    if (!network) return
     void dispatch(
       addNetworkViewAndFormat({
         type: 'matrix',
-        compoundId: getMatrixCompoundId(matrix),
+        compoundId: getNetworkCompoundId(network),
         label: row.label,
-        measureId: row.measureId ?? matrix.context.measureId,
-        statId: row.statisticId ?? matrix.stat.id,
+        measureId: row.measureId ?? network.measureId,
+        statId: row.statisticId ?? network.statisticId,
       }),
     )
   }, [datasetContent, dispatch])
@@ -207,7 +207,7 @@ export default function RankingResultsTable({ result }: Props) {
       },
     ]
 
-    if (result.query.target === 'matrices') {
+    if (result.query.target === 'networks') {
       return [
         ...common,
         {
@@ -216,8 +216,8 @@ export default function RankingResultsTable({ result }: Props) {
           dataIndex: 'layerId',
           sorter: (a, b) =>
             compareText(
-              a.type === 'matrix' ? a.layerId : undefined,
-              b.type === 'matrix' ? b.layerId : undefined,
+              a.type === 'network' ? a.layerId : undefined,
+              b.type === 'network' ? b.layerId : undefined,
             ),
         },
         {
@@ -233,14 +233,14 @@ export default function RankingResultsTable({ result }: Props) {
           width: 40,
           fixedInteraction: true,
           render: (_: unknown, row: RankingRow) =>
-            row.type === 'matrix' ? (
+            row.type === 'network' ? (
               <Button
                 size="small"
                 icon={<EyeOutlined />}
                 aria-label="Open as Network View"
                 onClick={(event) => {
                   event.stopPropagation()
-                  openMatrixView(row)
+                  openNetworkView(row)
                 }}
               />
             ) : null,
@@ -251,7 +251,7 @@ export default function RankingResultsTable({ result }: Props) {
     if (result.query.target === 'links') {
       const isAggregatedLinkRanking = result.query.linkCollectionMode !== 'expanded'
       const isOneRowPerLayer = result.query.linkCollectionMode === 'expanded'
-      const layerIds = Array.from(
+      const networkIds = Array.from(
         new Set(
           result.rows.flatMap((row) =>
             row.type === 'link' ? Object.keys(row.valuesByLayer ?? {}) : [],
@@ -259,9 +259,9 @@ export default function RankingResultsTable({ result }: Props) {
         ),
       ).sort()
       const hasBestLayer = result.rows.some((row) => row.type === 'link' && Boolean(row.bestLayerId))
-      const hasMultipleMatrices = result.rows.some(
+      const hasMultipleNetworks = result.rows.some(
         (row) =>
-          row.type === 'link' && typeof row.nMatricesUsed === 'number' && row.nMatricesUsed > 1,
+          row.type === 'link' && typeof row.nNetworksUsed === 'number' && row.nNetworksUsed > 1,
       )
       return [
         ...common,
@@ -289,7 +289,7 @@ export default function RankingResultsTable({ result }: Props) {
             ]
           : []),
         ...(isAggregatedLinkRanking
-          ? layerIds.map((layerId) => ({
+          ? networkIds.map((layerId) => ({
               key: `layer-${layerId}`,
               title: datasetContent?.catalogs.layers[layerId]?.label ?? layerId,
               sorter: (a: RankingRow, b: RankingRow) =>
@@ -322,16 +322,16 @@ export default function RankingResultsTable({ result }: Props) {
               },
             ]
           : []),
-        ...(!isAggregatedLinkRanking && hasMultipleMatrices
+        ...(!isAggregatedLinkRanking && hasMultipleNetworks
           ? [
               {
-                key: 'nMatricesUsed',
-                title: 'N matrices',
-                dataIndex: 'nMatricesUsed',
+                key: 'nNetworksUsed',
+                title: 'N networks',
+                dataIndex: 'nNetworksUsed',
                 sorter: (a: RankingRow, b: RankingRow) =>
                   compareNumber(
-                    a.type === 'link' ? a.nMatricesUsed : undefined,
-                    b.type === 'link' ? b.nMatricesUsed : undefined,
+                    a.type === 'link' ? a.nNetworksUsed : undefined,
+                    b.type === 'link' ? b.nNetworksUsed : undefined,
                   ),
               },
             ]
@@ -362,14 +362,14 @@ export default function RankingResultsTable({ result }: Props) {
     return [
       ...common,
       {
-        key: 'roi',
-        title: 'ROI',
+        key: 'node',
+        title: 'Node',
         dataIndex: 'label',
         ellipsis: true,
         sorter: (a, b) =>
           compareText(
-            a.type === 'roi' ? a.label : undefined,
-            b.type === 'roi' ? b.label : undefined,
+            a.type === 'node' ? a.label : undefined,
+            b.type === 'node' ? b.label : undefined,
           ),
       },
       {
@@ -385,8 +385,8 @@ export default function RankingResultsTable({ result }: Props) {
         dataIndex: 'nIncidentLinks',
         sorter: (a, b) =>
           compareNumber(
-            a.type === 'roi' ? a.nIncidentLinks : undefined,
-            b.type === 'roi' ? b.nIncidentLinks : undefined,
+            a.type === 'node' ? a.nIncidentLinks : undefined,
+            b.type === 'node' ? b.nIncidentLinks : undefined,
           ),
       },
     ]
@@ -394,7 +394,7 @@ export default function RankingResultsTable({ result }: Props) {
     addLink,
     datasetContent,
     linkActionsTitle,
-    openMatrixView,
+    openNetworkView,
     result.query,
     result.rows,
     scoreColumnTitle,
@@ -475,17 +475,17 @@ export default function RankingResultsTable({ result }: Props) {
           <Table<RankingRow>
             size="small"
             rowKey={(row) =>
-              row.type === 'matrix'
-                ? row.matrixId
-                : row.type === 'roi'
-                  ? row.roiId
-                  : `${row.sourceId}::${row.targetId}::${row.bestMatrixId ?? 'all'}`
+              row.type === 'network'
+                ? row.networkId
+                : row.type === 'node'
+                  ? row.nodeId
+                  : `${row.sourceId}::${row.targetId}::${row.bestNetworkId ?? 'all'}`
             }
             columns={columns}
             className={[
               'ranking-result__table',
               result.query.target === 'links' ? 'ranking-result__table--links' : '',
-              result.query.target === 'rois' ? 'ranking-result__table--rois' : '',
+              result.query.target === 'nodes' ? 'ranking-result__table--nodes' : '',
             ]
               .filter(Boolean)
               .join(' ')}

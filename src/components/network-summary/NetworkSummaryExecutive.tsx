@@ -93,7 +93,7 @@ export default function NetworkSummaryExecutive({ summary, settings }: Props) {
             {summary.identity.layerLabel}
           </Typography.Text>
           <Typography.Text type="secondary">
-            {summary.identity.matrixSize}
+            {summary.identity.dataSize}
           </Typography.Text>
           <Typography.Text type="secondary">
             {formatSummaryBoolean(summary.identity.symmetric)} symmetric

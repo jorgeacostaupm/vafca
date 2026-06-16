@@ -1,41 +1,41 @@
 import { createFullMatrixData } from "@/networkDerivation/calculations/matrixMath";
 import {
   assertContextCompatible,
-  findEquivalentDerivedMatrix,
+  findEquivalentDerivedNetwork,
   resolveCalculationInputsForLayerMeasure,
 } from "@/networkDerivation/calculations/resolution";
 import {
-  type MatrixCalculationBatchRequest,
-  type MatrixCalculationOperation,
-  type MatrixCalculationResult,
-  type MatrixCalculationSkipped,
-  type MatrixCalculationState,
+  type NetworkCalculationBatchRequest,
+  type NetworkCalculationOperation,
+  type NetworkCalculationResult,
+  type NetworkCalculationSkipped,
+  type NetworkCalculationState,
 } from "@/networkDerivation/calculations/types";
-import type {
-  ConnectivityMatrix,
-  MatrixCellValue,
-} from "@/types/connectivityBundle";
+import type { MatrixCellValue, Network } from "@/types/network";
 
 export const alternative = "two-sided";
 
-const getPopulationNFromMatrixOrCatalog = (
-  matrix: ConnectivityMatrix | undefined,
-  state: MatrixCalculationState,
+const getPopulationNFromNetworkOrCatalog = (
+  network: Network | undefined,
+  state: NetworkCalculationState,
   populationId?: string,
 ) => {
-  if (matrix?.source.level === "population" && Number.isFinite(matrix.source.n)) {
-    return matrix.source.n;
+  if (
+    network?.source.type === "population" &&
+    Number.isFinite(network.source.n)
+  ) {
+    return network.source.n;
   }
   return populationId ? state.catalogs.populations[populationId]?.n ?? null : null;
 };
 
 export const ensureReady = (
-  operation: MatrixCalculationOperation,
+  operation: NetworkCalculationOperation,
   layerId: string,
   measureId: string,
-  skipped: MatrixCalculationSkipped[],
-  request: MatrixCalculationBatchRequest,
-  state: MatrixCalculationState,
+  skipped: NetworkCalculationSkipped[],
+  request: NetworkCalculationBatchRequest,
+  state: NetworkCalculationState,
   subjectId?: string,
 ) => {
   const resolved = resolveCalculationInputsForLayerMeasure(
@@ -60,7 +60,9 @@ export const ensureReady = (
     return null;
   }
   try {
-    assertContextCompatible(Object.values(resolved.matrices).filter(Boolean) as ConnectivityMatrix[]);
+    assertContextCompatible(
+      Object.values(resolved.networks).filter(Boolean) as Network[],
+    );
   } catch (error) {
     skipped.push({
       operation,
@@ -78,35 +80,35 @@ export const ensureReady = (
 };
 
 export const createBinaryData = (
-  source: ConnectivityMatrix,
+  source: Network,
   callback: (i: number, j: number) => MatrixCellValue,
-) => createFullMatrixData(source.geometry.shape, callback);
+) => createFullMatrixData([source.nodeIds.length, source.nodeIds.length], callback);
 
 export const maybePush = (
-  matrix: ConnectivityMatrix,
-  state: MatrixCalculationState,
-  result: MatrixCalculationResult,
+  network: Network,
+  state: NetworkCalculationState,
+  result: NetworkCalculationResult,
 ) => {
-  const existing = findEquivalentDerivedMatrix(matrix, state.matrixIndex);
+  const existing = findEquivalentDerivedNetwork(network, state.networkIndex);
   if (existing) {
     result.existing.push(existing);
     return;
   }
-  result.matrices.push(matrix);
+  result.networks.push(network);
 };
 
 export const resolvePopulationSampleSizesOrSkip = (
-  operation: MatrixCalculationOperation,
+  operation: NetworkCalculationOperation,
   layerId: string,
   measureId: string,
-  request: MatrixCalculationBatchRequest,
-  state: MatrixCalculationState,
-  leftMean: ConnectivityMatrix,
-  rightMean: ConnectivityMatrix,
-  skipped: MatrixCalculationSkipped[],
+  request: NetworkCalculationBatchRequest,
+  state: NetworkCalculationState,
+  leftMean: Network,
+  rightMean: Network,
+  skipped: NetworkCalculationSkipped[],
 ) => {
-  const nLeft = getPopulationNFromMatrixOrCatalog(leftMean, state, request.leftPopulationId);
-  const nRight = getPopulationNFromMatrixOrCatalog(rightMean, state, request.rightPopulationId);
+  const nLeft = getPopulationNFromNetworkOrCatalog(leftMean, state, request.leftPopulationId);
+  const nRight = getPopulationNFromNetworkOrCatalog(rightMean, state, request.rightPopulationId);
   if (!nLeft || !nRight || nLeft <= 1 || nRight <= 1) {
     skipped.push({
       operation,

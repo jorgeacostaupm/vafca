@@ -1,28 +1,30 @@
 import type {
-  MatrixCalculationOperation,
-  MatrixCalculationOutputSpec,
+  NetworkCalculationOperation,
+  NetworkCalculationOutputSpec,
 } from "@/networkDerivation/calculations/types";
 import type {
   Catalogs,
-  ConnectivityMatrix,
   MatrixCellValue,
-  MatrixComparison,
-  MatrixDataStats,
-  MatrixSource,
-  MatrixValueDomain,
-} from "@/types/connectivityBundle";
-import { computeMatrixDataStats } from "@/utils/matrixDataStats";
+  Network,
+  NetworkComparisonDerivation,
+  NetworkContext,
+  NetworkSource,
+  NetworkValueDomain,
+} from "@/types/network";
+import { computeNetworkMatrixDataStats } from "@/utils/networkDataStats";
 
-type DerivedMatrixParams = {
+type DerivedNetworkParams = {
   id: string;
   label: string;
-  context: ConnectivityMatrix["context"];
-  geometry: ConnectivityMatrix["geometry"];
+  context: NetworkContext;
+  measureId: string;
+  nodeSetId: string;
+  nodeIds: string[];
   symmetric: boolean;
-  source: MatrixSource;
-  stat: ConnectivityMatrix["stat"];
-  comparison: MatrixComparison;
-  valueDomain: MatrixValueDomain;
+  source: NetworkSource;
+  statisticId: string;
+  derivation: NetworkComparisonDerivation;
+  valueDomain: NetworkValueDomain;
   dependencies: string[];
   provenanceParameters: Record<string, unknown>;
   data: MatrixCellValue[][];
@@ -40,7 +42,7 @@ export const layerLabel = (catalogs: Catalogs, layerId: string | null) =>
 export const measureLabel = (catalogs: Catalogs, measureId: string) =>
   catalogs.measures[measureId]?.label ?? measureId;
 
-export const generateDerivedMatrixId = (params: {
+export const generateDerivedNetworkId = (params: {
   prefix?: string;
   leftId?: string;
   rightId?: string;
@@ -71,7 +73,7 @@ export const generateDerivedMatrixId = (params: {
   return `${base}__runtime_${index}`;
 };
 
-export const generateDerivedMatrixLabel = (params: {
+export const generateDerivedNetworkLabel = (params: {
   catalogs: Catalogs;
   leftPopulationId?: string;
   rightPopulationId?: string;
@@ -97,7 +99,7 @@ export const generateDerivedMatrixLabel = (params: {
   return `${left}${separator}${rightLabel} · ${layerLabel(params.catalogs, params.layerId)} · ${measureLabel(params.catalogs, params.measureId)} · ${params.suffix}`;
 };
 
-export const outputValueDomain = (output: MatrixCalculationOutputSpec): MatrixValueDomain => {
+export const outputValueDomain = (output: NetworkCalculationOutputSpec): NetworkValueDomain => {
   if (output.statId === "p_value") {
     return { min: 0, max: 1, center: null, units: output.units };
   }
@@ -107,35 +109,41 @@ export const outputValueDomain = (output: MatrixCalculationOutputSpec): MatrixVa
   return { min: null, max: null, center: output.center, units: output.units };
 };
 
-export const createDerivedMatrix = ({
+export const createDerivedNetwork = ({
   id,
   label,
   context,
-  geometry,
+  measureId,
+  nodeSetId,
+  nodeIds,
   symmetric,
   source,
-  stat,
-  comparison,
+  statisticId,
+  derivation,
   valueDomain,
   dependencies,
   provenanceParameters,
   data,
-}: DerivedMatrixParams): ConnectivityMatrix => {
-  const draft: ConnectivityMatrix = {
+}: DerivedNetworkParams): Network => {
+  return {
     id,
-    kind: "comparison",
     label,
     context: { ...context },
+    measureId,
     source,
-    stat,
-    geometry: { ...geometry },
-    encoding: {
+    statisticId,
+    nodeSetId,
+    nodeIds,
+    data: {
+      format: "matrix",
       layout: "full",
       dtype: "float64",
       symmetric,
+      values: data,
       missingValue: null,
     },
     valueDomain,
+    dataStats: computeNetworkMatrixDataStats(data),
     provenance: {
       generatedBy: "app-runtime-calculation",
       createdAt: new Date().toISOString(),
@@ -144,14 +152,12 @@ export const createDerivedMatrix = ({
       dependencies,
       parameters: provenanceParameters,
     },
-    comparison,
-    data,
+    derivation,
   };
-  return { ...draft, dataStats: computeMatrixDataStats(draft) as MatrixDataStats };
 };
 
 export const buildProvenanceParameters = (params: {
-  operation: MatrixCalculationOperation;
+  operation: NetworkCalculationOperation;
   layerId: string | null;
   measureId: string;
   leftPopulationId?: string;
@@ -160,7 +166,7 @@ export const buildProvenanceParameters = (params: {
   subjectId?: string;
   rightSubjectId?: string;
   formula: string;
-  methodId: MatrixCalculationOperation;
+  methodId: NetworkCalculationOperation;
   extra?: Record<string, unknown>;
 }) => ({
   operation: params.operation,

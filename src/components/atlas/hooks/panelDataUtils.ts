@@ -1,8 +1,8 @@
 import type { AtlasDefinition } from "@/types/atlas";
 import type { GroupedRow } from "@/types/atlasPanel";
 import {
-  getRoiFieldValue,
-  normalizeRoiFieldValue,
+  getNodeFieldValue,
+  normalizeNodeFieldValue,
   UNKNOWN_GROUP,
 } from "@/utils/atlas/atlasDefinition";
 
@@ -22,17 +22,17 @@ const orderGroupValues = (values: string[]) => {
 const formatGroupValue = (value: string) =>
   value === UNKNOWN_GROUP ? "Unknown" : value;
 
-export const buildRoiFieldValuesById = (
+export const buildNodeFieldValuesById = (
   atlasDefinition: AtlasDefinition | null,
   fields: string[],
 ) => {
   const map = new Map<string, Record<string, string>>();
-  if (!atlasDefinition?.rois?.length || fields.length === 0) return map;
+  if (!atlasDefinition?.nodes?.length || fields.length === 0) return map;
 
-  atlasDefinition.rois.forEach((roi) => {
-    const id = String(roi.id);
+  atlasDefinition.nodes.forEach((node) => {
+    const id = String(node.id);
     const values = fields.reduce<Record<string, string>>((acc, field) => {
-      acc[field] = normalizeRoiFieldValue(getRoiFieldValue(roi, field));
+      acc[field] = normalizeNodeFieldValue(getNodeFieldValue(node, field));
       return acc;
     }, {});
     map.set(id, values);
@@ -52,13 +52,13 @@ const matchesQuery = (
 
 const matchesFilters = (
   id: string,
-  roiFieldValuesById: Map<string, Record<string, string>>,
+  nodeFieldValuesById: Map<string, Record<string, string>>,
   selectedFilters: Record<string, string>,
   ignoredField?: string,
 ) => {
   for (const [field, selected] of Object.entries(selectedFilters)) {
     if (field === ignoredField || selected === ALL_FILTER) continue;
-    const value = roiFieldValuesById.get(id)?.[field] ?? UNKNOWN_GROUP;
+    const value = nodeFieldValuesById.get(id)?.[field] ?? UNKNOWN_GROUP;
     if (value !== selected) return false;
   }
   return true;
@@ -67,13 +67,13 @@ const matchesFilters = (
 export const filterIds = ({
   orderedIds,
   labelSearchTextById,
-  roiFieldValuesById,
+  nodeFieldValuesById,
   normalizedQuery,
   selectedFilters,
 }: {
   orderedIds: string[];
   labelSearchTextById: Record<string, string>;
-  roiFieldValuesById: Map<string, Record<string, string>>;
+  nodeFieldValuesById: Map<string, Record<string, string>>;
   normalizedQuery: string;
   selectedFilters: Record<string, string>;
 }) => {
@@ -83,7 +83,7 @@ export const filterIds = ({
 
   return orderedIds.filter((id) => {
     if (!matchesQuery(id, labelSearchTextById, normalizedQuery)) return false;
-    return matchesFilters(id, roiFieldValuesById, selectedFilters);
+    return matchesFilters(id, nodeFieldValuesById, selectedFilters);
   });
 };
 
@@ -91,14 +91,14 @@ export const buildFieldOptionsByField = ({
   groupByFields,
   orderedIds,
   labelSearchTextById,
-  roiFieldValuesById,
+  nodeFieldValuesById,
   normalizedQuery,
   selectedFilters,
 }: {
   groupByFields: string[];
   orderedIds: string[];
   labelSearchTextById: Record<string, string>;
-  roiFieldValuesById: Map<string, Record<string, string>>;
+  nodeFieldValuesById: Map<string, Record<string, string>>;
   normalizedQuery: string;
   selectedFilters: Record<string, string>;
 }) => {
@@ -106,8 +106,8 @@ export const buildFieldOptionsByField = ({
     const values = new Set<string>();
     orderedIds.forEach((id) => {
       if (!matchesQuery(id, labelSearchTextById, normalizedQuery)) return;
-      if (!matchesFilters(id, roiFieldValuesById, selectedFilters, field)) return;
-      values.add(roiFieldValuesById.get(id)?.[field] ?? UNKNOWN_GROUP);
+      if (!matchesFilters(id, nodeFieldValuesById, selectedFilters, field)) return;
+      values.add(nodeFieldValuesById.get(id)?.[field] ?? UNKNOWN_GROUP);
     });
 
     const options: SelectOption[] = [
@@ -127,20 +127,20 @@ export const buildFieldOptionsByField = ({
 export const buildGroupedRows = ({
   filteredIds,
   groupByFields,
-  roiFieldValuesById,
+  nodeFieldValuesById,
   collapsedGroups,
 }: {
   filteredIds: string[];
   groupByFields: string[];
-  roiFieldValuesById: Map<string, Record<string, string>>;
+  nodeFieldValuesById: Map<string, Record<string, string>>;
   collapsedGroups: Set<string>;
 }) => {
   if (filteredIds.length === 0) return [];
 
   if (groupByFields.length === 0) {
     return filteredIds.map((id) => ({
-      type: "roi" as const,
-      key: `roi-${id}`,
+      type: "node" as const,
+      key: `node-${id}`,
       id,
       level: 0,
     }));
@@ -154,8 +154,8 @@ export const buildGroupedRows = ({
   ): GroupedRow[] => {
     if (fieldIndex >= groupByFields.length) {
       return ids.map((id) => ({
-        type: "roi" as const,
-        key: `roi-${id}`,
+        type: "node" as const,
+        key: `node-${id}`,
         id,
         level,
       }));
@@ -165,7 +165,7 @@ export const buildGroupedRows = ({
     const groups = new Map<string, string[]>();
 
     ids.forEach((id) => {
-      const value = roiFieldValuesById.get(id)?.[field] ?? UNKNOWN_GROUP;
+      const value = nodeFieldValuesById.get(id)?.[field] ?? UNKNOWN_GROUP;
       if (!groups.has(value)) {
         groups.set(value, []);
       }

@@ -14,8 +14,8 @@ import type {
   HeatmapHighlightSelections,
   HeatmapLegendRange,
 } from "@/components/matrix/components/matrixTypes";
-import type { ScaleType } from "@/types/connectivityBundle";
 import type { HeatmapProps } from "@/types/matrixHeatmap";
+import type { ScaleType } from "@/types/network";
 import type {
   MatrixColorScaleSettings,
   MatrixVisualStyle,

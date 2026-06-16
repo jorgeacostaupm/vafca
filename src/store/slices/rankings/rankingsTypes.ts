@@ -2,9 +2,9 @@ import {
   DEFAULT_LINK_COLLECTION_RANKING_MODE,
   DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS,
   DEFAULT_NETWORK_VISUALIZATION_TAB,
+  DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS,
   DEFAULT_RANKING_TARGET,
   DEFAULT_RANKING_TOP_N,
-  DEFAULT_ROI_RANKING_ALLOW_AUTOCONNECTIONS,
 } from "@/config/ui";
 import type { RankingQuery, RankingTarget, RankingUiState } from "@/types/rankings";
 
@@ -12,10 +12,10 @@ export const createDefaultRankingQueryForTarget = (
   target: RankingTarget,
 ): RankingQuery => ({
   target,
-  mode: "matrixCollection",
+  mode: "networkCollection",
   linkCollectionMode: DEFAULT_LINK_COLLECTION_RANKING_MODE,
   allowLinkRankingAutoconnections: DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS,
-  allowRoiRankingAutoconnections: DEFAULT_ROI_RANKING_ALLOW_AUTOCONNECTIONS,
+  allowNodeRankingAutoconnections: DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS,
   scope: "allLinks",
   topN: DEFAULT_RANKING_TOP_N,
   threshold: 0,

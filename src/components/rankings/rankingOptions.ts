@@ -1,20 +1,20 @@
 import { RANKING_TOP_N_OPTIONS } from "@/config/ui";
-import type { ConnectivityDataState, ConnectivityMatrix } from "@/types/connectivityBundle";
-import type { RankingQuery } from "@/types/rankings";
+import type { Network, NetworkDataset } from "@/types/network";
+import type { RankingNetworkKind, RankingQuery } from "@/types/rankings";
 import {
   ALL_COMPATIBLE_LAYERS,
-  getMatrixAggregationGroupingKey,
-  getMatrixAggregationGroupingLabel,
-  getMatrixLabel,
-  getMatrixSource,
-  getMatrixSourceLabel,
-  matrixMatchesRankingQuery,
-} from "@/utils/rankings/rankingMatrixMetadata";
+  getNetworkAggregationGroupingKey,
+  getNetworkAggregationGroupingLabel,
+  getNetworkSource,
+  getNetworkSourceLabel,
+  getRankingNetworkKind,
+  networkMatchesRankingQuery,
+} from "@/utils/rankings/rankingNetworkMetadata";
 
 type Option = { value: string; label: string };
 
-const isRankingMatrixCandidate = (matrix: ConnectivityMatrix) => {
-  void matrix;
+const isRankingNetworkCandidate = (network: Network) => {
+  void network;
   return true;
 };
 
@@ -24,15 +24,8 @@ const sourceTypeLabel: Record<NonNullable<RankingQuery["sourceType"]>, string> =
   comparison: "Comparison",
 };
 
-const matrixKindLabel: Record<ConnectivityMatrix["kind"], string> = {
-  population: "Population",
-  subject: "Subject",
-  comparison: "Comparison",
-  aggregated: "Aggregated",
-};
-
 const matchesQueryPart = (
-  matrix: ConnectivityMatrix,
+  network: Network,
   query: RankingQuery,
   ignored: Array<keyof RankingQuery> = [],
 ) => {
@@ -43,11 +36,11 @@ const matchesQueryPart = (
   if (patch.layerIds?.length === 0) {
     delete patch.layerIds;
   }
-  return isRankingMatrixCandidate(matrix) && matrixMatchesRankingQuery(matrix, patch);
+  return isRankingNetworkCandidate(network) && networkMatchesRankingQuery(network, patch);
 };
 
 const getSelectedLayerCompatibility = (
-  matrices: ConnectivityMatrix[],
+  networks: Network[],
   query: RankingQuery,
 ) => {
   const selectedLayerIds = (query.layerIds ?? []).filter(
@@ -55,22 +48,22 @@ const getSelectedLayerCompatibility = (
   );
   if (selectedLayerIds.length === 0) return {};
 
-  const selectedMatrices = matrices.filter(
-    (matrix) =>
-      selectedLayerIds.includes(matrix.context.layerId ?? "none") &&
-      matchesQueryPart(matrix, query, ["layerIds"]),
+  const selectedNetworks = networks.filter(
+    (network) =>
+      selectedLayerIds.includes(network.context.layerId ?? "none") &&
+      matchesQueryPart(network, query, ["layerIds"]),
   );
-  const selectedKinds = new Set(
-    selectedMatrices.map((matrix) => matrix.kind),
+  const selectedKinds = new Set<RankingNetworkKind>(
+    selectedNetworks.map(getRankingNetworkKind),
   );
   const selectedGroupingKeys = new Set(
-    selectedMatrices
-      .map(getMatrixAggregationGroupingKey)
+    selectedNetworks
+      .map(getNetworkAggregationGroupingKey)
       .filter((key): key is string => Boolean(key)),
   );
 
   return {
-    matrixKind: selectedKinds.size === 1 ? Array.from(selectedKinds)[0] : undefined,
+    networkKind: selectedKinds.size === 1 ? Array.from(selectedKinds)[0] : undefined,
     aggregationGroupingKey:
       selectedGroupingKeys.size === 1
         ? Array.from(selectedGroupingKeys)[0]
@@ -79,33 +72,33 @@ const getSelectedLayerCompatibility = (
 };
 
 export const getRankingLayerSelectionPatch = (
-  connectivity: ConnectivityDataState | null | undefined,
+  dataset: NetworkDataset | null | undefined,
   query: RankingQuery,
   layerIds: string[],
 ): Partial<RankingQuery> => {
-  if (!connectivity || layerIds.includes(ALL_COMPATIBLE_LAYERS)) {
+  if (!dataset || layerIds.includes(ALL_COMPATIBLE_LAYERS)) {
     return layerIds.includes(ALL_COMPATIBLE_LAYERS) && query.aggregationGroupingKey
       ? {
-          matrixKind: query.matrixKind,
+          networkKind: query.networkKind,
           aggregationGroupingKey: query.aggregationGroupingKey,
         }
       : {
-          matrixKind: undefined,
+          networkKind: undefined,
           aggregationGroupingKey: undefined,
         };
   }
 
-  const compatibility = getSelectedLayerCompatibility(connectivity.matrices, {
+  const compatibility = getSelectedLayerCompatibility(dataset.networks, {
     ...query,
     layerIds,
   });
   return {
-    matrixKind: compatibility.matrixKind,
+    networkKind: compatibility.networkKind,
     aggregationGroupingKey: compatibility.aggregationGroupingKey,
   };
 };
 
-export const matrixMetricOptions = [
+export const networkMetricOptions = [
   { label: "Mean value", value: "meanValue" },
   { label: "Mean absolute value", value: "meanAbsValue" },
   { label: "Median value", value: "medianValue" },
@@ -121,7 +114,7 @@ export const linkMetricOptions = [
   { label: "Mean absolute across layers", value: "meanAbsAcrossMatrices" },
 ];
 
-export const roiMetricOptions = [
+export const nodeMetricOptions = [
   { label: "Mean incident value", value: "meanValue" },
   { label: "Mean absolute incident value", value: "meanAbsValue" },
   { label: "Max incident value", value: "maxValue" },
@@ -134,16 +127,16 @@ export const topNOptions = RANKING_TOP_N_OPTIONS.map((value) => ({
 }));
 
 export const getSourceOptions = (
-  connectivity?: ConnectivityDataState | null,
+  dataset?: NetworkDataset | null,
   query: RankingQuery = {} as RankingQuery,
 ) => {
-  if (!connectivity) return [];
+  if (!dataset) return [];
   const seen = new Set<string>();
-  const options = connectivity.matrices.flatMap((matrix) => {
-    if (!matchesQueryPart(matrix, query, ["sourceType", "sourceId"])) {
+  const options = dataset.networks.flatMap((network) => {
+    if (!matchesQueryPart(network, query, ["sourceType", "sourceId"])) {
       return [];
     }
-    const source = getMatrixSource(matrix);
+    const source = getNetworkSource(network);
     if (!source.sourceType || !source.sourceId) return [];
     const value = `${source.sourceType}::${source.sourceId}`;
     if (seen.has(value)) return [];
@@ -151,7 +144,7 @@ export const getSourceOptions = (
     return [
       {
         label: `${sourceTypeLabel[source.sourceType]} · ${
-          getMatrixSourceLabel(matrix, connectivity) ?? source.sourceId
+          getNetworkSourceLabel(network, dataset) ?? source.sourceId
         }`,
         value,
       },
@@ -161,68 +154,68 @@ export const getSourceOptions = (
 };
 
 export const getMeasureOptions = (
-  connectivity: ConnectivityDataState | null | undefined,
+  dataset: NetworkDataset | null | undefined,
   query: RankingQuery,
 ): Option[] => {
-  if (!connectivity) return [];
+  if (!dataset) return [];
   const options = Array.from(
     new Set(
-      connectivity.matrices
-        .filter((matrix) => matchesQueryPart(matrix, query, ["measureId"]))
-        .map((matrix) => matrix.context.measureId),
+      dataset.networks
+        .filter((network) => matchesQueryPart(network, query, ["measureId"]))
+        .map((network) => network.measureId),
     ),
   )
     .sort()
     .map((id) => ({
-      label: connectivity.catalogs.measures[id]?.label ?? id,
+      label: dataset.catalogs.measures[id]?.label ?? id,
       value: id,
     }));
   return options;
 };
 
 export const getStatisticOptions = (
-  connectivity: ConnectivityDataState | null | undefined,
+  dataset: NetworkDataset | null | undefined,
   query: RankingQuery,
 ): Option[] => {
-  if (!connectivity) return [];
+  if (!dataset) return [];
   const options = Array.from(
     new Set(
-      connectivity.matrices
-        .filter((matrix) => matchesQueryPart(matrix, query, ["statisticId"]))
-        .map((matrix) => matrix.stat.id),
+      dataset.networks
+        .filter((network) => matchesQueryPart(network, query, ["statisticId"]))
+        .map((network) => network.statisticId),
     ),
   )
     .sort()
     .map((id) => ({
-      label: connectivity.catalogs.stats[id]?.label ?? id,
+      label: dataset.catalogs.statistics[id]?.label ?? id,
       value: id,
     }));
   return options;
 };
 
 export const getCompatibleLayerOptions = (
-  connectivity: ConnectivityDataState | null | undefined,
+  dataset: NetworkDataset | null | undefined,
   query: RankingQuery,
 ) => {
-  if (!connectivity) return [];
+  if (!dataset) return [];
   const selectedCompatibility = getSelectedLayerCompatibility(
-    connectivity.matrices,
+    dataset.networks,
     query,
   );
-  const layers = connectivity.matrices
-    .filter((matrix) => {
-      if (!matchesQueryPart(matrix, query, ["layerIds", "aggregationGroupingKey"])) {
+  const layers = dataset.networks
+    .filter((network) => {
+      if (!matchesQueryPart(network, query, ["layerIds", "aggregationGroupingKey"])) {
         return false;
       }
       if (
-        selectedCompatibility.matrixKind &&
-        matrix.kind !== selectedCompatibility.matrixKind
+        selectedCompatibility.networkKind &&
+        getRankingNetworkKind(network) !== selectedCompatibility.networkKind
       ) {
         return false;
       }
       if (
         selectedCompatibility.aggregationGroupingKey &&
-        getMatrixAggregationGroupingKey(matrix) !==
+        getNetworkAggregationGroupingKey(network) !==
           selectedCompatibility.aggregationGroupingKey
       ) {
         return false;
@@ -231,9 +224,9 @@ export const getCompatibleLayerOptions = (
     });
   const uniqueLayers = Array.from(
     new Map(
-      layers.map((matrix) => {
-        const layerId = matrix.context.layerId ?? "none";
-        const groupingLabel = getMatrixAggregationGroupingLabel(matrix);
+      layers.map((network) => {
+        const layerId = network.context.layerId ?? "none";
+        const groupingLabel = getNetworkAggregationGroupingLabel(network);
         return [
           layerId,
           {
@@ -248,7 +241,7 @@ export const getCompatibleLayerOptions = (
     { label: "All layers", value: ALL_COMPATIBLE_LAYERS },
     ...uniqueLayers.map(({ layerId, groupingLabel }) => ({
       label: [
-        connectivity.catalogs.layers[layerId]?.label ?? layerId,
+        dataset.catalogs.layers[layerId]?.label ?? layerId,
         groupingLabel ? `grouped by ${groupingLabel}` : null,
       ]
         .filter(Boolean)
@@ -258,36 +251,12 @@ export const getCompatibleLayerOptions = (
   ];
 };
 
-export const getMatrixOptions = (
-  connectivity: ConnectivityDataState | null | undefined,
-  query?: RankingQuery,
-) => {
-  if (!connectivity) return [];
-  return connectivity.matrices
-    .filter((matrix) =>
-      query
-        ? isRankingMatrixCandidate(matrix) && matrixMatchesRankingQuery(matrix, query)
-        : isRankingMatrixCandidate(matrix),
-    )
-    .map((matrix) => ({
-      label: `${getMatrixLabel(matrix, connectivity)} · ${matrixKindLabel[matrix.kind]}`,
-      value: matrix.id,
-      matrix,
-    }));
-};
-
-export const findMatrix = (
-  connectivity: ConnectivityDataState | null | undefined,
-  matrixId?: string,
-): ConnectivityMatrix | undefined =>
-  matrixId && connectivity ? connectivity.matrixIndex[matrixId] : undefined;
-
 export const getRankingQueryMissingFields = (
   query: RankingQuery,
-  connectivity?: ConnectivityDataState | null,
+  dataset?: NetworkDataset | null,
 ) => {
   const missing: string[] = [];
-  if (!connectivity) missing.push("dataset");
+  if (!dataset) missing.push("dataset");
   if (!query.target) missing.push("target");
   if (!query.sourceType || !query.sourceId) missing.push("source");
   if (!query.measureId) missing.push("measure");
@@ -297,7 +266,7 @@ export const getRankingQueryMissingFields = (
   const hasSelectedLayers = Boolean(query.layerIds?.length);
   if (!hasSelectedLayers) missing.push("layers");
   if (
-    query.target === "rois" &&
+    query.target === "nodes" &&
     (!hasSelectedLayers ||
       query.layerIds?.length !== 1 ||
       query.layerIds.includes(ALL_COMPATIBLE_LAYERS))
@@ -305,15 +274,15 @@ export const getRankingQueryMissingFields = (
     missing.push("single layer");
   }
   if (
-    connectivity &&
+    dataset &&
     query.sourceType &&
     query.sourceId &&
     query.measureId &&
     query.statisticId &&
     hasSelectedLayers &&
-    !connectivity.matrices.some((matrix) => matchesQueryPart(matrix, query))
+    !dataset.networks.some((network) => matchesQueryPart(network, query))
   ) {
-    missing.push("compatible matrices");
+    missing.push("compatible networks");
   }
   if (
     query.target === "links" &&
@@ -327,8 +296,8 @@ export const getRankingQueryMissingFields = (
 };
 
 const titleCaseTarget = (target: RankingQuery["target"]) => {
-  if (target === "matrices") return "Networks";
-  if (target === "rois") return "ROIs";
+  if (target === "networks") return "Networks";
+  if (target === "nodes") return "Nodes";
   return "Links";
 };
 
@@ -337,11 +306,11 @@ const optionLabel = (options: Option[], value?: string) =>
 
 export const getRankingMetricLabel = (query: RankingQuery) => {
   const options =
-    query.target === "matrices"
-      ? matrixMetricOptions
+    query.target === "networks"
+      ? networkMetricOptions
       : query.target === "links"
         ? linkMetricOptions
-        : roiMetricOptions;
+        : nodeMetricOptions;
   return optionLabel(options, query.metric) ?? query.metric;
 };
 
@@ -353,8 +322,8 @@ const rankingAutoconnectionsLabel = (query: RankingQuery) => {
     return "autoconnections allowed";
   }
   if (
-    query.target === "rois" &&
-    query.allowRoiRankingAutoconnections
+    query.target === "nodes" &&
+    query.allowNodeRankingAutoconnections
   ) {
     return "autoconnections allowed";
   }
@@ -363,20 +332,20 @@ const rankingAutoconnectionsLabel = (query: RankingQuery) => {
 
 export const formatRankingPanelTitle = (
   result: { query: RankingQuery },
-  connectivity?: ConnectivityDataState | null,
+  dataset?: NetworkDataset | null,
 ) => {
   const query = result.query;
   const source =
-    connectivity && query.sourceType && query.sourceId
-      ? optionLabel(getSourceOptions(connectivity, query), `${query.sourceType}::${query.sourceId}`)
+    dataset && query.sourceType && query.sourceId
+      ? optionLabel(getSourceOptions(dataset, query), `${query.sourceType}::${query.sourceId}`)
       : "all sources";
   const measure =
-    connectivity && query.measureId
-      ? connectivity.catalogs.measures[query.measureId]?.label ?? query.measureId
+    dataset && query.measureId
+      ? dataset.catalogs.measures[query.measureId]?.label ?? query.measureId
       : "all measures";
   const statistic =
-    connectivity && query.statisticId
-      ? connectivity.catalogs.stats[query.statisticId]?.label ?? query.statisticId
+    dataset && query.statisticId
+      ? dataset.catalogs.statistics[query.statisticId]?.label ?? query.statisticId
       : "all statistics";
   const autoconnections = rankingAutoconnectionsLabel(query);
 

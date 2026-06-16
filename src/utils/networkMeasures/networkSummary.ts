@@ -1,7 +1,4 @@
-import type {
-  ConnectivityDataState,
-  ConnectivityMatrix,
-} from "@/types/connectivityBundle";
+import type { Network, NetworkDataset, NodeSet } from "@/types/network";
 import type {
   NetworkLinkSummary,
   NetworkNodeSummary,
@@ -9,8 +6,7 @@ import type {
   NetworkSummaryCoverage,
   NetworkSummaryResult,
 } from "@/types/networkMeasures";
-import { getMatrixPopulationIds } from "@/utils/matrixSource";
-import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
+import { isDirectedNetwork } from "@/utils/networkData";
 import {
   buildGlobalMeasures,
   buildNodeSummaries,
@@ -22,9 +18,12 @@ import {
 import { buildGroupSummaries } from "@/utils/networkMeasures/groupMeasures";
 import { buildWeightDistribution } from "@/utils/networkMeasures/statistics";
 import {
-  getMatrixCompoundId,
-  getMatrixLabel,
-} from "@/utils/rankings/rankingMatrixMetadata";
+  createNetworkCompoundId,
+  formatNetworkDataSize,
+  formatNetworkLabel,
+  formatNetworkSourceLabel,
+  getNetworkSourceType,
+} from "@/utils/networkMetadata";
 
 const divide = (numerator: number, denominator: number) =>
   denominator > 0 ? numerator / denominator : null;
@@ -111,17 +110,19 @@ const getTopLinks = (
 };
 
 export const buildNetworkSummary = ({
-  connectivity,
-  matrix,
+  dataset,
+  network,
+  nodeSet,
   activeGroupingFields,
   options,
 }: {
-  connectivity: ConnectivityDataState;
-  matrix: ConnectivityMatrix;
+  dataset: NetworkDataset;
+  network: Network;
+  nodeSet: NodeSet;
   activeGroupingFields: string[];
   options: NetworkSummaryComputeOptions;
 }): NetworkSummaryResult => {
-  const graph = buildNetworkMeasureGraph({ connectivity, matrix, options });
+  const graph = buildNetworkMeasureGraph({ network, nodeSet, options });
   const coverage = getCoverage(graph);
   const weightValues = graph.edges.map((edge) => edge.value);
   const { grouping, groups } = buildGroupSummaries({
@@ -136,30 +137,29 @@ export const buildNetworkSummary = ({
   );
   const global = buildGlobalMeasures(graph, nodeSummaries);
   const links = getTopLinks(graph, grouping.fields, options.topItemsLimit);
-  const [rows, cols] = matrix.geometry.shape;
-  const layerId = matrix.context.layerId ?? "none";
+  const layerId = network.context.layerId ?? "none";
+  const directed = isDirectedNetwork(network);
+  const networkKind = "sourceNodeSetId" in nodeSet ? "aggregated" : "node";
 
   return {
     identity: {
-      matrixId: matrix.id,
-      compoundId: getMatrixCompoundId(matrix),
-      label: getMatrixLabel(matrix, connectivity),
-      kind: matrix.kind,
+      networkId: network.id,
+      compoundId: createNetworkCompoundId(network),
+      label: formatNetworkLabel(network, dataset),
+      kind: getNetworkSourceType(network),
       measureLabel:
-        connectivity.catalogs.measures[matrix.context.measureId]?.label ??
-        matrix.context.measureId,
+        dataset.catalogs.measures[network.measureId]?.label ??
+        network.measureId,
       statisticLabel:
-        connectivity.catalogs.stats[matrix.stat.id]?.label ?? matrix.stat.id,
-      layerLabel: connectivity.catalogs.layers[layerId]?.label ?? layerId,
-      populationLabel: formatPopulationSetLabel(
-        getMatrixPopulationIds(matrix),
-        connectivity.catalogs,
-      ),
-      matrixSize: `${rows} x ${cols}`,
+        dataset.catalogs.statistics[network.statisticId]?.label ??
+        network.statisticId,
+      layerLabel: dataset.catalogs.layers[layerId]?.label ?? layerId,
+      populationLabel: formatNetworkSourceLabel(network, dataset),
+      dataSize: formatNetworkDataSize(network),
       nodeCount: graph.nodes.length,
-      symmetric: matrix.encoding.symmetric,
-      directed: graph.directed,
-      networkKind: matrix.kind === "aggregated" ? "aggregated" : "roi",
+      symmetric: !directed,
+      directed,
+      networkKind,
       scope: "complete",
     },
     coverage,

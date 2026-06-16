@@ -15,8 +15,8 @@ export const initialDatasetFiles = {
     label: "Minimal matrices",
     path: "data/examples/01_minimal_matrices.zip",
   },
-  roisAndMatrices: {
-    label: "ROIs and matrices",
+  nodesAndMatrices: {
+    label: "Nodes and matrices",
     path: "data/examples/02_rois_and_matrices.zip",
   },
   matrixFolder: {

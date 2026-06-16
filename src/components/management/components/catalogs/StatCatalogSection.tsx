@@ -6,7 +6,7 @@ import {
   isEnabled,
   normalizeNumber,
 } from "@/components/management/utils/catalogValues";
-import type { StatCatalogEntry } from "@/types/connectivityBundle";
+import type { Statistic } from "@/types/network";
 
 type StatDraft = {
   id: string;
@@ -17,7 +17,7 @@ type StatDraft = {
   max?: number;
 };
 
-type EditableStat = StatCatalogEntry & {
+type EditableStat = Statistic & {
   description?: string | null;
   enabled?: boolean;
 };
@@ -89,7 +89,7 @@ function StatCatalogSection({ title, stats, emptyMessage }: StatCatalogSectionPr
     dirtyStats.forEach((stat) => {
       const draft = drafts[stat.id];
       if (!draft) return;
-      updateItem("stats", stat.id, {
+      updateItem("statistics", stat.id, {
         label: draft.label,
         description: draft.description,
         enabled: draft.enabled,

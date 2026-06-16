@@ -2,7 +2,7 @@ import { Form, Space, Switch } from "antd";
 
 import {
   DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS,
-  DEFAULT_ROI_RANKING_ALLOW_AUTOCONNECTIONS,
+  DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS,
 } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { patchRankingQuery } from "@/store/slices/rankings";
@@ -14,10 +14,10 @@ export default function RankingAutoconnectionsSettings() {
       state.rankings.currentQuery.allowLinkRankingAutoconnections ??
       DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS,
   );
-  const allowRoiRankingAutoconnections = useAppSelector(
+  const allowNodeRankingAutoconnections = useAppSelector(
     (state) =>
-      state.rankings.currentQuery.allowRoiRankingAutoconnections ??
-      DEFAULT_ROI_RANKING_ALLOW_AUTOCONNECTIONS,
+      state.rankings.currentQuery.allowNodeRankingAutoconnections ??
+      DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS,
   );
 
   return (
@@ -35,13 +35,13 @@ export default function RankingAutoconnectionsSettings() {
             }
           />
         </Form.Item>
-        <Form.Item label="Allow autoconnections in ROI rankings" style={{ marginBottom: 0 }}>
+        <Form.Item label="Allow autoconnections in node rankings" style={{ marginBottom: 0 }}>
           <Switch
-            checked={allowRoiRankingAutoconnections}
+            checked={allowNodeRankingAutoconnections}
             onChange={(value) =>
               dispatch(
                 patchRankingQuery({
-                  allowRoiRankingAutoconnections: value,
+                  allowNodeRankingAutoconnections: value,
                 }),
               )
             }

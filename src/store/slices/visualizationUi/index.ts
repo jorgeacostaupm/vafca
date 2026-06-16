@@ -6,6 +6,7 @@ export {
   selectDraftMatrixColorSettings,
   selectHoveredCell,
   selectHoveredNodeId,
+  selectNodeLinkVisualStyle,
   selectSelectedLinks,
   selectSelectedLinksDownloadError,
   selectSelectedLinksDownloadStatus,
@@ -34,6 +35,7 @@ export {
   setDraftMatrixInteractionColor,
   setHoveredCell,
   setHoveredNode,
+  setNodeLinkInteractionColor,
   setUiRangeMode,
   toggleAtlasLinkId,
 } from './visualizationUiSlice'

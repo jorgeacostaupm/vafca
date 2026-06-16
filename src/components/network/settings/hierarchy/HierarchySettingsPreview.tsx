@@ -31,7 +31,6 @@ export default function HierarchySettingsPreview({
       <CircularHierarchyPreview
         layout={hierarchy.circularPreviewLayout}
         previewLinks={hierarchy.circularPreviewLinks}
-        activeRoiCount={hierarchy.activeRoiIds.length}
         previewRadius={hierarchy.previewRadius}
         nodeColors={hierarchy.previewNodeColors}
         linkTension={circularLinkTension}
@@ -45,7 +44,6 @@ export default function HierarchySettingsPreview({
   return (
     <MatrixHierarchyPreview
       matrixPreviewIds={hierarchy.matrixPreviewIds}
-      activeRoiCount={hierarchy.activeRoiIds.length}
       nodeColors={hierarchy.previewNodeColors}
       displayWidth={MATRIX_PREVIEW_WIDTH}
       displayHeight={MATRIX_PREVIEW_HEIGHT}

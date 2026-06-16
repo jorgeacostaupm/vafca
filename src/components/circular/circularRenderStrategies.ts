@@ -221,9 +221,11 @@ export const renderCircularElements = ({
 
       const source = nodes[link.source];
       const target = nodes[link.target];
+      const controlX = ((source.x + target.x) / 2) * (1 - circularLinkTension);
+      const controlY = ((source.y + target.y) / 2) * (1 - circularLinkTension);
       const path = d3.path();
       path.moveTo(source.x, source.y);
-      path.quadraticCurveTo(0, 0, target.x, target.y);
+      path.quadraticCurveTo(controlX, controlY, target.x, target.y);
       return path.toString();
     })
     .attr("fill", "none")

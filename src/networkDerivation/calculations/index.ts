@@ -1,5 +1,5 @@
 export {
-  calculateDerivedMatrices,
+  calculateDerivedNetworks,
   calculatePopulationCohensD,
   calculatePopulationDifference,
   calculatePopulationReferenceZScore,
@@ -19,23 +19,23 @@ export {
   isFiniteMatrixValue,
 } from "@/networkDerivation/calculations/matrixMath";
 export {
-  getMatrixCalculationMethodDefinition,
-  getMatrixCalculationMethodDefinitions,
-  matrixCalculationMethodDefinitions,
+  getNetworkCalculationMethodDefinition,
+  getNetworkCalculationMethodDefinitions,
+  networkCalculationMethodDefinitions,
 } from "@/networkDerivation/calculations/methods";
 export {
   assertContextCompatible,
-  findEquivalentDerivedMatrix,
-  getAvailableMatrixCalculations,
+  findEquivalentDerivedNetwork,
+  getAvailableNetworkCalculations,
   resolveCalculationInputsForLayerMeasure,
-  validateMatrixCalculationRequest,
+  validateNetworkCalculationRequest,
 } from "@/networkDerivation/calculations/resolution";
 export { normalCdf, studentTCdf } from "@/networkDerivation/calculations/statistics";
 export type {
-  MatrixCalculationAssociatedOutputId,
-  MatrixCalculationBatchRequest,
-  MatrixCalculationMethodDefinition,
-  MatrixCalculationOperation,
-  MatrixCalculationResult,
-  MatrixCalculationSkipped,
+  NetworkCalculationAssociatedOutputId,
+  NetworkCalculationBatchRequest,
+  NetworkCalculationMethodDefinition,
+  NetworkCalculationOperation,
+  NetworkCalculationResult,
+  NetworkCalculationSkipped,
 } from "@/networkDerivation/calculations/types";

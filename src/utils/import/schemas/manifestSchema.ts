@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { addZodIssues } from "@/utils/import/schemas/importSchemaIssues";
-import type { ConnectivityImportIssue } from "@/utils/import/types";
+import type { NetworkImportIssue } from "@/utils/import/types";
 
 export const ManifestImportSchema = z.object({
   atlasId: z.string().optional(),
@@ -15,7 +15,7 @@ export type ManifestImportRecord = z.infer<typeof ManifestImportSchema>;
 export const parseManifestImportRecord = (
   payload: unknown,
   source: string,
-  errors: ConnectivityImportIssue[],
+  errors: NetworkImportIssue[],
 ): ManifestImportRecord | null => {
   const result = ManifestImportSchema.safeParse(payload);
 

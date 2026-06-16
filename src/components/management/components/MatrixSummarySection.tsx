@@ -4,7 +4,7 @@ import { useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
 import {
   getDatasetCatalogs,
-  getDatasetMatrixStats,
+  getDatasetNetworkStats,
 } from "@/utils/datasetAccessors";
 import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
 
@@ -13,14 +13,14 @@ function MatrixSummarySection() {
 
   if (!data) return null;
   const catalogs = getDatasetCatalogs(data);
-  const matrixStats = getDatasetMatrixStats(data);
+  const networkStats = getDatasetNetworkStats(data);
   if (!catalogs) return null;
 
   return (
     <div>
       <Typography.Text strong>Matrix summary</Typography.Text>
       <Space direction="vertical" size={4} style={{ width: "100%" }}>
-        {Object.entries(matrixStats.byMeasureStatPopulationSet).map(([measureId, statMap]) => (
+        {Object.entries(networkStats.byMeasureStatPopulationSet).map(([measureId, statMap]) => (
           <Typography.Text key={measureId} type="secondary">
             {(catalogs.measures[measureId]?.label ?? measureId) + ": "}
             {Object.entries(statMap)
@@ -38,7 +38,7 @@ function MatrixSummarySection() {
                     return `${label} ${count}`;
                   })
                   .join(", ");
-                return `${catalogs.stats[statId]?.label ?? statId} ${total} (${perPopulationSet})`;
+                return `${catalogs.statistics[statId]?.label ?? statId} ${total} (${perPopulationSet})`;
               })
               .join(" · ")}
           </Typography.Text>

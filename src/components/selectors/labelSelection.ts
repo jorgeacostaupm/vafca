@@ -2,21 +2,21 @@ import type { ZoomSelection } from "@/types/networkVisualization";
 import { intersectLabels } from "@/utils/matrixViewUtils";
 
 export const buildLabelState = ({
-  matrixOrderIds,
+  nodeOrderIds,
   atlasOrderLength,
   activeLabelIds,
   labels,
   zoomLabelSelection,
   zoomSelection,
 }: {
-  matrixOrderIds: string[];
+  nodeOrderIds: string[];
   atlasOrderLength: number;
   activeLabelIds: string[];
   labels?: string[];
   zoomLabelSelection?: string[];
   zoomSelection: ZoomSelection;
 }) => {
-  const orderedLabels = matrixOrderIds.length > 0 ? matrixOrderIds : undefined;
+  const orderedLabels = nodeOrderIds.length > 0 ? nodeOrderIds : undefined;
   const globalLabelSelection =
     orderedLabels && atlasOrderLength > 0 ? activeLabelIds : orderedLabels;
 

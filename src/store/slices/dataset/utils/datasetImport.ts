@@ -1,62 +1,61 @@
 import type {
   DatasetMeta,
-  MatrixStats,
-  MatrixUploadError,
-  MatrixUploadResult,
+  NetworkImportError,
+  NetworkImportSummary,
+  NetworkStats,
 } from '@/types/datasetState'
-import type { MatrixOrderItem } from '@/types/matrixOrder'
+import type { NodeOrderItem } from '@/types/nodeOrder'
 import {
-  getDatasetMatrixOrder,
-  getDatasetMatrixStats,
+  getDatasetNetworkStats,
+  getDatasetNodeOrder,
 } from '@/utils/datasetAccessors'
 import {
-  loadConnectivityImport,
-  loadConnectivityImportFromBytes,
-} from '@/utils/import/loadConnectivityImport'
-import { createDatasetMetaFromNormalized } from '@/utils/import/normalizedDatasetAdapter'
+  loadNetworkImport,
+  loadNetworkImportFromBytes,
+} from '@/utils/import/loadNetworkImport'
 import type {
-  ConnectivityImportMode,
-  ConnectivityImportResult,
+  NetworkImportMode,
+  NetworkImportResult,
 } from '@/utils/import/types'
 
 export type ImportedDataset = {
   datasetMeta: DatasetMeta
-  matrixStats: MatrixStats
-  matrixOrder: MatrixOrderItem[]
-  importResult: ConnectivityImportResult
-  result: MatrixUploadResult
+  networkStats: NetworkStats
+  nodeOrder: NodeOrderItem[]
+  importResult: NetworkImportResult
+  result: NetworkImportSummary
 }
 
 const toUploadError = (issue: {
   source: string
   path: string
   message: string
-}): MatrixUploadError => ({
+}): NetworkImportError => ({
   source: issue.source,
   message: `${issue.path}: ${issue.message}`,
 })
 
 const buildUploadResult = (
-  imported: ConnectivityImportResult,
-): MatrixUploadResult => {
+  imported: NetworkImportResult,
+): NetworkImportSummary => {
   const errors = imported.normalized.issues.errors.map(toUploadError)
   return {
     files: 1,
-    validMatrices: imported.normalized.matrices.length,
-    invalidMatrices: errors.length,
+    validNetworks: imported.normalized.networks.length,
+    invalidNetworks: errors.length,
     errors,
     warnings: imported.normalized.issues.warnings.map(toUploadError),
   }
 }
 
 export const createImportedDataset = (
-  imported: ConnectivityImportResult,
+  imported: NetworkImportResult,
 ): ImportedDataset => {
-  const datasetMeta = createDatasetMetaFromNormalized(imported.normalized)
+  const datasetMeta = { content: imported.dataset }
   return {
     datasetMeta,
-    matrixStats: getDatasetMatrixStats(datasetMeta),
-    matrixOrder: getDatasetMatrixOrder(datasetMeta),
+    networkStats: getDatasetNetworkStats(datasetMeta),
+    nodeOrder: getDatasetNodeOrder(datasetMeta),
     importResult: imported,
     result: buildUploadResult(imported),
   }
@@ -64,7 +63,7 @@ export const createImportedDataset = (
 
 export const importDatasetFromPublicZip = async (
   path: string,
-  mode: ConnectivityImportMode,
+  mode: NetworkImportMode,
 ) => {
   const response = await fetch(`${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`)
   if (!response.ok) {
@@ -73,11 +72,11 @@ export const importDatasetFromPublicZip = async (
 
   const fileName = path.split('/').pop() ?? 'dataset.zip'
   return createImportedDataset(
-    loadConnectivityImportFromBytes(fileName, await response.arrayBuffer(), mode),
+    loadNetworkImportFromBytes(fileName, await response.arrayBuffer(), mode),
   )
 }
 
 export const importDatasetFromUploadedZip = async (
   file: File,
-  mode: ConnectivityImportMode,
-) => createImportedDataset(await loadConnectivityImport(file, mode))
+  mode: NetworkImportMode,
+) => createImportedDataset(await loadNetworkImport(file, mode))

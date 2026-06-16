@@ -16,19 +16,19 @@ export default function NetworkSummaryControls({ onOpenSettings }: Props) {
     populations,
     layers,
     stats,
-    matrices,
+    networks,
     disabled,
     onPopulationChange,
     onMeasureChange,
     onStatChange,
     onLayerChange,
-    onMatrixChange,
+    onNetworkChange,
   } = useNetworkSummarySelectorModel();
 
   if (status === "loading") {
     return (
       <Typography.Text className="network-summary-controls__status">
-        Loading matrix list...
+        Loading network list...
       </Typography.Text>
     );
   }
@@ -56,16 +56,16 @@ export default function NetworkSummaryControls({ onOpenSettings }: Props) {
       layout="vertical"
     >
       {controls.matrixSelectorMode === "combined" ? (
-        <div className="network-summary-controls__matrix-row">
-          <Form.Item label="Network" className="network-summary-controls__matrix">
+        <div className="network-summary-controls__network-row">
+          <Form.Item label="Network" className="network-summary-controls__network">
             <Select
               placeholder="Select network..."
               value={controls.selectedCompoundId || undefined}
-              onChange={onMatrixChange}
+              onChange={onNetworkChange}
               allowClear
               showSearch
               optionFilterProp="label"
-              options={matrices}
+              options={networks}
             />
           </Form.Item>
           {settingsButton}

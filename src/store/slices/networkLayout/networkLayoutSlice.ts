@@ -2,8 +2,9 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import {
   DEFAULT_NETWORK_PANEL_LAYOUT,
-  DEFAULT_PANEL_GRID_CONFIG,
+  DEFAULT_RANKING_PANEL_LAYOUT,
 } from "@/config/ui";
+import { runRankingQuery } from "@/store/slices/rankings/thunks";
 import type { NetworkLayoutItem } from "@/types/networkVisualization";
 
 import { initialNetworkLayoutState } from "./networkLayoutTypes";
@@ -34,14 +35,9 @@ const networkLayoutSlice = createSlice({
       const initialY =
         action.payload.initialY ?? DEFAULT_NETWORK_PANEL_LAYOUT.initialY;
       const yOffset = action.payload.yOffset ?? defaultH;
-      const panelsPerRow = Math.max(
-        1,
-        Math.floor(DEFAULT_PANEL_GRID_CONFIG.columns / defaultW),
-      );
-      const x = initialX + (state.layout.length % panelsPerRow) * defaultW;
 
       state.layout = [
-        { i: viewId, x, y: initialY, w: defaultW, h: defaultH },
+        { i: viewId, x: initialX, y: initialY, w: defaultW, h: defaultH },
         ...state.layout.map((entry) => ({
           ...entry,
           y: entry.y + yOffset,
@@ -58,6 +54,14 @@ const networkLayoutSlice = createSlice({
     clearNetworkLayout(state) {
       state.layout = [];
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(runRankingQuery.fulfilled, (state) => {
+      state.layout = state.layout.map((entry) => ({
+        ...entry,
+        y: entry.y + DEFAULT_RANKING_PANEL_LAYOUT.height,
+      }));
+    });
   },
 });
 

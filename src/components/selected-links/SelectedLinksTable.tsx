@@ -5,12 +5,12 @@ import { useMemo } from "react";
 
 import type {
   LinkRow,
-  MatrixColumn,
+  NetworkColumn,
 } from "@/components/selected-links/selectedLinksPanel.types";
 
 type SelectedLinksTableProps = {
   rows: LinkRow[];
-  matrixColumns: MatrixColumn[];
+  networkColumns: NetworkColumn[];
   atlasLinkIds: string[];
   onSetAtlasLinkIds: (ids: string[]) => void;
   onToggleAtlasLinkId: (id: string) => void;
@@ -19,7 +19,7 @@ type SelectedLinksTableProps = {
 
 export default function SelectedLinksTable({
   rows,
-  matrixColumns,
+  networkColumns,
   atlasLinkIds,
   onSetAtlasLinkIds,
   onToggleAtlasLinkId,
@@ -33,7 +33,7 @@ export default function SelectedLinksTable({
         key: "link",
         fixed: "left",
       },
-      ...matrixColumns.map((column) => ({
+      ...networkColumns.map((column) => ({
         title: column.label,
         dataIndex: ["values", column.compoundId],
         key: column.compoundId,
@@ -69,7 +69,7 @@ export default function SelectedLinksTable({
         ),
       },
     ],
-    [matrixColumns, onRemoveSelectedLink],
+    [networkColumns, onRemoveSelectedLink],
   );
 
   return (

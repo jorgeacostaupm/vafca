@@ -1,7 +1,7 @@
 const MATRIX_LABEL_SEPARATOR = " · ";
 
-export const buildTooltipValueLabel = (matrixLabel?: string) => {
-  const label = matrixLabel?.trim();
+export const buildTooltipValueLabel = (networkLabel?: string) => {
+  const label = networkLabel?.trim();
   if (!label) return "Value";
 
   const parts = label

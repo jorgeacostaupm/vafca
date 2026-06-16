@@ -10,7 +10,7 @@ import { selectDatasetData } from "@/store/slices/dataset";
 import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
 import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
-const buildRoiColor = (index: number) => {
+const buildNodeColor = (index: number) => {
   const hue = (index * 0.61803398875) % 1;
   return new THREE.Color().setHSL(hue, 0.55, 0.55);
 };
@@ -28,8 +28,8 @@ export default function SelectedLinksAtlas() {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const frameRef = useRef<number | null>(null);
-  const roiObjectsRef = useRef<Map<string, THREE.Mesh>>(new Map());
-  const roiCentersRef = useRef<Map<string, THREE.Vector3>>(new Map());
+  const nodeObjectsRef = useRef<Map<string, THREE.Mesh>>(new Map());
+  const nodeCentersRef = useRef<Map<string, THREE.Vector3>>(new Map());
   const linkGroupRef = useRef<THREE.Group | null>(null);
   const linkMaterialRef = useRef<THREE.LineBasicMaterial | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -40,7 +40,7 @@ export default function SelectedLinksAtlas() {
     return selectedLinks.filter((link) => activeSet.has(link.id));
   }, [atlasLinkIds, selectedLinks]);
 
-  const highlightedRoiIds = useMemo(() => {
+  const highlightedNodeIds = useMemo(() => {
     const set = new Set<string>();
     activeLinks.forEach((link) => {
       set.add(link.rowId);
@@ -49,10 +49,10 @@ export default function SelectedLinksAtlas() {
     return set;
   }, [activeLinks]);
 
-  const hasLinkFocus = highlightedRoiIds.size > 0;
+  const hasLinkFocus = highlightedNodeIds.size > 0;
   const has3d = atlasSupports3d(atlasDefinition);
   const statusLabel = hasLinkFocus
-    ? `Showing ${activeLinks.length} link${activeLinks.length === 1 ? "" : "s"} · ${highlightedRoiIds.size} ROI${highlightedRoiIds.size === 1 ? "" : "s"}`
+    ? `Showing ${activeLinks.length} link${activeLinks.length === 1 ? "" : "s"} · ${highlightedNodeIds.size} Node${highlightedNodeIds.size === 1 ? "" : "s"}`
     : "Select links to highlight them in the atlas";
 
   const applyCameraPose = (x: number, y: number, z: number) => {
@@ -67,7 +67,7 @@ export default function SelectedLinksAtlas() {
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!has3d || !container || !atlasDefinition?.rois?.length) return undefined;
+    if (!has3d || !container || !atlasDefinition?.nodes?.length) return undefined;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#0b0f16");
@@ -106,10 +106,10 @@ export default function SelectedLinksAtlas() {
     fillLight.position.set(-0.6, -0.2, 0.4);
     scene.add(ambient, keyLight, fillLight);
 
-    const roiObjects = new Map<string, THREE.Mesh>();
-    const roiCenters = new Map<string, THREE.Vector3>();
-    atlasDefinition.rois.forEach((roi, index) => {
-      const rawPoints = Array.isArray(roi.mesh_points) ? roi.mesh_points : [];
+    const nodeObjects = new Map<string, THREE.Mesh>();
+    const nodeCenters = new Map<string, THREE.Vector3>();
+    atlasDefinition.nodes.forEach((node, index) => {
+      const rawPoints = Array.isArray(node.mesh_points) ? node.mesh_points : [];
       const points = rawPoints
         .filter(
           (point): point is number[] =>
@@ -122,7 +122,7 @@ export default function SelectedLinksAtlas() {
 
       const geometry = new ConvexGeometry(points);
       geometry.computeVertexNormals();
-      const baseColor = buildRoiColor(index);
+      const baseColor = buildNodeColor(index);
       const material = new THREE.MeshStandardMaterial({
         color: baseColor,
         emissive: new THREE.Color(0x000000),
@@ -140,16 +140,16 @@ export default function SelectedLinksAtlas() {
         new THREE.Vector3(),
       );
       center.divideScalar(points.length);
-      const roiIds = [String(roi.id), String(roi.atlasId)];
+      const nodeIds = [String(node.id), String(node.atlasId)];
       mesh.userData = {
-        roiId: String(roi.id),
+        nodeId: String(node.id),
         baseColor: baseColor.clone(),
         highlightColor: highlightColor.clone(),
         baseOpacity: material.opacity,
       };
-      roiIds.forEach((id) => {
-        roiObjects.set(id, mesh);
-        roiCenters.set(id, center);
+      nodeIds.forEach((id) => {
+        nodeObjects.set(id, mesh);
+        nodeCenters.set(id, center);
       });
       group.add(mesh);
     });
@@ -158,8 +158,8 @@ export default function SelectedLinksAtlas() {
     cameraRef.current = camera;
     rendererRef.current = renderer;
     controlsRef.current = controls;
-    roiObjectsRef.current = roiObjects;
-    roiCentersRef.current = roiCenters;
+    nodeObjectsRef.current = nodeObjects;
+    nodeCentersRef.current = nodeCenters;
     linkGroupRef.current = linkGroup;
 
     const animate = () => {
@@ -185,7 +185,7 @@ export default function SelectedLinksAtlas() {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       controls.dispose();
       renderer.dispose();
-      for (const mesh of new Set(roiObjects.values())) {
+      for (const mesh of new Set(nodeObjects.values())) {
         mesh.geometry.dispose();
         if (Array.isArray(mesh.material)) {
           for (const material of mesh.material) {
@@ -204,8 +204,8 @@ export default function SelectedLinksAtlas() {
       cameraRef.current = null;
       rendererRef.current = null;
       controlsRef.current = null;
-      roiObjectsRef.current = new Map();
-      roiCentersRef.current = new Map();
+      nodeObjectsRef.current = new Map();
+      nodeCentersRef.current = new Map();
       linkGroupRef.current = null;
       if (linkMaterialRef.current) {
         linkMaterialRef.current.dispose();
@@ -215,9 +215,9 @@ export default function SelectedLinksAtlas() {
   }, [atlasDefinition, has3d]);
 
   useEffect(() => {
-    const roiObjects = roiObjectsRef.current;
-    if (roiObjects.size === 0) return;
-    for (const [id, mesh] of roiObjects) {
+    const nodeObjects = nodeObjectsRef.current;
+    if (nodeObjects.size === 0) return;
+    for (const [id, mesh] of nodeObjects) {
       // THREE meshes are imperative scene objects, not React state.
       // eslint-disable-next-line react-hooks/immutability
       mesh.visible = true;
@@ -230,7 +230,7 @@ export default function SelectedLinksAtlas() {
       const baseOpacity =
         (mesh.userData?.baseOpacity as number | undefined) ?? 0.65;
       if (hasLinkFocus) {
-        if (highlightedRoiIds.has(id)) {
+        if (highlightedNodeIds.has(id)) {
           if (highlightColor) material.color.copy(highlightColor);
           if (baseColor) material.emissive.copy(baseColor);
           material.emissiveIntensity = 0.35;
@@ -249,7 +249,7 @@ export default function SelectedLinksAtlas() {
       }
       material.needsUpdate = true;
     }
-  }, [hasLinkFocus, highlightedRoiIds]);
+  }, [hasLinkFocus, highlightedNodeIds]);
 
   useEffect(() => {
     const linkGroup = linkGroupRef.current;
@@ -261,7 +261,7 @@ export default function SelectedLinksAtlas() {
     }
     linkGroup.clear();
     if (!hasLinkFocus) return;
-    const roiCenters = roiCentersRef.current;
+    const nodeCenters = nodeCentersRef.current;
     if (!linkMaterialRef.current) {
       linkMaterialRef.current = new THREE.LineBasicMaterial({
         color: 0x8fc5ff,
@@ -272,8 +272,8 @@ export default function SelectedLinksAtlas() {
     }
     const material = linkMaterialRef.current;
     activeLinks.forEach((link) => {
-      const start = roiCenters.get(link.rowId);
-      const end = roiCenters.get(link.colId);
+      const start = nodeCenters.get(link.rowId);
+      const end = nodeCenters.get(link.colId);
       if (!start || !end) return;
       const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
       const line = new THREE.Line(geometry, material);
@@ -282,7 +282,7 @@ export default function SelectedLinksAtlas() {
     });
   }, [activeLinks, hasLinkFocus]);
 
-  if (!atlasDefinition?.rois?.length) {
+  if (!atlasDefinition?.nodes?.length) {
     return (
       <div className="links-atlas links-atlas--empty">
         <Typography.Text type="secondary">

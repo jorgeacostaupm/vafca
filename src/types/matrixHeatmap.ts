@@ -1,7 +1,7 @@
 import type { RefObject } from "react";
 
-import type { ScaleType } from "@/types/connectivityBundle";
 import type { MatrixValueRange } from "@/types/matrixView";
+import type { ScaleType } from "@/types/network";
 import type {
   MatrixColorScaleSettings,
   MatrixVisualStyle,

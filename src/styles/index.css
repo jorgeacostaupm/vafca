@@ -5,6 +5,7 @@
 @import "./layout/app-layout.css";
 
 @import "./components/antd-overrides.css";
+@import "./components/inline-notice.css";
 @import "./components/panel-card.css";
 @import "./components/upload-dropzone.css";
 

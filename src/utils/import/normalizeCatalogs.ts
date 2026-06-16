@@ -2,9 +2,9 @@ import { isRecord, toLabel, toSlug } from "@/utils/import/guards";
 import { parseCatalogsImportRecord } from "@/utils/import/schemas/catalogSchema";
 import { parseManifestImportRecord } from "@/utils/import/schemas/manifestSchema";
 import type {
-  ConnectivityImportIssue,
-  ImportCatalogs,
-  NormalizedMatrix,
+  CatalogsDraft,
+  ImportedNetworkDraft,
+  NetworkImportIssue,
 } from "@/utils/import/types";
 
 export type ImportMetadataFallbacks = {
@@ -16,7 +16,8 @@ const readCatalogLabel = (
   section: string,
   id: string,
 ) => {
-  const sectionValue = catalogs?.[section];
+  const sectionValue = catalogs?.[section] ??
+    (section === "statistics" ? catalogs?.stats : undefined);
   if (!isRecord(sectionValue)) return null;
   const entry = sectionValue[id];
   if (!isRecord(entry)) return null;
@@ -30,7 +31,8 @@ const readCatalogEntry = (
   section: string,
   id: string,
 ) => {
-  const sectionValue = catalogs?.[section];
+  const sectionValue = catalogs?.[section] ??
+    (section === "statistics" ? catalogs?.stats : undefined);
   if (!isRecord(sectionValue)) return null;
   const entry = sectionValue[id];
   return isRecord(entry) ? entry : null;
@@ -41,7 +43,7 @@ const readExpectedRange = (
   measureId: string,
 ) => {
   const entry = readCatalogEntry(catalogs, "measures", measureId) ??
-    readCatalogEntry(catalogs, "stats", measureId);
+    readCatalogEntry(catalogs, "statistics", measureId);
   if (!entry || !Array.isArray(entry.expectedRange)) return null;
   const range = entry.expectedRange;
   if (
@@ -91,7 +93,7 @@ const getDefaultStatConfig = (id: string) => {
 
 const getCatalogRecord = (
   payload: unknown,
-  errors: ConnectivityImportIssue[],
+  errors: NetworkImportIssue[],
 ) => {
   if (payload === null) return null;
   return parseCatalogsImportRecord(payload, "catalogs.json", errors);
@@ -110,8 +112,8 @@ export const getImportMetadataFallbacks = (
 export const normalizeManifest = (
   manifestPayload: unknown,
   strict: boolean,
-  errors: ConnectivityImportIssue[],
-  warnings: ConnectivityImportIssue[],
+  errors: NetworkImportIssue[],
+  warnings: NetworkImportIssue[],
 ) => {
   if (manifestPayload === null) {
     const issue = {
@@ -140,9 +142,9 @@ export const normalizeManifest = (
 export const normalizeCatalogs = (
   catalogsPayload: unknown,
   catalogFiles: Record<string, unknown>,
-  matrices: NormalizedMatrix[],
-  errors: ConnectivityImportIssue[],
-): ImportCatalogs => {
+  networks: ImportedNetworkDraft[],
+  errors: NetworkImportIssue[],
+): CatalogsDraft => {
   const sourceCatalogs = {
     ...(getCatalogRecord(catalogsPayload, errors) ?? {}),
     ...Object.fromEntries(
@@ -152,10 +154,10 @@ export const normalizeCatalogs = (
       }),
     ),
   };
-  const layerIds = new Set(matrices.map((matrix) => matrix.layerId));
-  const measureIds = new Set(matrices.map((matrix) => matrix.measureId));
-  const statIds = new Set(matrices.map((matrix) => matrix.statId));
-  const populationIds = new Set(matrices.flatMap((matrix) => matrix.populationIds));
+  const layerIds = new Set(networks.map((network) => network.layerId));
+  const measureIds = new Set(networks.map((network) => network.measureId));
+  const statisticIds = new Set(networks.map((network) => network.statisticId));
+  const populationIds = new Set(networks.flatMap((network) => network.populationIds));
 
   return {
     layers: Object.fromEntries(
@@ -184,16 +186,16 @@ export const normalizeCatalogs = (
         ];
       }),
     ),
-    stats: Object.fromEntries(
-      [...statIds].map((id) => {
-        const entry = readCatalogEntry(sourceCatalogs, "stats", id);
+    statistics: Object.fromEntries(
+      [...statisticIds].map((id) => {
+        const entry = readCatalogEntry(sourceCatalogs, "statistics", id);
         const defaults = getDefaultStatConfig(id);
         const expectedRange = readExpectedRange(sourceCatalogs, id);
         return [
           id,
           {
           id,
-          label: readCatalogLabel(sourceCatalogs, "stats", id) ?? toLabel(id),
+          label: readCatalogLabel(sourceCatalogs, "statistics", id) ?? toLabel(id),
           category: typeof entry?.category === "string" ? entry.category : defaults.category,
           scaleType: isScaleType(entry?.scaleType) ? entry.scaleType : defaults.scaleType,
           center: typeof entry?.center === "number" || entry?.center === null

@@ -3,7 +3,7 @@ import { Button, Modal, Space, Tabs, Typography } from "antd";
 import CatalogManagementSections from "@/components/management/components/catalogs/CatalogManagementSections";
 import DatasetSummaryHeader from "@/components/management/components/DatasetSummaryHeader";
 import MatrixSummarySection from "@/components/management/components/MatrixSummarySection";
-import MatrixUploader from "@/components/management/components/MatrixUploader";
+import NetworkUploader from "@/components/management/components/NetworkUploader";
 import { DEFAULT_DATA_MANAGEMENT_TAB } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -29,7 +29,7 @@ function DataLoadingTab() {
     ? [
         { label: "Populations", value: Object.keys(catalogs.populations).length },
         { label: "Measures", value: Object.keys(catalogs.measures).length },
-        { label: "Statistics", value: Object.keys(catalogs.stats).length },
+        { label: "Statistics", value: Object.keys(catalogs.statistics).length },
         { label: "Layers", value: Object.keys(catalogs.layers).length },
       ]
     : [];
@@ -40,7 +40,7 @@ function DataLoadingTab() {
 
   return (
     <Space direction="vertical" size={16} style={{ width: "100%" }}>
-      <MatrixUploader />
+      <NetworkUploader />
 
       {data ? (
         <>

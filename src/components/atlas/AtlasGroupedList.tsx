@@ -4,9 +4,9 @@ import { type Key,memo, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 
-import { AtlasRoiListItem } from "./AtlasRoiListItem";
-import type { GroupTreeEntry, RoiTreeNode } from "./panelTypes";
-import { buildEffectiveRoiEnabledMap } from "./roiVisibilityDraft";
+import { AtlasNodeListItem } from "./AtlasNodeListItem";
+import { buildEffectiveNodeEnabledMap } from "./nodeVisibilityDraft";
+import type { GroupTreeEntry, NodeTreeNode } from "./panelTypes";
 
 type AtlasGroupedListProps = {
   entries: GroupTreeEntry[];
@@ -15,15 +15,15 @@ type AtlasGroupedListProps = {
 
 const EMPTY_TEXT = "No labels found for current filters.";
 
-const renderRoiRow = (row: RoiTreeNode) => (
-  <AtlasRoiListItem id={row.row.id} />
+const renderNodeRow = (row: NodeTreeNode) => (
+  <AtlasNodeListItem id={row.row.id} />
 );
 
-const getRoiRowKey = (row: RoiTreeNode) => row.row.key;
+const getNodeRowKey = (row: NodeTreeNode) => row.row.key;
 
-const collectRoiIds = (entries: GroupTreeEntry[]): string[] =>
+const collectNodeIds = (entries: GroupTreeEntry[]): string[] =>
   entries.flatMap((entry) =>
-    entry.type === "roiNode" ? [entry.row.id] : collectRoiIds(entry.children),
+    entry.type === "node" ? [entry.row.id] : collectNodeIds(entry.children),
   );
 
 export const AtlasGroupedList = memo(function AtlasGroupedList({
@@ -35,7 +35,7 @@ export const AtlasGroupedList = memo(function AtlasGroupedList({
     (state) => state.visualizationUi.atlasPanel.collapsedGroups,
   );
   const { draft, labelsById, order } = useAppSelector((state) => ({
-    draft: state.visualizationUi.atlasPanel.roiVisibilityDraft,
+    draft: state.visualizationUi.atlasPanel.nodeVisibilityDraft,
     labelsById: state.atlasUi.labelsById,
     order: state.atlasUi.order,
   }));
@@ -68,13 +68,13 @@ export const AtlasGroupedList = memo(function AtlasGroupedList({
 
   const handleSetGroupEnabled = useCallback(
     (entriesToUpdate: GroupTreeEntry[], enabled: boolean) => {
-      const ids = collectRoiIds(entriesToUpdate);
+      const ids = collectNodeIds(entriesToUpdate);
       if (ids.length === 0) return;
-      const nextDraft = buildEffectiveRoiEnabledMap({ order, labelsById, draft });
+      const nextDraft = buildEffectiveNodeEnabledMap({ order, labelsById, draft });
       ids.forEach((id) => {
         nextDraft[id] = enabled;
       });
-      dispatch(setAtlasPanelState({ roiVisibilityDraft: nextDraft }));
+      dispatch(setAtlasPanelState({ nodeVisibilityDraft: nextDraft }));
     },
     [dispatch, draft, labelsById, order],
   );
@@ -83,14 +83,14 @@ export const AtlasGroupedList = memo(function AtlasGroupedList({
     return (
       <List
         dataSource={[]}
-        renderItem={renderRoiRow}
+        renderItem={renderNodeRow}
         locale={{ emptyText: EMPTY_TEXT }}
       />
     );
   }
 
-  const roiRows = entries.flatMap((entry) =>
-    entry.type === "roiNode" ? [entry] : [],
+  const nodeRows = entries.flatMap((entry) =>
+    entry.type === "node" ? [entry] : [],
   );
   const groupNodes = entries.flatMap((entry) =>
     entry.type === "groupNode" ? [entry] : [],
@@ -99,9 +99,9 @@ export const AtlasGroupedList = memo(function AtlasGroupedList({
   if (groupNodes.length === 0) {
     return (
       <List
-        dataSource={roiRows}
-        rowKey={getRoiRowKey}
-        renderItem={renderRoiRow}
+        dataSource={nodeRows}
+        rowKey={getNodeRowKey}
+        renderItem={renderNodeRow}
         locale={{ emptyText: EMPTY_TEXT }}
       />
     );
@@ -110,12 +110,12 @@ export const AtlasGroupedList = memo(function AtlasGroupedList({
   const groupKeys = groupNodes.map((group) => group.row.groupKey);
   const activeKeys = groupKeys.filter((key) => !collapsedGroups.has(key));
 
-  if (roiRows.length > 0) {
+  if (nodeRows.length > 0) {
     return (
       <List
-        dataSource={roiRows}
-        rowKey={getRoiRowKey}
-        renderItem={renderRoiRow}
+        dataSource={nodeRows}
+        rowKey={getNodeRowKey}
+        renderItem={renderNodeRow}
         locale={{ emptyText: EMPTY_TEXT }}
       />
     );

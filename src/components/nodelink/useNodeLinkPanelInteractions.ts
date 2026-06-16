@@ -15,7 +15,7 @@ type UseNodeLinkPanelInteractionsArgs = {
   data: number[][];
   labels?: string[];
   compoundId: string;
-  matrixLabel: string;
+  networkLabel: string;
 };
 
 type SelectPayload = {
@@ -30,7 +30,7 @@ export const useNodeLinkPanelInteractions = ({
   data,
   labels,
   compoundId,
-  matrixLabel,
+  networkLabel,
 }: UseNodeLinkPanelInteractionsArgs) => {
   const dispatch = useAppDispatch();
   const selectedLinks = useAppSelector((state) => state.visualizationUi.selectedLinks);
@@ -67,14 +67,14 @@ export const useNodeLinkPanelInteractions = ({
           sources: [
             {
               compoundId,
-              matrixLabel,
+              networkLabel,
               value: payload.value,
             },
           ],
         }),
       );
     },
-    [dispatch, selectedLinks, compoundId, matrixLabel],
+    [dispatch, selectedLinks, compoundId, networkLabel],
   );
 
   const handleLinkHover = useCallback(
@@ -123,7 +123,7 @@ export const useNodeLinkPanelInteractions = ({
           sources: [
             {
               compoundId,
-              matrixLabel,
+              networkLabel,
               value: link.value,
             },
           ],
@@ -134,7 +134,7 @@ export const useNodeLinkPanelInteractions = ({
         dispatch(addSelectedLinks(links));
       }
     },
-    [compoundId, dispatch, matrixLabel, selectedLinks],
+    [compoundId, dispatch, networkLabel, selectedLinks],
   );
 
   const handleBrushDeselectLinks = useCallback(

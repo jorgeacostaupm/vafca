@@ -1,13 +1,13 @@
 import type { AtlasDefinition } from "@/types/atlas";
-import type { MatrixOrderItem } from "@/types/matrixOrder";
-import { normalizeMatrixOrder } from "@/utils/matrixOrder";
+import type { NodeOrderItem } from "@/types/nodeOrder";
+import { normalizeNodeOrder } from "@/utils/nodeOrder";
 
 export type AtlasCompatibilityResult =
-  | { compatible: true; matrixRoiCount: number; atlasRoiCount: number }
+  | { compatible: true; nodeCount: number; atlasNodeCount: number }
   | {
       compatible: false;
-      matrixRoiCount: number;
-      atlasRoiCount: number;
+      nodeCount: number;
+      atlasNodeCount: number;
       reason: string;
     };
 
@@ -16,75 +16,75 @@ const findMissingIds = (sourceIds: string[], targetIds: string[]) => {
   return sourceIds.filter((id) => !targetSet.has(id));
 };
 
-const findAtlasRoisMissingFromMatrix = (
+const findAtlasNodesMissingFromNodeOrder = (
   atlas: AtlasDefinition | null | undefined,
-  matrixIds: string[],
+  nodeIds: string[],
 ) => {
-  const matrixSet = new Set(matrixIds);
+  const nodeSet = new Set(nodeIds);
   return (
-    atlas?.rois
-      .filter((roi) => !matrixSet.has(String(roi.id)) && !matrixSet.has(String(roi.atlasId)))
-      .map((roi) => String(roi.id)) ?? []
+    atlas?.nodes
+      .filter((node) => !nodeSet.has(String(node.id)) && !nodeSet.has(String(node.atlasId)))
+      .map((node) => String(node.id)) ?? []
   );
 };
 
 const summarizeMissingIds = (missingIds: string[], sourceName: string) => {
   const shownIds = missingIds.slice(0, 5).join(", ");
   const suffix = missingIds.length > 5 ? ` and ${missingIds.length - 5} more` : "";
-  return `${sourceName} is missing ROI id${missingIds.length === 1 ? "" : "s"}: ${shownIds}${suffix}.`;
+  return `${sourceName} is missing Node id${missingIds.length === 1 ? "" : "s"}: ${shownIds}${suffix}.`;
 };
 
-export const checkAtlasMatrixCompatibility = (
-  matrixOrder: MatrixOrderItem[] | undefined | null,
+export const checkAtlasNodeCompatibility = (
+  nodeOrder: NodeOrderItem[] | undefined | null,
   atlas: AtlasDefinition | null | undefined,
 ): AtlasCompatibilityResult => {
-  const matrixIds = normalizeMatrixOrder(matrixOrder).map((entry) => entry.id);
-  const atlasIds = atlas?.rois.map((roi) => String(roi.id)) ?? [];
-  const atlasCompatibleIds = atlas?.rois.flatMap((roi) => [
-    String(roi.id),
-    String(roi.atlasId),
+  const nodeIds = normalizeNodeOrder(nodeOrder).map((entry) => entry.id);
+  const atlasIds = atlas?.nodes.map((node) => String(node.id)) ?? [];
+  const atlasCompatibleIds = atlas?.nodes.flatMap((node) => [
+    String(node.id),
+    String(node.atlasId),
   ]) ?? [];
 
-  if (matrixIds.length === 0 || atlasIds.length === 0) {
+  if (nodeIds.length === 0 || atlasIds.length === 0) {
     return {
       compatible: true,
-      matrixRoiCount: matrixIds.length,
-      atlasRoiCount: atlasIds.length,
+      nodeCount: nodeIds.length,
+      atlasNodeCount: atlasIds.length,
     };
   }
 
-  if (matrixIds.length !== atlasIds.length) {
+  if (nodeIds.length !== atlasIds.length) {
     return {
       compatible: false,
-      matrixRoiCount: matrixIds.length,
-      atlasRoiCount: atlasIds.length,
-      reason: `Matrix order has ${matrixIds.length} ROIs, atlas has ${atlasIds.length} ROIs.`,
+      nodeCount: nodeIds.length,
+      atlasNodeCount: atlasIds.length,
+      reason: `Node order has ${nodeIds.length} nodes, atlas has ${atlasIds.length} Nodes.`,
     };
   }
 
-  const missingFromAtlas = findMissingIds(matrixIds, atlasCompatibleIds);
+  const missingFromAtlas = findMissingIds(nodeIds, atlasCompatibleIds);
   if (missingFromAtlas.length > 0) {
     return {
       compatible: false,
-      matrixRoiCount: matrixIds.length,
-      atlasRoiCount: atlasIds.length,
+      nodeCount: nodeIds.length,
+      atlasNodeCount: atlasIds.length,
       reason: summarizeMissingIds(missingFromAtlas, "Atlas"),
     };
   }
 
-  const missingFromMatrix = findAtlasRoisMissingFromMatrix(atlas, matrixIds);
-  if (missingFromMatrix.length > 0) {
+  const missingFromNodeOrder = findAtlasNodesMissingFromNodeOrder(atlas, nodeIds);
+  if (missingFromNodeOrder.length > 0) {
     return {
       compatible: false,
-      matrixRoiCount: matrixIds.length,
-      atlasRoiCount: atlasIds.length,
-      reason: summarizeMissingIds(missingFromMatrix, "Matrix order"),
+      nodeCount: nodeIds.length,
+      atlasNodeCount: atlasIds.length,
+      reason: summarizeMissingIds(missingFromNodeOrder, "Node order"),
     };
   }
 
   return {
     compatible: true,
-    matrixRoiCount: matrixIds.length,
-    atlasRoiCount: atlasIds.length,
+    nodeCount: nodeIds.length,
+    atlasNodeCount: atlasIds.length,
   };
 };

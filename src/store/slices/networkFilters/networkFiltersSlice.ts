@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import type { MatrixFilterDefinition, RuntimeEdgeMask } from "@/types/edgeFilter";
+import type { NetworkFilterDefinition, RuntimeEdgeMask } from "@/types/edgeFilter";
 
 import { initialNetworkFiltersState } from "./networkFiltersTypes";
 
@@ -11,7 +11,7 @@ const networkFiltersSlice = createSlice({
     applyNetworkEdgeFilter(
       state,
       action: PayloadAction<{
-        filter: MatrixFilterDefinition;
+        filter: NetworkFilterDefinition;
         mask: RuntimeEdgeMask;
       }>,
     ) {
@@ -25,7 +25,7 @@ const networkFiltersSlice = createSlice({
     applyAggregatedNetworkEdgeFilter(
       state,
       action: PayloadAction<{
-        filter: MatrixFilterDefinition;
+        filter: NetworkFilterDefinition;
         mask: RuntimeEdgeMask;
       }>,
     ) {

@@ -1,79 +1,73 @@
-import { CalculatorOutlined } from "@ant-design/icons";
-import { Alert, Button, Select, Space, Typography } from "antd";
-import { useCallback, useState } from "react";
+import { CalculatorOutlined } from '@ant-design/icons'
+import { Button, Select, Space, Typography } from 'antd'
+import { useCallback, useState } from 'react'
 
-import { moveField } from "@/components/atlas/panelFieldUtils";
-import type { D3GroupingPaletteKey } from "@/config/groupingPalettes";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { moveField } from '@/components/atlas/panelFieldUtils'
+import type { D3GroupingPaletteKey } from '@/config/groupingPalettes'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   selectAtlasColorFields,
   selectAtlasColorPalette,
   setAtlasColorFields,
   setAtlasColorPalette,
-} from "@/store/slices/atlasUi";
-import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
+} from '@/store/slices/atlasUi'
+import { humanizeFieldName } from '@/utils/atlas/atlasDefinition'
 
-import GroupingFieldList from "./GroupingFieldList";
-import GroupingHierarchyPreviews from "./GroupingHierarchyPreviews";
-import GroupingPaletteSelect from "./GroupingPaletteSelect";
-import GroupingSettingsHeader from "./GroupingSettingsHeader";
-import GroupingStatusNotice from "./GroupingStatusNotice";
-import { useAtlasGroupingSettings } from "./useAtlasGroupingSettings";
+import GroupingFieldList from './GroupingFieldList'
+import GroupingHierarchyPreviews from './GroupingHierarchyPreviews'
+import GroupingPaletteSelect from './GroupingPaletteSelect'
+import GroupingStatusNotice from './GroupingStatusNotice'
+import { useAtlasGroupingSettings } from './useAtlasGroupingSettings'
 
 const areFieldListsEqual = (first: string[], second: string[]) =>
-  first.length === second.length && first.every((field, index) => field === second[index]);
+  first.length === second.length && first.every((field, index) => field === second[index])
 type GroupingDraft = {
-  baseColorFields: string[]; baseColorPalette: D3GroupingPaletteKey;
-  colorFields: string[]; colorPalette: D3GroupingPaletteKey;
-};
+  baseColorFields: string[]
+  baseColorPalette: D3GroupingPaletteKey
+  colorFields: string[]
+  colorPalette: D3GroupingPaletteKey
+}
 type GroupingSettingsTabProps = {
-  onOpenAggregationModal?: () => void;
-};
-export default function GroupingSettingsTab({
-  onOpenAggregationModal,
-}: GroupingSettingsTabProps) {
-  const dispatch = useAppDispatch();
-  const colorFields = useAppSelector(selectAtlasColorFields);
-  const colorPalette = useAppSelector(selectAtlasColorPalette);
+  onOpenAggregationModal?: () => void
+}
+export default function GroupingSettingsTab({ onOpenAggregationModal }: GroupingSettingsTabProps) {
+  const dispatch = useAppDispatch()
+  const colorFields = useAppSelector(selectAtlasColorFields)
+  const colorPalette = useAppSelector(selectAtlasColorPalette)
   const [draft, setDraft] = useState<GroupingDraft>(() => ({
     baseColorFields: colorFields,
     baseColorPalette: colorPalette,
     colorFields,
     colorPalette,
-  }));
+  }))
 
   const appliedStateChanged =
     !areFieldListsEqual(draft.baseColorFields, colorFields) ||
-    draft.baseColorPalette !== colorPalette;
-  const effectiveColorFields = appliedStateChanged ? colorFields : draft.colorFields;
-  const effectiveColorPalette = appliedStateChanged ? colorPalette : draft.colorPalette;
+    draft.baseColorPalette !== colorPalette
+  const effectiveColorFields = appliedStateChanged ? colorFields : draft.colorFields
+  const effectiveColorPalette = appliedStateChanged ? colorPalette : draft.colorPalette
 
-  const {
-    selectableColorFields,
-    colorCategories,
-    colorPreviewItems,
-  } = useAtlasGroupingSettings({
+  const { selectableColorFields, colorCategories, colorPreviewItems } = useAtlasGroupingSettings({
     previewColorFields: effectiveColorFields,
     previewColorPalette: effectiveColorPalette,
-  });
+  })
 
   const hasPendingChanges =
-    !areFieldListsEqual(effectiveColorFields, colorFields) ||
-    effectiveColorPalette !== colorPalette;
-  const hasGroupingFields = effectiveColorFields.length > 0;
-  const hasSelectableColorFields = selectableColorFields.length > 0;
+    !areFieldListsEqual(effectiveColorFields, colorFields) || effectiveColorPalette !== colorPalette
+  const hasGroupingFields = effectiveColorFields.length > 0
+  const hasSelectableColorFields = selectableColorFields.length > 0
 
   const handleMoveField = useCallback(
-    (field: string, direction: "up" | "down") => {
+    (field: string, direction: 'up' | 'down') => {
       setDraft({
         baseColorFields: colorFields,
         baseColorPalette: colorPalette,
         colorFields: moveField(effectiveColorFields, field, direction),
         colorPalette: effectiveColorPalette,
-      });
+      })
     },
     [colorFields, colorPalette, effectiveColorFields, effectiveColorPalette],
-  );
+  )
 
   const handleRemoveField = useCallback(
     (field: string) => {
@@ -82,10 +76,10 @@ export default function GroupingSettingsTab({
         baseColorPalette: colorPalette,
         colorFields: effectiveColorFields.filter((value) => value !== field),
         colorPalette: effectiveColorPalette,
-      });
+      })
     },
     [colorFields, colorPalette, effectiveColorFields, effectiveColorPalette],
-  );
+  )
 
   const handleAddField = useCallback(
     (field: string) => {
@@ -94,15 +88,15 @@ export default function GroupingSettingsTab({
         baseColorPalette: colorPalette,
         colorFields: [...effectiveColorFields, field],
         colorPalette: effectiveColorPalette,
-      });
+      })
     },
     [colorFields, colorPalette, effectiveColorFields, effectiveColorPalette],
-  );
+  )
 
   const handleApply = useCallback(() => {
-    dispatch(setAtlasColorFields(effectiveColorFields));
-    dispatch(setAtlasColorPalette(effectiveColorPalette));
-  }, [dispatch, effectiveColorFields, effectiveColorPalette]);
+    dispatch(setAtlasColorFields(effectiveColorFields))
+    dispatch(setAtlasColorPalette(effectiveColorPalette))
+  }, [dispatch, effectiveColorFields, effectiveColorPalette])
 
   const handleDiscard = useCallback(() => {
     setDraft({
@@ -110,8 +104,8 @@ export default function GroupingSettingsTab({
       baseColorPalette: colorPalette,
       colorFields,
       colorPalette,
-    });
-  }, [colorFields, colorPalette]);
+    })
+  }, [colorFields, colorPalette])
 
   const handlePaletteChange = useCallback(
     (value: D3GroupingPaletteKey) => {
@@ -120,20 +114,16 @@ export default function GroupingSettingsTab({
         baseColorPalette: colorPalette,
         colorFields: effectiveColorFields,
         colorPalette: value,
-      });
+      })
     },
     [colorFields, colorPalette, effectiveColorFields],
-  );
+  )
 
   return (
     <div className="network-settings-grouping">
       <Space direction="vertical" size={12} className="network-settings-grouping__controls">
-        <GroupingSettingsHeader />
-
         <GroupingStatusNotice
           appliedFields={colorFields}
-          previewFields={effectiveColorFields}
-          hasPendingChanges={hasPendingChanges}
         />
 
         {hasGroupingFields ? (
@@ -142,18 +132,11 @@ export default function GroupingSettingsTab({
             onMoveField={handleMoveField}
             onRemoveField={handleRemoveField}
           />
-        ) : (
-          <Alert
-            type="info"
-            showIcon
-            message="No grouping fields selected"
-            description="ROIs are shown without categorical grouping."
-          />
-        )}
+        ) : null}
 
         {hasSelectableColorFields ? (
           <Select
-            key={effectiveColorFields.join("|")}
+            key={effectiveColorFields.join('|')}
             placeholder="Select field"
             className="network-settings-grouping__field-select"
             options={selectableColorFields.map((field) => ({
@@ -165,24 +148,15 @@ export default function GroupingSettingsTab({
           />
         ) : null}
 
-        <Space wrap>
-          <Button type="primary" onClick={handleApply} disabled={!hasPendingChanges}>
-            Apply grouping
-          </Button>
-          <Button onClick={handleDiscard} disabled={!hasPendingChanges}>
-            Discard
-          </Button>
-          {onOpenAggregationModal ? (
+        {onOpenAggregationModal ? (
+          <Space wrap>
             <Button icon={<CalculatorOutlined />} onClick={onOpenAggregationModal}>
               Go to Aggregate Networks
             </Button>
-          ) : null}
-        </Space>
+          </Space>
+        ) : null}
 
-        <GroupingPaletteSelect
-          value={effectiveColorPalette}
-          onChange={handlePaletteChange}
-        />
+        <GroupingPaletteSelect value={effectiveColorPalette} onChange={handlePaletteChange} />
 
         {hasGroupingFields ? (
           <div className="atlas-panel__color-preview">
@@ -193,7 +167,7 @@ export default function GroupingSettingsTab({
                 <div
                   key={category.key}
                   className={`atlas-panel__color-category ${
-                    category.count === 0 ? "atlas-panel__color-category--empty" : ""
+                    category.count === 0 ? 'atlas-panel__color-category--empty' : ''
                   }`}
                 >
                   <span
@@ -204,7 +178,7 @@ export default function GroupingSettingsTab({
                     {category.label}
                   </Typography.Text>
                   <Typography.Text type="secondary">
-                    {category.count > 0 ? `(${category.count})` : "(preview)"}
+                    {category.count > 0 ? `(${category.count})` : '(preview)'}
                   </Typography.Text>
                 </div>
               ))
@@ -213,10 +187,20 @@ export default function GroupingSettingsTab({
         ) : null}
       </Space>
 
-      <GroupingHierarchyPreviews
-        previewColorFields={effectiveColorFields}
-        previewColorPalette={effectiveColorPalette}
-      />
+      <div className="network-settings-grouping__preview-column">
+        <GroupingHierarchyPreviews
+          previewColorFields={effectiveColorFields}
+          previewColorPalette={effectiveColorPalette}
+        />
+        <Space wrap className="network-settings-grouping__actions">
+          <Button type="primary" onClick={handleApply} disabled={!hasPendingChanges}>
+            Apply
+          </Button>
+          <Button onClick={handleDiscard} disabled={!hasPendingChanges}>
+            Reset
+          </Button>
+        </Space>
+      </div>
     </div>
-  );
+  )
 }

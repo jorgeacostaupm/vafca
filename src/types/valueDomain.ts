@@ -1,4 +1,4 @@
-import type { ScaleType, UiRangeMode } from "@/types/connectivityBundle";
+import type { ScaleType, UiRangeMode } from "@/types/network";
 
 export type ValueDomainSource = "view_observed" | "catalog" | "fallback";
 

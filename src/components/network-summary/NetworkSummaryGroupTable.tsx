@@ -25,9 +25,9 @@ const columns: ColumnsType<NetworkGroupSummary> = [
     key: "label",
   },
   {
-    title: "ROIs",
-    dataIndex: "roiCount",
-    key: "roiCount",
+    title: "Nodes",
+    dataIndex: "nodeCount",
+    key: "nodeCount",
     render: formatSummaryNumber,
   },
   {
@@ -65,7 +65,7 @@ export default function NetworkSummaryGroupTable({
 
   return (
     <section className="network-summary-section">
-      <Typography.Text strong>Atlas groups</Typography.Text>
+      <Typography.Text strong>Node groups</Typography.Text>
       {grouping.source === "unavailable" ? (
         <Alert
           type="info"

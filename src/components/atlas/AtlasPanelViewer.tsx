@@ -39,7 +39,7 @@ export function AtlasPanelViewer({ enableMeshPoints }: AtlasPanelViewerProps) {
   const atlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
 
   const enable3d = useMemo(
-    () => enableMeshPoints && Boolean(atlasDefinition?.rois?.length),
+    () => enableMeshPoints && Boolean(atlasDefinition?.nodes?.length),
     [atlasDefinition, enableMeshPoints],
   );
 
@@ -101,7 +101,7 @@ export function AtlasPanelViewer({ enableMeshPoints }: AtlasPanelViewerProps) {
           </Button>
         </Space>
         <Typography.Text type="secondary">
-          Double-click an ROI to hide it
+          Double-click an Node to hide it
         </Typography.Text>
       </div>
 

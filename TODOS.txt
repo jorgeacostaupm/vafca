@@ -1,21 +1,8 @@
-Continuar con el formato, dejarlo cerrado
-
-
-----------------> SELECTION: poner una lista de las rois seleccionadas?
-----------------> RANKING ROIS: permitir seleccionar rois desde los rankings
 
 ----------------> GRAPH THEORY MEASURES: poder obtener graph theory measures basicacas ad hoc de las redes visualizadas
-
-----------------> DATA LOADING: esto es un cuello de botella para usuarios hay que permitir un formato minimo, modular y sencillo
-----------------> DATA LOADING: hay que validar los datos en carga, avisar de errores concretos
 ----------------> FILTERING: se deberian pdoer guardar filtros para reutilizarlos
 ----------------> FILTERING: parte del filtering consistente es el que se extrae de vistas
-
-
-
 ----------------> ATLAS: poder seleccionar atlas 2d, 3d o no en settings
-----------------> ATLAS: poner grouping como settings de esta parte
-----------------> ATLAS: sino quedan mas campos en grouping no mostrar selector, informar al usuario
 
 
 

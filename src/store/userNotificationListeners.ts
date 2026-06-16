@@ -37,7 +37,7 @@ userNotificationListenerMiddleware.startListening({
   actionCreator: uploadAtlasDefinitionAndSync.fulfilled,
   effect: (action, { dispatch }) => {
     const { fileName, commonFields, atlas, compatibilityWarning } = action.payload;
-    const totalRois = atlas.rois.length;
+    const totalNodes = atlas.nodes.length;
 
     const humanFields =
       commonFields.length > 0
@@ -50,7 +50,7 @@ userNotificationListenerMiddleware.startListening({
         message: compatibilityWarning ? "Atlas incompatible" : "Atlas loaded",
         description:
           compatibilityWarning ??
-          `${fileName}: ${totalRois} ROIs. Common fields: ${humanFields}.`,
+          `${fileName}: ${totalNodes} Nodes. Common fields: ${humanFields}.`,
       }),
     );
   },
@@ -77,25 +77,25 @@ userNotificationListenerMiddleware.startListening({
   actionCreator: loadDatasetFromUploadedZip.fulfilled,
   effect: (action, { dispatch }) => {
     const {
-      validMatrices,
-      invalidMatrices,
+      validNetworks,
+      invalidNetworks,
       files,
       atlasCompatibilityWarning,
     } = action.payload;
     const invalidDescription =
-      invalidMatrices > 0
-        ? ` ${invalidMatrices} matrix entr${
-            invalidMatrices === 1 ? "y was" : "ies were"
+      invalidNetworks > 0
+        ? ` ${invalidNetworks} network entr${
+            invalidNetworks === 1 ? "y was" : "ies were"
           } skipped because of validation errors.`
         : "";
 
     dispatch(
       enqueueNotification({
         kind:
-          invalidMatrices > 0 || atlasCompatibilityWarning ? "warning" : "success",
+          invalidNetworks > 0 || atlasCompatibilityWarning ? "warning" : "success",
         message: "Dataset loaded",
-        description: `${validMatrices} valid matrix${
-          validMatrices === 1 ? "" : "es"
+        description: `${validNetworks} valid network${
+          validNetworks === 1 ? "" : "s"
         } loaded from ${files} ZIP file${
           files === 1 ? "" : "s"
         }.${invalidDescription}${
@@ -135,21 +135,21 @@ userNotificationListenerMiddleware.startListening({
 userNotificationListenerMiddleware.startListening({
   actionCreator: downloadSelectedLinks.fulfilled,
   effect: (action, { dispatch }) => {
-    const { failedLayerIds, layersCount, linksCount } = action.payload;
+    const { failedNetworkIds, networksCount, linksCount } = action.payload;
     const partialWarning =
-      failedLayerIds.length > 0
-        ? ` ${failedLayerIds.length} layer${
-            failedLayerIds.length === 1 ? "" : "s"
+      failedNetworkIds.length > 0
+        ? ` ${failedNetworkIds.length} network${
+            failedNetworkIds.length === 1 ? "" : "s"
           } had missing values.`
         : "";
 
     dispatch(
       enqueueNotification({
-        kind: failedLayerIds.length > 0 ? "warning" : "success",
+        kind: failedNetworkIds.length > 0 ? "warning" : "success",
         message: "Selected links downloaded",
         description: `${linksCount} link${
           linksCount === 1 ? "" : "s"
-        } with ${layersCount} layer${layersCount === 1 ? "" : "s"}.${partialWarning}`,
+        } with ${networksCount} network${networksCount === 1 ? "" : "s"}.${partialWarning}`,
       }),
     );
   },

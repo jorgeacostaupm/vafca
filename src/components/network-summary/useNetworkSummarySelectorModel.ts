@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 
-import { useMatrixFilterOptions } from "@/components/selectors/useMatrixFilterOptions";
-import { useMatrixSummaries } from "@/hooks/useMatrixSummaries";
+import { useNetworkFilterOptions } from "@/components/selectors/useNetworkFilterOptions";
+import { useNetworkSummaries } from "@/hooks/useNetworkSummaries";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
 import {
@@ -10,7 +10,7 @@ import {
 } from "@/store/slices/networkMeasures";
 import { selectNetworkControls } from "@/store/slices/networkVisualization";
 import {
-  getDatasetMatrixStats,
+  getDatasetNetworkStats,
 } from "@/utils/datasetAccessors";
 import { normalizePopulationKey } from "@/utils/matrixViewUtils";
 
@@ -20,8 +20,8 @@ export const useNetworkSummarySelectorModel = () => {
   const atlas = useAppSelector((state) => state.atlasUi);
   const networkControls = useAppSelector(selectNetworkControls);
   const controls = useAppSelector(selectNetworkSummaryControls);
-  const matrixStats = getDatasetMatrixStats(dataset);
-  const { summaries, status, error } = useMatrixSummaries(matrixStats.total);
+  const networkStats = getDatasetNetworkStats(dataset);
+  const { summaries, status, error } = useNetworkSummaries(networkStats.total);
   const effectiveSelectorMode = networkControls.matrixSelectorMode;
 
   const {
@@ -30,9 +30,9 @@ export const useNetworkSummarySelectorModel = () => {
     statOptions,
     layerOptions,
     matches,
-    allMatrixOptions,
-    selectableMatrixSummaries,
-  } = useMatrixFilterOptions({
+    allNetworkOptions,
+    selectableNetworkSummaries,
+  } = useNetworkFilterOptions({
     dataset,
     atlas,
     summaries,
@@ -132,7 +132,7 @@ export const useNetworkSummarySelectorModel = () => {
     [dispatch],
   );
 
-  const handleMatrixChange = useCallback(
+  const handleNetworkChange = useCallback(
     (value?: string) => {
       if (!value) {
         dispatch(
@@ -147,7 +147,7 @@ export const useNetworkSummarySelectorModel = () => {
         return;
       }
 
-      const summary = selectableMatrixSummaries.find(
+      const summary = selectableNetworkSummaries.find(
         (item) => item.compoundId === value,
       );
       if (!summary) {
@@ -165,7 +165,7 @@ export const useNetworkSummarySelectorModel = () => {
         }),
       );
     },
-    [dispatch, selectableMatrixSummaries],
+    [dispatch, selectableNetworkSummaries],
   );
 
   return {
@@ -179,7 +179,7 @@ export const useNetworkSummarySelectorModel = () => {
     populations: populationOptions,
     layers: layerOptions,
     stats: statOptions,
-    matrices: allMatrixOptions,
+    networks: allNetworkOptions,
     disabled: {
       measures: !controls.populationKey,
       stats: !controls.measureId,
@@ -189,6 +189,6 @@ export const useNetworkSummarySelectorModel = () => {
     onMeasureChange: handleMeasureChange,
     onStatChange: handleStatChange,
     onLayerChange: handleLayerChange,
-    onMatrixChange: handleMatrixChange,
+    onNetworkChange: handleNetworkChange,
   };
 };

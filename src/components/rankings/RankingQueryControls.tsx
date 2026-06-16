@@ -15,8 +15,8 @@ import {
   getSourceOptions,
   getStatisticOptions,
   linkMetricOptions,
-  matrixMetricOptions,
-  roiMetricOptions,
+  networkMetricOptions,
+  nodeMetricOptions,
 } from "@/components/rankings/rankingOptions";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectDatasetContent } from "@/store/slices/dataset";
@@ -26,16 +26,16 @@ import {
   setRankingTarget,
 } from "@/store/slices/rankings";
 import type { RankingTarget } from "@/types/rankings";
-import { ALL_COMPATIBLE_LAYERS } from "@/utils/rankings/rankingMatrixMetadata";
+import { ALL_COMPATIBLE_LAYERS } from "@/utils/rankings/rankingNetworkMetadata";
 
 const rankingTargetOptions = [
   createNetworkSegmentedOption<RankingTarget>(
-    "matrices",
+    "networks",
     <AppstoreOutlined />,
     "Network",
   ),
   createNetworkSegmentedOption<RankingTarget>("links", <LinkOutlined />, "Links"),
-  createNetworkSegmentedOption<RankingTarget>("rois", <AimOutlined />, "ROIs"),
+  createNetworkSegmentedOption<RankingTarget>("nodes", <AimOutlined />, "Nodes"),
 ];
 
 const splitSourceValue = (value?: string) => {
@@ -56,11 +56,11 @@ export default function RankingQueryControls() {
   const datasetContent = useAppSelector((state) => selectDatasetContent(state));
 
   const metricOptions =
-    query.target === "matrices"
-      ? matrixMetricOptions
+    query.target === "networks"
+      ? networkMetricOptions
       : query.target === "links"
         ? linkMetricOptions
-        : roiMetricOptions;
+        : nodeMetricOptions;
   const sourceOptions = useMemo(
     () => getSourceOptions(datasetContent, query),
     [datasetContent, query],
@@ -77,13 +77,13 @@ export default function RankingQueryControls() {
     () => getCompatibleLayerOptions(datasetContent, query),
     [datasetContent, query],
   );
-  const isRoiRanking = query.target === "rois";
+  const isNodeRanking = query.target === "nodes";
   const selectableLayerOptions = useMemo(
     () =>
-      isRoiRanking
+      isNodeRanking
         ? layerOptions.filter((option) => option.value !== ALL_COMPATIBLE_LAYERS)
         : layerOptions,
-    [layerOptions, isRoiRanking],
+    [layerOptions, isNodeRanking],
   );
   const selectedSourceValue =
     query.sourceType && query.sourceId
@@ -105,7 +105,7 @@ export default function RankingQueryControls() {
     dispatch(
       patchRankingQuery({
         ...source,
-        matrixId: undefined,
+        networkId: undefined,
       }),
     );
   };
@@ -114,7 +114,7 @@ export default function RankingQueryControls() {
     dispatch(
       patchRankingQuery({
         measureId,
-        matrixId: undefined,
+        networkId: undefined,
       }),
     );
   };
@@ -123,7 +123,7 @@ export default function RankingQueryControls() {
     dispatch(
       patchRankingQuery({
         statisticId,
-        matrixId: undefined,
+        networkId: undefined,
       }),
     );
   };
@@ -149,8 +149,8 @@ export default function RankingQueryControls() {
       patchRankingQuery({
         layerIds: nextLayerIds,
         ...getRankingLayerSelectionPatch(datasetContent, query, nextLayerIds),
-        mode: nextLayerIds?.length === 1 ? "singleMatrix" : "matrixCollection",
-        matrixId: undefined,
+        mode: nextLayerIds?.length === 1 ? "singleNetwork" : "networkCollection",
+        networkId: undefined,
       }),
     );
   };
@@ -164,8 +164,8 @@ export default function RankingQueryControls() {
           query,
           layerId ? [layerId] : [],
         ),
-        mode: "singleMatrix",
-        matrixId: undefined,
+        mode: "singleNetwork",
+        networkId: undefined,
       }),
     );
   };
@@ -223,7 +223,7 @@ export default function RankingQueryControls() {
         </Form.Item>
 
         <Form.Item label="Layers" className="ranking-query-controls__layers">
-          {isRoiRanking ? (
+          {isNodeRanking ? (
             <Select
               placeholder="Select one layer..."
               value={selectedSingleLayerValue}
