@@ -15,6 +15,53 @@ import type {
 import { downloadSelectedLinks } from './thunks/downloadSelectedLinks'
 import { initialVisualizationUiState } from './visualizationUiTypes'
 
+type SelectedLinkIndexState = {
+  selectedLinks: SelectedLink[]
+  selectedLinksById: Record<string, SelectedLink>
+  selectedLinkIdsByRowId: Record<string, string[]>
+}
+
+const indexSelectedLink = (
+  state: SelectedLinkIndexState,
+  link: SelectedLink,
+) => {
+  state.selectedLinksById[link.id] = link
+  const rowIds = state.selectedLinkIdsByRowId[link.rowId] ?? []
+  rowIds.push(link.id)
+  state.selectedLinkIdsByRowId[link.rowId] = rowIds
+}
+
+const rebuildSelectedLinkIndex = (state: SelectedLinkIndexState) => {
+  state.selectedLinksById = {}
+  state.selectedLinkIdsByRowId = {}
+  state.selectedLinks.forEach((link) => indexSelectedLink(state, link))
+}
+
+const removeSelectedLinkIdsFromIndex = (
+  state: SelectedLinkIndexState,
+  ids: Set<string>,
+) => {
+  const affectedRowIds = new Set<string>()
+
+  ids.forEach((id) => {
+    const link = state.selectedLinksById[id]
+    if (!link) return
+    delete state.selectedLinksById[id]
+    affectedRowIds.add(link.rowId)
+  })
+
+  affectedRowIds.forEach((rowId) => {
+    const rowIds = state.selectedLinkIdsByRowId[rowId]?.filter(
+      (id) => !ids.has(id),
+    )
+    if (rowIds?.length) {
+      state.selectedLinkIdsByRowId[rowId] = rowIds
+      return
+    }
+    delete state.selectedLinkIdsByRowId[rowId]
+  })
+}
+
 const visualizationUiSlice = createSlice({
   name: 'visualizationUi',
   initialState: initialVisualizationUiState,
@@ -44,32 +91,35 @@ const visualizationUiSlice = createSlice({
       state.hoveredNodeId = null
     },
     addSelectedLink(state, action: PayloadAction<SelectedLink>) {
-      if (state.selectedLinks.some((link) => link.id === action.payload.id)) {
+      if (state.selectedLinksById[action.payload.id]) {
         return
       }
       state.selectedLinks.push(action.payload)
+      indexSelectedLink(state, action.payload)
     },
     addSelectedLinks(state, action: PayloadAction<SelectedLink[]>) {
-      const selectedIds = new Set(state.selectedLinks.map((link) => link.id))
       action.payload.forEach((link) => {
-        if (selectedIds.has(link.id)) return
-        selectedIds.add(link.id)
+        if (state.selectedLinksById[link.id]) return
         state.selectedLinks.push(link)
+        indexSelectedLink(state, link)
       })
     },
     removeSelectedLink(state, action: PayloadAction<string>) {
-      state.selectedLinks = state.selectedLinks.filter(
-        (link) => link.id !== action.payload,
-      )
-      state.atlasLinkIds = state.atlasLinkIds.filter((id) => id !== action.payload)
+      const ids = new Set([action.payload])
+      state.selectedLinks = state.selectedLinks.filter((link) => !ids.has(link.id))
+      state.atlasLinkIds = state.atlasLinkIds.filter((id) => !ids.has(id))
+      removeSelectedLinkIdsFromIndex(state, ids)
     },
     removeSelectedLinks(state, action: PayloadAction<string[]>) {
       const ids = new Set(action.payload)
       state.selectedLinks = state.selectedLinks.filter((link) => !ids.has(link.id))
       state.atlasLinkIds = state.atlasLinkIds.filter((id) => !ids.has(id))
+      removeSelectedLinkIdsFromIndex(state, ids)
     },
     clearSelectedLinks(state) {
       state.selectedLinks = []
+      state.selectedLinksById = {}
+      state.selectedLinkIdsByRowId = {}
       state.atlasLinkIds = []
       state.selectedLinksDownloadStatus = 'idle'
       state.selectedLinksDownloadError = null
@@ -87,6 +137,7 @@ const visualizationUiSlice = createSlice({
           ),
         }))
         .filter((link) => link.sources.length > 0)
+      rebuildSelectedLinkIndex(state)
       const selectedLinkIds = new Set(state.selectedLinks.map((link) => link.id))
       state.atlasLinkIds = state.atlasLinkIds.filter((id) => selectedLinkIds.has(id))
     },

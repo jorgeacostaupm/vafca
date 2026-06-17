@@ -7,6 +7,8 @@ export {
   selectHoveredCell,
   selectHoveredNodeId,
   selectNodeLinkVisualStyle,
+  selectSelectedLinkIdsByRowId,
+  selectSelectedLinksById,
   selectSelectedLinks,
   selectSelectedLinksDownloadError,
   selectSelectedLinksDownloadStatus,

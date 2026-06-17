@@ -1,84 +1,30 @@
-import { Button, Space, Typography } from "antd";
-import { useCallback, useMemo } from "react";
-
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setLabelsEnabledMap } from "@/store/slices/atlasUi";
-import { recomputeAggregatedNetworksForActiveNodes } from "@/store/slices/dataset";
-import { setAtlasPanelState } from "@/store/slices/visualizationUi";
-
-import {
-  buildEffectiveNodeEnabledMap,
-  countChangedNodes,
-} from "./nodeVisibilityDraft";
+import { Space, Typography } from "antd";
 
 type AtlasPanelControlsProps = {
   totalCount: number;
   enabledCount: number;
+  effectiveEnabledCount: number;
 };
 
 export function AtlasPanelControls({
   totalCount,
   enabledCount,
+  effectiveEnabledCount,
 }: AtlasPanelControlsProps) {
-  const dispatch = useAppDispatch();
-  const { draft, labelsById, order } = useAppSelector((state) => ({
-    draft: state.visualizationUi.atlasPanel.nodeVisibilityDraft,
-    labelsById: state.atlasUi.labelsById,
-    order: state.atlasUi.order,
-  }));
-  const pendingCount = useMemo(
-    () => countChangedNodes({ order, labelsById, draft }),
-    [draft, labelsById, order],
-  );
-
-  const handleApply = useCallback(() => {
-    if (!draft) return;
-    dispatch(
-      setLabelsEnabledMap(
-        buildEffectiveNodeEnabledMap({ order, labelsById, draft }),
-      ),
-    );
-    dispatch(setAtlasPanelState({ nodeVisibilityDraft: null }));
-    void dispatch(recomputeAggregatedNetworksForActiveNodes());
-  }, [dispatch, draft, labelsById, order]);
-
-  const handleDiscard = useCallback(() => {
-    dispatch(setAtlasPanelState({ nodeVisibilityDraft: null }));
-  }, [dispatch]);
-
   return (
-    <Space direction="vertical" size={2} style={{ width: "100%" }}>
-      <Space
-        align="center"
-        style={{ width: "100%", justifyContent: "space-between" }}
-      >
+    <Space direction="vertical" size={2} className="atlas-panel__controls">
+      <div className="atlas-panel__controls-header">
         <Space direction="vertical" size={2}>
-          <Typography.Title level={4} style={{ margin: 0 }}>
+          <Typography.Title level={4} className="atlas-panel__controls-title">
             Nodes Management
           </Typography.Title>
-          <Typography.Text type="secondary">
-            {totalCount} Nodes · {enabledCount} active
+          <Typography.Text type="secondary" className="atlas-panel__node-summary">
+            <span>{totalCount} nodes</span>
+            <span>{enabledCount} active now</span>
+            <span>{effectiveEnabledCount} after applying selection</span>
           </Typography.Text>
         </Space>
-        <Space>
-          <Button
-            type="primary"
-            onClick={handleApply}
-            disabled={pendingCount === 0}
-          >
-            Apply Nodes
-          </Button>
-          <Button onClick={handleDiscard} disabled={pendingCount === 0}>
-            Discard
-          </Button>
-        </Space>
-      </Space>
-      {pendingCount > 0 ? (
-        <Typography.Text type="secondary">
-          {pendingCount} pending Node visibility change
-          {pendingCount === 1 ? "" : "s"}
-        </Typography.Text>
-      ) : null}
+      </div>
     </Space>
   );
 }

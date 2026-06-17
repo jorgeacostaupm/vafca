@@ -1,5 +1,3 @@
-import type { NetworkLayoutItem } from "@/types/networkVisualization";
-
 export type RankingTarget = "networks" | "links" | "nodes";
 export type RankingNetworkKind = "population" | "subject" | "comparison" | "aggregation";
 export type RankingMode =
@@ -107,9 +105,8 @@ export type RankingUiState = {
   queriesByTarget: Partial<Record<RankingTarget, RankingQuery>>;
   resultsOrder: string[];
   resultsById: Record<string, RankingResult>;
-  layout: NetworkLayoutItem[];
-  hoveredItem?: RankingHighlightItem;
-  selectedItem?: RankingHighlightItem;
+  hoveredItem: RankingHighlightItem | null;
+  selectedItem: RankingHighlightItem | null;
   status: "idle" | "loading" | "ready" | "error";
   error: string | null;
   nextResultSeq: number;

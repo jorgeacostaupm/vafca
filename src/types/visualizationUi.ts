@@ -59,6 +59,8 @@ export type VisualizationUiState = {
   hoveredCell: HoveredCell;
   hoveredNodeId: string | null;
   selectedLinks: SelectedLink[];
+  selectedLinksById: Record<string, SelectedLink>;
+  selectedLinkIdsByRowId: Record<string, string[]>;
   atlasLinkIds: string[];
   selectedLinksDownloadStatus: "idle" | "loading" | "ready" | "error";
   selectedLinksDownloadError: string | null;

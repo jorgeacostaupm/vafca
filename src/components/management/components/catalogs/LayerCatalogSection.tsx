@@ -1,4 +1,4 @@
-import { Card, Divider, Input, Space, Switch, Typography } from "antd";
+import { Card, Input, Space, Switch } from "antd";
 
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 import { isEnabled } from "@/components/management/utils/catalogValues";
@@ -12,54 +12,49 @@ function LayerCatalogSection() {
   );
 
   return (
-    <>
-      <Divider style={{ margin: "8px 0" }} />
-
-      <div>
-        <Typography.Text strong>Layers</Typography.Text>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          {Object.values(layers).map((layer) => (
-            <Card key={layer.id} size="small" style={{ width: 300 }}>
-              <Space direction="vertical" size={8} style={{ width: "100%" }}>
-                <Space wrap size={12} align="start">
-                  <Input
-                    size="small"
-                    placeholder="Layer label"
-                    value={layer.label ?? ""}
-                    style={{ width: 160 }}
-                    onChange={(event) =>
-                      updateItem("layers", layer.id, {
-                        label: event.target.value,
-                      })
-                    }
-                  />
-                  <Switch
-                    checked={isEnabled(layer)}
-                    onChange={(checked) =>
-                      updateItem("layers", layer.id, {
-                        enabled: checked,
-                      })
-                    }
-                  />
-                </Space>
-
-                <Input.TextArea
+    <div className="catalog-management-section">
+      <div className="catalog-management-grid">
+        {Object.values(layers).map((layer) => (
+          <Card key={layer.id} size="small" className="catalog-management-card">
+            <Space direction="vertical" size={8} className="catalog-management-card__body">
+              <Space wrap size={12} align="start">
+                <Input
                   size="small"
-                  placeholder="Description"
-                  value={layer.description ?? ""}
+                  placeholder="Layer label"
+                  value={layer.label ?? ""}
+                  className="catalog-management-label-input"
                   onChange={(event) =>
                     updateItem("layers", layer.id, {
-                      description: event.target.value,
+                      label: event.target.value,
                     })
                   }
-                  style={{ resize: "vertical" }}
+                />
+                <Switch
+                  checked={isEnabled(layer)}
+                  onChange={(checked) =>
+                    updateItem("layers", layer.id, {
+                      enabled: checked,
+                    })
+                  }
                 />
               </Space>
-            </Card>
-          ))}
-        </div>
+
+              <Input.TextArea
+                size="small"
+                placeholder="Description"
+                value={layer.description ?? ""}
+                onChange={(event) =>
+                  updateItem("layers", layer.id, {
+                    description: event.target.value,
+                  })
+                }
+                className="catalog-management-description"
+              />
+            </Space>
+          </Card>
+        ))}
       </div>
-    </>
+    </div>
   );
 }
 

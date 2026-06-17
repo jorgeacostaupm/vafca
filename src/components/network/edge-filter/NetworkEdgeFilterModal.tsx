@@ -1,6 +1,8 @@
-import { Alert, Button, Modal, Space, Tabs, Tag, Typography } from "antd";
+import { CheckOutlined, ClearOutlined } from "@ant-design/icons";
+import { Button, Modal, Space, Tabs, Tag, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
 
+import InlineNotice from "@/components/common/InlineNotice";
 import { DEFAULT_NETWORK_EDGE_FILTER_TAB } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
@@ -132,10 +134,20 @@ export default function NetworkEdgeFilterModal({
     );
   };
 
+  const handleClear = () => {
+    setCurrentDraft(createEmptyNetworkFilterDefinition(globalRangeMode));
+    dispatch(isAggregated ? clearAggregatedNetworkEdgeFilter() : clearNetworkEdgeFilter());
+  };
+
   const closeModal = () => {
     setSelectedMode(null);
     onClose();
   };
+
+  const modeScope = isAggregated ? "aggregated networks and rankings" : "networks and rankings";
+  const modeDescription = isAggregated
+    ? "Build filters for aggregated networks and rankings."
+    : "Build filters for original networks and rankings.";
 
   return (
     <Modal
@@ -145,40 +157,28 @@ export default function NetworkEdgeFilterModal({
       className="edge-filter-modal"
       onCancel={closeModal}
       footer={[
-        <Button key="cancel" onClick={closeModal}>
-          Cancel
+        <Button
+          key="apply"
+          type="primary"
+          icon={<CheckOutlined />}
+          disabled={!validation.valid}
+          onClick={handleApply}
+        >
+          Apply
         </Button>,
         <Button
-          key="clear-draft"
-          onClick={() =>
-            setCurrentDraft(
-              createEmptyNetworkFilterDefinition(globalRangeMode),
-            )
-          }
+          key="clear"
+          icon={<ClearOutlined />}
+          onClick={handleClear}
         >
           Clear
         </Button>,
-        <Button
-          key="remove-active"
-          disabled={!activeMask}
-          onClick={() =>
-            dispatch(
-              isAggregated
-                ? clearAggregatedNetworkEdgeFilter()
-                : clearNetworkEdgeFilter(),
-            )
-          }
-        >
-          Remove active filter
-        </Button>,
-        <Button key="apply" type="primary" disabled={!validation.valid} onClick={handleApply}>
-          Apply filter
-        </Button>,
       ]}
     >
-      <Space direction="vertical" size={16} style={{ width: "100%" }}>
+      <div className="edge-filter-modal__content">
         <Tabs
           activeKey={mode}
+          destroyOnHidden
           onChange={(key) => setSelectedMode(key as NetworkEdgeFilterMode)}
           items={[
             { key: "original", label: "Original" },
@@ -186,56 +186,68 @@ export default function NetworkEdgeFilterModal({
           ]}
         />
 
-        <NetworkFilterGroupEditor
-          group={draft.root}
-          isRoot
-          networks={networks}
-          networkGroups={networkGroups}
-          catalogs={dataset?.content?.catalogs}
-          uiRangeMode={globalRangeMode}
-          onChange={(root) =>
-            setCurrentDraft({
-              ...draft,
-              root,
-            })
-          }
-        />
+        <section className="edge-filter-modal__section">
+          <div className="edge-filter-modal__section-header">
+            <Typography.Text type="secondary">{modeDescription}</Typography.Text>
+          </div>
 
-        {preview ? (
+          <NetworkFilterGroupEditor
+            group={draft.root}
+            isRoot
+            networks={networks}
+            networkGroups={networkGroups}
+            catalogs={dataset?.content?.catalogs}
+            uiRangeMode={globalRangeMode}
+            onChange={(root) =>
+              setCurrentDraft({
+                ...draft,
+                root,
+              })
+            }
+          />
+
           <Space size={8} wrap className="edge-filter-modal__status">
             <Tag color={activeMask ? "success" : "default"}>
               {activeMask ? "Active filter" : "No active filter"}
             </Tag>
-            <Typography.Text type="secondary">
-              Draft matches {preview.selectedCount} / {preview.totalCount} links
-              {preview.totalCount > 0
-                ? ` (${((preview.selectedCount / preview.totalCount) * 100).toFixed(1)}%)`
-                : ""}
-            </Typography.Text>
+            {preview ? (
+              <Typography.Text type="secondary">
+                Draft matches {preview.selectedCount} / {preview.totalCount} links
+                {preview.totalCount > 0
+                  ? ` (${((preview.selectedCount / preview.totalCount) * 100).toFixed(1)}%)`
+                  : ""}
+              </Typography.Text>
+            ) : null}
+            <Typography.Text type="secondary">Applies to {modeScope}.</Typography.Text>
+            {validation.errors.length > 0 ? (
+              <InlineNotice
+                tone="error"
+                label="Filter errors"
+                tooltip={
+                  <Space direction="vertical" size={4}>
+                    {validation.errors.map((issue) => (
+                      <span key={issue.id}>{issue.message}</span>
+                    ))}
+                  </Space>
+                }
+              />
+            ) : null}
+            {validation.warnings.length > 0 ? (
+              <InlineNotice
+                tone="warning"
+                label="Filter warnings"
+                tooltip={
+                  <Space direction="vertical" size={4}>
+                    {validation.warnings.map((issue) => (
+                      <span key={issue.id}>{issue.message}</span>
+                    ))}
+                  </Space>
+                }
+              />
+            ) : null}
           </Space>
-        ) : null}
-
-        {validation.errors.length > 0 ? (
-          <Alert
-            type="error"
-            showIcon
-            message="Filter validation"
-            description={validation.errors.map((issue) => (
-              <div key={issue.id}>{issue.message}</div>
-            ))}
-          />
-        ) : null}
-        {validation.warnings.length > 0 ? (
-          <Alert
-            type="warning"
-            showIcon
-            message="Filter warnings"
-            description={validation.warnings.map((issue) => (
-              <div key={issue.id}>{issue.message}</div>
-            ))}
-          />
-        ) : null}
-      </Space>
+        </section>
+      </div>
     </Modal>
   );
 }

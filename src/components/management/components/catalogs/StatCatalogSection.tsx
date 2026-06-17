@@ -1,4 +1,5 @@
-import { Button, Card, Divider, Input, InputNumber, Space, Switch, Typography } from "antd";
+import { CheckOutlined } from "@ant-design/icons";
+import { Button, Card, Input, InputNumber, Space, Switch, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
 
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
@@ -23,7 +24,6 @@ type EditableStat = Statistic & {
 };
 
 type StatCatalogSectionProps = {
-  title: string;
   stats: EditableStat[];
   emptyMessage: string;
 };
@@ -58,7 +58,7 @@ const draftsAreEqual = (
 const hasInvalidRange = (draft: StatDraft) =>
   draft.min !== undefined && draft.max !== undefined && draft.min > draft.max;
 
-function StatCatalogSection({ title, stats, emptyMessage }: StatCatalogSectionProps) {
+function StatCatalogSection({ stats, emptyMessage }: StatCatalogSectionProps) {
   const updateItem = useCatalogItemUpdater();
   const [drafts, setDrafts] = useState<Record<string, StatDraft>>(() =>
     toDrafts(stats),
@@ -100,96 +100,92 @@ function StatCatalogSection({ title, stats, emptyMessage }: StatCatalogSectionPr
   };
 
   return (
-    <>
-      <Divider style={{ margin: "8px 0" }} />
+    <div className="catalog-management-section">
+      <div className="catalog-management-grid">
+        {stats.length === 0 ? (
+          <Typography.Text type="secondary">{emptyMessage}</Typography.Text>
+        ) : null}
+        {stats.map((stat) => {
+          const draft = drafts[stat.id] ?? toDraft(stat);
 
-      <div>
-        <Space align="center" style={{ marginBottom: 8 }}>
-          <Typography.Text strong>{title}</Typography.Text>
-          <Button
-            size="small"
-            type="primary"
-            disabled={!canSave}
-            onClick={handleSave}
-          >
-            Save
-          </Button>
-          {invalidRange ? (
-            <Typography.Text type="danger">
-              Min must be less than or equal to max.
-            </Typography.Text>
-          ) : null}
-        </Space>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          {stats.length === 0 ? (
-            <Typography.Text type="secondary">{emptyMessage}</Typography.Text>
-          ) : null}
-          {stats.map((stat) => {
-            const draft = drafts[stat.id] ?? toDraft(stat);
-
-            return (
-              <Card key={stat.id} size="small" style={{ width: 300 }}>
-                <Space direction="vertical" size={8} style={{ width: "100%" }}>
-                  <Space wrap size={8} align="start">
-                    <Input
-                      size="small"
-                      placeholder="Statistic label"
-                      value={draft.label}
-                      style={{ width: 160 }}
-                      onChange={(event) =>
-                        updateDraft(stat.id, {
-                          label: event.target.value,
-                        })
-                      }
-                    />
-                    <Switch
-                      checked={draft.enabled}
-                      onChange={(checked) =>
-                        updateDraft(stat.id, {
-                          enabled: checked,
-                        })
-                      }
-                    />
-                    <InputNumber
-                      size="small"
-                      placeholder="Min"
-                      value={draft.min ?? null}
-                      onChange={(value) =>
-                        updateDraft(stat.id, {
-                          min: normalizeNumber(value),
-                        })
-                      }
-                    />
-                    <InputNumber
-                      size="small"
-                      placeholder="Max"
-                      value={draft.max ?? null}
-                      onChange={(value) =>
-                        updateDraft(stat.id, {
-                          max: normalizeNumber(value),
-                        })
-                      }
-                    />
-                  </Space>
-
-                  <Input.TextArea
+          return (
+            <Card key={stat.id} size="small" className="catalog-management-card">
+              <Space direction="vertical" size={8} className="catalog-management-card__body">
+                <Space wrap size={8} align="start">
+                  <Input
                     size="small"
-                    placeholder="Description"
-                    value={draft.description}
+                    placeholder="Statistic label"
+                    value={draft.label}
+                    className="catalog-management-label-input"
                     onChange={(event) =>
                       updateDraft(stat.id, {
-                        description: event.target.value,
+                        label: event.target.value,
                       })
                     }
-                    style={{ resize: "vertical" }}
+                  />
+                  <Switch
+                    checked={draft.enabled}
+                    onChange={(checked) =>
+                      updateDraft(stat.id, {
+                        enabled: checked,
+                      })
+                    }
+                  />
+                  <InputNumber
+                    size="small"
+                    placeholder="Min"
+                    value={draft.min ?? null}
+                    onChange={(value) =>
+                      updateDraft(stat.id, {
+                        min: normalizeNumber(value),
+                      })
+                    }
+                  />
+                  <InputNumber
+                    size="small"
+                    placeholder="Max"
+                    value={draft.max ?? null}
+                    onChange={(value) =>
+                      updateDraft(stat.id, {
+                        max: normalizeNumber(value),
+                      })
+                    }
                   />
                 </Space>
-              </Card>
-            );
-          })}
-        </div>
+
+                <Input.TextArea
+                  size="small"
+                  placeholder="Description"
+                  value={draft.description}
+                  onChange={(event) =>
+                    updateDraft(stat.id, {
+                      description: event.target.value,
+                    })
+                  }
+                  className="catalog-management-description"
+                />
+              </Space>
+            </Card>
+          );
+        })}
       </div>
-    </>
+      <div className="catalog-management-actions">
+        {invalidRange ? (
+          <Typography.Text type="danger">
+            Min must be less than or equal to max.
+          </Typography.Text>
+        ) : null}
+        <Button
+          size="small"
+          type="primary"
+          icon={<CheckOutlined />}
+          disabled={!canSave}
+          onClick={handleSave}
+        >
+          Apply
+        </Button>
+      </div>
+    </div>
   );
 }
 

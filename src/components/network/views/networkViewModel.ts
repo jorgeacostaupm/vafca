@@ -19,9 +19,9 @@ import {
   DEFAULT_CIRCULAR_BUNDLING_ENABLED,
   DEFAULT_CIRCULAR_LINK_TENSION,
 } from "@/types/circular";
+import type { MaterializedNetworkView } from "@/types/datasetNetworkView";
 import type { DatasetMeta } from "@/types/datasetState";
 import type { NodeGroup, UiRangeMode } from "@/types/network";
-import type { StoredNetworkView } from "@/types/networkViewStore";
 import type {
   ComputedView,
   MatrixNetworkViewSettings,
@@ -42,7 +42,7 @@ type ViewSettings =
 
 type ResolveComputedNetworkViewArgs = {
   view: NetworkViewDescriptor;
-  networkView: StoredNetworkView;
+  networkView: MaterializedNetworkView;
   settings: ViewSettings;
   nodeLinkSettings?: NodeLinkNetworkViewSettings;
   nodeOrderIds: string[];

@@ -1,4 +1,4 @@
-import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
+import { ArrowDownOutlined, ArrowUpOutlined, SwapOutlined } from "@ant-design/icons";
 import { Button, Space, Typography } from "antd";
 
 import type {
@@ -58,6 +58,7 @@ export default function HierarchyCategoryOrderSection({
             </Typography.Text>
             <Button
               size="small"
+              icon={<SwapOutlined />}
               style={{ marginTop: 6 }}
               onClick={() =>
                 onUpdateCategoryOrder({

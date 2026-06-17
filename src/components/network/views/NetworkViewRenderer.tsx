@@ -1,8 +1,8 @@
 import type { RefObject } from "react";
 import { memo, useCallback } from "react";
 
-import Circulas from "@/components/circular/Circulas";
-import MatrixHeatmapPanel from "@/components/matrix/MatrixPanel";
+import CircularNodeLinkPanel from "@/components/circular/CircularNodeLinkPanel";
+import MatrixHeatmapPanel from "@/components/matrix/MatrixHeatmapPanel";
 import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
 import type { buildNetworkViewRenderData } from "@/components/network/views/networkViewData";
 import { NetworkViewStatusContent } from "@/components/network/views/NetworkViewStatus";
@@ -157,7 +157,7 @@ function NetworkViewRenderer({
 
   if (view.type === "circular") {
     return (
-      <Circulas
+      <CircularNodeLinkPanel
         {...commonNodeLinkProps}
         circularLinkTension={computed.circularLinkTension}
         circularBundlingEnabled={computed.circularBundlingEnabled}

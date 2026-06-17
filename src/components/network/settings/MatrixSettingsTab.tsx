@@ -1,3 +1,4 @@
+import { CheckOutlined, ReloadOutlined } from '@ant-design/icons'
 import { Button, Space } from 'antd'
 import { useMemo } from 'react'
 
@@ -23,7 +24,9 @@ export default function MatrixSettingsTab() {
 
   return (
     <Space direction="vertical" size={20} style={{ width: '100%' }}>
-      <SettingsSection title="Color scales">
+      <SettingsSection
+        description="Use this menu to configure the color scales used by matrix network views."
+      >
         <div className="matrix-settings-grid">
           <MatrixScaleSettingsSection
             scaleType="sequential"
@@ -39,17 +42,19 @@ export default function MatrixSettingsTab() {
         <div className="matrix-settings-actions">
           <Space>
             <Button
-              disabled={!hasPendingChanges}
-              onClick={() => dispatch(resetDraftMatrixColorSettings())}
-            >
-              Reset
-            </Button>
-            <Button
               type="primary"
+              icon={<CheckOutlined />}
               disabled={!hasPendingChanges}
               onClick={() => dispatch(applyMatrixColorSettings())}
             >
               Apply
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              disabled={!hasPendingChanges}
+              onClick={() => dispatch(resetDraftMatrixColorSettings())}
+            >
+              Reset
             </Button>
           </Space>
         </div>

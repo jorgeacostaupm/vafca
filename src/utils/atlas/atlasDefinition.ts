@@ -120,28 +120,6 @@ export const getCommonNodeFields = (atlas: AtlasDefinition | null) => {
   );
 };
 
-export const getDefaultGroupByFields = (fields: string[]) => {
-  if (fields.length === 0) return [];
-
-  const priority = [
-    "hemisphere",
-    "lobule",
-    "lobe",
-    "region",
-    "network",
-    "subnetwork",
-  ];
-
-  const preferred = priority.filter((field) => fields.includes(field));
-  if (preferred.length > 0) return preferred.slice(0, 2);
-
-  const lessUseful = new Set(["id", "label", "name", "acronym"]);
-  const useful = fields.filter((field) => !lessUseful.has(field));
-  if (useful.length > 0) return useful.slice(0, 2);
-
-  return fields.slice(0, 1);
-};
-
 export const atlasSupports3d = (atlas: AtlasDefinition | null) => {
   if (!atlas?.nodes?.length) return false;
 

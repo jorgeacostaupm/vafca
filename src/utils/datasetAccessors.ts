@@ -1,9 +1,9 @@
+import type {
+  DatasetNetworkSummary,
+  MaterializedNetworkView,
+} from "@/types/datasetNetworkView";
 import type { DatasetMeta, NetworkStats } from "@/types/datasetState";
 import type { Network } from "@/types/network";
-import type {
-  NetworkSummaryItem,
-  StoredNetworkView,
-} from "@/types/networkViewStore";
 import type { NodeOrderEntry } from "@/types/nodeOrder";
 import { isDirectedNetwork, materializeNetworkMatrix } from "@/utils/networkData";
 import {
@@ -53,11 +53,19 @@ export const getDatasetAtlasLabel = (dataset: DatasetMeta | null | undefined) =>
 export const getDatasetNetworkStats = (
   dataset: DatasetMeta | null | undefined,
 ): NetworkStats =>
-  buildNetworkStats(
-    (dataset?.content.networks ?? []).map(toStoredNetworkView),
-  );
+  buildNetworkStats((dataset?.content.networks ?? []).map(toDatasetNetworkSummary));
 
-export const toStoredNetworkView = (network: Network): StoredNetworkView => {
+export const toDatasetNetworkSummary = (network: Network): DatasetNetworkSummary => ({
+  compoundId: createNetworkCompoundId(network),
+  layerId: network.context.layerId ?? "none",
+  measureId: network.measureId,
+  statId: network.statisticId,
+  populationIds: getNetworkPopulationIds(network),
+  size: network.nodeIds.length,
+  symmetric: !isDirectedNetwork(network),
+});
+
+export const toMaterializedNetworkView = (network: Network): MaterializedNetworkView => {
   const networkViewData = {
     id: network.id,
     layerId: network.context.layerId ?? "none",
@@ -74,26 +82,12 @@ export const toStoredNetworkView = (network: Network): StoredNetworkView => {
   };
 };
 
-export const getDatasetNetworkSummaries = (
-  dataset: DatasetMeta | null | undefined,
-): NetworkSummaryItem[] =>
-  (dataset?.content.networks ?? []).map((network) => {
-    const stored = toStoredNetworkView(network);
-    return {
-      compoundId: stored.compoundId,
-      layerId: stored.layerId,
-      measureId: stored.measureId,
-      statId: stored.statId,
-      populationIds: stored.populationIds,
-      size: stored.data.length,
-      symmetric: stored.symmetric,
-    };
-  });
-
-export const getDatasetNetworkByCompoundId = (
+export const getMaterializedNetworkByCompoundId = (
   dataset: DatasetMeta | null | undefined,
   compoundId: string,
-): StoredNetworkView | undefined =>
-  (dataset?.content.networks ?? [])
-    .map(toStoredNetworkView)
-    .find((network) => network.compoundId === compoundId);
+): MaterializedNetworkView | undefined => {
+  const network = dataset?.content.networks.find(
+    (network) => createNetworkCompoundId(network) === compoundId,
+  );
+  return network ? toMaterializedNetworkView(network) : undefined;
+};

@@ -2,12 +2,15 @@ import { getCompactor } from 'react-grid-layout'
 
 import type { MatrixBrushMode } from '@/types/matrixHeatmap'
 import type { UiRangeMode } from '@/types/network'
-import type { NetworkSummaryFieldId } from '@/types/networkMeasures'
 import type { NetworkMatrixSelectorMode, NetworkViewType } from '@/types/networkVisualization'
 import type { LinkCollectionRankingMode, RankingTarget, RankingTopN } from '@/types/rankings'
 
 // Shared visualization UI state.
 export const DEFAULT_UI_RANGE_MODE: UiRangeMode = 'view_observed'
+
+// Root app navigation.
+export const DEFAULT_APP_SECTION = 'vis'
+export const APP_NAV_RAIL_WIDTH = 64
 
 // Atlas panel defaults.
 export const DEFAULT_ATLAS_PANEL_VIEWER_HEIGHT = 520
@@ -15,6 +18,7 @@ export const DEFAULT_ATLAS_PANEL_3D_AVAILABLE = false
 export const DEFAULT_ATLAS_PANEL_GROUP_BY_FIELDS = [] as const
 export const ATLAS_PANEL_ALL_FILTER = '__all__'
 export const ATLAS_PANEL_VIEWER_MIN_HEIGHT = 420
+export const DEFAULT_ATLAS_MANAGEMENT_TAB = 'current'
 
 // Network visualization state defaults.
 export const DEFAULT_NETWORK_VIEW_TYPE: NetworkViewType = 'matrix'
@@ -44,6 +48,8 @@ export const MATRIX_HOVER_AXIS_GAP = 1.2
 export const MATRIX_HOVER_AXIS_STROKE = 1.6
 export const MATRIX_SELECTED_CELL_INSET = 0.6
 export const MATRIX_SELECTED_CELL_ACCENT_STROKE = 2
+export const MATRIX_BRUSH_LINK_DISPATCH_CHUNK_SIZE = 750
+export const MATRIX_BRUSH_LINK_DISPATCH_YIELD_MS = 0
 
 // Network panel layout defaults.
 export const DEFAULT_NETWORK_PANEL_LAYOUT = {
@@ -66,6 +72,11 @@ export const DEFAULT_PANEL_GRID_COMPACTOR = getCompactor('vertical', false, true
 export const DEFAULT_RESIZABLE_CONTAINER_DEBOUNCE_MS = 100
 export const SHARED_HOVER_GRAPH_SYNC_THROTTLE_MS = 48
 
+// Selected links table defaults.
+export const SELECTED_LINKS_TABLE_FALLBACK_HEADER_HEIGHT = 40
+export const SELECTED_LINKS_TABLE_FALLBACK_PAGINATION_HEIGHT = 40
+export const SELECTED_LINKS_TABLE_FALLBACK_ROW_HEIGHT = 39
+
 // Ranking tab and ranking query defaults.
 export const DEFAULT_NETWORK_VISUALIZATION_TAB = 'views'
 export const DEFAULT_RANKING_TARGET: RankingTarget = 'links'
@@ -75,115 +86,6 @@ export const DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS = false
 export const DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS = false
 export const RANKING_TOP_N_OPTIONS = [10, 25, 50, 100, 250, 500] as const
 
-// Network summary defaults.
-export const DEFAULT_NETWORK_SUMMARY_INCLUDE_DIAGONAL = false
-export const DEFAULT_NETWORK_SUMMARY_INCLUDE_ZERO_EDGES = true
-export const DEFAULT_NETWORK_SUMMARY_TOP_ITEMS_LIMIT = 10
-export const DEFAULT_NETWORK_SUMMARY_SETTINGS_MODAL_WIDTH = 820
-export const NETWORK_SUMMARY_TOP_ITEMS_LIMIT_OPTIONS = [5, 10, 20, 50] as const
-export const NETWORK_SUMMARY_FIELD_GROUPS: Array<{
-  key: string
-  label: string
-  fields: Array<{ id: NetworkSummaryFieldId; label: string }>
-}> = [
-  {
-    key: 'identity',
-    label: 'Identity',
-    fields: [
-      { id: 'identity.networkId', label: 'Network ID' },
-      { id: 'identity.label', label: 'Network label' },
-      { id: 'identity.kind', label: 'Network type' },
-      { id: 'identity.measure', label: 'Measure' },
-      { id: 'identity.statistic', label: 'Statistic' },
-      { id: 'identity.layer', label: 'Layer' },
-      { id: 'identity.population', label: 'Population' },
-      { id: 'identity.dataSize', label: 'Data size' },
-      { id: 'identity.nodeCount', label: 'Nodes' },
-      { id: 'identity.symmetric', label: 'Symmetric' },
-      { id: 'identity.directed', label: 'Directed' },
-      { id: 'identity.networkKind', label: 'Network kind' },
-      { id: 'identity.scope', label: 'Scope' },
-    ],
-  },
-  {
-    key: 'coverage',
-    label: 'Coverage and density',
-    fields: [
-      { id: 'coverage.nodeCount', label: 'Nodes' },
-      { id: 'coverage.possibleEdgeCount', label: 'Possible links' },
-      { id: 'coverage.evaluatedEdgeCount', label: 'Evaluated links' },
-      { id: 'coverage.usedEdgeCount', label: 'Used links' },
-      { id: 'coverage.invalidEdgeCount', label: 'Invalid links' },
-      { id: 'coverage.zeroEdgeCount', label: 'Zero links' },
-      { id: 'coverage.density', label: 'Density' },
-      { id: 'coverage.sparsity', label: 'Sparsity' },
-      { id: 'coverage.positiveEdgePercent', label: 'Positive links' },
-      { id: 'coverage.negativeEdgePercent', label: 'Negative links' },
-      { id: 'coverage.zeroEdgePercent', label: 'Zero links percent' },
-    ],
-  },
-  {
-    key: 'weights',
-    label: 'Weight distribution',
-    fields: [
-      { id: 'weights.min', label: 'Min' },
-      { id: 'weights.max', label: 'Max' },
-      { id: 'weights.mean', label: 'Mean' },
-      { id: 'weights.median', label: 'Median' },
-      { id: 'weights.standardDeviation', label: 'Standard deviation' },
-      { id: 'weights.meanAbs', label: 'Mean absolute' },
-      { id: 'weights.sum', label: 'Sum' },
-      { id: 'weights.sumAbs', label: 'Absolute sum' },
-      { id: 'weights.sumPositive', label: 'Positive sum' },
-      { id: 'weights.sumNegative', label: 'Negative sum' },
-      { id: 'weights.percentile05', label: 'P05' },
-      { id: 'weights.percentile25', label: 'P25' },
-      { id: 'weights.percentile50', label: 'P50' },
-      { id: 'weights.percentile75', label: 'P75' },
-      { id: 'weights.percentile95', label: 'P95' },
-    ],
-  },
-  {
-    key: 'global',
-    label: 'Global network measures',
-    fields: [
-      { id: 'global.meanDegree', label: 'Mean degree' },
-      { id: 'global.maxDegree', label: 'Max degree' },
-      { id: 'global.componentCount', label: 'Components' },
-      { id: 'global.giantComponentSize', label: 'Giant component size' },
-      { id: 'global.giantComponentRatio', label: 'Giant component ratio' },
-      { id: 'global.isolatedNodeCount', label: 'Isolated nodes' },
-      { id: 'global.meanClustering', label: 'Mean clustering' },
-      { id: 'global.transitivity', label: 'Transitivity' },
-      { id: 'global.globalEfficiency', label: 'Global efficiency' },
-      { id: 'global.averagePathLength', label: 'Average path length' },
-      { id: 'global.diameter', label: 'Diameter' },
-    ],
-  },
-  {
-    key: 'tables',
-    label: 'Tables',
-    fields: [
-      { id: 'nodes.topByDegree', label: 'Top nodes by degree' },
-      { id: 'nodes.isolated', label: 'Isolated nodes' },
-      { id: 'links.topAbs', label: 'Top links by absolute value' },
-      { id: 'links.topPositive', label: 'Top positive links' },
-      { id: 'links.topNegative', label: 'Top negative links' },
-      { id: 'groups.summary', label: 'Node group summary' },
-    ],
-  },
-]
-export const NETWORK_SUMMARY_FIELD_IDS = NETWORK_SUMMARY_FIELD_GROUPS.flatMap(
-  (group) => group.fields.map((field) => field.id),
-)
-export const DEFAULT_NETWORK_SUMMARY_VIEW_FIELD_IDS: NetworkSummaryFieldId[] = [
-  'coverage.nodeCount',
-  'coverage.usedEdgeCount',
-  'coverage.density',
-  'global.meanDegree',
-  'global.componentCount',
-]
-
 // Ranking result panel layout defaults.
 export const DEFAULT_RANKING_PANEL_LAYOUT = {
   width: 16,
@@ -192,11 +94,17 @@ export const DEFAULT_RANKING_PANEL_LAYOUT = {
   initialY: 0,
 } as const
 
+// Selected links table defaults.
+export const SELECTED_LINKS_TABLE_DEFAULT_PAGE_SIZE = 25
+export const SELECTED_LINKS_TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
+
 // Network settings modal defaults.
-export const DEFAULT_NETWORK_SETTINGS_TAB = 'views'
+export const DEFAULT_NETWORK_SETTINGS_TAB = 'networks'
 export const DEFAULT_NETWORK_SETTINGS_MODAL_WIDTH = 860
 export const DEFAULT_NETWORK_SETTINGS_MODAL_TOP = 48
-export const DEFAULT_HIERARCHY_SETTINGS_TAB = 'configuration'
+export const DEFAULT_ATLAS_MANAGEMENT_MODAL_WIDTH = 760
+export const DEFAULT_ATLAS_SETTINGS_MODAL_WIDTH = 720
+export const DEFAULT_ATLAS_MODAL_TOP = 48
 export const DEFAULT_NETWORK_EDGE_FILTER_TAB = 'original'
 export const MIN_GROUPING_COLOR_PREVIEW_ITEMS = 7
 export const CIRCULAR_HIERARCHY_PREVIEW_WIDTH = 390
@@ -207,7 +115,7 @@ export const GROUPING_MATRIX_HIERARCHY_PREVIEW_WIDTH = 452
 export const GROUPING_CIRCULAR_HIERARCHY_PREVIEW_WIDTH = 452
 
 // Data and calculation modal defaults.
-export const DEFAULT_DATA_MANAGEMENT_TAB = 'load'
+export const DEFAULT_DATA_MANAGEMENT_TAB = 'current'
 export const DEFAULT_CATALOG_MANAGEMENT_TAB = 'populations'
 export const DEFAULT_DERIVED_MATRIX_CALCULATION_TAB = 'comparison'
 export const DEFAULT_NETWORK_IMPORT_MODE = 'lenient'

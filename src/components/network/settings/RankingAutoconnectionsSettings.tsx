@@ -1,4 +1,4 @@
-import { Form, Space, Switch } from "antd";
+import { Form, Switch } from "antd";
 
 import {
   DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS,
@@ -21,33 +21,31 @@ export default function RankingAutoconnectionsSettings() {
   );
 
   return (
-    <Form layout="vertical" style={{ marginBottom: 0 }}>
-      <Space direction="vertical" size={12}>
-        <Form.Item label="Allow autoconnections in link rankings">
-          <Switch
-            checked={allowLinkRankingAutoconnections}
-            onChange={(value) =>
-              dispatch(
-                patchRankingQuery({
-                  allowLinkRankingAutoconnections: value,
-                }),
-              )
-            }
-          />
-        </Form.Item>
-        <Form.Item label="Allow autoconnections in node rankings" style={{ marginBottom: 0 }}>
-          <Switch
-            checked={allowNodeRankingAutoconnections}
-            onChange={(value) =>
-              dispatch(
-                patchRankingQuery({
-                  allowNodeRankingAutoconnections: value,
-                }),
-              )
-            }
-          />
-        </Form.Item>
-      </Space>
+    <Form layout="vertical" className="network-settings-rankings__switches">
+      <Form.Item label="Allow autoconnections in link rankings">
+        <Switch
+          checked={allowLinkRankingAutoconnections}
+          onChange={(value) =>
+            dispatch(
+              patchRankingQuery({
+                allowLinkRankingAutoconnections: value,
+              }),
+            )
+          }
+        />
+      </Form.Item>
+      <Form.Item label="Allow autoconnections in node rankings">
+        <Switch
+          checked={allowNodeRankingAutoconnections}
+          onChange={(value) =>
+            dispatch(
+              patchRankingQuery({
+                allowNodeRankingAutoconnections: value,
+              }),
+            )
+          }
+        />
+      </Form.Item>
     </Form>
   );
 }

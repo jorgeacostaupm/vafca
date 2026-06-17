@@ -1,13 +1,13 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
-import type { NetworkSummaryItem } from '@/types/networkViewStore'
+import type { DatasetNetworkSummary } from '@/types/datasetNetworkView'
 import type { RootState } from '@/types/store'
 
 import { patchNetworkControls } from '../networkVisualizationSlice'
 
 export const syncNetworkSelectedCompoundId = createAsyncThunk<
   void,
-  { matches: NetworkSummaryItem[] },
+  { matches: DatasetNetworkSummary[] },
   { state: RootState }
 >(
   'networkVisualization/syncNetworkSelectedCompoundId',

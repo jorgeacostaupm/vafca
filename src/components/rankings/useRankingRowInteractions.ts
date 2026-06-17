@@ -57,7 +57,7 @@ export const useRankingRowInteractions = () => {
   );
 
   const handleLeave = useCallback(() => {
-    dispatch(setHoveredRankingItem(undefined));
+    dispatch(setHoveredRankingItem(null));
     applySharedHover(undefined);
   }, [applySharedHover, dispatch]);
 

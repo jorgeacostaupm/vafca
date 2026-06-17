@@ -1,3 +1,4 @@
+import { createSelector } from "@reduxjs/toolkit";
 import { useMemo } from "react";
 import { shallowEqual } from "react-redux";
 
@@ -7,10 +8,12 @@ import {
   resolveNetworkViewWithContext,
 } from "@/components/network/views/useNetworkViewResolver";
 import { useAppSelector } from "@/store/hooks";
+import { selectDatasetData } from "@/store/slices/dataset";
 import type {
   NodeLinkNetworkViewSettings,
   ViewVisibility,
 } from "@/types/networkVisualization";
+import { getMaterializedNetworkByCompoundId } from "@/utils/datasetAccessors";
 
 const emptySourceFilters = {
   nodeFilterContributors: [],
@@ -53,17 +56,25 @@ export const useNetworkViewSourceFilters = ({
 
     return null;
   }, shallowEqual);
+  const sourceCompoundId = source?.view.compoundId;
+  const selectSourceNetworkView = useMemo(
+    () =>
+      createSelector([selectDatasetData], (dataset) =>
+        sourceCompoundId
+          ? getMaterializedNetworkByCompoundId(dataset, sourceCompoundId) ?? null
+          : null,
+      ),
+    [sourceCompoundId],
+  );
+  const sourceNetworkView = useAppSelector(selectSourceNetworkView);
 
   return useMemo(() => {
     if (targetIsAggregated || targetIsFilterSource) return emptySourceFilters;
-    const networkView = source
-      ? context.networkViewsByCompoundId[source.view.compoundId] ?? null
-      : null;
     const computed =
-      source && networkView
+      source && sourceNetworkView
         ? resolveNetworkViewWithContext({
             view: source.view,
-            networkView,
+            networkView: sourceNetworkView,
             settings: source.settings,
             nodeLinkSettings:
               source.view.type === "matrix"
@@ -88,5 +99,11 @@ export const useNetworkViewSourceFilters = ({
         [source.view.id]: resolveViewVisibility(computed),
       },
     };
-  }, [context, source, targetIsFilterSource, targetIsAggregated]);
+  }, [
+    context,
+    source,
+    sourceNetworkView,
+    targetIsFilterSource,
+    targetIsAggregated,
+  ]);
 };

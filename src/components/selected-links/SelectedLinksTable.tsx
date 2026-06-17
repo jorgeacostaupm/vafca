@@ -7,6 +7,10 @@ import type {
   LinkRow,
   NetworkColumn,
 } from "@/components/selected-links/selectedLinksPanel.types";
+import {
+  SELECTED_LINKS_TABLE_DEFAULT_PAGE_SIZE,
+  SELECTED_LINKS_TABLE_PAGE_SIZE_OPTIONS,
+} from "@/config/ui";
 
 type SelectedLinksTableProps = {
   rows: LinkRow[];
@@ -92,7 +96,17 @@ export default function SelectedLinksTable({
       columns={columns}
       dataSource={rows}
       locale={{ emptyText: "No links selected yet." }}
-      pagination={false}
+      pagination={
+        rows.length > SELECTED_LINKS_TABLE_DEFAULT_PAGE_SIZE
+          ? {
+              defaultPageSize: SELECTED_LINKS_TABLE_DEFAULT_PAGE_SIZE,
+              pageSizeOptions: SELECTED_LINKS_TABLE_PAGE_SIZE_OPTIONS,
+              showSizeChanger: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} ${total === 1 ? "link" : "links"}`,
+            }
+          : false
+      }
       size="small"
       scroll={{ x: "max-content" }}
     />

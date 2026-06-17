@@ -1,3 +1,4 @@
+import type { MaterializedNetworkView } from "@/types/datasetNetworkView";
 import type {
   Catalogs,
   Network,
@@ -7,11 +8,10 @@ import type {
   UiRangeMode,
   ValueRange,
 } from "@/types/network";
-import type { StoredNetworkView } from "@/types/networkViewStore";
 import type { ResolvedValueDomain } from "@/types/valueDomain";
 import { computeNetworkMatrixDataStats } from "@/utils/networkDataStats";
 
-type NetworkLike = Network | StoredNetworkView;
+type NetworkLike = Network | MaterializedNetworkView;
 type CatalogsLike = Catalogs | undefined;
 
 type ResolveValueDomainArgs = {

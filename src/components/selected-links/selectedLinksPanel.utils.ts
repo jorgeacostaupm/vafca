@@ -13,10 +13,7 @@ import type { SelectedLink } from "@/types/visualizationUi";
 import { resolveMatrixValue } from "@/utils/matrixValue";
 
 export const buildNetworkSummaryLabelMap = (options: NetworkOption[]) => {
-  return options.reduce<Record<string, string>>((acc, option) => {
-    acc[option.value] = option.label;
-    return acc;
-  }, {});
+  return Object.fromEntries(options.map((option) => [option.value, option.label]));
 };
 
 export const buildSourceLabelMap = (links: SelectedLink[]) => {

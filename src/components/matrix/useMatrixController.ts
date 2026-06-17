@@ -1,6 +1,10 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { setSharedHoverState } from "@/components/hover/sharedHover";
+import {
+  MATRIX_BRUSH_LINK_DISPATCH_CHUNK_SIZE,
+  MATRIX_BRUSH_LINK_DISPATCH_YIELD_MS,
+} from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   addSelectedLink,
@@ -24,6 +28,7 @@ type UseMatrixHeatmapControllerArgs = {
   compoundId: string;
   networkLabel: string;
   symmetric: boolean;
+  selectionVisible?: boolean;
 };
 
 type CellPayload = {
@@ -36,6 +41,14 @@ type CellPayload = {
   colLabel: string;
 };
 
+type LinkSelectionInput = {
+  rowId: string;
+  rowLabel: string;
+  colId: string;
+  colLabel: string;
+  value: number;
+};
+
 export const useMatrixHeatmapController = ({
   data,
   labels,
@@ -45,9 +58,16 @@ export const useMatrixHeatmapController = ({
   compoundId,
   networkLabel,
   symmetric,
+  selectionVisible = true,
 }: UseMatrixHeatmapControllerArgs) => {
   const dispatch = useAppDispatch();
-  const selectedLinks = useAppSelector((state) => state.visualizationUi.selectedLinks);
+  const selectedLinksById = useAppSelector(
+    (state) => state.visualizationUi.selectedLinksById,
+  );
+  const selectedLinkIdsByRowId = useAppSelector(
+    (state) => state.visualizationUi.selectedLinkIdsByRowId,
+  );
+  const scheduledDispatchTimeoutIdsRef = useRef<number[]>([]);
 
   const resolvedRowLabels = useMemo(() => {
     const rows = data.length;
@@ -72,8 +92,8 @@ export const useMatrixHeatmapController = ({
   }, [resolvedRowLabels, resolvedColLabels]);
 
   const selectedCells = useMemo(() => {
+    if (!selectionVisible) return [];
     if (!resolvedRowLabels || !resolvedColLabels) return [];
-    const rowIndexById = new Map(resolvedRowLabels.map((id, index) => [id, index]));
     const colIndexById = new Map(resolvedColLabels.map((id, index) => [id, index]));
     const colCount = resolvedColLabels.length;
     const next: Array<{ row: number; col: number }> = [];
@@ -85,13 +105,41 @@ export const useMatrixHeatmapController = ({
       seen.add(key);
       next.push({ row, col });
     };
-    selectedLinks.forEach((link: SelectedLink) => {
-      const row = rowIndexById.get(link.rowId);
-      const col = colIndexById.get(link.colId);
-      addCell(row, col);
+    resolvedRowLabels.forEach((rowId, row) => {
+      selectedLinkIdsByRowId[rowId]?.forEach((linkId) => {
+        const link = selectedLinksById[linkId];
+        if (!link) return;
+        const col = colIndexById.get(link.colId);
+        addCell(row, col);
+      });
     });
     return next;
-  }, [selectedLinks, resolvedRowLabels, resolvedColLabels]);
+  }, [
+    selectedLinkIdsByRowId,
+    selectedLinksById,
+    resolvedRowLabels,
+    resolvedColLabels,
+    selectionVisible,
+  ]);
+
+  const scheduleDispatchChunk = useCallback((callback: () => void) => {
+    const timeoutId = window.setTimeout(() => {
+      scheduledDispatchTimeoutIdsRef.current =
+        scheduledDispatchTimeoutIdsRef.current.filter((id) => id !== timeoutId);
+      callback();
+    }, MATRIX_BRUSH_LINK_DISPATCH_YIELD_MS);
+    scheduledDispatchTimeoutIdsRef.current.push(timeoutId);
+  }, []);
+
+  useEffect(
+    () => () => {
+      scheduledDispatchTimeoutIdsRef.current.forEach((id) =>
+        window.clearTimeout(id),
+      );
+      scheduledDispatchTimeoutIdsRef.current = [];
+    },
+    [],
+  );
 
   const handleHover = useCallback(
     (payload: CellPayload) => {
@@ -112,121 +160,159 @@ export const useMatrixHeatmapController = ({
     setSharedHoverState({ type: "node", nodeId: labelId });
   }, []);
 
+  const createSelectedLink = useCallback(
+    ({
+      rowId,
+      rowLabel,
+      colId,
+      colLabel,
+      value,
+    }: LinkSelectionInput): SelectedLink => {
+      const draft = createSelectedLinkDraft({
+        row: {
+          id: rowId,
+          label: rowLabel,
+          index: labelIndexById.get(rowId),
+        },
+        col: {
+          id: colId,
+          label: colLabel,
+          index: labelIndexById.get(colId),
+        },
+        symmetric,
+      });
+
+      return {
+        ...draft,
+        sources: [
+          {
+            compoundId,
+            networkLabel,
+            value,
+          },
+        ],
+      };
+    },
+    [compoundId, labelIndexById, networkLabel, symmetric],
+  );
+
   const handleSelect = useCallback(
     (payload: CellPayload) => {
       const rowLabel = labelNames?.[payload.rowId] ?? payload.rowLabel;
       const colLabel = labelNames?.[payload.colId] ?? payload.colLabel;
-      const draft = createSelectedLinkDraft({
-        row: {
-          id: payload.rowId,
-          label: rowLabel,
-          index: labelIndexById.get(payload.rowId),
-        },
-        col: {
-          id: payload.colId,
-          label: colLabel,
-          index: labelIndexById.get(payload.colId),
-        },
-        symmetric,
-      });
       const removalIds = getSelectedLinkRemovalIds(
         payload.rowId,
         payload.colId,
         symmetric,
       );
-      const existing = selectedLinks.find((link) => removalIds.includes(link.id));
-      if (existing) {
-        dispatch(removeSelectedLink(existing.id));
+      const existingId = removalIds.find((id) => selectedLinksById[id]);
+      if (existingId) {
+        dispatch(removeSelectedLink(existingId));
         return;
       }
       dispatch(
-        addSelectedLink({
-          ...draft,
-          sources: [
-            {
-              compoundId,
-              networkLabel,
-              value: payload.value,
-            },
-          ],
-        }),
+        addSelectedLink(
+          createSelectedLink({
+            rowId: payload.rowId,
+            rowLabel,
+            colId: payload.colId,
+            colLabel,
+            value: payload.value,
+          }),
+        ),
       );
     },
     [
-      compoundId,
+      createSelectedLink,
       dispatch,
-      labelIndexById,
       labelNames,
-      networkLabel,
-      selectedLinks,
+      selectedLinksById,
       symmetric,
     ],
   );
 
   const handleBrushSelectLinks = useCallback(
     (payload: MatrixBrushPayload) => {
-      const selectedIds = new Set(selectedLinks.map((link) => link.id));
-      const links: SelectedLink[] = [];
+      let cursor = 0;
+      const selectedIds = new Set<string>();
 
-      payload.cells.forEach((cell) => {
-        const rowId = cell.rowLabel;
-        const rowLabel = labelNames?.[rowId] ?? rowId;
-        const colId = cell.colLabel;
-        const draft = createSelectedLinkDraft({
-          row: {
-            id: rowId,
-            label: rowLabel,
-            index: labelIndexById.get(rowId),
-          },
-          col: {
-            id: colId,
-            label: labelNames?.[colId] ?? colId,
-            index: labelIndexById.get(colId),
-          },
-          symmetric,
-        });
-        const removalIds = getSelectedLinkRemovalIds(rowId, colId, symmetric);
-        if (removalIds.some((id) => selectedIds.has(id))) return;
+      const processChunk = () => {
+        const links: SelectedLink[] = [];
+        const end = Math.min(
+          cursor + MATRIX_BRUSH_LINK_DISPATCH_CHUNK_SIZE,
+          payload.cells.length,
+        );
 
-        selectedIds.add(draft.id);
-        links.push({
-          ...draft,
-          sources: [
-            {
-              compoundId,
-              networkLabel,
-              value: cell.value,
-            },
-          ],
-        });
-      });
+        for (; cursor < end; cursor += 1) {
+          const cell = payload.cells[cursor];
+          if (!cell) continue;
+          const rowId = cell.rowLabel;
+          const rowLabel = labelNames?.[rowId] ?? rowId;
+          const colId = cell.colLabel;
+          const link = createSelectedLink({
+            rowId,
+            rowLabel,
+            colId,
+            colLabel: labelNames?.[colId] ?? colId,
+            value: cell.value,
+          });
+          const removalIds = getSelectedLinkRemovalIds(rowId, colId, symmetric);
+          if (
+            removalIds.some(
+              (id) => Boolean(selectedLinksById[id]) || selectedIds.has(id),
+            )
+          ) {
+            continue;
+          }
 
-      if (links.length > 0) {
-        dispatch(addSelectedLinks(links));
-      }
+          selectedIds.add(link.id);
+          links.push(link);
+        }
+
+        if (links.length > 0) dispatch(addSelectedLinks(links));
+        if (cursor < payload.cells.length) scheduleDispatchChunk(processChunk);
+      };
+
+      processChunk();
     },
     [
-      compoundId,
+      createSelectedLink,
       dispatch,
-      labelIndexById,
       labelNames,
-      networkLabel,
-      selectedLinks,
+      scheduleDispatchChunk,
+      selectedLinksById,
       symmetric,
     ],
   );
 
   const handleBrushDeselectLinks = useCallback(
     (payload: MatrixBrushPayload) => {
-      const ids = payload.cells.flatMap((cell) =>
-        getSelectedLinkRemovalIds(cell.rowLabel, cell.colLabel, symmetric),
-      );
+      let cursor = 0;
 
-      if (ids.length > 0) {
-        dispatch(removeSelectedLinks(ids));
-      }
+      const processChunk = () => {
+        const ids = new Set<string>();
+        const end = Math.min(
+          cursor + MATRIX_BRUSH_LINK_DISPATCH_CHUNK_SIZE,
+          payload.cells.length,
+        );
+
+        for (; cursor < end; cursor += 1) {
+          const cell = payload.cells[cursor];
+          if (!cell) continue;
+          getSelectedLinkRemovalIds(
+            cell.rowLabel,
+            cell.colLabel,
+            symmetric,
+          ).forEach((id) => ids.add(id));
+        }
+
+        if (ids.size > 0) dispatch(removeSelectedLinks([...ids]));
+        if (cursor < payload.cells.length) scheduleDispatchChunk(processChunk);
+      };
+
+      processChunk();
     },
-    [dispatch, symmetric],
+    [dispatch, scheduleDispatchChunk, symmetric],
   );
 
   return {

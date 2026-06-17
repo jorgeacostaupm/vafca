@@ -56,11 +56,20 @@ const networkLayoutSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(runRankingQuery.fulfilled, (state) => {
-      state.layout = state.layout.map((entry) => ({
-        ...entry,
-        y: entry.y + DEFAULT_RANKING_PANEL_LAYOUT.height,
-      }));
+    builder.addCase(runRankingQuery.fulfilled, (state, action) => {
+      state.layout = [
+        {
+          i: action.payload.id,
+          x: DEFAULT_RANKING_PANEL_LAYOUT.initialX,
+          y: DEFAULT_RANKING_PANEL_LAYOUT.initialY,
+          w: DEFAULT_RANKING_PANEL_LAYOUT.width,
+          h: DEFAULT_RANKING_PANEL_LAYOUT.height,
+        },
+        ...state.layout.map((entry) => ({
+          ...entry,
+          y: entry.y + DEFAULT_RANKING_PANEL_LAYOUT.height,
+        })),
+      ];
     });
   },
 });

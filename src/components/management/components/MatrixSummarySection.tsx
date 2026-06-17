@@ -1,4 +1,4 @@
-import { Space, Typography } from "antd";
+import { Typography } from "antd";
 
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
@@ -17,9 +17,9 @@ function MatrixSummarySection() {
   if (!catalogs) return null;
 
   return (
-    <div>
+    <div className="data-management-matrix-summary">
       <Typography.Text strong>Matrix summary</Typography.Text>
-      <Space direction="vertical" size={4} style={{ width: "100%" }}>
+      <div className="data-management-matrix-summary__list">
         {Object.entries(networkStats.byMeasureStatPopulationSet).map(([measureId, statMap]) => (
           <Typography.Text key={measureId} type="secondary">
             {(catalogs.measures[measureId]?.label ?? measureId) + ": "}
@@ -43,7 +43,7 @@ function MatrixSummarySection() {
               .join(" · ")}
           </Typography.Text>
         ))}
-      </Space>
+      </div>
     </div>
   );
 }

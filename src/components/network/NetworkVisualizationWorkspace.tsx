@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import NetworkLayout from "@/components/layout/NetworkLayout";
-import { useNetworkWorkspaceModel } from "@/components/network/useNetworkWorkspaceModel";
+import { useNetworkWorkspaceLayout } from "@/components/network/useNetworkWorkspaceLayout";
 import { NetworkViewComputationProvider } from "@/components/network/views/NetworkViewComputationProvider";
 import NetworkViewContainer from "@/components/network/views/NetworkViewContainer";
 import RankingResultPanelContainer from "@/components/rankings/RankingResultPanelContainer";
@@ -13,7 +13,7 @@ export default function NetworkVisualizationWorkspace() {
     removePanel,
     updateLayout,
     isNetworkView,
-  } = useNetworkWorkspaceModel();
+  } = useNetworkWorkspaceLayout();
   const renderWorkspaceView = useCallback(
     (id: string) =>
       isNetworkView(id) ? (

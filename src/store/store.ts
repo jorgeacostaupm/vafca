@@ -7,8 +7,6 @@ import datasetReducer from '@/store/slices/dataset'
 import datasetOperationsReducer from '@/store/slices/dataset/datasetOperationsSlice'
 import networkFiltersReducer from '@/store/slices/networkFilters'
 import networkLayoutReducer from '@/store/slices/networkLayout'
-import networkMeasuresReducer from '@/store/slices/networkMeasures'
-import networkSummariesReducer from '@/store/slices/networkSummaries'
 import networkVisualizationReducer from '@/store/slices/networkVisualization'
 import notificationsReducer from '@/store/slices/notifications'
 import rankingsReducer from '@/store/slices/rankings'
@@ -24,9 +22,7 @@ export const store = configureStore({
     atlasDefinition: atlasDefinitionReducer,
     networkVisualization: networkVisualizationReducer,
     networkFilters: networkFiltersReducer,
-    networkMeasures: networkMeasuresReducer,
     networkLayout: networkLayoutReducer,
-    networkSummaries: networkSummariesReducer,
     notifications: notificationsReducer,
     rankings: rankingsReducer,
   },

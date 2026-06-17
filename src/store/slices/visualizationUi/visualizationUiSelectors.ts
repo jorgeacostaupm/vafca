@@ -6,6 +6,10 @@ export const selectHoveredNodeId = (state: RootState) =>
   state.visualizationUi.hoveredNodeId
 export const selectSelectedLinks = (state: RootState) =>
   state.visualizationUi.selectedLinks
+export const selectSelectedLinksById = (state: RootState) =>
+  state.visualizationUi.selectedLinksById
+export const selectSelectedLinkIdsByRowId = (state: RootState) =>
+  state.visualizationUi.selectedLinkIdsByRowId
 export const selectAtlasLinkIds = (state: RootState) => state.visualizationUi.atlasLinkIds
 export const selectSelectedLinksDownloadStatus = (state: RootState) =>
   state.visualizationUi.selectedLinksDownloadStatus

@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { type MutableRefObject } from "react";
 
-import type { HeatmapProps } from "@/types/matrixHeatmap";
+import type { HeatmapProps, MatrixBrushCell } from "@/types/matrixHeatmap";
 
 export const renderHeatmapBrush = (args: {
   root: d3.Selection<SVGGElement, unknown, null, undefined>;
@@ -83,23 +83,27 @@ export const renderHeatmapBrush = (args: {
           ? selectedCols.map((col) => resolvedColLabels[col] ?? String(col))
           : selectedCols.map((col) => String(col));
 
-      const cells = selectedRows.flatMap((row, rowIndex) => {
+      const cells: MatrixBrushCell[] = [];
+      for (let rowIndex = 0; rowIndex < selectedRows.length; rowIndex += 1) {
+        const row = selectedRows[rowIndex];
+        if (row === undefined) continue;
         const rowLabel = rowLabels[rowIndex] ?? String(row);
-        return selectedCols.flatMap((col, colIndex) => {
+
+        for (let colIndex = 0; colIndex < selectedCols.length; colIndex += 1) {
+          const col = selectedCols[colIndex];
+          if (col === undefined) continue;
           const value = data[row]?.[col];
-          if (!Number.isFinite(value)) return [];
-          const finiteValue = value as number;
-          return [
-            {
-              row,
-              col,
-              rowLabel,
-              colLabel: colLabels[colIndex] ?? String(col),
-              value: finiteValue,
-            },
-          ];
-        });
-      });
+          if (!Number.isFinite(value)) continue;
+
+          cells.push({
+            row,
+            col,
+            rowLabel,
+            colLabel: colLabels[colIndex] ?? String(col),
+            value: value as number,
+          });
+        }
+      }
 
       const payload = {
         rows: selectedRows,

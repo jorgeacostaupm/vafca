@@ -1,14 +1,23 @@
+import {
+  ArrowLeftOutlined,
+  ArrowRightOutlined,
+  ArrowUpOutlined,
+  VerticalAlignMiddleOutlined,
+} from "@ant-design/icons";
 import { Button, Space, Typography } from "antd";
-import { useEffect, useMemo, useRef } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ConvexGeometry } from "three/examples/jsm/geometries/ConvexGeometry.js";
 
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { useAppSelector } from "@/store/hooks";
+import { selectAtlasDisplayLabelsById, selectAtlasOrder } from "@/store/slices/atlasUi";
 import { selectDatasetData } from "@/store/slices/dataset";
 import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
 import { getDatasetAtlasId } from "@/utils/datasetAccessors";
+
+import SelectedLinksFallbackView from "./SelectedLinksFallbackView";
 
 const buildNodeColor = (index: number) => {
   const hue = (index * 0.61803398875) % 1;
@@ -22,7 +31,13 @@ export default function SelectedLinksAtlas() {
   const dataset = useAppSelector((state) => selectDatasetData(state));
   const selectedLinks = useAppSelector((state) => state.visualizationUi.selectedLinks);
   const atlasLinkIds = useAppSelector((state) => state.visualizationUi.atlasLinkIds);
+  const atlas3dAvailable = useAppSelector(
+    (state) => state.visualizationUi.atlasPanel.is3dAvailable,
+  );
+  const atlasOrder = useAppSelector(selectAtlasOrder);
+  const atlasLabelsById = useAppSelector(selectAtlasDisplayLabelsById);
   const atlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
+  const deferredAtlasLinkIds = useDeferredValue(atlasLinkIds);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -34,11 +49,19 @@ export default function SelectedLinksAtlas() {
   const linkMaterialRef = useRef<THREE.LineBasicMaterial | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const selectedLinkById = useMemo(
+    () => new Map(selectedLinks.map((link) => [link.id, link] as const)),
+    [selectedLinks],
+  );
+
   const activeLinks = useMemo(() => {
-    if (atlasLinkIds.length === 0) return [];
-    const activeSet = new Set(atlasLinkIds);
-    return selectedLinks.filter((link) => activeSet.has(link.id));
-  }, [atlasLinkIds, selectedLinks]);
+    if (deferredAtlasLinkIds.length === 0) return [];
+    return deferredAtlasLinkIds.flatMap((id) => {
+      const link = selectedLinkById.get(id);
+      return link ? [link] : [];
+    });
+  }, [deferredAtlasLinkIds, selectedLinkById]);
+  const fallbackLinks = deferredAtlasLinkIds.length > 0 ? activeLinks : selectedLinks;
 
   const highlightedNodeIds = useMemo(() => {
     const set = new Set<string>();
@@ -50,7 +73,7 @@ export default function SelectedLinksAtlas() {
   }, [activeLinks]);
 
   const hasLinkFocus = highlightedNodeIds.size > 0;
-  const has3d = atlasSupports3d(atlasDefinition);
+  const has3d = atlas3dAvailable && atlasSupports3d(atlasDefinition);
   const statusLabel = hasLinkFocus
     ? `Showing ${activeLinks.length} link${activeLinks.length === 1 ? "" : "s"} · ${highlightedNodeIds.size} Node${highlightedNodeIds.size === 1 ? "" : "s"}`
     : "Select links to highlight them in the atlas";
@@ -282,23 +305,23 @@ export default function SelectedLinksAtlas() {
     });
   }, [activeLinks, hasLinkFocus]);
 
-  if (!atlasDefinition?.nodes?.length) {
+  if (!has3d) {
     return (
-      <div className="links-atlas links-atlas--empty">
-        <Typography.Text type="secondary">
-          Atlas not available for this dataset.
-        </Typography.Text>
-      </div>
+      <SelectedLinksFallbackView
+        links={fallbackLinks}
+        atlasOrder={atlasOrder}
+        labelById={atlasLabelsById}
+      />
     );
   }
 
-  if (!has3d) {
+  if (!atlasDefinition?.nodes?.length) {
     return (
-      <div className="links-atlas links-atlas--empty">
-        <Typography.Text type="secondary">
-          This atlas does not include mesh points. 3D view is disabled.
-        </Typography.Text>
-      </div>
+      <SelectedLinksFallbackView
+        links={fallbackLinks}
+        atlasOrder={atlasOrder}
+        labelById={atlasLabelsById}
+      />
     );
   }
 
@@ -306,16 +329,32 @@ export default function SelectedLinksAtlas() {
     <div className="links-atlas">
       <div className="links-atlas__header">
         <Space size={8}>
-          <Button size="small" onClick={() => applyCameraPose(0, 1, 0)}>
+          <Button
+            size="small"
+            icon={<VerticalAlignMiddleOutlined />}
+            onClick={() => applyCameraPose(0, 1, 0)}
+          >
             Front
           </Button>
-          <Button size="small" onClick={() => applyCameraPose(1, 0, 0)}>
+          <Button
+            size="small"
+            icon={<ArrowRightOutlined />}
+            onClick={() => applyCameraPose(1, 0, 0)}
+          >
             Right
           </Button>
-          <Button size="small" onClick={() => applyCameraPose(0, 0, 1)}>
+          <Button
+            size="small"
+            icon={<ArrowUpOutlined />}
+            onClick={() => applyCameraPose(0, 0, 1)}
+          >
             Top
           </Button>
-          <Button size="small" onClick={() => applyCameraPose(-1, 0, 0)}>
+          <Button
+            size="small"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => applyCameraPose(-1, 0, 0)}
+          >
             Left
           </Button>
         </Space>

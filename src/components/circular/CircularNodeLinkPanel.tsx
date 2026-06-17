@@ -18,7 +18,7 @@ import { selectDatasetData } from "@/store/slices/dataset";
 import type { CircularNode as Node } from "@/types/nodelink";
 import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
-export default function Circulas({
+export default function CircularNodeLinkPanel({
   atlasDefinition,
   circularHierarchyFields,
   circularHierarchyCategoryOrder,

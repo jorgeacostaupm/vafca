@@ -1,28 +1,30 @@
-import { Form, Space, Switch } from "antd";
+import { Form, Space, Switch } from 'antd'
 
-import NetworkRangeControls from "@/components/network/NetworkRangeControls";
-import NetworkSelectorModeSetting from "@/components/network/settings/NetworkSelectorModeSetting";
-import NetworkViewTypeSetting from "@/components/network/settings/NetworkViewTypeSetting";
-import SettingsSection from "@/components/network/settings/SettingsSection";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import NetworkRangeControls from '@/components/network/NetworkRangeControls'
+import NetworkSelectorModeSetting from '@/components/network/settings/NetworkSelectorModeSetting'
+import NetworkViewTypeSetting from '@/components/network/settings/NetworkViewTypeSetting'
+import SettingsSection from '@/components/network/settings/SettingsSection'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   patchNetworkControls,
   selectNetworkControls,
   setNetworkHideIsolatedNodes,
-} from "@/store/slices/networkVisualization";
+} from '@/store/slices/networkVisualization'
 
 export default function NetworkViewsSettingsTab() {
-  const dispatch = useAppDispatch();
-  const networkControls = useAppSelector(selectNetworkControls);
+  const dispatch = useAppDispatch()
+  const networkControls = useAppSelector(selectNetworkControls)
 
   return (
-    <Space direction="vertical" size={20} style={{ width: "100%" }}>
-      <SettingsSection title="Views">
+    <Space direction="vertical" size={20} style={{ width: '100%' }}>
+      <SettingsSection
+        description="Use this menu to configure how networks are displayed, filtered, and synchronized."
+      >
         <NetworkViewTypeSetting />
         <NetworkSelectorModeSetting />
         <NetworkRangeControls />
 
-        <Form layout="vertical" style={{ marginBottom: 0 }}>
+        <Form layout="vertical" className="network-settings-views__switches">
           <Form.Item label="Coordinated zoom">
             <Switch
               checked={networkControls.syncZoom}
@@ -62,5 +64,5 @@ export default function NetworkViewsSettingsTab() {
         </Form>
       </SettingsSection>
     </Space>
-  );
+  )
 }

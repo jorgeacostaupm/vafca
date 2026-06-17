@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { renderCircularScene } from "@/components/circular/circularSceneRenderer";
 import { applyCircularHoverSelectionStyles } from "@/components/circular/circularVisualEffects";
 import {
+  getSharedHoverState,
   type SharedHoverState,
   subscribeSharedHover,
 } from "@/components/hover/sharedHover";
@@ -109,6 +110,20 @@ export const useCircularScene = ({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const zoomTransformRef = useRef<d3.ZoomTransform>(d3.zoomIdentity);
   const [localHoverActive, setLocalHoverActive] = useState(false);
+  const linkSelectionRef = useRef<
+    d3.Selection<SVGPathElement, CircularLink, SVGGElement, unknown> | null
+  >(null);
+  const nodeSelectionRef = useRef<
+    d3.Selection<SVGCircleElement, CircularNode, SVGGElement, unknown> | null
+  >(null);
+  const labelSelectionRef = useRef<
+    d3.Selection<SVGTextElement, CircularNode, SVGGElement, unknown> | null
+  >(null);
+  const widthScaleRef = useRef<d3.ScaleLinear<number, number> | null>(null);
+  const zoomLabelSetRef = useRef<Set<string> | null>(null);
+  const nodeRadiusRef = useRef(CIRCULAR_NODE_RADIUS);
+  const selectedLinkIdsRef = useRef(selectedLinkIds);
+  selectedLinkIdsRef.current = selectedLinkIds;
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -133,7 +148,7 @@ export const useCircularScene = ({
       brushEnabled,
       brushMode,
       geometricZoomEnabled,
-      selectedLinkIds,
+      selectedLinkIds: selectedLinkIdsRef.current,
       visualStyle,
       linkColorResolver,
       onLabelToggle,
@@ -151,27 +166,21 @@ export const useCircularScene = ({
       zoomTransformRef,
     });
 
-    if (!scene) return;
+    if (!scene) {
+      linkSelectionRef.current = null;
+      nodeSelectionRef.current = null;
+      labelSelectionRef.current = null;
+      widthScaleRef.current = null;
+      zoomLabelSetRef.current = null;
+      return;
+    }
 
-    const applyHover = (hoverState: SharedHoverState) =>
-      applyCircularHoverSelectionStyles({
-        linkSelection: scene.linkSelection,
-        nodeSelection: scene.nodeSelection,
-        labelSelection: scene.labelSelection,
-        widthScale: scene.widthScale,
-        zoomLabelSet: scene.zoomLabelSet,
-        nodeRadius: scene.nodeRadius ?? CIRCULAR_NODE_RADIUS,
-        hoveredCell: getHoverCell(hoverState),
-        hoveredNodeId: getHoverNodeId(hoverState),
-        selectedLinkIds,
-        visualStyle,
-        linkColorResolver,
-        getNodeColor,
-      });
-
-    return subscribeSharedHover(applyHover, {
-      throttleMs: SHARED_HOVER_GRAPH_SYNC_THROTTLE_MS,
-    });
+    linkSelectionRef.current = scene.linkSelection;
+    nodeSelectionRef.current = scene.nodeSelection;
+    labelSelectionRef.current = scene.labelSelection;
+    widthScaleRef.current = scene.widthScale;
+    zoomLabelSetRef.current = scene.zoomLabelSet;
+    nodeRadiusRef.current = scene.nodeRadius ?? CIRCULAR_NODE_RADIUS;
   }, [
     svgRef,
     width,
@@ -190,7 +199,6 @@ export const useCircularScene = ({
     brushEnabled,
     brushMode,
     geometricZoomEnabled,
-    selectedLinkIds,
     visualStyle,
     linkColorResolver,
     onLabelToggle,
@@ -205,6 +213,38 @@ export const useCircularScene = ({
     getNodeColor,
     valueLabel,
   ]);
+
+  useEffect(() => {
+    const applyHover = (hoverState: SharedHoverState) => {
+      const linkSelection = linkSelectionRef.current;
+      const nodeSelection = nodeSelectionRef.current;
+      const labelSelection = labelSelectionRef.current;
+      const widthScale = widthScaleRef.current;
+      if (!linkSelection || !nodeSelection || !labelSelection || !widthScale) {
+        return;
+      }
+
+      applyCircularHoverSelectionStyles({
+        linkSelection,
+        nodeSelection,
+        labelSelection,
+        widthScale,
+        zoomLabelSet: zoomLabelSetRef.current,
+        nodeRadius: nodeRadiusRef.current,
+        hoveredCell: getHoverCell(hoverState),
+        hoveredNodeId: getHoverNodeId(hoverState),
+        selectedLinkIds,
+        visualStyle,
+        linkColorResolver,
+        getNodeColor,
+      });
+    };
+
+    applyHover(getSharedHoverState());
+    return subscribeSharedHover(applyHover, {
+      throttleMs: SHARED_HOVER_GRAPH_SYNC_THROTTLE_MS,
+    });
+  }, [getNodeColor, linkColorResolver, selectedLinkIds, visualStyle]);
 
   return {
     wrapperRef,

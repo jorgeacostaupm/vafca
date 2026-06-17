@@ -7,10 +7,7 @@ import {
   setNetworkLayout,
 } from "@/store/slices/networkLayout";
 import { removeNetworkView } from "@/store/slices/networkVisualization";
-import {
-  removeRankingResult,
-  setRankingLayout,
-} from "@/store/slices/rankings";
+import { removeRankingResult } from "@/store/slices/rankings";
 
 const toStoredLayoutItem = ({ i, x, y, w, h }: LayoutItem) => ({
   i,
@@ -41,8 +38,7 @@ const areLayoutItemsEqual = (
 
 export const useNetworkWorkspaceLayout = () => {
   const dispatch = useAppDispatch();
-  const networkLayout = useAppSelector((state) => state.networkLayout.layout);
-  const rankingLayout = useAppSelector((state) => state.rankings.layout);
+  const layout = useAppSelector((state) => state.networkLayout.layout);
   const networkViewsOrder = useAppSelector(
     (state) => state.networkVisualization.viewsOrder,
   );
@@ -50,55 +46,42 @@ export const useNetworkWorkspaceLayout = () => {
     (state) => state.rankings.resultsOrder,
   );
 
-  const combinedLayout = useMemo(
-    () => [...networkLayout, ...rankingLayout],
-    [networkLayout, rankingLayout],
-  );
   const panelIds = useMemo(
     () => [...networkViewsOrder, ...rankingResultsOrder],
     [networkViewsOrder, rankingResultsOrder],
   );
   const networkIds = useMemo(() => new Set(networkViewsOrder), [networkViewsOrder]);
-  const rankingIds = useMemo(
-    () => new Set(rankingResultsOrder),
-    [rankingResultsOrder],
-  );
 
   const removePanel = useCallback(
     (id: string) => {
       if (networkIds.has(id)) {
         dispatch(removeNetworkView({ viewId: id }));
-        dispatch(removeNetworkLayoutItem({ viewId: id }));
-        return;
+      } else {
+        dispatch(removeRankingResult({ resultId: id }));
       }
-      dispatch(removeRankingResult({ resultId: id }));
+      dispatch(removeNetworkLayoutItem({ viewId: id }));
     },
     [dispatch, networkIds],
   );
 
   const updateLayout = useCallback(
     (nextLayout: LayoutItem[]) => {
-      const nextNetworkLayout = nextLayout
-        .filter((entry) => networkIds.has(entry.i))
-        .map(toStoredLayoutItem);
-      const nextRankingLayout = nextLayout
-        .filter((entry) => rankingIds.has(entry.i))
+      const visibleIds = new Set(panelIds);
+      const nextStoredLayout = nextLayout
+        .filter((entry) => visibleIds.has(entry.i))
         .map(toStoredLayoutItem);
 
-      if (!areLayoutItemsEqual(networkLayout, nextNetworkLayout)) {
-        dispatch(setNetworkLayout(nextNetworkLayout));
-      }
-      if (!areLayoutItemsEqual(rankingLayout, nextRankingLayout)) {
-        dispatch(setRankingLayout(nextRankingLayout));
+      if (!areLayoutItemsEqual(layout, nextStoredLayout)) {
+        dispatch(setNetworkLayout(nextStoredLayout));
       }
     },
-    [dispatch, networkIds, networkLayout, rankingIds, rankingLayout],
+    [dispatch, layout, panelIds],
   );
   const isNetworkView = useCallback((id: string) => networkIds.has(id), [networkIds]);
 
   return {
     panelIds,
-    combinedLayout,
+    combinedLayout: layout,
     removePanel,
     updateLayout,
     isNetworkView,

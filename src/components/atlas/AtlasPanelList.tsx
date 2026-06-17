@@ -1,4 +1,4 @@
-import { type CSSProperties,memo } from "react";
+import { type CSSProperties, memo } from "react";
 
 import { AtlasGroupedList } from "./AtlasGroupedList";
 import type { GroupTreeEntry } from "./panelTypes";
@@ -24,7 +24,11 @@ export const AtlasPanelList = memo(function AtlasPanelList({
       <div className="atlas-panel__columns-wrap">
         <div
           className="atlas-panel__columns"
-          style={{ "--atlas-column-count": String(columnSections.length) } as CSSProperties}
+          style={
+            {
+              "--atlas-column-count": String(columnSections.length),
+            } as CSSProperties
+          }
         >
           {columnSections.map((section) => (
             <AtlasGroupedList

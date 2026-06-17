@@ -1,8 +1,8 @@
-import { InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
+import { CloseCircleOutlined, InfoCircleOutlined, WarningOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import type { ReactNode } from "react";
 
-type InlineNoticeTone = "info" | "warning";
+type InlineNoticeTone = "error" | "info" | "warning";
 
 type InlineNoticeProps = {
   label?: string;
@@ -15,7 +15,12 @@ export default function InlineNotice({
   tone = "warning",
   tooltip,
 }: InlineNoticeProps) {
-  const Icon = tone === "warning" ? WarningOutlined : InfoCircleOutlined;
+  const Icon =
+    tone === "error"
+      ? CloseCircleOutlined
+      : tone === "warning"
+        ? WarningOutlined
+        : InfoCircleOutlined;
   const ariaLabel = label ?? (typeof tooltip === "string" ? tooltip : "Notice");
 
   return (

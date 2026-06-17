@@ -1,7 +1,8 @@
-import { Button, Modal, Space, Tabs, Typography } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
+import { Button, Modal, Tabs, Typography } from "antd";
+import type { ReactNode } from "react";
 
 import CatalogManagementSections from "@/components/management/components/catalogs/CatalogManagementSections";
-import DatasetSummaryHeader from "@/components/management/components/DatasetSummaryHeader";
 import MatrixSummarySection from "@/components/management/components/MatrixSummarySection";
 import NetworkUploader from "@/components/management/components/NetworkUploader";
 import { DEFAULT_DATA_MANAGEMENT_TAB } from "@/config/ui";
@@ -13,20 +14,47 @@ import {
   selectDatasetError,
   selectDatasetStatus,
 } from "@/store/slices/dataset";
-import { getDatasetCatalogs } from "@/utils/datasetAccessors";
+import {
+  getDatasetCatalogs,
+  getDatasetNetworkStats,
+} from "@/utils/datasetAccessors";
 
 interface DataManagementModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-function DataLoadingTab() {
+type DataManagementSectionProps = {
+  description: string;
+  actions?: ReactNode;
+  children: ReactNode;
+};
+
+function DataManagementSection({
+  description,
+  actions,
+  children,
+}: DataManagementSectionProps) {
+  return (
+    <section className="data-management-section">
+      <div className="data-management-section__header data-management-section__header--split">
+        <Typography.Text type="secondary">{description}</Typography.Text>
+        {actions}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function CurrentDatasetTab() {
   const dispatch = useAppDispatch();
   const data = useAppSelector(selectDatasetData);
   const downloadStatus = useAppSelector(selectDatasetDownloadStatus);
   const catalogs = getDatasetCatalogs(data);
-  const metadata = catalogs
+  const networkStats = getDatasetNetworkStats(data);
+  const metadata = data && catalogs
     ? [
+        { label: "Networks", value: networkStats.total },
         { label: "Populations", value: Object.keys(catalogs.populations).length },
         { label: "Measures", value: Object.keys(catalogs.measures).length },
         { label: "Statistics", value: Object.keys(catalogs.statistics).length },
@@ -39,33 +67,48 @@ function DataLoadingTab() {
   };
 
   return (
-    <Space direction="vertical" size={16} style={{ width: "100%" }}>
-      <NetworkUploader />
-
+    <div className="data-management-load">
       {data ? (
-        <>
-          <DatasetSummaryHeader />
-          <Space wrap size={16}>
+        <DataManagementSection
+          description="Overview of the loaded network package."
+          actions={
+            <Button
+              size="small"
+              icon={<DownloadOutlined />}
+              onClick={handleDownload}
+              loading={downloadStatus === "loading"}
+            >
+              Download JSON
+            </Button>
+          }
+        >
+          <div className="data-management-metrics">
             {metadata.map((item) => (
-              <Space key={item.label} size={6}>
-                <Typography.Text strong>{item.label}:</Typography.Text>
-                <Typography.Text type="secondary">{item.value}</Typography.Text>
-              </Space>
+              <div key={item.label} className="data-management-metric">
+                <span className="data-management-metric__value">{item.value}</span>
+                <span className="data-management-metric__label">{item.label}</span>
+              </div>
             ))}
-          </Space>
+          </div>
+
           <MatrixSummarySection />
-          <Button
-            size="small"
-            onClick={handleDownload}
-            loading={downloadStatus === "loading"}
-          >
-            Download dataset as JSON
-          </Button>
-        </>
+        </DataManagementSection>
       ) : (
-        <Typography.Text type="secondary">No dataset loaded yet.</Typography.Text>
+        <div className="data-management-empty">
+          <Typography.Text type="secondary">No dataset loaded yet.</Typography.Text>
+        </div>
       )}
-    </Space>
+    </div>
+  );
+}
+
+function ImportDatasetTab() {
+  return (
+    <div className="data-management-load">
+      <DataManagementSection description="Load one VAFCA ZIP dataset. Recoverable issues are reported after import.">
+        <NetworkUploader />
+      </DataManagementSection>
+    </div>
   );
 }
 
@@ -85,16 +128,21 @@ function DataManagementModal({ open, onClose }: DataManagementModalProps) {
 
   const items = [
     {
-      key: "load",
-      label: "Load data",
+      key: "current",
+      label: "Current",
       children:
         status === "loading" ? (
           <Typography.Text>Loading dataset...</Typography.Text>
         ) : status === "error" ? (
           <Typography.Text type="danger">Error: {error}</Typography.Text>
         ) : (
-          <DataLoadingTab />
+          <CurrentDatasetTab />
         ),
+    },
+    {
+      key: "import",
+      label: "Import",
+      children: <ImportDatasetTab />,
     },
     {
       key: "catalogs",
@@ -112,7 +160,7 @@ function DataManagementModal({ open, onClose }: DataManagementModalProps) {
       width={980}
       destroyOnHidden
     >
-      <Tabs defaultActiveKey={DEFAULT_DATA_MANAGEMENT_TAB} items={items} />
+      <Tabs defaultActiveKey={DEFAULT_DATA_MANAGEMENT_TAB} destroyOnHidden items={items} />
     </Modal>
   );
 }

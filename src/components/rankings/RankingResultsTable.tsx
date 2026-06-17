@@ -11,6 +11,8 @@ import { selectDatasetContent } from '@/store/slices/dataset'
 import { addNetworkViewAndFormat } from '@/store/slices/networkVisualization'
 import { addSelectedLink, removeSelectedLink } from '@/store/slices/visualizationUi'
 import type { LinkRankingRow, NetworkRankingRow, RankingResult, RankingRow } from '@/types/rankings'
+import { toDatasetNetworkSummary } from '@/utils/datasetAccessors'
+import { buildNetworkSummaryLabel } from '@/utils/matrixViewUtils'
 import { getNetworkCompoundId } from '@/utils/rankings/rankingNetworkMetadata'
 
 type Props = {
@@ -171,13 +173,14 @@ export default function RankingResultsTable({ result }: Props) {
   const openNetworkView = useCallback((row: NetworkRankingRow) => {
     const network = datasetContent?.networkIndex[row.networkId]
     if (!network) return
+    const summary = toDatasetNetworkSummary(network)
     void dispatch(
       addNetworkViewAndFormat({
         type: 'matrix',
-        compoundId: getNetworkCompoundId(network),
-        label: row.label,
-        measureId: row.measureId ?? network.measureId,
-        statId: row.statisticId ?? network.statisticId,
+        compoundId: summary.compoundId,
+        label: buildNetworkSummaryLabel(summary, datasetContent.catalogs),
+        measureId: summary.measureId,
+        statId: summary.statId,
       }),
     )
   }, [datasetContent, dispatch])

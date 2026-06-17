@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import { useNetworkViewLifecycle } from "@/components/network/useNetworkViewLifecycle";
 import { useNetworkFilterOptions } from "@/components/selectors/useNetworkFilterOptions";
-import { useNetworkSummaries } from "@/hooks/useNetworkSummaries";
+import { useDatasetNetworkSummaries } from "@/hooks/useDatasetNetworkSummaries";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
 import {
@@ -11,7 +11,6 @@ import {
 } from "@/store/slices/networkVisualization";
 import {
   getDatasetCatalogs,
-  getDatasetNetworkStats,
 } from "@/utils/datasetAccessors";
 import { buildNetworkSummaryLabel, normalizePopulationKey } from "@/utils/matrixViewUtils";
 
@@ -21,8 +20,7 @@ export const useNetworkSelectorModel = () => {
   const catalogs = getDatasetCatalogs(dataset);
   const atlas = useAppSelector((state) => state.atlasUi);
   const controls = useAppSelector((state) => state.networkVisualization.controls);
-  const networkStats = getDatasetNetworkStats(dataset);
-  const { summaries, status, error } = useNetworkSummaries(networkStats.total);
+  const { summaries, status, error } = useDatasetNetworkSummaries();
 
   const {
     populationOptions,
@@ -122,49 +120,11 @@ export const useNetworkSelectorModel = () => {
         (item) => item.compoundId === value,
       );
       if (!summary) {
-        console.info("[network-selector] selected network was not found", {
-          selectedValue: value,
-          availableCompoundIds: selectableNetworkSummaries.map(
-            (item) => item.compoundId,
-          ),
-        });
         dispatch(patchNetworkControls({ selectedCompoundId: "" }));
         return;
       }
 
-      const matchingSummaries = selectableNetworkSummaries.filter(
-        (item) => item.compoundId === value,
-      );
-      const matchingOptions = allNetworkOptions.filter(
-        (option) => option.value === value,
-      );
       const derivedPopulationKey = normalizePopulationKey(summary.populationIds);
-      console.info("[network-selector] selected network metadata", {
-        selectedValue: value,
-        selectorValueFields: {
-          compoundId: summary.compoundId,
-          layerId: summary.layerId,
-          measureId: summary.measureId,
-          statId: summary.statId,
-          populationIds: summary.populationIds,
-          normalizedPopulationKey: derivedPopulationKey,
-        },
-        selectorDisplayFields: {
-          label: buildNetworkSummaryLabel(summary, catalogs),
-          populationLabel: summary.populationIds
-            .map((id) => catalogs?.populations[id]?.label ?? id)
-            .join(" vs "),
-          measureLabel: catalogs?.measures[summary.measureId]?.label ?? summary.measureId,
-          statLabel: catalogs?.statistics[summary.statId]?.label ?? summary.statId,
-          layerLabel: catalogs?.layers[summary.layerId]?.label ?? summary.layerId,
-        },
-        summary,
-        derivedPopulationKey,
-        matchingSummariesCount: matchingSummaries.length,
-        matchingSummaries,
-        matchingOptions,
-        currentControls: controls,
-      });
 
       dispatch(
         patchNetworkControls({
@@ -178,9 +138,7 @@ export const useNetworkSelectorModel = () => {
     },
     [
       controls,
-      catalogs,
       dispatch,
-      allNetworkOptions,
       selectableNetworkSummaries,
     ],
   );

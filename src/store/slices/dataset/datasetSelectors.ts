@@ -1,10 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit'
 
+import type { DatasetNetworkSummary } from '@/types/datasetNetworkView'
 import type { DatasetContent, DatasetMeta } from '@/types/datasetState'
 import type { Network } from '@/types/network'
-import type { StoredNetworkView } from '@/types/networkViewStore'
 import type { RootState } from '@/types/store'
-import { toStoredNetworkView } from '@/utils/datasetAccessors'
+import { toDatasetNetworkSummary } from '@/utils/datasetAccessors'
 
 import { networksAdapter } from './utils/networksAdapter'
 
@@ -51,24 +51,11 @@ export const selectDatasetData = createSelector(
   (content): DatasetMeta | null => (content ? { content } : null),
 )
 
-const selectNetworkViewsByCompoundId = createSelector(
+export const selectDatasetNetworkSummaries = createSelector(
   [selectAllDatasetNetworks],
-  (networks) =>
-    Object.fromEntries(
-      networks.map((network) => {
-        const stored = toStoredNetworkView(network)
-        return [stored.compoundId, stored]
-      }),
-    ) as Record<string, StoredNetworkView>,
+  (networks): DatasetNetworkSummary[] => networks.map(toDatasetNetworkSummary),
 )
 
-export const selectDatasetViewData = createSelector(
-  [selectDatasetData, selectNetworkViewsByCompoundId],
-  (dataset, networkViewsByCompoundId) => ({
-    dataset,
-    networkViewsByCompoundId,
-  }),
-)
 export const selectDatasetOperationsState = (state: RootState) =>
   state.datasetOperations
 export const selectDatasetStatus = (state: RootState) =>

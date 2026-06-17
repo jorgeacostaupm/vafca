@@ -1,4 +1,4 @@
-import { CalculatorOutlined } from '@ant-design/icons'
+import { CheckOutlined, ExportOutlined, ReloadOutlined } from '@ant-design/icons'
 import { Button, Select, Space, Typography } from 'antd'
 import { useCallback, useState } from 'react'
 
@@ -17,6 +17,7 @@ import GroupingFieldList from './GroupingFieldList'
 import GroupingHierarchyPreviews from './GroupingHierarchyPreviews'
 import GroupingPaletteSelect from './GroupingPaletteSelect'
 import GroupingStatusNotice from './GroupingStatusNotice'
+import SettingsSection from './SettingsSection'
 import { useAtlasGroupingSettings } from './useAtlasGroupingSettings'
 
 const areFieldListsEqual = (first: string[], second: string[]) =>
@@ -120,87 +121,92 @@ export default function GroupingSettingsTab({ onOpenAggregationModal }: Grouping
   )
 
   return (
-    <div className="network-settings-grouping">
-      <Space direction="vertical" size={12} className="network-settings-grouping__controls">
-        <GroupingStatusNotice
-          appliedFields={colorFields}
-        />
+    <SettingsSection
+      description="Use this menu to configure how atlas fields group and color network nodes."
+    >
+      <div className="network-settings-grouping">
+        <Space direction="vertical" size={12} className="network-settings-grouping__controls">
+          <GroupingStatusNotice appliedFields={colorFields} />
 
-        {hasGroupingFields ? (
-          <GroupingFieldList
-            fields={effectiveColorFields}
-            onMoveField={handleMoveField}
-            onRemoveField={handleRemoveField}
+          {hasGroupingFields ? (
+            <GroupingFieldList
+              fields={effectiveColorFields}
+              onMoveField={handleMoveField}
+              onRemoveField={handleRemoveField}
+            />
+          ) : null}
+
+          {hasSelectableColorFields ? (
+            <Select
+              key={effectiveColorFields.join('|')}
+              placeholder="Select field"
+              className="network-settings-grouping__field-select"
+              options={selectableColorFields.map((field) => ({
+                value: field,
+                label: humanizeFieldName(field),
+              }))}
+              onChange={(value) => handleAddField(String(value))}
+              value={null}
+            />
+          ) : null}
+
+          <GroupingPaletteSelect value={effectiveColorPalette} onChange={handlePaletteChange} />
+
+          {hasGroupingFields ? (
+            <div className="atlas-panel__color-preview">
+              {colorCategories.length === 0 ? (
+                <Typography.Text type="secondary">No categories available.</Typography.Text>
+              ) : (
+                colorPreviewItems.map((category) => (
+                  <div
+                    key={category.key}
+                    className={`atlas-panel__color-category ${
+                      category.count === 0 ? 'atlas-panel__color-category--empty' : ''
+                    }`}
+                  >
+                    <span
+                      className="atlas-panel__color-swatch"
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <Typography.Text ellipsis={{ tooltip: category.label }}>
+                      {category.label}
+                    </Typography.Text>
+                    <Typography.Text type="secondary">
+                      {category.count > 0 ? `(${category.count})` : '(preview)'}
+                    </Typography.Text>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : null}
+        </Space>
+
+        <div className="network-settings-grouping__preview-column">
+          <GroupingHierarchyPreviews
+            previewColorFields={effectiveColorFields}
+            previewColorPalette={effectiveColorPalette}
           />
-        ) : null}
+        </div>
 
-        {hasSelectableColorFields ? (
-          <Select
-            key={effectiveColorFields.join('|')}
-            placeholder="Select field"
-            className="network-settings-grouping__field-select"
-            options={selectableColorFields.map((field) => ({
-              value: field,
-              label: humanizeFieldName(field),
-            }))}
-            onChange={(value) => handleAddField(String(value))}
-            value={null}
-          />
-        ) : null}
-
-        {onOpenAggregationModal ? (
-          <Space wrap>
-            <Button icon={<CalculatorOutlined />} onClick={onOpenAggregationModal}>
-              Go to Aggregate Networks
-            </Button>
-          </Space>
-        ) : null}
-
-        <GroupingPaletteSelect value={effectiveColorPalette} onChange={handlePaletteChange} />
-
-        {hasGroupingFields ? (
-          <div className="atlas-panel__color-preview">
-            {colorCategories.length === 0 ? (
-              <Typography.Text type="secondary">No categories available.</Typography.Text>
-            ) : (
-              colorPreviewItems.map((category) => (
-                <div
-                  key={category.key}
-                  className={`atlas-panel__color-category ${
-                    category.count === 0 ? 'atlas-panel__color-category--empty' : ''
-                  }`}
-                >
-                  <span
-                    className="atlas-panel__color-swatch"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <Typography.Text ellipsis={{ tooltip: category.label }}>
-                    {category.label}
-                  </Typography.Text>
-                  <Typography.Text type="secondary">
-                    {category.count > 0 ? `(${category.count})` : '(preview)'}
-                  </Typography.Text>
-                </div>
-              ))
-            )}
-          </div>
-        ) : null}
-      </Space>
-
-      <div className="network-settings-grouping__preview-column">
-        <GroupingHierarchyPreviews
-          previewColorFields={effectiveColorFields}
-          previewColorPalette={effectiveColorPalette}
-        />
         <Space wrap className="network-settings-grouping__actions">
-          <Button type="primary" onClick={handleApply} disabled={!hasPendingChanges}>
+          <Button
+            type="primary"
+            icon={<CheckOutlined />}
+            onClick={handleApply}
+            disabled={!hasPendingChanges}
+          >
             Apply
           </Button>
-          <Button onClick={handleDiscard} disabled={!hasPendingChanges}>
+          <Button icon={<ReloadOutlined />} onClick={handleDiscard} disabled={!hasPendingChanges}>
             Reset
           </Button>
+          {onOpenAggregationModal ? (
+            <Button icon={<ExportOutlined />} onClick={onOpenAggregationModal}>
+              Aggregate networks
+            </Button>
+          ) : null}
         </Space>
       </div>
-    </div>
+    </SettingsSection>
   )
 }

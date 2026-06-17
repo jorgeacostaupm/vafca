@@ -11,23 +11,23 @@ type NetworkBrushControlsProps = {
 };
 
 const BRUSH_LABEL_BY_MODE: Record<MatrixBrushMode, string> = {
-  zoom: "Brush zoom",
-  selectLinks: "Brush selects links",
-  deselectLinks: "Brush deselects links",
+  zoom: "Zoom",
+  selectLinks: "Select",
+  deselectLinks: "Remove",
 };
 
 const BRUSH_MENU_ITEMS: MenuProps["items"] = [
   {
     key: "zoom",
-    label: "Brush zoom",
+    label: "Zoom",
   },
   {
     key: "selectLinks",
-    label: "Select links with brush",
+    label: "Select",
   },
   {
     key: "deselectLinks",
-    label: "Deselect links with brush",
+    label: "Remove",
   },
 ];
 

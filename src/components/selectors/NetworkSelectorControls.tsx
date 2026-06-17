@@ -1,15 +1,9 @@
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Form, Select, Typography } from "antd";
+import { PlusOutlined } from '@ant-design/icons'
+import { Button, Form, Select, Typography } from 'antd'
 
-import { useNetworkSelectorModel } from "@/components/network/useNetworkSelectorModel";
+import { useNetworkSelectorModel } from '@/components/network/useNetworkSelectorModel'
 
-function AddViewButton({
-  disabled,
-  onClick,
-}: {
-  disabled: boolean;
-  onClick: () => void;
-}) {
+function AddViewButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   return (
     <Button
       type="primary"
@@ -18,12 +12,12 @@ function AddViewButton({
       disabled={disabled}
       className="network-selector-controls__add"
     >
-      Add view
+      Add network
     </Button>
-  );
+  )
 }
 
-export default function SelectorControls() {
+export default function NetworkSelectorControls() {
   const {
     controls,
     status,
@@ -40,45 +34,31 @@ export default function SelectorControls() {
     onLayerChange,
     onNetworkChange,
     onAddView,
-  } = useNetworkSelectorModel();
+  } = useNetworkSelectorModel()
 
-  if (status === "loading") {
+  if (status === 'loading') {
     return (
       <Typography.Text className="network-selector-controls__status">
         Loading network list…
       </Typography.Text>
-    );
+    )
   }
 
-  if (status === "error") {
+  if (status === 'error') {
     return (
-      <Typography.Text
-        className="network-selector-controls__status"
-        type="danger"
-      >
+      <Typography.Text className="network-selector-controls__status" type="danger">
         Error: {error}
       </Typography.Text>
-    );
+    )
   }
 
-  const addButton = (
-    <AddViewButton
-      onClick={onAddView}
-      disabled={!controls.selectedCompoundId}
-    />
-  );
+  const addButton = <AddViewButton onClick={onAddView} disabled={!controls.selectedCompoundId} />
 
   return (
-    <Form
-      className={`network-selector-controls network-selector-controls--${controls.matrixSelectorMode}`}
-      layout="vertical"
-    >
-      {controls.matrixSelectorMode === "combined" ? (
+    <Form className={`network-selector-controls`} layout="vertical">
+      {controls.matrixSelectorMode === 'combined' ? (
         <div className="network-selector-controls__network-row">
-          <Form.Item
-            label="Network"
-            className="network-selector-controls__network"
-          >
+          <Form.Item label="Network" className="network-selector-controls__network">
             <Select
               placeholder="Select network..."
               value={controls.selectedCompoundId || undefined}
@@ -141,5 +121,5 @@ export default function SelectorControls() {
         </div>
       )}
     </Form>
-  );
+  )
 }

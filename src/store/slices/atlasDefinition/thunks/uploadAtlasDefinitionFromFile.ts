@@ -1,16 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
 import type { AtlasDefinition } from '@/types/atlas'
-import {
-  getDefaultGroupByFields,
-  validateAtlasDefinition,
-} from '@/utils/atlas/atlasDefinition'
+import { validateAtlasDefinition } from '@/utils/atlas/atlasDefinition'
 
 export type UploadAtlasPayload = {
   atlas: AtlasDefinition
   fileName: string
   commonFields: string[]
-  defaultGroupFields: string[]
   compatibilityWarning?: string
 }
 
@@ -43,7 +39,6 @@ export const uploadAtlasDefinitionFromFile = createAsyncThunk<
         atlas: result.atlas,
         fileName: file.name,
         commonFields: result.commonFields,
-        defaultGroupFields: getDefaultGroupByFields(result.commonFields),
       }
     } catch (error) {
       return rejectWithValue({

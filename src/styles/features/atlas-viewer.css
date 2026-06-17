@@ -7,7 +7,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  min-height: 520px;
+  min-height: 0;
+  height: 100%;
   width: 100%;
   max-width: none;
   margin: 0 auto;
@@ -24,8 +25,8 @@
 }
 
 .atlas-panel__viewer-canvas {
-  flex: 0 0 auto;
-  min-height: 420px;
+  flex: 1 1 auto;
+  min-height: 0;
   position: relative;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -48,43 +49,10 @@
   white-space: nowrap;
 }
 
-.atlas-panel__viewer-resizer {
-  height: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: ns-resize;
-  border: none;
-  background: transparent;
-  padding: 0;
-  color: inherit;
-  user-select: none;
-  touch-action: none;
-}
-
-.atlas-panel__viewer-resizer::before {
-  content: "";
-  width: 60px;
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.28);
-  transition: background 0.2s ease;
-}
-
-.atlas-panel__viewer-resizer:hover::before,
-.atlas-panel__viewer-resizer:focus-visible::before {
-  background: rgba(255, 255, 255, 0.52);
-}
-
-.atlas-panel__viewer-resizer:focus-visible {
-  outline: 2px solid rgba(90, 141, 214, 0.65);
-  outline-offset: 4px;
-  border-radius: var(--radius-sm);
-}
-
 @media (max-width: 640px) {
   .atlas-panel__viewer {
     min-height: 420px;
+    height: auto;
     max-width: none;
     margin: 0;
   }

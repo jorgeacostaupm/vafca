@@ -29,6 +29,8 @@ export const initialVisualizationUiState: VisualizationUiSliceState = {
   hoveredCell: null,
   hoveredNodeId: null,
   selectedLinks: [],
+  selectedLinksById: {},
+  selectedLinkIdsByRowId: {},
   atlasLinkIds: [],
   selectedLinksDownloadStatus: 'idle',
   selectedLinksDownloadError: null,

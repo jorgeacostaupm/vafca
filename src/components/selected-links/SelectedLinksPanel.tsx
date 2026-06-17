@@ -1,4 +1,4 @@
-import { Space } from "antd";
+import { Card, Space } from "antd";
 import { useCallback, useMemo } from "react";
 
 import SelectedLinksAtlas from "@/components/selected-links/SelectedLinksAtlas";
@@ -16,7 +16,7 @@ import {
 import SelectedLinksTable from "@/components/selected-links/SelectedLinksTable";
 import { useSelectedLinkNetworkLookup } from "@/components/selected-links/useSelectedLinkNetworkLookup";
 import { useSelectedLinkNetworkSelection } from "@/components/selected-links/useSelectedLinkNetworkSelection";
-import { useNetworkSummaries } from "@/hooks/useNetworkSummaries";
+import { useDatasetNetworkSummaries } from "@/hooks/useDatasetNetworkSummaries";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
 import {
@@ -28,7 +28,6 @@ import {
 } from "@/store/slices/visualizationUi";
 import {
   getDatasetCatalogs,
-  getDatasetNetworkStats,
 } from "@/utils/datasetAccessors";
 import { buildNetworkSummaryLabel } from "@/utils/matrixViewUtils";
 
@@ -44,8 +43,7 @@ export default function SelectedLinksPanel() {
   const dataset = useAppSelector((state) => selectDatasetData(state));
   const catalogs = getDatasetCatalogs(dataset);
   const atlasOrder = useAppSelector((state) => state.atlasUi.order);
-  const networkStats = getDatasetNetworkStats(dataset);
-  const { summaries, status } = useNetworkSummaries(networkStats.total);
+  const { summaries, status } = useDatasetNetworkSummaries();
   const { selectedNetworkIds, setUserSelectedNetworkIds } =
     useSelectedLinkNetworkSelection(links);
   const { networkLookup, loadingNetworks } = useSelectedLinkNetworkLookup(selectedNetworkIds);
@@ -119,18 +117,20 @@ export default function SelectedLinksPanel() {
   return (
     <div className="links-panel">
       <div className="links-panel__table">
-        <Space direction="vertical" size={12} style={{ width: "100%" }}>
-          <SelectedLinksControls
-            linksCount={links.length}
-            downloading={downloadStatus === "loading"}
-            onDownload={handleDownloadLinks}
-            onClear={handleClearSelectedLinks}
-            networkOptions={networkOptions}
-            selectedNetworkIds={selectedNetworkIds}
-            networkOptionsLoading={status === "loading"}
-            loadingNetworks={loadingNetworks}
-            onSelectedNetworkIdsChange={setUserSelectedNetworkIds}
-          />
+        <Space direction="vertical" size={12} className="links-panel__stack">
+          <Card className="network-control-card links-panel__control-card" variant="outlined">
+            <SelectedLinksControls
+              linksCount={links.length}
+              downloading={downloadStatus === "loading"}
+              onDownload={handleDownloadLinks}
+              onClear={handleClearSelectedLinks}
+              networkOptions={networkOptions}
+              selectedNetworkIds={selectedNetworkIds}
+              networkOptionsLoading={status === "loading"}
+              loadingNetworks={loadingNetworks}
+              onSelectedNetworkIdsChange={setUserSelectedNetworkIds}
+            />
+          </Card>
           <SelectedLinksTable
             rows={rows}
             networkColumns={networkColumns}

@@ -42,6 +42,7 @@ export type HeatmapProps = {
   brushEnabled?: boolean;
   brushMode?: MatrixBrushMode;
   showAllLabels?: boolean;
+  selectionVisible?: boolean;
   selectedZoomLabels?: string[];
   legendMin?: number;
   legendMax?: number;

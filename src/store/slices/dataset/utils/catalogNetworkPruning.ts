@@ -1,6 +1,6 @@
+import type { DatasetNetworkSummary } from "@/types/datasetNetworkView";
 import type { UpdateCatalogPayload } from "@/types/datasetState";
 import type { Network } from "@/types/network";
-import type { NetworkSummaryItem } from "@/types/networkViewStore";
 import { getNetworkPopulationIds } from "@/utils/networkMetadata";
 
 export type CatalogNetworkPrunePayload = {
@@ -11,7 +11,7 @@ export type CatalogNetworkPrunePayload = {
 };
 
 export const summaryMatchesCatalogItem = (
-  summary: NetworkSummaryItem,
+  summary: DatasetNetworkSummary,
   catalog: UpdateCatalogPayload["catalog"],
   id: string,
 ) => {
@@ -23,7 +23,7 @@ export const summaryMatchesCatalogItem = (
 };
 
 export const getInvalidCompoundIdsForCatalogItem = (
-  summaries: NetworkSummaryItem[],
+  summaries: DatasetNetworkSummary[],
   catalog: UpdateCatalogPayload["catalog"],
   id: string,
 ) =>

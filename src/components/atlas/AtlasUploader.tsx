@@ -1,3 +1,4 @@
+import { ClearOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import { Alert, Button, Space, Typography, Upload } from "antd";
 import { useMemo } from "react";
@@ -12,13 +13,7 @@ import {
 
 const { Dragger } = Upload;
 
-type AtlasUploaderProps = {
-  onDefaultsDetected?: (fields: string[]) => void;
-};
-
-export default function AtlasUploader({
-  onDefaultsDetected,
-}: AtlasUploaderProps) {
+export default function AtlasUploader() {
   const dispatch = useAppDispatch();
   const uploaded = useAppSelector((state) => state.atlasDefinition.uploaded);
   const uploadStatus = useAppSelector(selectUploadedAtlasStatus);
@@ -31,10 +26,9 @@ export default function AtlasUploader({
 
   const beforeUpload: UploadProps["beforeUpload"] = async (file) => {
     try {
-      const result = await dispatch(
+      await dispatch(
         uploadAtlasDefinitionAndSync({ file }),
       ).unwrap();
-      onDefaultsDetected?.(result.defaultGroupFields);
     } catch {
       // The global notification listener reports upload errors.
     }
@@ -64,6 +58,7 @@ export default function AtlasUploader({
           <Typography.Text type="secondary">{uploadedSummary}</Typography.Text>
           <Button
             size="small"
+            icon={<ClearOutlined />}
             onClick={() => {
               void dispatch(clearUploadedAtlasAndSync());
             }}

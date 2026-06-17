@@ -1,4 +1,10 @@
-import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
+  DeleteOutlined,
+  FolderAddOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { Button, Card, Select, Space, Tooltip, Typography } from "antd";
 
 import type {
@@ -120,18 +126,20 @@ export default function NetworkFilterGroupEditor({
       <Space direction="vertical" size={12} style={{ width: "100%" }}>
         <Space wrap>
           <Button
+            icon={<PlusOutlined />}
             onClick={() =>
               addChild(createDraftNetworkFilterRule(networks[0]))
             }
           >
-            + Add rule
+            Add rule
           </Button>
           <Tooltip title={canAddGroup ? undefined : "Maximum group depth reached"}>
             <Button
+              icon={<FolderAddOutlined />}
               disabled={!canAddGroup}
               onClick={() => addChild(createEmptyNetworkFilterGroup("AND"))}
             >
-              + Add group
+              Add group
             </Button>
           </Tooltip>
         </Space>

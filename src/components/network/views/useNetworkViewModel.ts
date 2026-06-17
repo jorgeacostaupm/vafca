@@ -1,3 +1,4 @@
+import { createSelector } from "@reduxjs/toolkit";
 import { useMemo, useRef } from "react";
 
 import { resolveAllowedSet } from "@/components/network/networkFormatting";
@@ -16,7 +17,11 @@ import {
 } from "@/components/network/views/useNetworkViewResolver";
 import { useNetworkViewSourceFilters } from "@/components/network/views/useNetworkViewSourceFilters";
 import { useAppSelector } from "@/store/hooks";
-import { getDatasetCatalogs } from "@/utils/datasetAccessors";
+import { selectDatasetData } from "@/store/slices/dataset";
+import {
+  getDatasetCatalogs,
+  getMaterializedNetworkByCompoundId,
+} from "@/utils/datasetAccessors";
 import { resolveValueDomain } from "@/utils/valueDomain";
 
 export const useNetworkViewModel = (viewId: string) => {
@@ -37,10 +42,15 @@ export const useNetworkViewModel = (viewId: string) => {
     (state) => state.networkFilters.activeAggregatedEdgeMask,
   );
   const context = useNetworkViewComputationContext();
-  const networkView = useMemo(
-    () => (view ? context.networkViewsByCompoundId[view.compoundId] ?? null : null),
-    [context.networkViewsByCompoundId, view],
+  const compoundId = view?.compoundId;
+  const selectNetworkView = useMemo(
+    () =>
+      createSelector([selectDatasetData], (dataset) =>
+        compoundId ? getMaterializedNetworkByCompoundId(dataset, compoundId) ?? null : null,
+      ),
+    [compoundId],
   );
+  const networkView = useAppSelector(selectNetworkView);
   const settings = view?.type === "matrix" ? matrixSettings : nodeLinkSettings;
   const computed = useMemo(
     () =>

@@ -3,10 +3,10 @@ import { useMemo } from "react";
 import { resolveComputedNetworkView } from "@/components/network/views/networkViewModel";
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { useAppSelector } from "@/store/hooks";
-import { selectDatasetViewData } from "@/store/slices/dataset";
+import { selectDatasetData } from "@/store/slices/dataset";
+import type { MaterializedNetworkView } from "@/types/datasetNetworkView";
 import type { DatasetMeta } from "@/types/datasetState";
 import type { UiRangeMode } from "@/types/network";
-import type { StoredNetworkView } from "@/types/networkViewStore";
 import type {
   ComputedView,
   MatrixNetworkViewSettings,
@@ -16,7 +16,6 @@ import type {
 
 export type NetworkViewComputationContext = {
   dataset: DatasetMeta | null;
-  networkViewsByCompoundId: Record<string, StoredNetworkView>;
   nodeOrderIds: string[];
   activeLabelIds: string[];
   matrixViewActiveLabelIds: string[];
@@ -34,7 +33,7 @@ export const resolveNetworkViewWithContext = ({
   context,
 }: {
   view: NetworkViewDescriptor;
-  networkView: StoredNetworkView;
+  networkView: MaterializedNetworkView;
   settings?: MatrixNetworkViewSettings | NodeLinkNetworkViewSettings;
   nodeLinkSettings?: NodeLinkNetworkViewSettings;
   context: NetworkViewComputationContext;
@@ -55,7 +54,7 @@ export const resolveNetworkViewWithContext = ({
   });
 
 export const useNetworkViewComputationContextValue = () => {
-  const { dataset, networkViewsByCompoundId } = useAppSelector(selectDatasetViewData);
+  const dataset = useAppSelector(selectDatasetData);
   const atlas = useAppSelector((state) => state.atlasUi);
   const uiRangeMode = useAppSelector(
     (state) => state.visualizationUi.uiRangeMode,
@@ -67,7 +66,6 @@ export const useNetworkViewComputationContextValue = () => {
   return useMemo(
     () => ({
       dataset,
-      networkViewsByCompoundId,
       nodeOrderIds,
       activeLabelIds,
       matrixViewActiveLabelIds,
@@ -82,7 +80,6 @@ export const useNetworkViewComputationContextValue = () => {
       atlas.matrixHierarchyCategoryOrder,
       atlas.order.length,
       dataset,
-      networkViewsByCompoundId,
       matrixViewActiveLabelIds,
       nodeOrderIds,
       uiRangeMode,

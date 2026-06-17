@@ -1,4 +1,7 @@
 export {
+  updateCatalogItemAndPruneActiveNetworks,
+} from '../../workflows/updateCatalogItemAndPruneActiveNetworks'
+export {
   selectAllDatasetNetworks,
   selectDatasetContent,
   selectDatasetData,
@@ -7,10 +10,10 @@ export {
   selectDatasetError,
   selectDatasetNetworkById,
   selectDatasetNetworkEntities,
+  selectDatasetNetworkSummaries,
   selectDatasetOperationsState,
   selectDatasetState,
   selectDatasetStatus,
-  selectDatasetViewData,
   selectDerivedCalculationError,
   selectDerivedCalculationStatus,
 } from './datasetSelectors'
@@ -33,7 +36,4 @@ export {
   recomputeAggregatedNetworksForActiveNodes,
 } from './thunks/recomputeAggregatedNetworksForActiveNodes'
 export { syncDatasetDerivedState } from './thunks/syncDatasetDerivedState'
-export {
-  updateCatalogItemAndPruneActiveNetworks,
-} from './thunks/updateCatalogItemAndPruneActiveNetworks'
 export { loadDatasetFromUploadedZip } from './thunks/uploadDataset'

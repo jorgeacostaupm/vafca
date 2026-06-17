@@ -6,8 +6,10 @@ import {
   SELECTED_INSET,
   SELECTED_STROKE,
 } from "@/components/matrix/components/matrixConstants";
-import type { MatrixSelectionBlock } from "@/components/matrix/components/matrixSelectionBlocks";
-import { buildSelectionOverlayBlocks } from "@/components/matrix/components/matrixSelectionBlocks";
+import {
+  buildSelectionRectBlocks,
+  type MatrixSelectionRect,
+} from "@/components/matrix/components/matrixSelectionRects";
 import type { HeatmapHighlightSelections } from "@/components/matrix/components/matrixTypes";
 import {
   formatHeatmapTooltipHtml,
@@ -80,33 +82,6 @@ const showHighlight = (args: {
   }
 };
 
-const buildSelectionPath = (args: {
-  blocks: MatrixSelectionBlock[];
-  xScale: d3.ScaleBand<number>;
-  yScale: d3.ScaleBand<number>;
-  inset: number;
-  width: number;
-  height: number;
-}) => {
-  const { blocks, xScale, yScale, inset, width, height } = args;
-
-  return blocks
-    .map((block) => {
-      const x = (xScale(block.col) ?? 0) + inset;
-      const y = (yScale(block.row) ?? 0) + inset;
-      const blockWidth = Math.max(
-        width * block.colSpan + inset * 2 * (block.colSpan - 1),
-        0,
-      );
-      const blockHeight = Math.max(
-        height * block.rowSpan + inset * 2 * (block.rowSpan - 1),
-        0,
-      );
-      return `M${x},${y}h${blockWidth}v${blockHeight}h${-blockWidth}Z`;
-    })
-    .join("");
-};
-
 export const updateSelectedCellsOverlay = (args: {
   selectedLayer: d3.Selection<SVGGElement, unknown, null, undefined>;
   xScale: d3.ScaleBand<number>;
@@ -130,43 +105,29 @@ export const updateSelectedCellsOverlay = (args: {
   const { rows, cols } = dataShape;
 
   const inset = SELECTED_INSET;
-  const width = Math.max(xScale.bandwidth() - inset * 2, 0);
-  const height = Math.max(yScale.bandwidth() - inset * 2, 0);
+  const cellWidth = xScale.bandwidth();
+  const cellHeight = yScale.bandwidth();
 
-  const points =
-    selectedCells?.filter(
-      (cell) =>
-        Number.isFinite(cell.row) &&
-        Number.isFinite(cell.col) &&
-        cell.row >= 0 &&
-        cell.col >= 0 &&
-        cell.row < rows &&
-        cell.col < cols,
-    ) ?? [];
-
-  const blocks = buildSelectionOverlayBlocks({
-    cells: points,
+  const blocks = buildSelectionRectBlocks({
+    selectedCells,
     visibleData,
+    rows,
+    cols,
     symmetric,
-  });
-  const path = buildSelectionPath({
-    blocks,
-    xScale,
-    yScale,
-    inset,
-    width,
-    height,
   });
 
   selectedLayer
-    .selectAll<SVGPathElement, string>("path")
-    .data(path ? [path] : [])
+    .selectAll<SVGRectElement, MatrixSelectionRect>("rect")
+    .data(blocks, (block) => block.key)
     .join(
-      (enter) => enter.append("path"),
+      (enter) => enter.append("rect"),
       (update) => update,
       (exit) => exit.remove(),
     )
-    .attr("d", (value) => value)
+    .attr("x", (block) => (xScale(block.col) ?? 0) + inset)
+    .attr("y", (block) => (yScale(block.row) ?? 0) + inset)
+    .attr("width", (block) => Math.max(cellWidth * block.colSpan - inset * 2, 0))
+    .attr("height", (block) => Math.max(cellHeight * block.rowSpan - inset * 2, 0))
     .attr("fill", "none")
     .attr("stroke", visualStyle.selectionColor)
     .attr("stroke-width", SELECTED_STROKE)

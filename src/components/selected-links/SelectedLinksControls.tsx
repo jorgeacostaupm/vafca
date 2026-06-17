@@ -1,5 +1,6 @@
+import { DeleteOutlined, DownloadOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
-import { Button, Dropdown, Select, Space, Typography } from "antd";
+import { Button, Dropdown, Select, Space, Tooltip, Typography } from "antd";
 import { useMemo } from "react";
 
 import type {
@@ -51,29 +52,40 @@ export default function SelectedLinksControls({
   );
 
   return (
-    <>
-      <Space
-        align="center"
-        style={{ width: "100%", justifyContent: "space-between" }}
-      >
-        <Typography.Title level={4} style={{ margin: 0 }}>
-          Selected links
-        </Typography.Title>
-        <Space size={8}>
-          <Dropdown menu={downloadMenu} trigger={["click"]}>
-            <Button disabled={linksCount === 0} loading={downloading}>
-              Download links
-            </Button>
-          </Dropdown>
-          <Button onClick={onClear} disabled={linksCount === 0}>
-            Clear
-          </Button>
+    <div className="links-controls">
+      <div className="links-controls__header">
+        <Space direction="vertical" size={2}>
+          <Typography.Title level={4} className="links-controls__title">
+            Selected links
+          </Typography.Title>
+          <Typography.Text type="secondary">
+            Select links in the table to highlight them in the atlas.
+          </Typography.Text>
         </Space>
-      </Space>
-      <Typography.Text type="secondary">
-        Select links in the table to highlight them in the atlas.
-      </Typography.Text>
-      <Space direction="vertical" size={6} style={{ width: "100%" }}>
+        <div className="network-action-toolbar" aria-label="Selected links tools">
+          <Space size={6}>
+            <Tooltip title="Download selected links">
+              <Dropdown menu={downloadMenu} trigger={["click"]}>
+                <Button
+                  aria-label="Download selected links"
+                  disabled={linksCount === 0}
+                  icon={<DownloadOutlined />}
+                  loading={downloading}
+                />
+              </Dropdown>
+            </Tooltip>
+            <Tooltip title="Clear selected links">
+              <Button
+                aria-label="Clear selected links"
+                disabled={linksCount === 0}
+                icon={<DeleteOutlined />}
+                onClick={onClear}
+              />
+            </Tooltip>
+          </Space>
+        </div>
+      </div>
+      <Space direction="vertical" size={6} className="links-controls__network-picker">
         <Typography.Text strong>Additional networks</Typography.Text>
         <Select
           mode="multiple"
@@ -83,7 +95,7 @@ export default function SelectedLinksControls({
           placeholder="Select networks to show extra values"
           value={selectedNetworkIds}
           loading={networkOptionsLoading}
-          style={{ width: "100%" }}
+          className="links-controls__network-select"
           onChange={(value) => onSelectedNetworkIdsChange(value)}
         />
         {selectedNetworkIds.length > 0 && loadingNetworks ? (
@@ -92,7 +104,6 @@ export default function SelectedLinksControls({
           </Typography.Text>
         ) : null}
       </Space>
-    </>
+    </div>
   );
 }
-

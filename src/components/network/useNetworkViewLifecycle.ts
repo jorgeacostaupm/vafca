@@ -5,12 +5,12 @@ import {
   pruneInvalidNetworkViews,
   syncNetworkSelectedCompoundId,
 } from "@/store/slices/networkVisualization";
-import type { NetworkSummaryItem } from "@/types/networkViewStore";
+import type { DatasetNetworkSummary } from "@/types/datasetNetworkView";
 
 type UseNetworkViewLifecycleArgs = {
-  matches: NetworkSummaryItem[];
+  matches: DatasetNetworkSummary[];
   summariesStatus: "idle" | "loading" | "ready" | "error";
-  summaries: NetworkSummaryItem[];
+  summaries: DatasetNetworkSummary[];
 };
 
 export const useNetworkViewLifecycle = ({

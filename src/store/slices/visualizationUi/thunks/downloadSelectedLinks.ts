@@ -9,11 +9,14 @@ import {
   downloadExportPayload,
   resolveNetworkLabel,
 } from '@/components/selected-links/selectedLinksPanel.utils'
-import { selectDatasetData } from '@/store/slices/dataset'
+import {
+  selectDatasetData,
+  selectDatasetNetworkSummaries,
+} from '@/store/slices/dataset'
 import type { RootState } from '@/types/store'
 import {
   getDatasetCatalogs,
-  getDatasetNetworkByCompoundId,
+  getMaterializedNetworkByCompoundId,
 } from '@/utils/datasetAccessors'
 import { buildNetworkSummaryLabel } from '@/utils/matrixViewUtils'
 
@@ -43,8 +46,9 @@ export const downloadSelectedLinks = createAsyncThunk<
       return rejectWithValue('No links available to download.')
     }
 
+    const summaries = selectDatasetNetworkSummaries(state)
     const allNetworkIds = Array.from(
-      new Set(state.networkSummaries.summaries.map((summary) => summary.compoundId)),
+      new Set(summaries.map((summary) => summary.compoundId)),
     )
     const networkIds =
       mode === 'all'
@@ -56,17 +60,19 @@ export const downloadSelectedLinks = createAsyncThunk<
 
     const nextState = getState()
     const dataset = selectDatasetData(nextState)
+    const nextSummaries = selectDatasetNetworkSummaries(nextState)
+    const catalogs = getDatasetCatalogs(dataset)
     const networkLookup = Object.fromEntries(
       networkIds.map((compoundId) => [
         compoundId,
-        getDatasetNetworkByCompoundId(dataset, compoundId) ?? null,
+        getMaterializedNetworkByCompoundId(dataset, compoundId) ?? null,
       ]),
     )
     const atlasIndex = new Map(nextState.atlasUi.order.map((id, index) => [id, index]))
     const networkLabelMap = buildNetworkSummaryLabelMap(
-      nextState.networkSummaries.summaries.map((summary) => ({
+      nextSummaries.map((summary) => ({
         value: summary.compoundId,
-        label: buildNetworkSummaryLabel(summary, getDatasetCatalogs(selectDatasetData(nextState))),
+        label: buildNetworkSummaryLabel(summary, catalogs),
       })),
     )
     const sourceLabelMap = buildSourceLabelMap(linksToDownload)

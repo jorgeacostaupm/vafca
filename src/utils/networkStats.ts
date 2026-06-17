@@ -1,8 +1,8 @@
+import type { DatasetNetworkSummary } from "@/types/datasetNetworkView";
 import type { NetworkStats } from "@/types/datasetState";
-import type { StoredNetworkView } from "@/types/networkViewStore";
 
 export const buildNetworkStats = (
-  networks: StoredNetworkView[],
+  networks: Array<Pick<DatasetNetworkSummary, "measureId" | "statId" | "populationIds">>,
 ): NetworkStats => {
   const stats: NetworkStats = {
     total: networks.length,

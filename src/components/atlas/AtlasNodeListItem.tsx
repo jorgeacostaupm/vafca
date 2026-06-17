@@ -1,5 +1,6 @@
-import { List, Switch } from "antd";
+import { Checkbox, List } from "antd";
 import { memo, useCallback } from "react";
+import { shallowEqual } from "react-redux";
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
@@ -18,11 +19,14 @@ export const AtlasNodeListItem = memo(function AtlasNodeListItem({
   id,
 }: AtlasNodeListItemProps) {
   const dispatch = useAppDispatch();
-  const { draft, labelsById, order } = useAppSelector((state) => ({
-    draft: state.visualizationUi.atlasPanel.nodeVisibilityDraft,
-    labelsById: state.atlasUi.labelsById,
-    order: state.atlasUi.order,
-  }));
+  const { draft, labelsById, order } = useAppSelector(
+    (state) => ({
+      draft: state.visualizationUi.atlasPanel.nodeVisibilityDraft,
+      labelsById: state.atlasUi.labelsById,
+      order: state.atlasUi.order,
+    }),
+    shallowEqual,
+  );
   const labelMeta = labelsById[id];
   const displayLabel = getAtlasDisplayLabel(labelMeta, id);
   const enabled = draft?.[id] ?? isAtlasLabelEnabled(labelMeta);
@@ -42,17 +46,14 @@ export const AtlasNodeListItem = memo(function AtlasNodeListItem({
   );
 
   return (
-    <List.Item
-      actions={[
-        <Switch
-          key={`toggle-${id}`}
-          checked={enabled}
-          onChange={handleChange}
-          aria-label={`Toggle ${displayLabel}`}
-        />,
-      ]}
-    >
-      <List.Item.Meta title={displayLabel} />
+    <List.Item className="atlas-panel__node-row">
+      <Checkbox
+        className="atlas-panel__node-checkbox"
+        checked={enabled}
+        onChange={(event) => handleChange(event.target.checked)}
+      >
+        <span className="atlas-panel__node-label">{displayLabel}</span>
+      </Checkbox>
     </List.Item>
   );
 });

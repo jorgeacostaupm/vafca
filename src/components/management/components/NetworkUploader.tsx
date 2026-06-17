@@ -1,6 +1,6 @@
+import { InboxOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
-import { Alert, Radio, Space, Spin, Typography, Upload } from "antd";
-import { useState } from "react";
+import { Alert, Space, Spin, Typography, Upload } from "antd";
 
 import {
   DEFAULT_NETWORK_IMPORT_MODE,
@@ -11,16 +11,11 @@ import {
   loadDatasetFromUploadedZip,
   selectDatasetOperationsState,
 } from "@/store/slices/dataset";
-import { loadNetworkSummaries } from "@/store/slices/networkSummaries";
-import type { NetworkImportMode } from "@/utils/import/types";
 
 const { Dragger } = Upload;
 
 function NetworkUploader() {
   const dispatch = useAppDispatch();
-  const [mode, setMode] = useState<NetworkImportMode>(
-    DEFAULT_NETWORK_IMPORT_MODE,
-  );
   const { networkImportStatus, networkImportError, lastNetworkImport } =
     useAppSelector(selectDatasetOperationsState);
 
@@ -30,8 +25,12 @@ function NetworkUploader() {
     }
 
     try {
-      await dispatch(loadDatasetFromUploadedZip({ files: [file], mode })).unwrap();
-      await dispatch(loadNetworkSummaries());
+      await dispatch(
+        loadDatasetFromUploadedZip({
+          files: [file],
+          mode: DEFAULT_NETWORK_IMPORT_MODE,
+        }),
+      ).unwrap();
     } catch {
       // The notification listener and local alert expose upload failures.
     }
@@ -46,19 +45,7 @@ function NetworkUploader() {
   const isValidating = networkImportStatus === "loading";
 
   return (
-    <Space direction="vertical" size={12} style={{ width: "100%" }}>
-      <Radio.Group
-        optionType="button"
-        buttonStyle="solid"
-        value={mode}
-        disabled={isValidating}
-        onChange={(event) => setMode(event.target.value as NetworkImportMode)}
-        options={[
-          { label: "Lenient", value: "lenient" },
-          { label: "Strict", value: "strict" },
-        ]}
-      />
-
+    <div className="network-uploader">
       <Dragger
         className="network-uploader__dropzone"
         accept=".zip,application/zip,application/x-zip-compressed"
@@ -67,9 +54,12 @@ function NetworkUploader() {
         beforeUpload={beforeUpload}
         disabled={isValidating}
       >
+        <p className="network-uploader__icon">
+          <InboxOutlined />
+        </p>
         <p className="ant-upload-text">Drag and drop one VAFCA ZIP dataset here</p>
         <p className="ant-upload-hint">
-          The ZIP is loaded atomically and normalized before it reaches the workspace.
+          Or click to choose a file. Imports use lenient validation by default.
         </p>
       </Dragger>
 
@@ -139,7 +129,7 @@ function NetworkUploader() {
           description={networkImportError}
         />
       ) : null}
-    </Space>
+    </div>
   );
 }
 

@@ -1,22 +1,30 @@
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
+  CheckOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { Alert, Button, Modal, Select, Space, Switch, Typography } from "antd";
-import { useCallback, useMemo } from "react";
+import { Button, Modal, Select, Space, Switch, Typography } from "antd";
+import { useCallback, useMemo, useState } from "react";
 
+import SettingsSection from "@/components/network/settings/SettingsSection";
+import {
+  DEFAULT_ATLAS_MODAL_TOP,
+  DEFAULT_ATLAS_SETTINGS_MODAL_WIDTH,
+} from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 import {
-  atlasSupports3d,
   getCommonNodeFields,
-  getDefaultGroupByFields,
   humanizeFieldName,
 } from "@/utils/atlas/atlasDefinition";
 
 import { useActiveAtlasDefinition } from "./hooks/useActiveAtlasDefinition";
-import { moveField } from "./panelFieldUtils";
+import {
+  areStringArraysEqual,
+  moveField,
+  normalizeUniqueFieldList,
+} from "./panelFieldUtils";
 
 type AtlasPanelSettingsModalProps = {
   open: boolean;
@@ -30,6 +38,9 @@ export default function AtlasPanelSettingsModal({
   const dispatch = useAppDispatch();
   const atlasPanel = useAppSelector((state) => state.visualizationUi.atlasPanel);
   const atlasDefinition = useActiveAtlasDefinition();
+  const [draftGroupByFields, setDraftGroupByFields] = useState<string[]>(
+    atlasPanel.groupByFields,
+  );
 
   const availableGroupFields = useMemo(
     () => getCommonNodeFields(atlasDefinition),
@@ -39,65 +50,77 @@ export default function AtlasPanelSettingsModal({
   const selectableGroupFields = useMemo(
     () =>
       availableGroupFields.filter(
-        (field) => !atlasPanel.groupByFields.includes(field),
+        (field) => !draftGroupByFields.includes(field),
       ),
-    [atlasPanel.groupByFields, availableGroupFields],
+    [draftGroupByFields, availableGroupFields],
   );
 
-  const supports3d = useMemo(
-    () => atlasSupports3d(atlasDefinition),
-    [atlasDefinition],
+  const normalizedDraftGroupByFields = useMemo(
+    () => normalizeUniqueFieldList(draftGroupByFields, availableGroupFields),
+    [availableGroupFields, draftGroupByFields],
+  );
+
+  const handleModalOpenChange = useCallback(
+    (isOpen: boolean) => {
+      if (!isOpen) return;
+      setDraftGroupByFields(
+        normalizeUniqueFieldList(atlasPanel.groupByFields, availableGroupFields),
+      );
+    },
+    [atlasPanel.groupByFields, availableGroupFields],
   );
 
   const handleMoveGroupField = useCallback(
     (field: string, direction: "up" | "down") => {
-      dispatch(
-        setAtlasPanelState({
-          groupByFields: moveField(atlasPanel.groupByFields, field, direction),
-          collapsedGroups: [],
-        }),
-      );
+      setDraftGroupByFields((fields) => moveField(fields, field, direction));
     },
-    [atlasPanel.groupByFields, dispatch],
+    [],
   );
 
   const handleRemoveGroupField = useCallback(
     (field: string) => {
-      const nextSelectedFilters = { ...atlasPanel.selectedFilters };
-      delete nextSelectedFilters[field];
-
-      dispatch(
-        setAtlasPanelState({
-          groupByFields: atlasPanel.groupByFields.filter((value) => value !== field),
-          selectedFilters: nextSelectedFilters,
-          collapsedGroups: [],
-        }),
+      setDraftGroupByFields((fields) =>
+        fields.filter((value) => value !== field),
       );
     },
-    [atlasPanel.groupByFields, atlasPanel.selectedFilters, dispatch],
+    [],
   );
 
   const handleAddGroupField = useCallback(
     (field: string) => {
-      dispatch(
-        setAtlasPanelState({
-          groupByFields: [...atlasPanel.groupByFields, field],
-          collapsedGroups: [],
-        }),
+      setDraftGroupByFields((fields) =>
+        fields.includes(field) ? fields : [...fields, field],
       );
     },
-    [atlasPanel.groupByFields, dispatch],
+    [],
   );
 
-  const handleApplySuggestedGroupFields = useCallback(() => {
+  const handleApplyGroupFields = useCallback(() => {
+    const nextSelectedFilters = Object.fromEntries(
+      Object.entries(atlasPanel.selectedFilters).filter(([field]) =>
+        normalizedDraftGroupByFields.includes(field),
+      ),
+    );
+
     dispatch(
       setAtlasPanelState({
-        groupByFields: getDefaultGroupByFields(availableGroupFields),
-        selectedFilters: {},
+        groupByFields: normalizedDraftGroupByFields,
+        groupByFieldsInitialized: true,
+        selectedFilters: nextSelectedFilters,
         collapsedGroups: [],
       }),
     );
-  }, [availableGroupFields, dispatch]);
+    setDraftGroupByFields(normalizedDraftGroupByFields);
+  }, [atlasPanel.selectedFilters, dispatch, normalizedDraftGroupByFields]);
+
+  const hasPendingGroupFieldChanges = useMemo(
+    () =>
+      !areStringArraysEqual(
+        normalizedDraftGroupByFields,
+        atlasPanel.groupByFields,
+      ),
+    [atlasPanel.groupByFields, normalizedDraftGroupByFields],
+  );
 
   const handle3dAvailabilityChange = useCallback(
     (is3dAvailable: boolean) => {
@@ -106,26 +129,28 @@ export default function AtlasPanelSettingsModal({
     [dispatch],
   );
 
-  const hasGroupByFields = atlasPanel.groupByFields.length > 0;
+  const hasGroupByFields = draftGroupByFields.length > 0;
   const hasSelectableGroupFields = selectableGroupFields.length > 0;
-  const canApplySuggestedFields =
-    getDefaultGroupByFields(availableGroupFields).length > 0;
 
   return (
     <Modal
       title="Atlas settings"
       open={open}
       onCancel={onClose}
+      afterOpenChange={handleModalOpenChange}
       footer={null}
-      width={720}
+      width={DEFAULT_ATLAS_SETTINGS_MODAL_WIDTH}
+      style={{ top: DEFAULT_ATLAS_MODAL_TOP }}
+      className="network-settings-modal atlas-panel__settings-modal"
     >
       <Space direction="vertical" size={18} className="atlas-panel__settings-stack">
-        <Space direction="vertical" size={8} className="atlas-panel__settings-stack">
-          <Typography.Text strong>Grouping fields</Typography.Text>
-
+        <SettingsSection
+          title="Grouping fields"
+          description="Choose the atlas fields used to group and filter nodes."
+        >
           {hasGroupByFields ? (
             <Space direction="vertical" size={8} className="atlas-panel__settings-stack">
-              {atlasPanel.groupByFields.map((field, index) => (
+              {draftGroupByFields.map((field, index) => (
                 <div key={field} className="atlas-panel__field-row">
                   <Typography.Text strong>{humanizeFieldName(field)}</Typography.Text>
                   <Space>
@@ -140,7 +165,7 @@ export default function AtlasPanelSettingsModal({
                       size="small"
                       icon={<ArrowDownOutlined />}
                       onClick={() => handleMoveGroupField(field, "down")}
-                      disabled={index === atlasPanel.groupByFields.length - 1}
+                      disabled={index === draftGroupByFields.length - 1}
                       aria-label={`Move ${humanizeFieldName(field)} down`}
                     />
                     <Button
@@ -154,25 +179,11 @@ export default function AtlasPanelSettingsModal({
                 </div>
               ))}
             </Space>
-          ) : (
-            <Alert
-              type="info"
-              showIcon
-              message="No grouping fields selected"
-              description="Nodes are shown without categorical grouping."
-              action={
-                canApplySuggestedFields ? (
-                  <Button size="small" onClick={handleApplySuggestedGroupFields}>
-                    Use suggested fields
-                  </Button>
-                ) : undefined
-              }
-            />
-          )}
+          ) : null}
 
           {hasSelectableGroupFields ? (
             <Select
-              key={atlasPanel.groupByFields.join("|")}
+              key={draftGroupByFields.join("|")}
               placeholder="Select field"
               className="atlas-panel__settings-select"
               options={selectableGroupFields.map((field) => ({
@@ -183,26 +194,29 @@ export default function AtlasPanelSettingsModal({
               value={null}
             />
           ) : null}
-        </Space>
 
-        <Space direction="vertical" size={8} className="atlas-panel__settings-stack">
-          <Typography.Text strong>3D view</Typography.Text>
-          <div className="atlas-panel__field-row">
-            <Space direction="vertical" size={2}>
-              <Typography.Text>Available for this atlas</Typography.Text>
-              <Typography.Text type="secondary">
-                {supports3d
-                  ? "Valid mesh points were found."
-                  : "No valid mesh points are available with the current mode."}
-              </Typography.Text>
-            </Space>
+          <div className="atlas-panel__settings-actions">
+            <Button
+              type="primary"
+              icon={<CheckOutlined />}
+              onClick={handleApplyGroupFields}
+              disabled={!hasPendingGroupFieldChanges}
+            >
+              Apply
+            </Button>
+          </div>
+        </SettingsSection>
+
+        <SettingsSection
+          title="3D view"
+          description="Control whether the atlas mesh viewer is available in the Atlas tab."
+          actions={
             <Switch
-              checked={atlasPanel.is3dAvailable && supports3d}
-              disabled={!supports3d}
+              checked={atlasPanel.is3dAvailable}
               onChange={handle3dAvailabilityChange}
             />
-          </div>
-        </Space>
+          }
+        />
       </Space>
     </Modal>
   );

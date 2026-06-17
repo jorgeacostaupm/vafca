@@ -1,11 +1,29 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-import { initialDatasetOperationsState } from './datasetOperationsTypes'
+import {
+  type DatasetOperationsSliceState,
+  initialDatasetOperationsState,
+} from './datasetOperationsTypes'
 import { computeAggregatedNetworkFromVisualizationGroups } from './thunks/computeAggregatedNetworks'
 import { computeDerivedNetworks } from './thunks/computeDerivedNetworks'
 import { downloadCurrentDataset } from './thunks/exportDataset'
 import { loadInitialDataset } from './thunks/loadInitialDataset'
 import { loadDatasetFromUploadedZip } from './thunks/uploadDataset'
+
+const setDerivedCalculationLoading = (state: DatasetOperationsSliceState) => {
+  state.derivedCalculationStatus = 'loading'
+  state.derivedCalculationError = null
+}
+
+const setDerivedCalculationReady = (state: DatasetOperationsSliceState) => {
+  state.derivedCalculationStatus = 'ready'
+  state.derivedCalculationError = null
+}
+
+const getRejectedMessage = (
+  action: { payload?: unknown; error: { message?: string } },
+  fallback: string,
+) => (typeof action.payload === 'string' ? action.payload : action.error.message ?? fallback)
 
 const datasetOperationsSlice = createSlice({
   name: 'datasetOperations',
@@ -74,30 +92,30 @@ const datasetOperationsSlice = createSlice({
         state.lastNetworkImport = action.payload?.result ?? null
       })
       .addCase(computeDerivedNetworks.pending, (state) => {
-        state.derivedCalculationStatus = 'loading'
-        state.derivedCalculationError = null
+        setDerivedCalculationLoading(state)
       })
       .addCase(computeDerivedNetworks.fulfilled, (state) => {
-        state.derivedCalculationStatus = 'ready'
-        state.derivedCalculationError = null
+        setDerivedCalculationReady(state)
       })
       .addCase(computeDerivedNetworks.rejected, (state, action) => {
         state.derivedCalculationStatus = 'error'
-        state.derivedCalculationError =
-          action.payload ?? action.error.message ?? 'Failed to compute derived networks.'
+        state.derivedCalculationError = getRejectedMessage(
+          action,
+          'Failed to compute derived networks.',
+        )
       })
       .addCase(computeAggregatedNetworkFromVisualizationGroups.pending, (state) => {
-        state.derivedCalculationStatus = 'loading'
-        state.derivedCalculationError = null
+        setDerivedCalculationLoading(state)
       })
       .addCase(computeAggregatedNetworkFromVisualizationGroups.fulfilled, (state) => {
-        state.derivedCalculationStatus = 'ready'
-        state.derivedCalculationError = null
+        setDerivedCalculationReady(state)
       })
       .addCase(computeAggregatedNetworkFromVisualizationGroups.rejected, (state, action) => {
         state.derivedCalculationStatus = 'error'
-        state.derivedCalculationError =
-          action.payload ?? action.error.message ?? 'Failed to compute aggregated network.'
+        state.derivedCalculationError = getRejectedMessage(
+          action,
+          'Failed to compute aggregated network.',
+        )
       })
   },
 })

@@ -1,4 +1,5 @@
-import { Button, Card, Divider, Input, InputNumber, Space, Switch, Typography } from "antd";
+import { CheckOutlined } from "@ant-design/icons";
+import { Button, Card, Input, InputNumber, Space, Switch, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
 
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
@@ -102,93 +103,89 @@ function MeasureCatalogSection() {
   };
 
   return (
-    <>
-      <Divider style={{ margin: "8px 0" }} />
+    <div className="catalog-management-section">
+      <div className="catalog-management-grid">
+        {measureItems.map((measure) => {
+          const draft = drafts[measure.id] ?? toDraft(measure);
 
-      <div>
-        <Space align="center" style={{ marginBottom: 8 }}>
-          <Typography.Text strong>Measures</Typography.Text>
-          <Button
-            size="small"
-            type="primary"
-            disabled={!canSave}
-            onClick={handleSave}
-          >
-            Save
-          </Button>
-          {invalidRange ? (
-            <Typography.Text type="danger">
-              Min must be less than or equal to max.
-            </Typography.Text>
-          ) : null}
-        </Space>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          {measureItems.map((measure) => {
-            const draft = drafts[measure.id] ?? toDraft(measure);
-
-            return (
-              <Card key={measure.id} size="small" style={{ width: 300 }}>
-                <Space direction="vertical" size={8} style={{ width: "100%" }}>
-                  <Space wrap size={12} align="start">
-                    <Input
-                      size="small"
-                      placeholder="Measure label"
-                      value={draft.label}
-                      style={{ width: 160 }}
-                      onChange={(event) =>
-                        updateDraft(measure.id, {
-                          label: event.target.value,
-                        })
-                      }
-                    />
-                    <Switch
-                      checked={draft.enabled}
-                      onChange={(checked) =>
-                        updateDraft(measure.id, {
-                          enabled: checked,
-                        })
-                      }
-                    />
-                    <InputNumber
-                      size="small"
-                      placeholder="Min"
-                      value={draft.min ?? null}
-                      onChange={(value) =>
-                        updateDraft(measure.id, {
-                          min: normalizeNumber(value),
-                        })
-                      }
-                    />
-                    <InputNumber
-                      size="small"
-                      placeholder="Max"
-                      value={draft.max ?? null}
-                      onChange={(value) =>
-                        updateDraft(measure.id, {
-                          max: normalizeNumber(value),
-                        })
-                      }
-                    />
-                  </Space>
-
-                  <Input.TextArea
+          return (
+            <Card key={measure.id} size="small" className="catalog-management-card">
+              <Space direction="vertical" size={8} className="catalog-management-card__body">
+                <Space wrap size={12} align="start">
+                  <Input
                     size="small"
-                    placeholder="Description"
-                    value={draft.description}
+                    placeholder="Measure label"
+                    value={draft.label}
+                    className="catalog-management-label-input"
                     onChange={(event) =>
                       updateDraft(measure.id, {
-                        description: event.target.value,
+                        label: event.target.value,
                       })
                     }
-                    style={{ resize: "vertical" }}
+                  />
+                  <Switch
+                    checked={draft.enabled}
+                    onChange={(checked) =>
+                      updateDraft(measure.id, {
+                        enabled: checked,
+                      })
+                    }
+                  />
+                  <InputNumber
+                    size="small"
+                    placeholder="Min"
+                    value={draft.min ?? null}
+                    onChange={(value) =>
+                      updateDraft(measure.id, {
+                        min: normalizeNumber(value),
+                      })
+                    }
+                  />
+                  <InputNumber
+                    size="small"
+                    placeholder="Max"
+                    value={draft.max ?? null}
+                    onChange={(value) =>
+                      updateDraft(measure.id, {
+                        max: normalizeNumber(value),
+                      })
+                    }
                   />
                 </Space>
-              </Card>
-            );
-          })}
-        </div>
+
+                <Input.TextArea
+                  size="small"
+                  placeholder="Description"
+                  value={draft.description}
+                  onChange={(event) =>
+                    updateDraft(measure.id, {
+                      description: event.target.value,
+                    })
+                  }
+                  className="catalog-management-description"
+                />
+              </Space>
+            </Card>
+          );
+        })}
       </div>
-    </>
+      <div className="catalog-management-actions">
+        {invalidRange ? (
+          <Typography.Text type="danger">
+            Min must be less than or equal to max.
+          </Typography.Text>
+        ) : null}
+        <Button
+          size="small"
+          type="primary"
+          icon={<CheckOutlined />}
+          disabled={!canSave}
+          onClick={handleSave}
+        >
+          Apply
+        </Button>
+      </div>
+    </div>
   );
 }
 

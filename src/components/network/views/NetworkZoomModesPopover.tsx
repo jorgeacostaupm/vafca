@@ -233,6 +233,7 @@ export default function NetworkZoomModesPopover({
           <Button
             key={item.label}
             size="small"
+            icon={<ZoomInOutlined />}
             disabled={item.disabled}
             onClick={() => applyZoomSelection(item.getSelection())}
           >

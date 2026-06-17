@@ -9,7 +9,6 @@ import {
   selectAtlasOrder,
 } from "@/store/slices/atlasUi";
 import { getCommonNodeFields } from "@/utils/atlas/atlasDefinition";
-import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
 
 import AtlasManagementModal from "./AtlasManagementModal";
 import { AtlasPanelControls } from "./AtlasPanelControls";
@@ -62,12 +61,7 @@ export default function AtlasPanel() {
     [stateAtlasDefinition],
   );
 
-  const has3d = useMemo(
-    () =>
-      atlasPanel.is3dAvailable &&
-      atlasSupports3d(stateAtlasDefinition),
-    [atlasPanel.is3dAvailable, stateAtlasDefinition],
-  );
+  const has3d = atlasPanel.is3dAvailable;
 
   useAtlasPanelNormalization({
     colorFields,
@@ -110,12 +104,14 @@ export default function AtlasPanel() {
         toolbar={
           <AtlasPanelToolbar
             onOpenManagement={() => setManagementOpen(true)}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
         }
         controls={
           <AtlasPanelControls
             totalCount={totalCount}
             enabledCount={enabledCount}
+            effectiveEnabledCount={effectiveEnabledCount}
           />
         }
         filters={
@@ -127,7 +123,6 @@ export default function AtlasPanel() {
             totalCount={totalCount}
             allEnabled={allEnabled}
             allDisabled={allDisabled}
-            onOpenSettings={() => setSettingsOpen(true)}
           />
         }
         list={

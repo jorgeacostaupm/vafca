@@ -27,6 +27,7 @@ import {
   getTooltipPositionForMatrixCell,
   getTooltipPositionForMatrixPointer,
 } from "@/components/matrix/matrixTooltip";
+import { useMatrixOptimisticBrushSelection } from "@/components/matrix/useMatrixOptimisticBrushSelection";
 import {
   DEFAULT_MATRIX_COLOR_SETTINGS,
   getMatrixVisualStyle,
@@ -49,6 +50,7 @@ function MatrixHeatmap({
   brushEnabled = false,
   brushMode = "zoom",
   showAllLabels = false,
+  selectionVisible = true,
   selectedZoomLabels,
   legendMin,
   legendMax,
@@ -86,7 +88,6 @@ function MatrixHeatmap({
     null,
     undefined
   > | null>(null);
-  const selectedCellsRef = useRef(selectedCells);
   const highlightRefs = useRef<HeatmapHighlightSelections | null>(null);
 
   const xScaleRef = useRef<d3.ScaleBand<number> | null>(null);
@@ -149,8 +150,6 @@ function MatrixHeatmap({
     leaveCbRef.current = onCellLeave;
     selectCbRef.current = onCellSelect;
     brushCbRef.current = onBrushZoom;
-    brushSelectLinksCbRef.current = onBrushSelectLinks;
-    brushDeselectLinksCbRef.current = onBrushDeselectLinks;
     labelToggleCbRef.current = onLabelToggle;
     labelHoverCbRef.current = onLabelHover;
     labelLeaveCbRef.current = onLabelLeave;
@@ -159,16 +158,10 @@ function MatrixHeatmap({
     onCellLeave,
     onCellSelect,
     onBrushZoom,
-    onBrushSelectLinks,
-    onBrushDeselectLinks,
     onLabelToggle,
     onLabelHover,
     onLabelLeave,
   ]);
-
-  useEffect(() => {
-    selectedCellsRef.current = selectedCells;
-  }, [selectedCells]);
 
   const normalized = useMemo(
     () => buildNormalizedMatrix(data),
@@ -236,6 +229,49 @@ function MatrixHeatmap({
     [width, height, filtered, resolvedRowLabels, resolvedColLabels, labelNames],
   );
 
+  const paintSelectedCellsOverlay = useCallback(
+    (nextSelectedCells: Array<{ row: number; col: number }>) => {
+      const selectedLayer = selectedLayerRef.current;
+      const xScale = xScaleRef.current;
+      const yScale = yScaleRef.current;
+      const normalizedData = normalizedRef.current;
+      if (!selectedLayer || !xScale || !yScale) return;
+
+      updateSelectedCellsOverlay({
+        selectedLayer,
+        xScale,
+        yScale,
+        dataShape: {
+          rows: normalizedData.length,
+          cols: normalizedData[0]?.length ?? 0,
+        },
+        visibleData: normalizedData,
+        symmetric,
+        selectedCells: nextSelectedCells,
+        visualStyle: resolvedVisualStyle,
+      });
+    },
+    [resolvedVisualStyle, symmetric],
+  );
+
+  const {
+    getDisplayedSelectedCells,
+    handleBrushSelectLinks,
+    handleBrushDeselectLinks,
+  } = useMatrixOptimisticBrushSelection({
+    selectedCells,
+    selectionVisible,
+    symmetric,
+    onBrushSelectLinks,
+    onBrushDeselectLinks,
+    paintSelectedCells: paintSelectedCellsOverlay,
+  });
+
+  useEffect(() => {
+    brushSelectLinksCbRef.current = handleBrushSelectLinks;
+    brushDeselectLinksCbRef.current = handleBrushDeselectLinks;
+  }, [handleBrushDeselectLinks, handleBrushSelectLinks]);
+
   useEffect(() => {
     if (!svgRef.current || !tooltipRef.current) return;
 
@@ -299,7 +335,7 @@ function MatrixHeatmap({
       },
       visibleData: filtered,
       symmetric,
-      selectedCells: selectedCellsRef.current,
+      selectedCells: getDisplayedSelectedCells(),
       visualStyle: resolvedVisualStyle,
     });
   }, [
@@ -322,6 +358,7 @@ function MatrixHeatmap({
     brushMode,
     showAllLabels,
     symmetric,
+    getDisplayedSelectedCells,
     svgRef,
     positionTooltipForCell,
     positionTooltipForPointer,
@@ -344,10 +381,18 @@ function MatrixHeatmap({
       },
       visibleData: normalizedData,
       symmetric,
-      selectedCells,
+      selectedCells: getDisplayedSelectedCells(),
       visualStyle: resolvedVisualStyle,
     });
-  }, [selectedCells, filtered, width, height, symmetric, resolvedVisualStyle]);
+  }, [
+    selectedCells,
+    filtered,
+    width,
+    height,
+    symmetric,
+    resolvedVisualStyle,
+    getDisplayedSelectedCells,
+  ]);
 
   const syncSharedHover = useCallback((hoverState: SharedHoverState) => {
     const xScale = xScaleRef.current;

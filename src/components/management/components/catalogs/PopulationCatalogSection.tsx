@@ -1,4 +1,4 @@
-import { Card, Input, Space, Switch, Typography } from "antd";
+import { Card, Input, Space, Switch } from "antd";
 
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
 import { isEnabled } from "@/components/management/utils/catalogValues";
@@ -12,18 +12,17 @@ function PopulationCatalogSection() {
   );
 
   return (
-    <div>
-      <Typography.Text strong>Populations</Typography.Text>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+    <div className="catalog-management-section">
+      <div className="catalog-management-grid">
         {Object.values(populations).map((population) => (
-          <Card key={population.id} size="small" style={{ width: 300 }}>
-            <Space direction="vertical" size={8} style={{ width: "100%" }}>
+          <Card key={population.id} size="small" className="catalog-management-card">
+            <Space direction="vertical" size={8} className="catalog-management-card__body">
               <Space wrap size={12} align="start">
                 <Input
                   size="small"
                   placeholder="Population label"
                   value={population.label ?? ""}
-                  style={{ width: 160 }}
+                  className="catalog-management-label-input"
                   onChange={(event) =>
                     updateItem("populations", population.id, {
                       label: event.target.value,
@@ -49,7 +48,7 @@ function PopulationCatalogSection() {
                     description: event.target.value,
                   })
                 }
-                style={{ resize: "vertical" }}
+                className="catalog-management-description"
               />
             </Space>
           </Card>

@@ -1,4 +1,4 @@
-import type { StoredNetworkView } from "@/types/networkViewStore";
+import type { MaterializedNetworkView } from "@/types/datasetNetworkView";
 import type { SelectedLink } from "@/types/visualizationUi";
 
 export type NetworkOption = {
@@ -19,7 +19,7 @@ export type LinkRow = {
 
 export type DownloadMode = "all" | "viewer";
 
-export type NetworkLookup = Record<string, StoredNetworkView | null>;
+export type NetworkLookup = Record<string, MaterializedNetworkView | null>;
 
 export type BuildLinkValuesParams = {
   link: SelectedLink;

@@ -13,7 +13,7 @@ import NetworkRankingsSettingsTab from "./NetworkRankingsSettingsTab";
 import NetworkViewsSettingsTab from "./NetworkViewsSettingsTab";
 
 export type NetworkVisualizationSettingsTabKey =
-  | "views"
+  | "networks"
   | "rankings"
   | "grouping"
   | "circular"
@@ -49,11 +49,12 @@ export default function NetworkVisualizationSettingsModal({
     >
       <Tabs
         activeKey={currentTab}
+        destroyOnHidden
         onChange={(key) => onTabChange?.(key as NetworkVisualizationSettingsTabKey)}
         items={[
           {
-            key: "views",
-            label: "Views",
+            key: "networks",
+            label: "Networks",
             children: <NetworkViewsSettingsTab />,
           },
           {

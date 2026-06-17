@@ -1,4 +1,4 @@
-import { Tabs } from "antd";
+import { Tabs, Typography } from "antd";
 import { useMemo } from "react";
 
 import LayerCatalogSection from "@/components/management/components/catalogs/LayerCatalogSection";
@@ -60,7 +60,6 @@ function CatalogManagementSections() {
       label: "Matrix statistics",
       children: (
         <StatCatalogSection
-          title="Matrix statistics"
           stats={networkStats}
           emptyMessage="No matrix statistics available."
         />
@@ -71,7 +70,6 @@ function CatalogManagementSections() {
       label: "Comparison statistics",
       children: (
         <StatCatalogSection
-          title="Comparison statistics"
           stats={comparisonStats}
           emptyMessage="No comparison statistics available."
         />
@@ -85,7 +83,22 @@ function CatalogManagementSections() {
   ];
 
   return (
-    <Tabs defaultActiveKey={DEFAULT_CATALOG_MANAGEMENT_TAB} items={items} />
+    <div className="data-management-load">
+      <section className="data-management-section">
+        <div className="data-management-section__header">
+          <Typography.Text type="secondary">
+            Edit labels, descriptions, visibility and numeric ranges used by the
+            loaded dataset.
+          </Typography.Text>
+        </div>
+        <Tabs
+          className="catalog-management-tabs"
+          defaultActiveKey={DEFAULT_CATALOG_MANAGEMENT_TAB}
+          destroyOnHidden
+          items={items}
+        />
+      </section>
+    </div>
   );
 }
 

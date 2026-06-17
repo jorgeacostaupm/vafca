@@ -1,15 +1,6 @@
 import type { Catalogs, Network } from "@/types/network";
+import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
 import { getNetworkPopulationIds } from "@/utils/networkMetadata";
-
-const formatPopulationSetLabel = (
-  populationIds: string[],
-  catalogs?: Catalogs,
-) => {
-  if (populationIds.length === 0) return "No population";
-  return populationIds
-    .map((id) => catalogs?.populations[id]?.label ?? id)
-    .join(" + ");
-};
 
 export const formatNetworkSourceLabel = (
   network: Network,

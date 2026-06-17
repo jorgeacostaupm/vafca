@@ -5,6 +5,7 @@
 @import "./layout/app-layout.css";
 
 @import "./components/antd-overrides.css";
+@import "./components/data-management.css";
 @import "./components/inline-notice.css";
 @import "./components/panel-card.css";
 @import "./components/upload-dropzone.css";
@@ -12,7 +13,6 @@
 @import "./features/matrix.css";
 @import "./features/node-link.css";
 @import "./features/network-controls.css";
-@import "./features/network-summary.css";
 @import "./features/network-settings.css";
 @import "./features/atlas-panel.css";
 @import "./features/atlas-viewer.css";

@@ -1,3 +1,4 @@
+import { CheckOutlined, ReloadOutlined } from '@ant-design/icons'
 import { Button, ColorPicker, Form, Slider, Space, Switch, Typography } from 'antd'
 import type { Color } from 'antd/es/color-picker'
 import { useMemo, useState } from 'react'
@@ -197,7 +198,9 @@ export default function CircularSettingsTab() {
 
   return (
     <Space direction="vertical" size={20} style={{ width: '100%' }}>
-      <SettingsSection title="Color & Edges">
+      <SettingsSection
+        description="Use this menu to configure edge colors, bundling, and interaction colors for node-link network views."
+      >
         <div className="circular-settings-edges">
           <Form layout="vertical" className="circular-settings-edges__form">
             <div className="circular-settings-edges__colors">
@@ -284,11 +287,16 @@ export default function CircularSettingsTab() {
         </div>
         <div className="circular-settings-actions">
           <Space>
-            <Button disabled={!hasPendingChanges} onClick={handleReset}>
-              Reset
-            </Button>
-            <Button type="primary" disabled={!hasPendingChanges} onClick={handleApply}>
+            <Button
+              type="primary"
+              icon={<CheckOutlined />}
+              disabled={!hasPendingChanges}
+              onClick={handleApply}
+            >
               Apply
+            </Button>
+            <Button icon={<ReloadOutlined />} disabled={!hasPendingChanges} onClick={handleReset}>
+              Reset
             </Button>
           </Space>
         </div>

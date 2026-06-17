@@ -1,11 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import {
-  DEFAULT_NETWORK_PANEL_LAYOUT,
-  DEFAULT_RANKING_PANEL_LAYOUT,
-} from "@/config/ui";
 import type { CatalogNetworkPrunePayload } from "@/store/slices/dataset/utils/catalogNetworkPruning";
-import { addNetworkLayoutItem } from "@/store/slices/networkLayout";
 import {
   createDefaultRankingQueryForTarget,
   initialRankingsState,
@@ -101,28 +96,21 @@ const rankingsSlice = createSlice({
     },
     setHoveredRankingItem(
       state,
-      action: PayloadAction<RankingHighlightItem | undefined>,
+      action: PayloadAction<RankingHighlightItem | null>,
     ) {
       state.hoveredItem = action.payload;
     },
     setSelectedRankingItem(
       state,
-      action: PayloadAction<RankingHighlightItem | undefined>,
+      action: PayloadAction<RankingHighlightItem | null>,
     ) {
       state.selectedItem = action.payload;
-    },
-    setRankingLayout(
-      state,
-      action: PayloadAction<Array<{ i: string; x: number; y: number; w: number; h: number }>>,
-    ) {
-      state.layout = action.payload.map((entry) => ({ ...entry }));
     },
     removeRankingResult(state, action: PayloadAction<{ resultId: string }>) {
       delete state.resultsById[action.payload.resultId];
       state.resultsOrder = state.resultsOrder.filter(
         (id) => id !== action.payload.resultId,
       );
-      state.layout = state.layout.filter((item) => item.i !== action.payload.resultId);
     },
     pruneRankingQueriesForDisabledCatalogItem(
       state,
@@ -152,19 +140,6 @@ const rankingsSlice = createSlice({
         state.nextResultSeq += 1;
         state.resultsOrder.unshift(action.payload.id);
         state.resultsById[action.payload.id] = action.payload;
-        state.layout = [
-          {
-            i: action.payload.id,
-            x: DEFAULT_RANKING_PANEL_LAYOUT.initialX,
-            y: DEFAULT_RANKING_PANEL_LAYOUT.initialY,
-            w: DEFAULT_RANKING_PANEL_LAYOUT.width,
-            h: DEFAULT_RANKING_PANEL_LAYOUT.height,
-          },
-          ...state.layout.map((entry) => ({
-            ...entry,
-            y: entry.y + DEFAULT_RANKING_PANEL_LAYOUT.height,
-          })),
-        ];
       })
       .addCase(runRankingQuery.rejected, (state, action) => {
         state.status = "error";
@@ -177,16 +152,6 @@ const rankingsSlice = createSlice({
             state.resultsById[result.id] = result;
           }
         });
-      })
-      .addCase(addNetworkLayoutItem, (state, action) => {
-        const yOffset =
-          action.payload.yOffset ??
-          action.payload.defaultH ??
-          DEFAULT_NETWORK_PANEL_LAYOUT.height;
-        state.layout = state.layout.map((entry) => ({
-          ...entry,
-          y: entry.y + yOffset,
-        }));
       });
   },
 });
@@ -197,7 +162,6 @@ export const {
   setRankingTarget,
   setHoveredRankingItem,
   setSelectedRankingItem,
-  setRankingLayout,
   removeRankingResult,
   pruneRankingQueriesForDisabledCatalogItem,
 } = rankingsSlice.actions;

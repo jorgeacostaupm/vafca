@@ -110,6 +110,8 @@ export const useClassicNodeLinkScene = ({
   const labelSelectionRef = useRef<
     d3.Selection<SVGTextElement, ClassicNode, SVGGElement, unknown> | null
   >(null);
+  const selectedLinkIdsRef = useRef(selectedLinkIds);
+  selectedLinkIdsRef.current = selectedLinkIds;
 
   useEffect(() => {
     if (!svgRef.current) {
@@ -135,7 +137,7 @@ export const useClassicNodeLinkScene = ({
       brushMode,
       geometricZoomEnabled,
       hideIsolatedNodes,
-      selectedLinkIds,
+      selectedLinkIds: selectedLinkIdsRef.current,
       visualStyle,
       linkColorResolver,
       onLabelToggle,
@@ -187,7 +189,6 @@ export const useClassicNodeLinkScene = ({
     brushMode,
     geometricZoomEnabled,
     hideIsolatedNodes,
-    selectedLinkIds,
     visualStyle,
     linkColorResolver,
     onLabelToggle,

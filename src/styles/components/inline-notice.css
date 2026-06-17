@@ -19,6 +19,10 @@
   color: var(--color-warning);
 }
 
+.inline-notice--error {
+  color: var(--color-danger);
+}
+
 .inline-notice--info {
   color: var(--color-primary);
 }

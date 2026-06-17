@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { DEFAULT_RESIZABLE_CONTAINER_DEBOUNCE_MS } from "@/config/ui";
 
@@ -15,18 +15,34 @@ export default function ResizableContainer({
 }: ResizableContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<Size | null>(null);
-  const debounceRef = useRef<number | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = containerRef.current;
     if (!element) return;
 
+    let debounceId: number | null = null;
+    let frameId: number | null = null;
+
+    const clearScheduledUpdate = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+        frameId = null;
+      }
+      if (debounceId !== null) {
+        window.clearTimeout(debounceId);
+        debounceId = null;
+      }
+    };
+
     const updateSize = () => {
       const rect = element.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
+      if (rect.width <= 0 || rect.height <= 0) {
+        setSize(null);
+        return;
+      }
 
+      const next = { width: rect.width, height: rect.height };
       setSize((prev) => {
-        const next = { width: rect.width, height: rect.height };
         if (prev?.width === next.width && prev.height === next.height) {
           return prev;
         }
@@ -34,18 +50,34 @@ export default function ResizableContainer({
       });
     };
 
-    const scheduleUpdate = () => {
-      if (debounceRef.current) window.clearTimeout(debounceRef.current);
-      debounceRef.current = window.setTimeout(updateSize, debounceMs);
+    const scheduleUpdate = (delayMs = debounceMs) => {
+      clearScheduledUpdate();
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        debounceId = window.setTimeout(() => {
+          debounceId = null;
+          updateSize();
+        }, delayMs);
+      });
     };
 
     updateSize();
-    const observer = new ResizeObserver(scheduleUpdate);
-    observer.observe(element);
+    const resizeObserver = new ResizeObserver(() => scheduleUpdate());
+    resizeObserver.observe(element);
+    const intersectionObserver =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver((entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) {
+              scheduleUpdate(0);
+            }
+          });
+    intersectionObserver?.observe(element);
 
     return () => {
-      if (debounceRef.current) window.clearTimeout(debounceRef.current);
-      observer.disconnect();
+      clearScheduledUpdate();
+      resizeObserver.disconnect();
+      intersectionObserver?.disconnect();
     };
   }, [debounceMs]);
 

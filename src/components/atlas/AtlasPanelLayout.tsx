@@ -1,4 +1,4 @@
-import { Col, Row, Space } from "antd";
+import { Card } from "antd";
 import type { ReactNode } from "react";
 
 type AtlasPanelLayoutProps = {
@@ -18,47 +18,51 @@ export function AtlasPanelLayout({
   list,
   viewer,
 }: AtlasPanelLayoutProps) {
+  const listRegion = (
+    <div className="atlas-panel__list">
+      {list}
+    </div>
+  );
+
+  const controlCard = (
+    <Card className="network-control-card atlas-panel__control-card" variant="outlined">
+      <div className="atlas-panel__control-stack">
+        <div className="atlas-panel__control-heading">
+          <div className="atlas-panel__control-main">{controls}</div>
+          {toolbar}
+        </div>
+        {filters}
+      </div>
+    </Card>
+  );
+
   if (has3d) {
     return (
-      <Row className="atlas-panel" gutter={[24, 24]} align="top">
-        <Col xs={24}>{toolbar}</Col>
+      <div className="atlas-panel atlas-panel--with-viewer">
+        <div className="atlas-panel__control-region">
+          {controlCard}
+        </div>
 
-        <Col xs={24} lg={10}>
-          <div className="atlas-panel__list">
-            {controls}
-          </div>
-        </Col>
-
-        <Col xs={24} lg={14}>
+        <div className="atlas-panel__viewer-region">
           {viewer}
-        </Col>
+        </div>
 
-        <Col xs={24}>
-          <div className="atlas-panel__list">
-            <Space direction="vertical" size={12} style={{ width: "100%" }}>
-              {filters}
-              {list}
-            </Space>
-          </div>
-        </Col>
-      </Row>
+        <div className="atlas-panel__list-region">
+          {listRegion}
+        </div>
+      </div>
     );
   }
 
   return (
-    <Row className="atlas-panel" gutter={[24, 24]} align="top">
-      <Col xs={24}>{toolbar}</Col>
+    <div className="atlas-panel">
+      <div className="atlas-panel__control-region">
+        {controlCard}
+      </div>
 
-      <Col xs={24}>
-        <div className="atlas-panel__list">
-          {controls}
-
-          <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            {filters}
-            {list}
-          </Space>
-        </div>
-      </Col>
-    </Row>
+      <div className="atlas-panel__list-region">
+        {listRegion}
+      </div>
+    </div>
   );
 }

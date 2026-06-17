@@ -2,8 +2,8 @@ import { useMemo } from "react";
 
 import type { AtlasState } from "@/types/atlas";
 import type { AtlasDefinition } from "@/types/atlas";
+import type { DatasetNetworkSummary } from "@/types/datasetNetworkView";
 import type { DatasetMeta } from "@/types/datasetState";
-import type { NetworkSummaryItem } from "@/types/networkViewStore";
 import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
 import {
   getDatasetCatalogs,
@@ -21,14 +21,14 @@ import { buildLabelNameMap, normalizeNodeOrder } from "@/utils/nodeOrder";
 type Option = { value: string; label: string };
 
 type LabelFormatter = (args: {
-  summary: NetworkSummaryItem;
+  summary: DatasetNetworkSummary;
   dataset: DatasetMeta | null;
 }) => string;
 
 type UseNetworkFilterOptionsArgs = {
   dataset: DatasetMeta | null;
   atlas: AtlasState;
-  summaries: NetworkSummaryItem[];
+  summaries: DatasetNetworkSummary[];
   populationKey: string;
   measureId: string;
   statId: string;

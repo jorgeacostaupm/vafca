@@ -1,11 +1,18 @@
-import { SettingOutlined } from "@ant-design/icons";
-import { Button, Col, Input, Row, Select, Space, Typography } from "antd";
-import { useCallback } from "react";
+import { CheckOutlined, CheckSquareOutlined, ClearOutlined } from "@ant-design/icons";
+import { Button, Col, Input, Row, Select, Space, Tooltip, Typography } from "antd";
+import { useCallback, useMemo } from "react";
+import { shallowEqual } from "react-redux";
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setLabelsEnabledMap } from "@/store/slices/atlasUi";
+import { recomputeAggregatedNetworksForActiveNodes } from "@/store/slices/dataset";
 import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
 
+import {
+  buildEffectiveNodeEnabledMap,
+  countChangedNodes,
+} from "./nodeVisibilityDraft";
 import { ALL_FILTER } from "./panelConstants";
 
 const { Search } = Input;
@@ -18,7 +25,6 @@ type AtlasPanelFiltersProps = {
   totalCount: number;
   allEnabled: boolean;
   allDisabled: boolean;
-  onOpenSettings: () => void;
 };
 
 export function AtlasPanelFilters({
@@ -29,10 +35,20 @@ export function AtlasPanelFilters({
   totalCount,
   allEnabled,
   allDisabled,
-  onOpenSettings,
 }: AtlasPanelFiltersProps) {
   const dispatch = useAppDispatch();
-  const atlasOrder = useAppSelector((state) => state.atlasUi.order);
+  const { atlasOrder, draft, labelsById } = useAppSelector(
+    (state) => ({
+      atlasOrder: state.atlasUi.order,
+      draft: state.visualizationUi.atlasPanel.nodeVisibilityDraft,
+      labelsById: state.atlasUi.labelsById,
+    }),
+    shallowEqual,
+  );
+  const pendingCount = useMemo(
+    () => countChangedNodes({ order: atlasOrder, labelsById, draft }),
+    [atlasOrder, draft, labelsById],
+  );
 
   const handleQueryChange = useCallback(
     (query: string) => {
@@ -42,19 +58,34 @@ export function AtlasPanelFilters({
   );
 
   const handleFilterChange = useCallback(
-    (field: string, value: string) => {
+    (field: string, value: string | undefined) => {
+      const nextSelectedFilters = { ...selectedFilters };
+      if (!value || value === ALL_FILTER) {
+        delete nextSelectedFilters[field];
+      } else {
+        nextSelectedFilters[field] = value;
+      }
+
       dispatch(
         setAtlasPanelState({
-          selectedFilters: {
-            ...selectedFilters,
-            [field]: value,
-          },
+          selectedFilters: nextSelectedFilters,
           collapsedGroups: [],
         }),
       );
     },
     [dispatch, selectedFilters],
   );
+
+  const handleApply = useCallback(() => {
+    if (!draft) return;
+    dispatch(
+      setLabelsEnabledMap(
+        buildEffectiveNodeEnabledMap({ order: atlasOrder, labelsById, draft }),
+      ),
+    );
+    dispatch(setAtlasPanelState({ nodeVisibilityDraft: null }));
+    void dispatch(recomputeAggregatedNetworksForActiveNodes());
+  }, [atlasOrder, dispatch, draft, labelsById]);
 
   return (
     <Row className="atlas-panel__filters" gutter={[12, 12]}>
@@ -72,51 +103,63 @@ export function AtlasPanelFilters({
         <Col xs={24} sm={12} md={8} key={field} className="atlas-panel__filter">
           <Typography.Text type="secondary">{humanizeFieldName(field)}</Typography.Text>
           <Select
-            value={selectedFilters[field] ?? ALL_FILTER}
+            allowClear
+            placeholder="All"
+            value={selectedFilters[field] === ALL_FILTER ? undefined : selectedFilters[field]}
             options={fieldOptionsByField[field] ?? [{ value: ALL_FILTER, label: "All" }]}
-            onChange={(value) => handleFilterChange(field, String(value))}
-            style={{ width: "100%" }}
+            onChange={(value) => handleFilterChange(field, value)}
+            className="atlas-panel__filter-select"
           />
         </Col>
       ))}
 
-      <Col xs={24} sm={12} md={8} className="atlas-panel__filter">
-        <Typography.Text type="secondary">Selection</Typography.Text>
-        <Space wrap>
+      <Col xs={24} sm={24} md={24} className="atlas-panel__filter atlas-panel__selection-actions">
+        <Space>
+          <Tooltip title="Select all nodes">
+            <Button
+              type="primary"
+              icon={<CheckSquareOutlined />}
+              aria-label="Select all nodes"
+              onClick={() =>
+                dispatch(
+                  setAtlasPanelState({
+                    nodeVisibilityDraft: Object.fromEntries(
+                      atlasOrder.map((id) => [id, true]),
+                    ),
+                  }),
+                )
+              }
+              disabled={allEnabled || totalCount === 0}
+            >
+              Select All
+            </Button>
+          </Tooltip>
+          <Tooltip title="Clear all nodes">
+            <Button
+              type="primary"
+              icon={<ClearOutlined />}
+              aria-label="Clear all nodes"
+              onClick={() =>
+                dispatch(
+                  setAtlasPanelState({
+                    nodeVisibilityDraft: Object.fromEntries(
+                      atlasOrder.map((id) => [id, false]),
+                    ),
+                  }),
+                )
+              }
+              disabled={allDisabled || totalCount === 0}
+            >
+              Clear All
+            </Button>
+          </Tooltip>
           <Button
-            onClick={() =>
-              dispatch(
-                setAtlasPanelState({
-                  nodeVisibilityDraft: Object.fromEntries(
-                    atlasOrder.map((id) => [id, true]),
-                  ),
-                }),
-              )
-            }
-            disabled={allEnabled || totalCount === 0}
+            type="primary"
+            icon={<CheckOutlined />}
+            onClick={handleApply}
+            disabled={pendingCount === 0}
           >
-            Select All
-          </Button>
-          <Button
-            onClick={() =>
-              dispatch(
-                setAtlasPanelState({
-                  nodeVisibilityDraft: Object.fromEntries(
-                    atlasOrder.map((id) => [id, false]),
-                  ),
-                }),
-              )
-            }
-            disabled={allDisabled || totalCount === 0}
-          >
-            Clear All
-          </Button>
-          <Button
-            icon={<SettingOutlined />}
-            onClick={onOpenSettings}
-            aria-label="Open atlas settings"
-          >
-            Settings
+            Apply
           </Button>
         </Space>
       </Col>

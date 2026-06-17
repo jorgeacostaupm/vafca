@@ -1,9 +1,6 @@
 import { ColorPicker, Form, Select, Slider, Space, Switch, Typography } from 'antd'
 
-import {
-  getMatrixColorScaleDefinition,
-  getMatrixColorScaleDefinitions,
-} from '@/config/matrixColorScales'
+import { getMatrixColorScaleDefinitions } from '@/config/matrixColorScales'
 import { MAX_MATRIX_COLOR_DISCRETE_STEPS, MIN_MATRIX_COLOR_DISCRETE_STEPS } from '@/config/ui'
 import { useAppDispatch } from '@/store/hooks'
 import {
@@ -36,7 +33,6 @@ export default function MatrixScaleSettingsSection({
 }: MatrixScaleSettingsSectionProps) {
   const dispatch = useAppDispatch()
   const definitions = getMatrixColorScaleDefinitions(scaleType)
-  const selectedDefinition = getMatrixColorScaleDefinition(settings.scaleId, scaleType)
 
   return (
     <div className="matrix-settings-scale">

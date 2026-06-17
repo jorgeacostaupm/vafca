@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 
 import { useAppSelector } from '@/store/hooks'
 import { selectDatasetData } from '@/store/slices/dataset'
-import { getDatasetNetworkByCompoundId } from '@/utils/datasetAccessors'
+import { getMaterializedNetworkByCompoundId } from '@/utils/datasetAccessors'
 
 export const useSelectedLinkNetworkLookup = (selectedNetworkIds: string[]) => {
   const dataset = useAppSelector(selectDatasetData)
@@ -12,7 +12,7 @@ export const useSelectedLinkNetworkLookup = (selectedNetworkIds: string[]) => {
       Object.fromEntries(
         selectedNetworkIds.map((compoundId) => [
           compoundId,
-          getDatasetNetworkByCompoundId(dataset, compoundId) ?? null,
+          getMaterializedNetworkByCompoundId(dataset, compoundId) ?? null,
         ]),
       ),
     [dataset, selectedNetworkIds],

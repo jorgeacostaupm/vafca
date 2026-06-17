@@ -1,6 +1,6 @@
 import type { NetworkDataStats } from "@/types/network";
 
-export type StoredNetworkView = {
+export type MaterializedNetworkView = {
   id: string;
   compoundId: string;
   layerId: string;
@@ -12,7 +12,7 @@ export type StoredNetworkView = {
   dataStats?: NetworkDataStats;
 };
 
-export type NetworkSummaryItem = {
+export type DatasetNetworkSummary = {
   compoundId: string;
   layerId: string;
   measureId: string;

@@ -82,6 +82,7 @@ export default function MatrixHeatmapPanel({
     compoundId,
     networkLabel,
     symmetric,
+    selectionVisible,
   });
 
   const valueLabel = useMemo(
@@ -114,6 +115,7 @@ export default function MatrixHeatmapPanel({
           visualStyle={visualStyle}
           valueFilters={valueFilters}
           selectedCells={selectionVisible ? selectedCells : []}
+          selectionVisible={selectionVisible}
           onCellHover={handleHover}
           onCellLeave={handleLeave}
           onLabelHover={handleLabelHover}

@@ -36,6 +36,7 @@ export const NetworkViewStatusContent = ({
         </Typography.Text>
         <Button
           size="small"
+          icon={<ReloadOutlined />}
           onClick={() => dispatch(markNetworkViewFormatting({ viewId }))}
           style={{ justifySelf: "start" }}
         >
