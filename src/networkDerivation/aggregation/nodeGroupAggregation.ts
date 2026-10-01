@@ -7,7 +7,7 @@ import type {
   NodeSet,
 } from "@/types/network";
 import { buildCircularCategoryOrderKey } from "@/utils/circular/hierarchy";
-import { getNetworkValue, isDirectedNetwork } from "@/utils/networkData";
+import { getNetworkValue } from "@/utils/networkData";
 import { computeNetworkMatrixDataStats } from "@/utils/networkDataStats";
 
 export type NodeGroupingConfig = {
@@ -31,6 +31,12 @@ export type ComputeAggregatedNetworkDataResult = {
   cellCounts: number[][];
 };
 
+export type ComputeAggregatedVisibleNetworkDataResult =
+  ComputeAggregatedNetworkDataResult & {
+    labels: string[];
+    groups: NodeGroup[];
+  };
+
 export type CreateAggregatedNetworkArgs = {
   baseNetwork: Network;
   nodeSet: NodeSet;
@@ -49,7 +55,7 @@ export type CreateAggregatedNetworkArgs = {
 const UNKNOWN_VALUE = "Unknown";
 
 const tagToString = (value: unknown) => {
-  if (value === null || value === undefined || value === "") return null;
+  if (!["string", "number", "boolean"].includes(typeof value) || value === "") return null;
   return String(value);
 };
 
@@ -95,7 +101,7 @@ const hashString = (source: string) => {
   return `fnv1a-${(hash >>> 0).toString(16).padStart(8, "0")}`;
 };
 
-export const buildNodeGroupsFromTags = ({
+export const buildNodeGroupsFromMetadata = ({
   nodeSet,
   fields,
   categoryOrder = {},
@@ -121,7 +127,7 @@ export const buildNodeGroupsFromTags = ({
 
     const criteria: Record<string, string> = {};
     const missing = fields.filter(
-      (field) => tagToString(node.tags?.[field]) === null,
+      (field) => tagToString(node.metadata?.[field]) === null,
     );
     if (missing.length > 0) {
       missingTagNodeIds.push(nodeId);
@@ -133,7 +139,7 @@ export const buildNodeGroupsFromTags = ({
     }
 
     fields.forEach((field) => {
-      criteria[field] = tagToString(node.tags?.[field]) ?? UNKNOWN_VALUE;
+      criteria[field] = tagToString(node.metadata?.[field]) ?? UNKNOWN_VALUE;
     });
 
     const id = groupIdFromCriteria(fields, criteria);
@@ -201,8 +207,6 @@ export const computeAggregatedNetworkData = ({
   nodeSet: NodeSet;
   groups: NodeGroup[];
 }): ComputeAggregatedNetworkDataResult => {
-  const directed = isDirectedNetwork(baseNetwork);
-
   const data = groups.map((sourceGroup, sourceIndex) =>
     groups.map((targetGroup, targetIndex) => {
       const values: number[] = [];
@@ -211,7 +215,7 @@ export const computeAggregatedNetworkData = ({
         targetGroup.nodeIds.forEach((targetNodeId, localTargetIndex) => {
           if (sourceIndex === targetIndex) {
             if (sourceNodeId === targetNodeId) return;
-            if (!directed && localTargetIndex <= localSourceIndex) return;
+            if (localTargetIndex <= localSourceIndex) return;
           }
           const value = getNetworkValue(baseNetwork, sourceNodeId, targetNodeId);
           if (isValidValue(value)) values.push(value);
@@ -227,22 +231,83 @@ export const computeAggregatedNetworkData = ({
       const sourceSize = sourceGroup.nodeIds.length;
       const targetSize = targetGroup.nodeIds.length;
       if (sourceIndex !== targetIndex) return sourceSize * targetSize;
-      return directed
-        ? sourceSize * Math.max(sourceSize - 1, 0)
-        : (sourceSize * Math.max(sourceSize - 1, 0)) / 2;
+      return (sourceSize * Math.max(sourceSize - 1, 0)) / 2;
     }),
   );
 
-  if (!directed) {
-    for (let row = 0; row < data.length; row += 1) {
-      for (let col = row + 1; col < data.length; col += 1) {
-        data[col][row] = data[row][col];
+  for (let row = 0; row < data.length; row += 1) {
+    for (let col = row + 1; col < data.length; col += 1) {
+      data[col][row] = data[row][col];
+      cellCounts[col][row] = cellCounts[row][col];
+    }
+  }
+
+  return { data, cellCounts };
+};
+
+const labelsMatch = (left: string[], right: string[]) =>
+  left.length === right.length && left.every((label, index) => label === right[index]);
+
+export const computeAggregatedVisibleNetworkData = ({
+  data,
+  rowLabels,
+  colLabels,
+  groups,
+  symmetric,
+}: {
+  data: MatrixCellValue[][];
+  rowLabels: string[];
+  colLabels: string[];
+  groups: NodeGroup[];
+  symmetric: boolean;
+}): ComputeAggregatedVisibleNetworkDataResult => {
+  const rowIndexById = new Map(rowLabels.map((id, index) => [id, index] as const));
+  const colIndexById = new Map(colLabels.map((id, index) => [id, index] as const));
+  const visibleGroups = groups.filter((group) =>
+    group.nodeIds.some((id) => rowIndexById.has(id) || colIndexById.has(id)),
+  );
+  const squareVisibleMatrix = labelsMatch(rowLabels, colLabels);
+
+  const cellCounts = Array.from({ length: visibleGroups.length }, () =>
+    Array<number>(visibleGroups.length).fill(0),
+  );
+  const aggregatedData = visibleGroups.map((sourceGroup, sourceIndex) =>
+    visibleGroups.map((targetGroup, targetIndex) => {
+      const values: number[] = [];
+
+      sourceGroup.nodeIds.forEach((sourceNodeId) => {
+        const rowIndex = rowIndexById.get(sourceNodeId);
+        if (rowIndex === undefined) return;
+
+        targetGroup.nodeIds.forEach((targetNodeId) => {
+          if (sourceIndex === targetIndex && sourceNodeId === targetNodeId) return;
+          const colIndex = colIndexById.get(targetNodeId);
+          if (colIndex === undefined) return;
+          const value = data[rowIndex]?.[colIndex] ?? null;
+          if (isValidValue(value)) values.push(value);
+        });
+      });
+
+      cellCounts[sourceIndex][targetIndex] = values.length;
+      return meanOrNull(values);
+    }),
+  );
+
+  if (symmetric && squareVisibleMatrix) {
+    for (let row = 0; row < aggregatedData.length; row += 1) {
+      for (let col = row + 1; col < aggregatedData.length; col += 1) {
+        aggregatedData[col][row] = aggregatedData[row][col];
         cellCounts[col][row] = cellCounts[row][col];
       }
     }
   }
 
-  return { data, cellCounts };
+  return {
+    data: aggregatedData,
+    cellCounts,
+    labels: visibleGroups.map((group) => group.id),
+    groups: visibleGroups,
+  };
 };
 
 export const buildAggregatedNetworkId = (
@@ -257,33 +322,6 @@ export const buildAggregatedNetworkId = (
   ]
     .filter(Boolean)
     .join("__");
-
-const normalizeIdPart = (value: string) =>
-  value.trim().replace(/[^a-zA-Z0-9_-]+/g, "_").replace(/^_+|_+$/g, "") ||
-  "none";
-
-export const buildAggregatedLayerId = (
-  baseLayerId: string | null,
-  baseStatisticId: string,
-  fields: string[],
-) =>
-  [
-    normalizeIdPart(baseLayerId ?? "none"),
-    normalizeIdPart(baseStatisticId),
-    fields.map(normalizeIdPart).join("-"),
-  ]
-    .filter(Boolean)
-    .join("-");
-
-const cloneSource = (network: Network): Network["source"] => {
-  if (network.source.type === "population") return { ...network.source };
-  if (network.source.type === "subject") return { ...network.source };
-  return {
-    type: "comparison",
-    left: { ...network.source.left },
-    right: { ...network.source.right },
-  };
-};
 
 const createAggregatedNodeSet = ({
   baseNodeSet,
@@ -305,8 +343,7 @@ const createAggregatedNodeSet = ({
     id: group.id,
     label: group.label,
     index,
-    tags: group.criteria,
-    metadata: {},
+    metadata: group.criteria,
     sourceNodeIds: group.nodeIds,
     criteria: group.criteria,
   })),
@@ -328,12 +365,6 @@ export const createAggregatedNetwork = ({
 }: CreateAggregatedNetworkArgs): Network => {
   const id = buildAggregatedNetworkId(baseNetwork.id, fields, "mean", groupOrderHash);
   const label = `${baseNetwork.label ?? baseNetwork.id} by ${fields.join(" / ")}`;
-  const baseLayerId = baseNetwork.context.layerId ?? null;
-  const aggregatedLayerId = buildAggregatedLayerId(
-    baseLayerId,
-    baseNetwork.statisticId,
-    fields,
-  );
   const aggregatedNodeSet = createAggregatedNodeSet({
     baseNodeSet: nodeSet,
     groups,
@@ -373,11 +404,7 @@ export const createAggregatedNetwork = ({
     ...baseNetwork,
     id,
     label,
-    context: {
-      ...baseNetwork.context,
-      layerId: aggregatedLayerId,
-    },
-    source: cloneSource(baseNetwork),
+    dimensions: { ...baseNetwork.dimensions },
     statisticId: "mean",
     nodeSetId: aggregatedNodeSet.id,
     nodeIds: aggregatedNodeSet.nodes.map((node) => node.id),
@@ -386,7 +413,6 @@ export const createAggregatedNetwork = ({
       layout: "full",
       dtype:
         baseNetwork.data.format === "matrix" ? baseNetwork.data.dtype : "float64",
-      symmetric: !isDirectedNetwork(baseNetwork),
       missingValue: null,
       values: data,
     },
@@ -402,7 +428,7 @@ export const createAggregatedNetwork = ({
         fields,
         aggregator: "mean",
         source: "visualizationSettings",
-        baseLayerId,
+        dimensions: baseNetwork.dimensions,
         activeNodeIds,
         groupOrderHash,
         orderMode,

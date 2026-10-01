@@ -39,13 +39,13 @@ export const twoSampleZTestDefinition: NetworkCalculationMethodDefinition = {
     "n_left > 1 and n_right > 1",
   ],
   requiredInputs: [
-    { role: "leftMean", label: "Left mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
-    { role: "rightMean", label: "Right mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
-    { role: "leftStd", label: "Left std", kind: "population", statId: "std", sourceLevel: "population", required: true },
-    { role: "rightStd", label: "Right std", kind: "population", statId: "std", sourceLevel: "population", required: true },
+    { role: "leftMean", label: "Left mean", kind: "population", statisticId: "mean", sourceLevel: "population", required: true },
+    { role: "rightMean", label: "Right mean", kind: "population", statisticId: "mean", sourceLevel: "population", required: true },
+    { role: "leftStd", label: "Left std", kind: "population", statisticId: "std", sourceLevel: "population", required: true },
+    { role: "rightStd", label: "Right std", kind: "population", statisticId: "std", sourceLevel: "population", required: true },
   ],
   outputs: [
-    { statId: "z_value", statLabel: "Z value", statCategory: "comparison", operator: "two_sample_z_test", comparisonType: "population_vs_population", labelSuffix: "two-sample Z", units: "z", scaleType: "diverging", center: 0, rangeMode: "observed_symmetric", useDataRange: true },
+    { statisticId: "z_value", statLabel: "Z value", statCategory: "comparison", operator: "two_sample_z_test", comparisonType: "population_vs_population", labelSuffix: "two-sample Z", units: "z", scaleType: "diverging", center: 0, rangeMode: "observed_symmetric", useDataRange: true },
   ],
   associatedOutputs: [
     {
@@ -53,7 +53,7 @@ export const twoSampleZTestDefinition: NetworkCalculationMethodDefinition = {
       label: "Also compute two-sided Z-test p-value",
       description: "Computes a two-sided p-value from the normal CDF.",
       defaultEnabled: false,
-      outputs: [{ statId: "p_value", statLabel: "p-value", statCategory: "comparison", operator: "two_sample_z_p_value", comparisonType: "population_vs_population", labelSuffix: "Z-test p-value", units: "p-value", scaleType: "sequential", center: null, rangeMode: "fixed", expectedRange: [0, 1] }],
+      outputs: [{ statisticId: "p_value", statLabel: "p-value", statCategory: "comparison", operator: "two_sample_z_p_value", comparisonType: "population_vs_population", labelSuffix: "Z-test p-value", units: "p-value", scaleType: "sequential", center: null, rangeMode: "fixed", expectedRange: [0, 1] }],
     },
   ],
   requiresControlOrReference: true,
@@ -70,11 +70,11 @@ export const calculatePopulationTwoSampleZTest: NetworkCalculationMethod["calcul
   result,
   existingIds,
 }) => {
-  request.layerIds.forEach((layerId) => {
+  request.dimensionPairs.forEach((dimensionPair) => {
     request.measureIds.forEach((measureId) => {
       const resolved = ensureReady(
         "population_two_sample_z_test",
-        layerId,
+        dimensionPair,
         measureId,
         result.skipped,
         request,
@@ -86,7 +86,7 @@ export const calculatePopulationTwoSampleZTest: NetworkCalculationMethod["calcul
       const rightMean = resolved.networks.rightMean!;
       const n = resolvePopulationSampleSizesOrSkip(
         "population_two_sample_z_test",
-        layerId,
+        dimensionPair,
         measureId,
         request,
         state,

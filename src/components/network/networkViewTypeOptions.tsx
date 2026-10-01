@@ -21,7 +21,7 @@ const viewTypeIcons: Record<NetworkViewType, React.ReactNode> = {
 
 export const networkViewTypeOptions: ViewTypeOption[] = [
   createNetworkSegmentedOption("matrix", <AppstoreOutlined />, "Matrix"),
-  createNetworkSegmentedOption("circular", <Loading3QuartersOutlined />, "Circular"),
+  createNetworkSegmentedOption("circular", <Loading3QuartersOutlined />, "Connectogram"),
   createNetworkSegmentedOption("classic", <BranchesOutlined />, "Node-Link"),
 ];
 

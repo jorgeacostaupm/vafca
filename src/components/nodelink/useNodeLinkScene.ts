@@ -3,13 +3,17 @@ import {
   type RefObject,
   useCallback,
   useEffect,
+  useEffectEvent,
   useRef,
   useState,
 } from "react";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
+import { getSharedHoverState } from "@/components/hover/sharedHover";
 import { renderClassicScene } from "@/components/nodelink/sceneRenderer";
 import { useClassicProgrammaticTooltip } from "@/components/nodelink/useProgrammaticTooltip";
 import { useClassicSelectionStyles } from "@/components/nodelink/useSelectionStyles";
+import { applyClassicHoverSelectionStyles } from "@/components/nodelink/visualEffects";
 import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type {
   ClassicLink,
@@ -42,7 +46,7 @@ type UseClassicNodeLinkSceneArgs = NodeLinkInteractionProps & {
   onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   onBrushDeselectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   getNodeColor: (node: ClassicNode) => string;
-  valueLabel: string;
+  valueLabel: TooltipValueLabel;
 };
 
 export const useClassicNodeLinkScene = ({
@@ -110,8 +114,9 @@ export const useClassicNodeLinkScene = ({
   const labelSelectionRef = useRef<
     d3.Selection<SVGTextElement, ClassicNode, SVGGElement, unknown> | null
   >(null);
-  const selectedLinkIdsRef = useRef(selectedLinkIds);
-  selectedLinkIdsRef.current = selectedLinkIds;
+  const interactionState = useEffectEvent(() => ({
+    selectedLinkIds, visualStyle, onLabelToggle, onLinkSelect, onBrushSelectLinks, onBrushDeselectLinks,
+  }));
 
   useEffect(() => {
     if (!svgRef.current) {
@@ -137,18 +142,18 @@ export const useClassicNodeLinkScene = ({
       brushMode,
       geometricZoomEnabled,
       hideIsolatedNodes,
-      selectedLinkIds: selectedLinkIdsRef.current,
-      visualStyle,
+      selectedLinkIds: interactionState().selectedLinkIds,
+      visualStyle: interactionState().visualStyle,
       linkColorResolver,
-      onLabelToggle,
-      onLinkSelect,
+      onLabelToggle: payload => interactionState().onLabelToggle?.(payload),
+      onLinkSelect: payload => interactionState().onLinkSelect?.(payload),
       onLinkHover,
       onLinkLeave,
       onNodeHover,
       onNodeLeave,
       onBrushZoom,
-      onBrushSelectLinks,
-      onBrushDeselectLinks,
+      onBrushSelectLinks: payload => interactionState().onBrushSelectLinks?.(payload),
+      onBrushDeselectLinks: payload => interactionState().onBrushDeselectLinks?.(payload),
       getNodeColor,
       valueLabel,
       resetLocalHoverActive,
@@ -164,6 +169,13 @@ export const useClassicNodeLinkScene = ({
       return;
     }
 
+    const hover = getSharedHoverState();
+    applyClassicHoverSelectionStyles({
+      ...result, selectedLinkIds: interactionState().selectedLinkIds,
+      visualStyle: interactionState().visualStyle, linkColorResolver, getNodeColor,
+      hoveredCell: hover?.type === 'cell' ? hover : null,
+      hoveredNodeId: hover?.type === 'node' ? hover.nodeId : null,
+    });
     nodesRef.current = result.nodes;
     linksRef.current = result.links;
     degreeByIdRef.current = result.degreeById;
@@ -189,17 +201,12 @@ export const useClassicNodeLinkScene = ({
     brushMode,
     geometricZoomEnabled,
     hideIsolatedNodes,
-    visualStyle,
     linkColorResolver,
-    onLabelToggle,
-    onLinkSelect,
     onLinkHover,
     onLinkLeave,
     onNodeHover,
     onNodeLeave,
     onBrushZoom,
-    onBrushSelectLinks,
-    onBrushDeselectLinks,
     getNodeColor,
     valueLabel,
     resetLocalHoverActive,

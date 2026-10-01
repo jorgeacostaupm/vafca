@@ -20,6 +20,19 @@ export const markNetworkViewFormatting =
       return payload
     }
 
+    if (target.temporaryNetworkId) {
+      const temporaryNetwork =
+        getState().networkVisualization.temporaryNetworksById[target.temporaryNetworkId]
+      if (temporaryNetwork) {
+        dispatch(setNetworkViewStatus({ viewId, status: 'ready' }))
+        return { viewId }
+      }
+
+      const payload = { viewId, error: 'Temporary network data is not available.' }
+      dispatch(setNetworkViewStatus({ ...payload, status: 'error' }))
+      return payload
+    }
+
     const networkView = getMaterializedNetworkByCompoundId(
       selectDatasetData(getState()),
       target.compoundId,

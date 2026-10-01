@@ -1,4 +1,5 @@
 export { addNetworkViewAndFormat } from './addNetworkViewAndFormat'
+export { aggregateNetworkView } from './aggregateNetworkView'
 export { markNetworkViewFormatting } from './markNetworkViewFormatting'
 export { mutateNetworkViewType } from './mutateNetworkViewType'
 export { pruneInvalidNetworkViews } from './pruneInvalidNetworkViews'

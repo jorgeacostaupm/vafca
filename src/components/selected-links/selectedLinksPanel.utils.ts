@@ -102,7 +102,12 @@ export const buildRows = ({
 }: BuildRowsParams): LinkRow[] => {
   return links.map((link) => ({
     key: link.id,
-    linkLabel: `${link.rowLabel} ${link.directed ? "→" : "↔"} ${link.colLabel}`,
+    linkLabel: `${link.rowLabel} ↔ ${link.colLabel}`,
+    rowId: link.rowId,
+    colId: link.colId,
+    rowLabel: link.rowLabel,
+    colLabel: link.colLabel,
+
     values: buildLinkValues({
       link,
       networkIds: selectedNetworkIds,
@@ -124,7 +129,7 @@ export const buildExportLinks = (
     rowLabel: link.rowLabel,
     colId: link.colId,
     colLabel: link.colLabel,
-    directed: link.directed,
+
     values: buildLinkValues({
       link,
       networkIds,

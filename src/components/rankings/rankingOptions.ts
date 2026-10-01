@@ -2,30 +2,30 @@ import { RANKING_TOP_N_OPTIONS } from "@/config/ui";
 import type { Network, NetworkDataset } from "@/types/network";
 import type { RankingNetworkKind, RankingQuery } from "@/types/rankings";
 import {
-  ALL_COMPATIBLE_LAYERS,
+  ALL_COMPATIBLE_ASPECT_VALUES,
+  areRankingSourcesCompatible,
   getNetworkAggregationGroupingKey,
-  getNetworkAggregationGroupingLabel,
-  getNetworkSource,
-  getNetworkSourceLabel,
   getRankingNetworkKind,
+  getRankingQuerySourceIds,
   networkMatchesRankingQuery,
 } from "@/utils/rankings/rankingNetworkMetadata";
 
-type Option = { value: string; label: string };
+type Option = { value: string; label: string; disabled?: boolean };
+
+export type RankingAspectOptions = {
+  id: string;
+  label: string;
+  options: Option[];
+};
 
 const isRankingNetworkCandidate = (network: Network) => {
   void network;
   return true;
 };
 
-const sourceTypeLabel: Record<NonNullable<RankingQuery["sourceType"]>, string> = {
-  population: "Population",
-  subject: "Subject",
-  comparison: "Comparison",
-};
-
 const matchesQueryPart = (
   network: Network,
+  dataset: NetworkDataset,
   query: RankingQuery,
   ignored: Array<keyof RankingQuery> = [],
 ) => {
@@ -33,28 +33,24 @@ const matchesQueryPart = (
   ignored.forEach((key) => {
     delete patch[key];
   });
-  if (patch.layerIds?.length === 0) {
-    delete patch.layerIds;
-  }
-  return isRankingNetworkCandidate(network) && networkMatchesRankingQuery(network, patch);
+  return isRankingNetworkCandidate(network) && networkMatchesRankingQuery(network, patch, dataset);
 };
 
-const getSelectedLayerCompatibility = (
+const getSelectedAspectCompatibility = (
   networks: Network[],
+  dataset: NetworkDataset,
   query: RankingQuery,
 ) => {
-  const selectedLayerIds = (query.layerIds ?? []).filter(
-    (layerId) => layerId !== ALL_COMPATIBLE_LAYERS,
+  const hasSpecificAspectFilter = Object.values(query.aspectFilters ?? {}).some(
+    (values) => values.length > 0 && !values.includes(ALL_COMPATIBLE_ASPECT_VALUES),
   );
-  if (selectedLayerIds.length === 0) return {};
+  if (!hasSpecificAspectFilter) return {};
 
-  const selectedNetworks = networks.filter(
-    (network) =>
-      selectedLayerIds.includes(network.context.layerId ?? "none") &&
-      matchesQueryPart(network, query, ["layerIds"]),
+  const selectedNetworks = networks.filter((network) =>
+    matchesQueryPart(network, dataset, query, ["aspectFilters"]),
   );
   const selectedKinds = new Set<RankingNetworkKind>(
-    selectedNetworks.map(getRankingNetworkKind),
+    selectedNetworks.map((network) => getRankingNetworkKind(network, dataset)),
   );
   const selectedGroupingKeys = new Set(
     selectedNetworks
@@ -71,26 +67,21 @@ const getSelectedLayerCompatibility = (
   };
 };
 
-export const getRankingLayerSelectionPatch = (
+export const getRankingAspectSelectionPatch = (
   dataset: NetworkDataset | null | undefined,
   query: RankingQuery,
-  layerIds: string[],
+  aspectFilters: Record<string, string[]>,
 ): Partial<RankingQuery> => {
-  if (!dataset || layerIds.includes(ALL_COMPATIBLE_LAYERS)) {
-    return layerIds.includes(ALL_COMPATIBLE_LAYERS) && query.aggregationGroupingKey
-      ? {
-          networkKind: query.networkKind,
-          aggregationGroupingKey: query.aggregationGroupingKey,
-        }
-      : {
-          networkKind: undefined,
-          aggregationGroupingKey: undefined,
-        };
+  if (!dataset) {
+    return {
+      networkKind: undefined,
+      aggregationGroupingKey: undefined,
+    };
   }
 
-  const compatibility = getSelectedLayerCompatibility(dataset.networks, {
+  const compatibility = getSelectedAspectCompatibility(dataset.networks, dataset, {
     ...query,
-    layerIds,
+    aspectFilters,
   });
   return {
     networkKind: compatibility.networkKind,
@@ -110,8 +101,8 @@ export const linkMetricOptions = [
   { label: "Highest value", value: "highestValue" },
   { label: "Lowest value", value: "lowestValue" },
   { label: "Highest absolute value", value: "highestAbsValue" },
-  { label: "Mean across layers", value: "meanAcrossMatrices" },
-  { label: "Mean absolute across layers", value: "meanAbsAcrossMatrices" },
+  { label: "Mean across matrices", value: "meanAcrossMatrices" },
+  { label: "Mean absolute across matrices", value: "meanAbsAcrossMatrices" },
 ];
 
 export const nodeMetricOptions = [
@@ -126,31 +117,54 @@ export const topNOptions = RANKING_TOP_N_OPTIONS.map((value) => ({
   value,
 }));
 
+const uniqueOptions = (
+  ids: Iterable<string>,
+  labelForId: (id: string) => string,
+): Option[] =>
+  Array.from(new Set(ids))
+    .map((id) => ({ value: id, label: labelForId(id) }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
 export const getSourceOptions = (
   dataset?: NetworkDataset | null,
   query: RankingQuery = {} as RankingQuery,
 ) => {
   if (!dataset) return [];
-  const seen = new Set<string>();
-  const options = dataset.networks.flatMap((network) => {
-    if (!matchesQueryPart(network, query, ["sourceType", "sourceId"])) {
-      return [];
-    }
-    const source = getNetworkSource(network);
-    if (!source.sourceType || !source.sourceId) return [];
-    const value = `${source.sourceType}::${source.sourceId}`;
-    if (seen.has(value)) return [];
-    seen.add(value);
-    return [
-      {
-        label: `${sourceTypeLabel[source.sourceType]} · ${
-          getNetworkSourceLabel(network, dataset) ?? source.sourceId
-        }`,
-        value,
-      },
-    ];
+  const selectedSourceIds = getRankingQuerySourceIds(query);
+  const selectedIsComparison = selectedSourceIds.length
+    ? dataset.catalogs.sources[selectedSourceIds[0]]?.kind === "comparison"
+    : undefined;
+  return uniqueOptions(
+    dataset.networks
+      .filter((network) =>
+        matchesQueryPart(network, dataset, query, ["sourceId", "sourceIds"]),
+      )
+      .map((network) => network.sourceId),
+    (id) => dataset.catalogs.sources[id]?.label ?? id,
+  ).map((option) => ({
+    ...option,
+    disabled:
+      selectedIsComparison !== undefined &&
+      (dataset.catalogs.sources[option.value]?.kind === "comparison") !==
+        selectedIsComparison,
+  }));
+};
+
+const sharedIdsAcrossSelectedSources = (
+  networks: Network[],
+  sourceIds: string[],
+  getId: (network: Network) => string,
+) => {
+  if (sourceIds.length < 2) return networks.map(getId);
+  const sourcesById = new Map<string, Set<string>>();
+  networks.forEach((network) => {
+    const sources = sourcesById.get(getId(network)) ?? new Set<string>();
+    sources.add(network.sourceId);
+    sourcesById.set(getId(network), sources);
   });
-  return options;
+  return Array.from(sourcesById.entries())
+    .filter(([, sources]) => sourceIds.every((sourceId) => sources.has(sourceId)))
+    .map(([id]) => id);
 };
 
 export const getMeasureOptions = (
@@ -158,19 +172,17 @@ export const getMeasureOptions = (
   query: RankingQuery,
 ): Option[] => {
   if (!dataset) return [];
-  const options = Array.from(
-    new Set(
-      dataset.networks
-        .filter((network) => matchesQueryPart(network, query, ["measureId"]))
-        .map((network) => network.measureId),
+  const networks = dataset.networks.filter((network) =>
+    matchesQueryPart(network, dataset, query, ["measureId"]),
+  );
+  return uniqueOptions(
+    sharedIdsAcrossSelectedSources(
+      networks,
+      getRankingQuerySourceIds(query),
+      (network) => network.measureId,
     ),
-  )
-    .sort()
-    .map((id) => ({
-      label: dataset.catalogs.measures[id]?.label ?? id,
-      value: id,
-    }));
-  return options;
+    (id) => dataset.catalogs.measures[id]?.label ?? id,
+  );
 };
 
 export const getStatisticOptions = (
@@ -178,77 +190,68 @@ export const getStatisticOptions = (
   query: RankingQuery,
 ): Option[] => {
   if (!dataset) return [];
-  const options = Array.from(
-    new Set(
-      dataset.networks
-        .filter((network) => matchesQueryPart(network, query, ["statisticId"]))
-        .map((network) => network.statisticId),
+  const networks = dataset.networks.filter((network) =>
+    matchesQueryPart(network, dataset, query, ["statisticId"]),
+  );
+  return uniqueOptions(
+    sharedIdsAcrossSelectedSources(
+      networks,
+      getRankingQuerySourceIds(query),
+      (network) => network.statisticId,
     ),
-  )
-    .sort()
-    .map((id) => ({
-      label: dataset.catalogs.statistics[id]?.label ?? id,
-      value: id,
-    }));
-  return options;
+    (id) => dataset.catalogs.statistics[id]?.label ?? id,
+  );
 };
 
-export const getCompatibleLayerOptions = (
+export const getRankingAspectOptions = (
   dataset: NetworkDataset | null | undefined,
   query: RankingQuery,
-) => {
+): RankingAspectOptions[] => {
   if (!dataset) return [];
-  const selectedCompatibility = getSelectedLayerCompatibility(
+  const selectedCompatibility = getSelectedAspectCompatibility(
     dataset.networks,
+    dataset,
     query,
   );
-  const layers = dataset.networks
-    .filter((network) => {
-      if (!matchesQueryPart(network, query, ["layerIds", "aggregationGroupingKey"])) {
-        return false;
-      }
-      if (
-        selectedCompatibility.networkKind &&
-        getRankingNetworkKind(network) !== selectedCompatibility.networkKind
-      ) {
-        return false;
-      }
-      if (
-        selectedCompatibility.aggregationGroupingKey &&
-        getNetworkAggregationGroupingKey(network) !==
-          selectedCompatibility.aggregationGroupingKey
-      ) {
-        return false;
-      }
-      return true;
-    });
-  const uniqueLayers = Array.from(
-    new Map(
-      layers.map((network) => {
-        const layerId = network.context.layerId ?? "none";
-        const groupingLabel = getNetworkAggregationGroupingLabel(network);
-        return [
-          layerId,
-          {
-            layerId,
-            groupingLabel,
-          },
-        ];
-      }),
-    ).values(),
-  );
-  return [
-    { label: "All layers", value: ALL_COMPATIBLE_LAYERS },
-    ...uniqueLayers.map(({ layerId, groupingLabel }) => ({
-      label: [
-        dataset.catalogs.layers[layerId]?.label ?? layerId,
-        groupingLabel ? `grouped by ${groupingLabel}` : null,
-      ]
-        .filter(Boolean)
-        .join(" · "),
-      value: layerId,
-    })),
-  ];
+  return dataset.catalogs.aspects.map((aspect) => {
+    const networks = dataset.networks.filter((network) => {
+        if (!matchesQueryPart(network, dataset, query, ["aspectFilters", "aggregationGroupingKey"])) {
+          return false;
+        }
+        if (
+          selectedCompatibility.networkKind &&
+          getRankingNetworkKind(network, dataset) !== selectedCompatibility.networkKind
+        ) {
+          return false;
+        }
+        if (
+          selectedCompatibility.aggregationGroupingKey &&
+          getNetworkAggregationGroupingKey(network) !==
+            selectedCompatibility.aggregationGroupingKey
+        ) {
+          return false;
+        }
+        return true;
+      });
+    const values = sharedIdsAcrossSelectedSources(
+      networks,
+      getRankingQuerySourceIds(query),
+      (network) => network.dimensions[aspect.id],
+    )
+      .filter((value): value is string => Boolean(value));
+
+    return {
+      id: aspect.id,
+      label: aspect.label,
+      options: [
+        { label: "All compatible", value: ALL_COMPATIBLE_ASPECT_VALUES },
+        ...uniqueOptions(
+          values,
+          (id) => dataset.catalogs.aspectCatalogs[aspect.id]?.[id]?.label ?? id,
+        ),
+      ],
+    };
+  });
 };
 
 export const getRankingQueryMissingFields = (
@@ -258,47 +261,48 @@ export const getRankingQueryMissingFields = (
   const missing: string[] = [];
   if (!dataset) missing.push("dataset");
   if (!query.target) missing.push("target");
-  if (!query.sourceType || !query.sourceId) missing.push("source");
+  const sourceIds = getRankingQuerySourceIds(query);
+  if (!sourceIds.length) missing.push("source");
+  if (dataset && !areRankingSourcesCompatible(sourceIds, dataset)) {
+    missing.push("compatible source types");
+  }
   if (!query.measureId) missing.push("measure");
   if (!query.statisticId) missing.push("statistic");
   if (!query.metric) missing.push("metric");
   if (!query.topN) missing.push("top N");
-  const hasSelectedLayers = Boolean(query.layerIds?.length);
-  if (!hasSelectedLayers) missing.push("layers");
-  if (
-    query.target === "nodes" &&
-    (!hasSelectedLayers ||
-      query.layerIds?.length !== 1 ||
-      query.layerIds.includes(ALL_COMPATIBLE_LAYERS))
-  ) {
-    missing.push("single layer");
-  }
+  dataset?.catalogs.aspects.forEach((aspect) => {
+    if (!(query.aspectFilters?.[aspect.id]?.length)) missing.push(aspect.label);
+  });
   if (
     dataset &&
-    query.sourceType &&
-    query.sourceId &&
+    sourceIds.length > 0 &&
     query.measureId &&
     query.statisticId &&
-    hasSelectedLayers &&
-    !dataset.networks.some((network) => matchesQueryPart(network, query))
+    dataset.catalogs.aspects.every((aspect) => query.aspectFilters?.[aspect.id]?.length) &&
+    !sourceIds.every((sourceId) =>
+      dataset.networks.some(
+        (network) =>
+          network.sourceId === sourceId &&
+          matchesQueryPart(network, dataset, query),
+      ),
+    )
   ) {
     missing.push("compatible networks");
   }
   if (
     query.target === "links" &&
-    query.layerIds &&
-    query.layerIds.length !== 1 &&
+    Object.values(query.aspectFilters ?? {}).some((values) => values.length > 1) &&
     !query.linkCollectionMode
   ) {
-    missing.push("multi-layer mode");
+    missing.push("multi-matrix mode");
   }
   return missing;
 };
 
 const titleCaseTarget = (target: RankingQuery["target"]) => {
-  if (target === "networks") return "Networks";
-  if (target === "nodes") return "Nodes";
-  return "Links";
+  if (target === "networks") return "Network";
+  if (target === "nodes") return "Node";
+  return "Link";
 };
 
 const optionLabel = (options: Option[], value?: string) =>
@@ -314,48 +318,10 @@ export const getRankingMetricLabel = (query: RankingQuery) => {
   return optionLabel(options, query.metric) ?? query.metric;
 };
 
-const rankingAutoconnectionsLabel = (query: RankingQuery) => {
-  if (
-    query.target === "links" &&
-    query.allowLinkRankingAutoconnections
-  ) {
-    return "autoconnections allowed";
-  }
-  if (
-    query.target === "nodes" &&
-    query.allowNodeRankingAutoconnections
-  ) {
-    return "autoconnections allowed";
-  }
-  return undefined;
-};
-
 export const formatRankingPanelTitle = (
-  result: { query: RankingQuery },
+  { query }: { query: RankingQuery },
   dataset?: NetworkDataset | null,
-) => {
-  const query = result.query;
-  const source =
-    dataset && query.sourceType && query.sourceId
-      ? optionLabel(getSourceOptions(dataset, query), `${query.sourceType}::${query.sourceId}`)
-      : "all sources";
-  const measure =
-    dataset && query.measureId
-      ? dataset.catalogs.measures[query.measureId]?.label ?? query.measureId
-      : "all measures";
-  const statistic =
-    dataset && query.statisticId
-      ? dataset.catalogs.statistics[query.statisticId]?.label ?? query.statisticId
-      : "all statistics";
-  const autoconnections = rankingAutoconnectionsLabel(query);
-
-  return [
-    titleCaseTarget(query.target),
-    source,
-    measure,
-    statistic,
-    autoconnections,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-};
+) => [
+  `${titleCaseTarget(query.target)} Ranking`,
+  dataset?.catalogs.measures[query.measureId ?? ""]?.label ?? query.measureId,
+].filter(Boolean).join(" · ");

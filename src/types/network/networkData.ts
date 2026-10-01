@@ -10,7 +10,7 @@ export type RangeMode =
   | "observed"
   | "observed_symmetric"
   | "fixed";
-export type UiRangeMode = "view_observed" | "catalog";
+export type UiRangeMode = "view_observed" | "shared";
 
 export type NetworkValueDomain = {
   min: number | null;
@@ -36,7 +36,6 @@ export type MatrixNetworkData = {
   layout: MatrixLayout;
   dtype?: MatrixDtype;
   values: MatrixData;
-  symmetric: boolean;
   missingValue: MatrixCellValue;
 };
 
@@ -49,7 +48,6 @@ export type NetworkEdge = {
 export type EdgeListNetworkData = {
   format: "edge-list";
   edges: NetworkEdge[];
-  directed: boolean;
 };
 
 export type NetworkData = MatrixNetworkData | EdgeListNetworkData;

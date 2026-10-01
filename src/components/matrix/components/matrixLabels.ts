@@ -6,6 +6,7 @@ import {
   MATRIX_LABEL_BACKGROUND_PADDING_X,
   MATRIX_LABEL_BACKGROUND_PADDING_Y,
   MATRIX_LABEL_BACKGROUND_RADIUS,
+  MATRIX_LABEL_FONT_FAMILY,
 } from "@/config/ui";
 import type { MatrixVisualStyle } from "@/types/visualizationUi";
 import { getReadableTextColor } from "@/utils/groupingColoring";
@@ -83,6 +84,7 @@ const resolveTextColor = (args: {
   visualStyle: MatrixVisualStyle;
 }) => {
   const { id, labelColors, zoomLabelSet, visualStyle } = args;
+  if (visualStyle.annotationNodeColors?.[id]) return getReadableTextColor(visualStyle.annotationNodeColors[id]);
   if (zoomLabelSet?.has(id)) {
     return getReadableTextColor(visualStyle.selectionColor);
   }
@@ -95,8 +97,8 @@ const resolveTextColor = (args: {
 const resolveFontWeight = (id: string, zoomLabelSet: Set<string> | null) =>
   zoomLabelSet?.has(id) ? 700 : 400;
 
-const applyLabelBackground = (
-  group: d3.Selection<SVGGElement, number, SVGGElement, unknown>,
+const applyLabelBackground = <P extends d3.BaseType>(
+  group: d3.Selection<SVGGElement, number, P, unknown>,
   labelIdByIndex: (index: number) => string,
   labelColors?: Record<string, string>,
   zoomLabelSet?: Set<string> | null,
@@ -104,10 +106,10 @@ const applyLabelBackground = (
 ) => {
   group.each(function (index) {
     const id = labelIdByIndex(index);
-    const backgroundColor =
+    const backgroundColor = visualStyle?.annotationNodeColors?.[id] ?? (
       zoomLabelSet?.has(id) && visualStyle
         ? visualStyle.selectionColor
-        : labelColors?.[id] ?? null;
+        : labelColors?.[id] ?? null);
     const textNode = d3.select(this).select<SVGTextElement>("text").node();
     const rect = d3.select(this).select<SVGRectElement>("rect");
 
@@ -162,7 +164,9 @@ export const renderColumnLabels = ({
   const xLabelGroups = xLabels
     .selectAll<SVGGElement, number>("g")
     .data(labelIndices)
-    .join("g");
+    .join("g")
+    .attr("class", "heatmap-label")
+    .attr("data-node-id", index => labels[index]);
 
   xLabelGroups
     .attr("transform", (index) => {
@@ -214,6 +218,7 @@ export const renderColumnLabels = ({
     .attr("text-anchor", "start")
     .attr("dominant-baseline", "middle")
     .attr("font-size", colLabelFontSize)
+    .attr("font-family", MATRIX_LABEL_FONT_FAMILY)
     .attr("fill", (index) =>
       resolveTextColor({
         id: labels[index],
@@ -222,6 +227,7 @@ export const renderColumnLabels = ({
         visualStyle,
       }),
     )
+    .attr("data-node-id", (index) => labels[index])
     .attr("font-weight", (index) => resolveFontWeight(labels[index], zoomLabelSet))
     .text((index) => {
       const id = labels[index];
@@ -266,7 +272,9 @@ export const renderRowLabels = ({
   const yLabelGroups = yLabels
     .selectAll<SVGGElement, number>("g")
     .data(labelIndices)
-    .join("g");
+    .join("g")
+    .attr("class", "heatmap-label")
+    .attr("data-node-id", index => labels[index]);
 
   yLabelGroups
     .attr("transform", (index) => {
@@ -318,6 +326,7 @@ export const renderRowLabels = ({
     .attr("text-anchor", "end")
     .attr("alignment-baseline", "middle")
     .attr("font-size", rowLabelFontSize)
+    .attr("font-family", MATRIX_LABEL_FONT_FAMILY)
     .attr("fill", (index) =>
       resolveTextColor({
         id: labels[index],
@@ -326,6 +335,7 @@ export const renderRowLabels = ({
         visualStyle,
       }),
     )
+    .attr("data-node-id", (index) => labels[index])
     .attr("font-weight", (index) => resolveFontWeight(labels[index], zoomLabelSet))
     .text((index) => {
       const id = labels[index];
@@ -339,4 +349,21 @@ export const renderRowLabels = ({
     zoomLabelSet,
     visualStyle,
   );
+};
+
+export const updateHeatmapLabelStyles = (
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  labelColors: Record<string, string> | undefined,
+  selectedZoomLabels: string[] | undefined,
+  visualStyle: MatrixVisualStyle,
+) => {
+  const zoomLabelSet = new Set(selectedZoomLabels);
+  svg.selectAll<SVGGElement, number>('.heatmap-label').each(function () {
+    const group = d3.select<SVGGElement, number>(this);
+    const id = this.getAttribute('data-node-id')!;
+    group.select('text')
+      .attr('fill', resolveTextColor({ id, labelColors, zoomLabelSet, visualStyle }))
+      .attr('font-weight', resolveFontWeight(id, zoomLabelSet));
+    applyLabelBackground(group, () => id, labelColors, zoomLabelSet, visualStyle);
+  });
 };

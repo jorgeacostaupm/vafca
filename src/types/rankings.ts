@@ -1,5 +1,7 @@
+import type { SourceKind } from "@/types/network";
+
 export type RankingTarget = "networks" | "links" | "nodes";
-export type RankingNetworkKind = "population" | "subject" | "comparison" | "aggregation";
+export type RankingNetworkKind = SourceKind | "aggregation";
 export type RankingMode =
   | "singleNetwork"
   | "networkCollection";
@@ -27,13 +29,14 @@ export type RankingQuery = {
   linkCollectionMode?: LinkCollectionRankingMode;
   allowLinkRankingAutoconnections: boolean;
   allowNodeRankingAutoconnections: boolean;
-  sourceType?: "population" | "subject" | "comparison";
+  sourceIds?: string[];
+  /** Legacy workspace field; new queries use sourceIds. */
   sourceId?: string;
   networkKind?: RankingNetworkKind;
   aggregationGroupingKey?: string;
   measureId?: string;
   statisticId?: string;
-  layerIds?: string[];
+  aspectFilters?: Record<string, string[]>;
   networkId?: string;
   networkIds?: string[];
   scope: RankingScope;
@@ -47,13 +50,12 @@ export type NetworkRankingRow = {
   rank: number;
   networkId: string;
   label: string;
-  sourceType?: "population" | "subject" | "comparison";
   sourceId?: string;
   networkKind?: RankingNetworkKind;
   aggregationGroupingKey?: string;
   measureId?: string;
   statisticId?: string;
-  layerId?: string;
+  dimensions: Record<string, string>;
   score: number;
   nLinksUsed: number;
 };
@@ -66,11 +68,12 @@ export type LinkRankingRow = {
   endpointType: "node" | "group";
   sourceLabel: string;
   targetLabel: string;
+  networkSourceId: string;
   score: number;
   valuesByNetwork?: Record<string, number>;
-  valuesByLayer?: Record<string, number>;
+  valuesByAspectValue?: Record<string, number>;
   bestNetworkId?: string;
-  bestLayerId?: string;
+  bestAspectValue?: string;
   nNetworksUsed?: number;
 };
 
@@ -80,6 +83,7 @@ export type NodeRankingRow = {
   nodeId: string;
   label: string;
   group?: string;
+  networkSourceId: string;
   score: number;
   nIncidentLinks: number;
   meanValue?: number;

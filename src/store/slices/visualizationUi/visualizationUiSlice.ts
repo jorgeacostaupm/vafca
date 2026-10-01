@@ -4,68 +4,26 @@ import {
   cloneMatrixColorSettings,
   resetMatrixScaleInteractionColors,
 } from '@/config/matrixColorScales'
-import type { CatalogNetworkPrunePayload } from '@/store/slices/dataset/utils/catalogNetworkPruning'
+import { setLabelsEnabled } from '@/store/slices/atlasUi/atlasUiSlice'
 import type { ScaleType, UiRangeMode } from '@/types/network'
 import type {
   AtlasPanelState,
   HoveredCell,
-  SelectedLink,
+  SpatialVisualStyle,
 } from '@/types/visualizationUi'
 
+import { annotationReducers } from './annotationReducers'
 import { downloadSelectedLinks } from './thunks/downloadSelectedLinks'
 import { initialVisualizationUiState } from './visualizationUiTypes'
-
-type SelectedLinkIndexState = {
-  selectedLinks: SelectedLink[]
-  selectedLinksById: Record<string, SelectedLink>
-  selectedLinkIdsByRowId: Record<string, string[]>
-}
-
-const indexSelectedLink = (
-  state: SelectedLinkIndexState,
-  link: SelectedLink,
-) => {
-  state.selectedLinksById[link.id] = link
-  const rowIds = state.selectedLinkIdsByRowId[link.rowId] ?? []
-  rowIds.push(link.id)
-  state.selectedLinkIdsByRowId[link.rowId] = rowIds
-}
-
-const rebuildSelectedLinkIndex = (state: SelectedLinkIndexState) => {
-  state.selectedLinksById = {}
-  state.selectedLinkIdsByRowId = {}
-  state.selectedLinks.forEach((link) => indexSelectedLink(state, link))
-}
-
-const removeSelectedLinkIdsFromIndex = (
-  state: SelectedLinkIndexState,
-  ids: Set<string>,
-) => {
-  const affectedRowIds = new Set<string>()
-
-  ids.forEach((id) => {
-    const link = state.selectedLinksById[id]
-    if (!link) return
-    delete state.selectedLinksById[id]
-    affectedRowIds.add(link.rowId)
-  })
-
-  affectedRowIds.forEach((rowId) => {
-    const rowIds = state.selectedLinkIdsByRowId[rowId]?.filter(
-      (id) => !ids.has(id),
-    )
-    if (rowIds?.length) {
-      state.selectedLinkIdsByRowId[rowId] = rowIds
-      return
-    }
-    delete state.selectedLinkIdsByRowId[rowId]
-  })
-}
 
 const visualizationUiSlice = createSlice({
   name: 'visualizationUi',
   initialState: initialVisualizationUiState,
   reducers: {
+    ...annotationReducers,
+    setSpatialVisualStyle(state, action: PayloadAction<SpatialVisualStyle>) {
+      state.spatialVisualStyle = action.payload
+    },
     setHoveredCell(state, action: PayloadAction<NonNullable<HoveredCell>>) {
       if (
         state.hoveredCell?.rowId === action.payload.rowId &&
@@ -89,74 +47,6 @@ const visualizationUiSlice = createSlice({
     clearHoveredNode(state) {
       if (!state.hoveredNodeId) return
       state.hoveredNodeId = null
-    },
-    addSelectedLink(state, action: PayloadAction<SelectedLink>) {
-      if (state.selectedLinksById[action.payload.id]) {
-        return
-      }
-      state.selectedLinks.push(action.payload)
-      indexSelectedLink(state, action.payload)
-    },
-    addSelectedLinks(state, action: PayloadAction<SelectedLink[]>) {
-      action.payload.forEach((link) => {
-        if (state.selectedLinksById[link.id]) return
-        state.selectedLinks.push(link)
-        indexSelectedLink(state, link)
-      })
-    },
-    removeSelectedLink(state, action: PayloadAction<string>) {
-      const ids = new Set([action.payload])
-      state.selectedLinks = state.selectedLinks.filter((link) => !ids.has(link.id))
-      state.atlasLinkIds = state.atlasLinkIds.filter((id) => !ids.has(id))
-      removeSelectedLinkIdsFromIndex(state, ids)
-    },
-    removeSelectedLinks(state, action: PayloadAction<string[]>) {
-      const ids = new Set(action.payload)
-      state.selectedLinks = state.selectedLinks.filter((link) => !ids.has(link.id))
-      state.atlasLinkIds = state.atlasLinkIds.filter((id) => !ids.has(id))
-      removeSelectedLinkIdsFromIndex(state, ids)
-    },
-    clearSelectedLinks(state) {
-      state.selectedLinks = []
-      state.selectedLinksById = {}
-      state.selectedLinkIdsByRowId = {}
-      state.atlasLinkIds = []
-      state.selectedLinksDownloadStatus = 'idle'
-      state.selectedLinksDownloadError = null
-    },
-    pruneSelectedLinksForDisabledCatalogItem(
-      state,
-      action: PayloadAction<CatalogNetworkPrunePayload>,
-    ) {
-      const invalidCompoundIds = new Set(action.payload.invalidCompoundIds)
-      state.selectedLinks = state.selectedLinks
-        .map((link) => ({
-          ...link,
-          sources: link.sources.filter(
-            (source) => !invalidCompoundIds.has(source.compoundId),
-          ),
-        }))
-        .filter((link) => link.sources.length > 0)
-      rebuildSelectedLinkIndex(state)
-      const selectedLinkIds = new Set(state.selectedLinks.map((link) => link.id))
-      state.atlasLinkIds = state.atlasLinkIds.filter((id) => selectedLinkIds.has(id))
-    },
-    setAtlasLinkIds(state, action: PayloadAction<string[]>) {
-      const linkIds = new Set(state.selectedLinks.map((link) => link.id))
-      state.atlasLinkIds = Array.from(new Set(action.payload)).filter((id) =>
-        linkIds.has(id),
-      )
-    },
-    toggleAtlasLinkId(state, action: PayloadAction<string>) {
-      const id = action.payload
-      if (state.atlasLinkIds.includes(id)) {
-        state.atlasLinkIds = state.atlasLinkIds.filter((linkId) => linkId !== id)
-        return
-      }
-      state.atlasLinkIds.push(id)
-    },
-    clearAtlasLinkIds(state) {
-      state.atlasLinkIds = []
     },
     setUiRangeMode(state, action: PayloadAction<UiRangeMode>) {
       state.uiRangeMode = action.payload
@@ -210,6 +100,9 @@ const visualizationUiSlice = createSlice({
       }
       state.matrixColorSettings.draft[scaleType].selectionColor = color
     },
+    setDraftMatrixBackgroundColor(state, action: PayloadAction<string>) {
+      state.matrixColorSettings.backgroundColor.draft = action.payload
+    },
     setNodeLinkInteractionColor(
       state,
       action: PayloadAction<{
@@ -224,22 +117,66 @@ const visualizationUiSlice = createSlice({
       }
       state.nodeLinkVisualStyle.selectionColor = color
     },
+    setNodeLinkLinkColor(
+      state,
+      action: PayloadAction<{
+        colorRole: 'positive' | 'negative'
+        color: string
+      }>,
+    ) {
+      const { colorRole, color } = action.payload
+      if (colorRole === 'positive') {
+        state.nodeLinkVisualStyle.positiveLinkColor = color
+        return
+      }
+      state.nodeLinkVisualStyle.negativeLinkColor = color
+    },
+    setCircularInteractionColor(
+      state,
+      action: PayloadAction<{
+        colorRole: 'highlight' | 'selection'
+        color: string
+      }>,
+    ) {
+      const { colorRole, color } = action.payload
+      if (colorRole === 'highlight') {
+        state.circularVisualStyle.highlightColor = color
+        return
+      }
+      state.circularVisualStyle.selectionColor = color
+    },
     applyMatrixColorSettings(state) {
       state.matrixColorSettings.applied = cloneMatrixColorSettings(
         state.matrixColorSettings.draft,
       )
+      state.matrixColorSettings.backgroundColor.applied =
+        state.matrixColorSettings.backgroundColor.draft
     },
     resetDraftMatrixColorSettings(state) {
       state.matrixColorSettings.draft = cloneMatrixColorSettings(
         state.matrixColorSettings.applied,
       )
+      state.matrixColorSettings.backgroundColor.draft =
+        state.matrixColorSettings.backgroundColor.applied
     },
     setAtlasPanelState(state, action: PayloadAction<Partial<AtlasPanelState>>) {
       state.atlasPanel = { ...state.atlasPanel, ...action.payload }
+      if (action.payload.spatialMode !== undefined) {
+        state.atlasPanel.is3dAvailable = action.payload.spatialMode !== 'none'
+      } else if (action.payload.is3dAvailable !== undefined) {
+        state.atlasPanel.spatialMode = action.payload.is3dAvailable ? 'geometry' : 'none'
+      }
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(setLabelsEnabled, (state, { payload }) => {
+        const draft = state.atlasPanel.nodeVisibilityDraft
+        if (!draft) return
+        for (const id of payload.ids) {
+          if (id in draft) draft[id] = payload.enabled
+        }
+      })
       .addCase(downloadSelectedLinks.pending, (state) => {
         state.selectedLinksDownloadStatus = 'loading'
         state.selectedLinksDownloadError = null
@@ -257,6 +194,8 @@ const visualizationUiSlice = createSlice({
 })
 
 export const {
+  toggleActiveAnnotation, createNewAnnotation, selectAnnotation, updateAnnotation, removeAnnotation, toggleAnnotationNode, setAnnotationOverlapColor,
+  setSpatialVisualStyle,
   setHoveredCell,
   clearHoveredCell,
   setHoveredNode,
@@ -275,8 +214,11 @@ export const {
   setDraftMatrixColorDiscretize,
   setDraftMatrixColorInvert,
   setDraftMatrixColorDiscreteSteps,
+  setDraftMatrixBackgroundColor,
   setDraftMatrixInteractionColor,
+  setCircularInteractionColor,
   setNodeLinkInteractionColor,
+  setNodeLinkLinkColor,
   applyMatrixColorSettings,
   resetDraftMatrixColorSettings,
   setAtlasPanelState,

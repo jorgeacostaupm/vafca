@@ -6,7 +6,7 @@ import {
   getDatasetCatalogs,
   getDatasetNetworkStats,
 } from "@/utils/datasetAccessors";
-import { formatPopulationSetLabel } from "@/utils/matrixViewUtils";
+import { formatSourceLabel } from "@/utils/matrixViewUtils";
 
 function MatrixSummarySection() {
   const data = useAppSelector((state) => selectDatasetData(state));
@@ -20,25 +20,22 @@ function MatrixSummarySection() {
     <div className="data-management-matrix-summary">
       <Typography.Text strong>Matrix summary</Typography.Text>
       <div className="data-management-matrix-summary__list">
-        {Object.entries(networkStats.byMeasureStatPopulationSet).map(([measureId, statMap]) => (
+        {Object.entries(networkStats.byMeasureStatisticSource).map(([measureId, statMap]) => (
           <Typography.Text key={measureId} type="secondary">
             {(catalogs.measures[measureId]?.label ?? measureId) + ": "}
             {Object.entries(statMap)
-              .map(([statId, popMap]) => {
-                const total = Object.values(popMap).reduce(
+              .map(([statisticId, sourceMap]) => {
+                const total = Object.values(sourceMap).reduce(
                   (acc, value) => acc + value,
                   0,
                 );
-                const perPopulationSet = Object.entries(popMap)
-                  .map(([populationKey, count]) => {
-                    const label = formatPopulationSetLabel(
-                      populationKey.split("+"),
-                      catalogs,
-                    );
+                const perSourceSet = Object.entries(sourceMap)
+                  .map(([sourceId, count]) => {
+                    const label = formatSourceLabel(sourceId, catalogs);
                     return `${label} ${count}`;
                   })
                   .join(", ");
-                return `${catalogs.statistics[statId]?.label ?? statId} ${total} (${perPopulationSet})`;
+                return `${catalogs.statistics[statisticId]?.label ?? statisticId} ${total} (${perSourceSet})`;
               })
               .join(" · ")}
           </Typography.Text>

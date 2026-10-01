@@ -36,7 +36,7 @@ export const useActiveAtlasDefinition = () => {
           atlasId: id,
           name: label?.name ?? label?.label ?? id,
           label: label?.acronym ?? label?.label ?? id,
-          tags: label?.tags ?? {},
+
           metadata: label?.metadata ?? {},
           coords: null,
         };

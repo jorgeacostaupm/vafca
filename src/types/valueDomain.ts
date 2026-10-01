@@ -1,6 +1,6 @@
 import type { ScaleType, UiRangeMode } from "@/types/network";
 
-export type ValueDomainSource = "view_observed" | "catalog" | "fallback";
+export type ValueDomainSource = "view_observed" | "shared" | "fallback";
 
 export type ResolvedValueDomain = {
   min: number;

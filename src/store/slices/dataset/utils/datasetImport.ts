@@ -13,10 +13,7 @@ import {
   loadNetworkImport,
   loadNetworkImportFromBytes,
 } from '@/utils/import/loadNetworkImport'
-import type {
-  NetworkImportMode,
-  NetworkImportResult,
-} from '@/utils/import/types'
+import type { NetworkImportResult } from '@/utils/import/types'
 
 export type ImportedDataset = {
   datasetMeta: DatasetMeta
@@ -63,7 +60,6 @@ export const createImportedDataset = (
 
 export const importDatasetFromPublicZip = async (
   path: string,
-  mode: NetworkImportMode,
 ) => {
   const response = await fetch(`${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`)
   if (!response.ok) {
@@ -72,11 +68,10 @@ export const importDatasetFromPublicZip = async (
 
   const fileName = path.split('/').pop() ?? 'dataset.zip'
   return createImportedDataset(
-    loadNetworkImportFromBytes(fileName, await response.arrayBuffer(), mode),
+    await loadNetworkImportFromBytes(fileName, await response.arrayBuffer()),
   )
 }
 
 export const importDatasetFromUploadedZip = async (
   file: File,
-  mode: NetworkImportMode,
-) => createImportedDataset(await loadNetworkImport(file, mode))
+) => createImportedDataset(await loadNetworkImport(file))

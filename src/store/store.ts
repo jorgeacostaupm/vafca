@@ -1,31 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
 
+import { spatialLifecycle } from '@/spatial/lifecycle';
 import { rankingFilterListenerMiddleware } from '@/store/rankingFilterListeners'
-import atlasDefinitionReducer from '@/store/slices/atlasDefinition'
-import atlasUiReducer from '@/store/slices/atlasUi'
-import datasetReducer from '@/store/slices/dataset'
-import datasetOperationsReducer from '@/store/slices/dataset/datasetOperationsSlice'
-import networkFiltersReducer from '@/store/slices/networkFilters'
-import networkLayoutReducer from '@/store/slices/networkLayout'
-import networkVisualizationReducer from '@/store/slices/networkVisualization'
-import notificationsReducer from '@/store/slices/notifications'
-import rankingsReducer from '@/store/slices/rankings'
-import visualizationUiReducer from '@/store/slices/visualizationUi'
+import { rootReducer } from '@/store/rootReducer'
 import { userNotificationListenerMiddleware } from '@/store/userNotificationListeners'
+import { workspaceActivityMiddleware } from '@/workspace/actions'
 
 export const store = configureStore({
-  reducer: {
-    dataset: datasetReducer,
-    datasetOperations: datasetOperationsReducer,
-    visualizationUi: visualizationUiReducer,
-    atlasUi: atlasUiReducer,
-    atlasDefinition: atlasDefinitionReducer,
-    networkVisualization: networkVisualizationReducer,
-    networkFilters: networkFiltersReducer,
-    networkLayout: networkLayoutReducer,
-    notifications: notificationsReducer,
-    rankings: rankingsReducer,
-  },
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       immutableCheck: {
@@ -38,6 +20,8 @@ export const store = configureStore({
         ignoredPaths: ['dataset.networks'],
       },
     }).prepend(
+      workspaceActivityMiddleware,
+      spatialLifecycle,
       rankingFilterListenerMiddleware.middleware,
       userNotificationListenerMiddleware.middleware,
     ),

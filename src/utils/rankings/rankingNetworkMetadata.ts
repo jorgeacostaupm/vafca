@@ -1,11 +1,21 @@
 import type { Network, NetworkDataset } from "@/types/network";
-import type { RankingQuery } from "@/types/rankings";
-import { createNetworkCompoundId, formatNetworkLabel, formatNetworkSourceLabel, getNetworkPopulationIds } from "@/utils/networkMetadata";
+import type { RankingNetworkKind, RankingQuery } from "@/types/rankings";
+import { createNetworkCompoundId, formatNetworkLabel, formatNetworkSourceLabel, getNetworkSourceKind } from "@/utils/networkMetadata";
+export { areRankingSourcesCompatible } from "@/utils/rankings/rankingSourceCompatibility";
+import { areRankingSourcesCompatible } from "@/utils/rankings/rankingSourceCompatibility";
 
-export const ALL_COMPATIBLE_LAYERS = "__all_compatible_layers__";
+export const ALL_COMPATIBLE_ASPECT_VALUES = "__all_compatible__";
 
-export const getRankingNetworkKind = (network: Network) =>
-  network.derivation?.type === "aggregation" ? "aggregation" : network.source.type;
+export const getRankingQuerySourceIds = (query: RankingQuery) =>
+  query.sourceIds?.length ? query.sourceIds : query.sourceId ? [query.sourceId] : [];
+
+export const getRankingNetworkKind = (
+  network: Network,
+  dataset: NetworkDataset,
+): RankingNetworkKind =>
+  network.derivation?.type === "aggregation"
+    ? "aggregation"
+    : getNetworkSourceKind(network, dataset);
 
 export const getNetworkAggregationGroupingKey = (network: Network) => {
   if (network.derivation?.type !== "aggregation") return undefined;
@@ -25,50 +35,10 @@ export const getNetworkAggregationGroupingLabel = (network: Network) => {
   return network.derivation.fields.join(" / ");
 };
 
-export const getNetworkSource = (
-  network: Network,
-): { sourceType?: RankingQuery["sourceType"]; sourceId?: string } => {
-  if (network.source.type === "population") {
-    return {
-      sourceType: "population",
-      sourceId: network.source.populationId,
-    };
-  }
-  if (network.source.type === "subject") {
-    return { sourceType: "subject", sourceId: network.source.subjectId };
-  }
-  if (network.source.type === "comparison") {
-    const left =
-      network.source.left.label ??
-      (network.source.left.type === "population"
-        ? network.source.left.populationId
-        : network.source.left.subjectId) ??
-      "left";
-    const right =
-      network.source.right.label ??
-      (network.source.right.type === "population"
-        ? network.source.right.populationId
-        : network.source.right.subjectId) ??
-      "right";
-    return { sourceType: "comparison", sourceId: `${left} vs ${right}` };
-  }
-  return {};
-};
-
 export const getNetworkSourceLabel = (
   network: Network,
   dataset: NetworkDataset,
-) => {
-  if (network.derivation?.type === "aggregation") {
-    const populationIds = getNetworkPopulationIds(network);
-    if (populationIds.length > 0) {
-      return populationIds
-        .map((id) => dataset.catalogs.populations[id]?.label ?? id)
-        .join(" + ");
-    }
-  }
-  return formatNetworkSourceLabel(network, dataset);
-};
+) => formatNetworkSourceLabel(network, dataset);
 
 export const getNetworkCompoundId = createNetworkCompoundId;
 
@@ -83,27 +53,36 @@ export const getNetworkEndpointIds = (network: Network): string[] =>
 export const resolveNetworkEndpointIds = (network: Network): string[] =>
   getNetworkEndpointIds(network);
 
+const aspectMatches = (
+  network: Network,
+  aspectFilters: RankingQuery["aspectFilters"],
+) => {
+  if (!aspectFilters) return true;
+  return Object.entries(aspectFilters).every(([aspectId, values]) => {
+    if (values.length === 0 || values.includes(ALL_COMPATIBLE_ASPECT_VALUES)) {
+      return true;
+    }
+    return values.includes(network.dimensions[aspectId]);
+  });
+};
+
 export const networkMatchesRankingQuery = (
   network: Network,
   query: RankingQuery,
+  dataset: NetworkDataset,
 ) => {
-  const source = getNetworkSource(network);
-  const layerId = network.context.layerId ?? "none";
-  const layerIds = query.layerIds ?? [];
-  const usesAllLayers =
-    query.layerIds === undefined || layerIds.includes(ALL_COMPATIBLE_LAYERS);
+  const sourceIds = getRankingQuerySourceIds(query);
   const aggregationGroupingKey = getNetworkAggregationGroupingKey(network);
-  const networkKind = getRankingNetworkKind(network);
+  const networkKind = getRankingNetworkKind(network, dataset);
 
   return (
-    (!query.sourceType || source.sourceType === query.sourceType) &&
-    (!query.sourceId || source.sourceId === query.sourceId) &&
+    (sourceIds.length === 0 || sourceIds.includes(network.sourceId)) &&
     (!query.networkKind || networkKind === query.networkKind) &&
     (!query.aggregationGroupingKey ||
       aggregationGroupingKey === query.aggregationGroupingKey) &&
     (!query.measureId || network.measureId === query.measureId) &&
     (!query.statisticId || network.statisticId === query.statisticId) &&
-    (usesAllLayers || layerIds.includes(layerId))
+    aspectMatches(network, query.aspectFilters)
   );
 };
 
@@ -111,25 +90,34 @@ export const resolveRankingNetworkCollection = (
   dataset: NetworkDataset,
   query: RankingQuery,
 ) => {
+  const sourceIds = getRankingQuerySourceIds(query);
+  if (!areRankingSourcesCompatible(sourceIds, dataset)) return [];
   const directIds = query.networkIds?.length
     ? query.networkIds
     : query.networkId
       ? [query.networkId]
       : [];
   if (directIds.length > 0) {
-    return directIds
+    const directNetworks = directIds
       .map((id) => dataset.networkIndex[id])
       .filter((network): network is Network => Boolean(network));
+    return areRankingSourcesCompatible(
+      directNetworks.map((network) => network.sourceId),
+      dataset,
+    )
+      ? directNetworks
+      : [];
   }
   const matches = dataset.networks.filter((network) =>
-    networkMatchesRankingQuery(network, query),
+    networkMatchesRankingQuery(network, query, dataset),
   );
   const first = matches[0];
   if (!first) return [];
   const firstEndpointKey = JSON.stringify(resolveNetworkEndpointIds(first));
   return matches.filter(
     (network) =>
-      getRankingNetworkKind(network) === getRankingNetworkKind(first) &&
+      (network.derivation?.type === "aggregation") ===
+        (first.derivation?.type === "aggregation") &&
       getNetworkAggregationGroupingKey(network) ===
         getNetworkAggregationGroupingKey(first) &&
       network.nodeSetId === first.nodeSetId &&

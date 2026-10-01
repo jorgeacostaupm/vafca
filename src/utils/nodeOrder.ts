@@ -32,17 +32,13 @@ export const normalizeNodeOrder = (
       typeof item.acronym === 'string' && item.acronym.trim().length > 0
         ? item.acronym
         : undefined
-    const tags =
-      item.tags && typeof item.tags === 'object' && !Array.isArray(item.tags)
-        ? item.tags
-        : undefined
     const metadata =
       item.metadata &&
       typeof item.metadata === 'object' &&
       !Array.isArray(item.metadata)
         ? item.metadata
         : undefined
-    return { id, label, name, acronym, tags, metadata }
+    return { id, label, name, acronym, metadata }
   })
 }
 

@@ -12,6 +12,7 @@ export {
 export { default } from './atlasUiSlice'
 export {
   buildAtlasState,
+  setAggregationFields,
   setAllLabels,
   setAtlasColorFields,
   setAtlasColorPalette,

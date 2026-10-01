@@ -1,0 +1,11 @@
+{
+  "core": {
+    "source": { "label": "Source" },
+    "measure": { "label": "Measure" },
+    "statistic": { "label": "Statistic" }
+  },
+  "aspects": [
+    { "id": "condition", "label": "Condition" },
+    { "id": "session", "label": "Session" }
+  ]
+}

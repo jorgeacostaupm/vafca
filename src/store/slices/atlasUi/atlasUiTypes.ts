@@ -19,6 +19,7 @@ export const initialAtlasUiState: AtlasUiSliceState = {
   labelsById: {},
   initialized: false,
   colorFields: [],
+  aggregationFields: [],
   colorPalette: DEFAULT_D3_GROUPING_PALETTE,
   circularHierarchyFields: [],
   circularHierarchyCategoryOrder: {},

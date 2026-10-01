@@ -1,17 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 
 import { setSharedHoverState } from "@/components/hover/sharedHover";
-import {
-  MATRIX_BRUSH_LINK_DISPATCH_CHUNK_SIZE,
-  MATRIX_BRUSH_LINK_DISPATCH_YIELD_MS,
-} from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   addSelectedLink,
-  addSelectedLinks,
-  removeSelectedLink,
   removeSelectedLinks,
 } from "@/store/slices/visualizationUi";
+import { selectActiveAnnotationLinksById,selectAnnotationLinkColors } from '@/store/slices/visualizationUi/annotationSelectors';
+import { annotateMatrixBrush } from '@/store/slices/visualizationUi/thunks/annotateMatrixBrush';
 import type { MatrixBrushPayload } from "@/types/matrixHeatmap";
 import type { SelectedLink } from "@/types/visualizationUi";
 import {
@@ -27,7 +23,6 @@ type UseMatrixHeatmapControllerArgs = {
   labelNames?: Record<string, string>;
   compoundId: string;
   networkLabel: string;
-  symmetric: boolean;
   selectionVisible?: boolean;
 };
 
@@ -57,17 +52,14 @@ export const useMatrixHeatmapController = ({
   labelNames,
   compoundId,
   networkLabel,
-  symmetric,
   selectionVisible = true,
 }: UseMatrixHeatmapControllerArgs) => {
   const dispatch = useAppDispatch();
   const selectedLinksById = useAppSelector(
-    (state) => state.visualizationUi.selectedLinksById,
+    selectActiveAnnotationLinksById,
   );
-  const selectedLinkIdsByRowId = useAppSelector(
-    (state) => state.visualizationUi.selectedLinkIdsByRowId,
-  );
-  const scheduledDispatchTimeoutIdsRef = useRef<number[]>([]);
+  const linkColors = useAppSelector(selectAnnotationLinkColors);
+  const annotationId = useAppSelector(state => state.visualizationUi.activeAnnotationId);
 
   const resolvedRowLabels = useMemo(() => {
     const rows = data.length;
@@ -105,41 +97,18 @@ export const useMatrixHeatmapController = ({
       seen.add(key);
       next.push({ row, col });
     };
-    resolvedRowLabels.forEach((rowId, row) => {
-      selectedLinkIdsByRowId[rowId]?.forEach((linkId) => {
-        const link = selectedLinksById[linkId];
-        if (!link) return;
-        const col = colIndexById.get(link.colId);
-        addCell(row, col);
-      });
-    });
+    const rowIndex = new Map(resolvedRowLabels.map((id, index) => [id, index]));
+    for (const key of Object.keys(linkColors)) {
+      const [rowId, colId] = key.split('::');
+      addCell(rowIndex.get(rowId), colIndexById.get(colId));
+    }
     return next;
   }, [
-    selectedLinkIdsByRowId,
-    selectedLinksById,
+    linkColors,
     resolvedRowLabels,
     resolvedColLabels,
     selectionVisible,
   ]);
-
-  const scheduleDispatchChunk = useCallback((callback: () => void) => {
-    const timeoutId = window.setTimeout(() => {
-      scheduledDispatchTimeoutIdsRef.current =
-        scheduledDispatchTimeoutIdsRef.current.filter((id) => id !== timeoutId);
-      callback();
-    }, MATRIX_BRUSH_LINK_DISPATCH_YIELD_MS);
-    scheduledDispatchTimeoutIdsRef.current.push(timeoutId);
-  }, []);
-
-  useEffect(
-    () => () => {
-      scheduledDispatchTimeoutIdsRef.current.forEach((id) =>
-        window.clearTimeout(id),
-      );
-      scheduledDispatchTimeoutIdsRef.current = [];
-    },
-    [],
-  );
 
   const handleHover = useCallback(
     (payload: CellPayload) => {
@@ -179,7 +148,6 @@ export const useMatrixHeatmapController = ({
           label: colLabel,
           index: labelIndexById.get(colId),
         },
-        symmetric,
       });
 
       return {
@@ -193,7 +161,7 @@ export const useMatrixHeatmapController = ({
         ],
       };
     },
-    [compoundId, labelIndexById, networkLabel, symmetric],
+    [compoundId, labelIndexById, networkLabel],
   );
 
   const handleSelect = useCallback(
@@ -203,11 +171,10 @@ export const useMatrixHeatmapController = ({
       const removalIds = getSelectedLinkRemovalIds(
         payload.rowId,
         payload.colId,
-        symmetric,
       );
       const existingId = removalIds.find((id) => selectedLinksById[id]);
       if (existingId) {
-        dispatch(removeSelectedLink(existingId));
+        dispatch(removeSelectedLinks({ annotationId: annotationId!, ids: [existingId] }));
         return;
       }
       dispatch(
@@ -223,97 +190,24 @@ export const useMatrixHeatmapController = ({
       );
     },
     [
+      annotationId,
       createSelectedLink,
       dispatch,
       labelNames,
       selectedLinksById,
-      symmetric,
     ],
   );
 
-  const handleBrushSelectLinks = useCallback(
-    (payload: MatrixBrushPayload) => {
-      let cursor = 0;
-      const selectedIds = new Set<string>();
+  const handleBrush = useCallback((payload: MatrixBrushPayload, mode: 'add' | 'remove') => {
+    if (!annotationId) return;
+    void dispatch(annotateMatrixBrush({
+      annotationId, mode, cells: payload.cells,
+      labelOrder: [...labelIndexById.keys()], labelNames, compoundId, networkLabel,
+    }));
+  }, [annotationId, compoundId, dispatch, labelIndexById, labelNames, networkLabel]);
 
-      const processChunk = () => {
-        const links: SelectedLink[] = [];
-        const end = Math.min(
-          cursor + MATRIX_BRUSH_LINK_DISPATCH_CHUNK_SIZE,
-          payload.cells.length,
-        );
-
-        for (; cursor < end; cursor += 1) {
-          const cell = payload.cells[cursor];
-          if (!cell) continue;
-          const rowId = cell.rowLabel;
-          const rowLabel = labelNames?.[rowId] ?? rowId;
-          const colId = cell.colLabel;
-          const link = createSelectedLink({
-            rowId,
-            rowLabel,
-            colId,
-            colLabel: labelNames?.[colId] ?? colId,
-            value: cell.value,
-          });
-          const removalIds = getSelectedLinkRemovalIds(rowId, colId, symmetric);
-          if (
-            removalIds.some(
-              (id) => Boolean(selectedLinksById[id]) || selectedIds.has(id),
-            )
-          ) {
-            continue;
-          }
-
-          selectedIds.add(link.id);
-          links.push(link);
-        }
-
-        if (links.length > 0) dispatch(addSelectedLinks(links));
-        if (cursor < payload.cells.length) scheduleDispatchChunk(processChunk);
-      };
-
-      processChunk();
-    },
-    [
-      createSelectedLink,
-      dispatch,
-      labelNames,
-      scheduleDispatchChunk,
-      selectedLinksById,
-      symmetric,
-    ],
-  );
-
-  const handleBrushDeselectLinks = useCallback(
-    (payload: MatrixBrushPayload) => {
-      let cursor = 0;
-
-      const processChunk = () => {
-        const ids = new Set<string>();
-        const end = Math.min(
-          cursor + MATRIX_BRUSH_LINK_DISPATCH_CHUNK_SIZE,
-          payload.cells.length,
-        );
-
-        for (; cursor < end; cursor += 1) {
-          const cell = payload.cells[cursor];
-          if (!cell) continue;
-          getSelectedLinkRemovalIds(
-            cell.rowLabel,
-            cell.colLabel,
-            symmetric,
-          ).forEach((id) => ids.add(id));
-        }
-
-        if (ids.size > 0) dispatch(removeSelectedLinks([...ids]));
-        if (cursor < payload.cells.length) scheduleDispatchChunk(processChunk);
-      };
-
-      processChunk();
-    },
-    [dispatch, scheduleDispatchChunk, symmetric],
-  );
+  const handleBrushSelectLinks = useCallback((payload: MatrixBrushPayload) => handleBrush(payload, 'add'), [handleBrush]);
+  const handleBrushDeselectLinks = useCallback((payload: MatrixBrushPayload) => handleBrush(payload, 'remove'), [handleBrush]);
 
   return {
     selectedCells,

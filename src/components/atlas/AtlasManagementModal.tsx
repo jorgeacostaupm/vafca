@@ -1,61 +1,20 @@
-import { Modal, Tabs } from "antd";
+import { Modal } from 'antd'
 
-import AtlasMetadataSummary from "@/components/atlas/AtlasMetadataSummary";
-import AtlasUploader from "@/components/atlas/AtlasUploader";
-import SettingsSection from "@/components/network/settings/SettingsSection";
+import AtlasPanelGroupingControls from '@/components/atlas/AtlasPanelGroupingControls'
 import {
-  DEFAULT_ATLAS_MANAGEMENT_TAB,
   DEFAULT_ATLAS_MANAGEMENT_MODAL_WIDTH,
   DEFAULT_ATLAS_MODAL_TOP,
-} from "@/config/ui";
+} from '@/config/ui'
 
 type AtlasManagementModalProps = {
-  open: boolean;
-  onClose: () => void;
-};
-
-function CurrentAtlasTab() {
-  return (
-    <SettingsSection
-      title="Current atlas"
-      description="Review the atlas metadata currently loaded in the workspace."
-    >
-      <AtlasMetadataSummary />
-    </SettingsSection>
-  );
+  open: boolean
+  onClose: () => void
 }
 
-function ImportAtlasTab() {
-  return (
-    <SettingsSection
-      title="Import atlas"
-      description="Replace the current atlas with a compatible atlas JSON file."
-    >
-      <AtlasUploader />
-    </SettingsSection>
-  );
-}
-
-export default function AtlasManagementModal({
-  open,
-  onClose,
-}: AtlasManagementModalProps) {
-  const items = [
-    {
-      key: "current",
-      label: "Current",
-      children: <CurrentAtlasTab />,
-    },
-    {
-      key: "import",
-      label: "Import",
-      children: <ImportAtlasTab />,
-    },
-  ];
-
+export default function AtlasManagementModal({ open, onClose }: AtlasManagementModalProps) {
   return (
     <Modal
-      title="Atlas data"
+      title="Define Groups"
       open={open}
       onCancel={onClose}
       footer={null}
@@ -64,12 +23,7 @@ export default function AtlasManagementModal({
       className="network-settings-modal atlas-panel__management-modal"
       destroyOnHidden
     >
-      <Tabs
-        className="atlas-panel__management-tabs"
-        defaultActiveKey={DEFAULT_ATLAS_MANAGEMENT_TAB}
-        destroyOnHidden
-        items={items}
-      />
+      <AtlasPanelGroupingControls />
     </Modal>
-  );
+  )
 }

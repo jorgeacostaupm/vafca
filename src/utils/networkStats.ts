@@ -1,40 +1,25 @@
 import type { DatasetNetworkSummary } from "@/types/datasetNetworkView";
-import type { NetworkStats } from "@/types/datasetState";
 
 export const buildNetworkStats = (
-  networks: Array<Pick<DatasetNetworkSummary, "measureId" | "statId" | "populationIds">>,
-): NetworkStats => {
-  const stats: NetworkStats = {
+  networks: Array<Pick<DatasetNetworkSummary, "measureId" | "statisticId" | "sourceId">>,
+) => {
+  const stats = {
     total: networks.length,
-    byStat: {},
-    byMeasure: {},
-    byMeasureStatPopulation: {},
-    byMeasureStatPopulationSet: {},
+    byStat: {} as Record<string, number>,
+    byMeasure: {} as Record<string, number>,
+    byMeasureStatisticSource: {} as Record<string, Record<string, Record<string, number>>>,
   };
 
-  for (const network of networks) {
-    stats.byStat[network.statId] = (stats.byStat[network.statId] ?? 0) + 1;
-    stats.byMeasure[network.measureId] =
-      (stats.byMeasure[network.measureId] ?? 0) + 1;
+  networks.forEach((network) => {
+    stats.byStat[network.statisticId] = (stats.byStat[network.statisticId] ?? 0) + 1;
+    stats.byMeasure[network.measureId] = (stats.byMeasure[network.measureId] ?? 0) + 1;
 
-    const measureEntry = stats.byMeasureStatPopulation[network.measureId] ?? {};
-    const statEntry = measureEntry[network.statId] ?? {};
-
-    for (const populationId of network.populationIds) {
-      statEntry[populationId] = (statEntry[populationId] ?? 0) + 1;
-    }
-
-    measureEntry[network.statId] = statEntry;
-    stats.byMeasureStatPopulation[network.measureId] = measureEntry;
-
-    const populationKey = [...network.populationIds].sort().join("+");
-    const measureSetEntry =
-      stats.byMeasureStatPopulationSet[network.measureId] ?? {};
-    const statSetEntry = measureSetEntry[network.statId] ?? {};
-    statSetEntry[populationKey] = (statSetEntry[populationKey] ?? 0) + 1;
-    measureSetEntry[network.statId] = statSetEntry;
-    stats.byMeasureStatPopulationSet[network.measureId] = measureSetEntry;
-  }
+    const measureEntry = stats.byMeasureStatisticSource[network.measureId] ?? {};
+    const statEntry = measureEntry[network.statisticId] ?? {};
+    statEntry[network.sourceId] = (statEntry[network.sourceId] ?? 0) + 1;
+    measureEntry[network.statisticId] = statEntry;
+    stats.byMeasureStatisticSource[network.measureId] = measureEntry;
+  });
 
   return stats;
 };

@@ -10,11 +10,10 @@ import type {
   RankingQuery,
   RankingResult,
 } from "@/types/rankings";
-import { getNetworkValue, isDirectedNetwork } from "@/utils/networkData";
+import { getNetworkValue } from "@/utils/networkData";
 import {
   getNetworkAggregationGroupingKey,
   getNetworkLabel,
-  getNetworkSource,
   getRankingNetworkKind,
   resolveNetworkEndpointIds,
   resolveRankingNetworkCollection,
@@ -72,10 +71,8 @@ const scoreValues = (values: number[], metric?: string, threshold = 0) => {
 };
 
 function* iterateNetworkValues(network: Network) {
-  const directed = isDirectedNetwork(network);
   for (let i = 0; i < network.nodeIds.length; i += 1) {
-    const start = directed ? 0 : i;
-    for (let j = start; j < network.nodeIds.length; j += 1) {
+    for (let j = i; j < network.nodeIds.length; j += 1) {
       const sourceId = network.nodeIds[i];
       const targetId = network.nodeIds[j];
       if (!sourceId || !targetId) continue;
@@ -102,7 +99,7 @@ const getEndpointLabel = (
 
 const getEndpointGroup = (dataset: NetworkDataset, id: string) => {
   const node = dataset.nodeSet.nodes.find((item) => item.id === id);
-  const group = node?.tags.network ?? node?.tags.group ?? node?.tags.region;
+  const group = node?.metadata.network ?? node?.metadata.group ?? node?.metadata.region;
   return typeof group === "string" ? group : undefined;
 };
 
@@ -162,19 +159,17 @@ export const computeNetworkRanking = ({
       }
       const score = scoreValues(values, query.metric, query.threshold);
       if (!Number.isFinite(score)) return null;
-      const source = getNetworkSource(network);
       return {
         type: "network",
         rank: 0,
         networkId: network.id,
         label: getNetworkLabel(network, dataset),
-        sourceType: source.sourceType,
-        sourceId: source.sourceId,
-        networkKind: getRankingNetworkKind(network),
+        sourceId: network.sourceId,
+        networkKind: getRankingNetworkKind(network, dataset),
         aggregationGroupingKey: getNetworkAggregationGroupingKey(network),
         measureId: network.measureId,
         statisticId: network.statisticId,
-        layerId: network.context.layerId ?? "none",
+        dimensions: network.dimensions,
         score,
         nLinksUsed: values.length,
       };
@@ -197,6 +192,7 @@ export const computeLinkRanking = ({
 }: CalculationContext): Omit<RankingResult, "id" | "createdAt"> => {
   const networks = resolveRankingNetworkCollection(dataset, query);
   const expanded = query.linkCollectionMode === "expanded" || networks.length <= 1;
+  const primaryAspectId = dataset.catalogs.aspects[0]?.id;
   const allowAutoconnections =
     query.allowLinkRankingAutoconnections ??
     DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS;
@@ -205,11 +201,12 @@ export const computeLinkRanking = ({
     {
       sourceId: string;
       targetId: string;
+      networkSourceId: string;
       valuesByNetwork: Record<string, number>;
-      valuesByLayer: Record<string, number[]>;
+      valuesByAspectValue: Record<string, number[]>;
       values: number[];
       bestNetworkId?: string;
-      bestLayerId?: string;
+      bestAspectValue?: string;
       bestValue?: number;
     }
   >();
@@ -246,35 +243,42 @@ export const computeLinkRanking = ({
           endpointType: network.derivation?.type === "aggregation" ? "group" : "node",
           sourceLabel: getEndpointLabel(dataset, sourceId, network),
           targetLabel: getEndpointLabel(dataset, targetId, network),
+          networkSourceId: network.sourceId,
           score,
           valuesByNetwork: { [network.id]: edge.value },
-          valuesByLayer: { [network.context.layerId ?? "none"]: edge.value },
+          valuesByAspectValue: primaryAspectId
+            ? { [network.dimensions[primaryAspectId] ?? "none"]: edge.value }
+            : {},
           bestNetworkId: network.id,
-          bestLayerId: network.context.layerId ?? "none",
+          bestAspectValue: primaryAspectId ? network.dimensions[primaryAspectId] : undefined,
           nNetworksUsed: 1,
         });
         continue;
       }
 
-      const key = getLinkKey(sourceId, targetId);
+      const key = `${network.sourceId}::${getLinkKey(sourceId, targetId)}`;
       const group =
         grouped.get(key) ??
         {
           sourceId,
           targetId,
+          networkSourceId: network.sourceId,
           valuesByNetwork: {},
-          valuesByLayer: {},
+          valuesByAspectValue: {},
           values: [],
         };
-      const layerId = network.context.layerId ?? "none";
+      const aspectValue = primaryAspectId ? network.dimensions[primaryAspectId] ?? "none" : "none";
       group.valuesByNetwork[network.id] = edge.value;
-      group.valuesByLayer[layerId] = [...(group.valuesByLayer[layerId] ?? []), edge.value];
+      group.valuesByAspectValue[aspectValue] = [
+        ...(group.valuesByAspectValue[aspectValue] ?? []),
+        edge.value,
+      ];
       group.values.push(edge.value);
       const comparable = Math.abs(edge.value);
       if (group.bestValue === undefined || comparable > Math.abs(group.bestValue)) {
         group.bestValue = edge.value;
         group.bestNetworkId = network.id;
-        group.bestLayerId = network.context.layerId ?? "none";
+        group.bestAspectValue = aspectValue;
       }
       grouped.set(key, group);
     }
@@ -292,16 +296,17 @@ export const computeLinkRanking = ({
         endpointType: networks[0]?.derivation?.type === "aggregation" ? "group" : "node",
         sourceLabel: getEndpointLabel(dataset, group.sourceId, networks[0]),
         targetLabel: getEndpointLabel(dataset, group.targetId, networks[0]),
+        networkSourceId: group.networkSourceId,
         score,
         valuesByNetwork: group.valuesByNetwork,
-        valuesByLayer: Object.fromEntries(
-          Object.entries(group.valuesByLayer).map(([layerId, values]) => [
-            layerId,
+        valuesByAspectValue: Object.fromEntries(
+          Object.entries(group.valuesByAspectValue).map(([aspectValue, values]) => [
+            aspectValue,
             mean(values),
           ]),
         ),
         bestNetworkId: group.bestNetworkId,
-        bestLayerId: group.bestLayerId,
+        bestAspectValue: group.bestAspectValue,
         nNetworksUsed: group.values.length,
       });
     });
@@ -325,12 +330,24 @@ export const computeNodeRanking = ({
   const allowAutoconnections =
     query.allowNodeRankingAutoconnections ??
     DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS;
-  const scores = new Map<string, number[]>();
-  const addNodeScore = (nodeId: string | undefined, value: number) => {
+  const scores = new Map<
+    string,
+    { nodeId: string; values: number[]; networkSourceId: string }
+  >();
+  const addNodeScore = (
+    nodeId: string | undefined,
+    value: number,
+    sourceId: string,
+  ) => {
     if (!nodeId) return;
-    const values = scores.get(nodeId) ?? [];
-    values.push(value);
-    scores.set(nodeId, values);
+    const key = `${sourceId}::${nodeId}`;
+    const score = scores.get(key) ?? {
+      nodeId,
+      values: [],
+      networkSourceId: sourceId,
+    };
+    score.values.push(value);
+    scores.set(key, score);
   };
 
   networks.forEach((network) => {
@@ -349,15 +366,16 @@ export const computeNodeRanking = ({
       ) {
         continue;
       }
-      addNodeScore(endpoints[edge.i], edge.value);
+      addNodeScore(endpoints[edge.i], edge.value, network.sourceId);
       if (edge.i !== edge.j) {
-        addNodeScore(endpoints[edge.j], edge.value);
+        addNodeScore(endpoints[edge.j], edge.value, network.sourceId);
       }
     }
   });
 
-  const rows: NodeRankingRow[] = Array.from(scores.entries())
-    .map(([nodeId, values]) => {
+  const rows: NodeRankingRow[] = Array.from(scores.values())
+    .map((nodeScore) => {
+      const { networkSourceId, nodeId, values } = nodeScore;
       const score = scoreValues(values, query.metric, query.threshold);
       return {
         type: "node" as const,
@@ -365,6 +383,7 @@ export const computeNodeRanking = ({
         nodeId,
         label: getEndpointLabel(dataset, nodeId),
         group: getEndpointGroup(dataset, nodeId),
+        networkSourceId,
         score,
         nIncidentLinks: values.length,
         meanValue: mean(values),

@@ -3,104 +3,73 @@ import {
   ArrowUpOutlined,
   CheckOutlined,
   DeleteOutlined,
-} from "@ant-design/icons";
-import { Button, Modal, Select, Space, Switch, Typography } from "antd";
-import { useCallback, useMemo, useState } from "react";
+} from '@ant-design/icons'
+import { Button, Modal, Select, Space, Switch, Typography } from 'antd'
+import { useCallback, useMemo, useState } from 'react'
 
-import SettingsSection from "@/components/network/settings/SettingsSection";
-import {
-  DEFAULT_ATLAS_MODAL_TOP,
-  DEFAULT_ATLAS_SETTINGS_MODAL_WIDTH,
-} from "@/config/ui";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setAtlasPanelState } from "@/store/slices/visualizationUi";
-import {
-  getCommonNodeFields,
-  humanizeFieldName,
-} from "@/utils/atlas/atlasDefinition";
+import SettingsSection from '@/components/network/settings/SettingsSection'
+import { DEFAULT_ATLAS_MODAL_TOP, DEFAULT_ATLAS_SETTINGS_MODAL_WIDTH } from '@/config/ui'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { setAtlasPanelState } from '@/store/slices/visualizationUi'
+import { getCommonNodeFields, humanizeFieldName } from '@/utils/atlas/atlasDefinition'
 
-import { useActiveAtlasDefinition } from "./hooks/useActiveAtlasDefinition";
-import {
-  areStringArraysEqual,
-  moveField,
-  normalizeUniqueFieldList,
-} from "./panelFieldUtils";
+import { useActiveAtlasDefinition } from './hooks/useActiveAtlasDefinition'
+import { areStringArraysEqual, moveField, normalizeUniqueFieldList } from './panelFieldUtils'
 
 type AtlasPanelSettingsModalProps = {
-  open: boolean;
-  onClose: () => void;
-};
+  open: boolean
+  onClose: () => void
+}
 
-export default function AtlasPanelSettingsModal({
-  open,
-  onClose,
-}: AtlasPanelSettingsModalProps) {
-  const dispatch = useAppDispatch();
-  const atlasPanel = useAppSelector((state) => state.visualizationUi.atlasPanel);
-  const atlasDefinition = useActiveAtlasDefinition();
-  const [draftGroupByFields, setDraftGroupByFields] = useState<string[]>(
-    atlasPanel.groupByFields,
-  );
+export default function AtlasPanelSettingsModal({ open, onClose }: AtlasPanelSettingsModalProps) {
+  const dispatch = useAppDispatch()
+  const atlasPanel = useAppSelector((state) => state.visualizationUi.atlasPanel)
+  const atlasDefinition = useActiveAtlasDefinition()
+  const [draftGroupByFields, setDraftGroupByFields] = useState<string[]>(atlasPanel.groupByFields)
 
   const availableGroupFields = useMemo(
     () => getCommonNodeFields(atlasDefinition),
     [atlasDefinition],
-  );
+  )
 
   const selectableGroupFields = useMemo(
-    () =>
-      availableGroupFields.filter(
-        (field) => !draftGroupByFields.includes(field),
-      ),
+    () => availableGroupFields.filter((field) => !draftGroupByFields.includes(field)),
     [draftGroupByFields, availableGroupFields],
-  );
+  )
 
   const normalizedDraftGroupByFields = useMemo(
     () => normalizeUniqueFieldList(draftGroupByFields, availableGroupFields),
     [availableGroupFields, draftGroupByFields],
-  );
+  )
 
   const handleModalOpenChange = useCallback(
     (isOpen: boolean) => {
-      if (!isOpen) return;
+      if (!isOpen) return
       setDraftGroupByFields(
         normalizeUniqueFieldList(atlasPanel.groupByFields, availableGroupFields),
-      );
+      )
     },
     [atlasPanel.groupByFields, availableGroupFields],
-  );
+  )
 
-  const handleMoveGroupField = useCallback(
-    (field: string, direction: "up" | "down") => {
-      setDraftGroupByFields((fields) => moveField(fields, field, direction));
-    },
-    [],
-  );
+  const handleMoveGroupField = useCallback((field: string, direction: 'up' | 'down') => {
+    setDraftGroupByFields((fields) => moveField(fields, field, direction))
+  }, [])
 
-  const handleRemoveGroupField = useCallback(
-    (field: string) => {
-      setDraftGroupByFields((fields) =>
-        fields.filter((value) => value !== field),
-      );
-    },
-    [],
-  );
+  const handleRemoveGroupField = useCallback((field: string) => {
+    setDraftGroupByFields((fields) => fields.filter((value) => value !== field))
+  }, [])
 
-  const handleAddGroupField = useCallback(
-    (field: string) => {
-      setDraftGroupByFields((fields) =>
-        fields.includes(field) ? fields : [...fields, field],
-      );
-    },
-    [],
-  );
+  const handleAddGroupField = useCallback((field: string) => {
+    setDraftGroupByFields((fields) => (fields.includes(field) ? fields : [...fields, field]))
+  }, [])
 
   const handleApplyGroupFields = useCallback(() => {
     const nextSelectedFilters = Object.fromEntries(
       Object.entries(atlasPanel.selectedFilters).filter(([field]) =>
         normalizedDraftGroupByFields.includes(field),
       ),
-    );
+    )
 
     dispatch(
       setAtlasPanelState({
@@ -109,28 +78,24 @@ export default function AtlasPanelSettingsModal({
         selectedFilters: nextSelectedFilters,
         collapsedGroups: [],
       }),
-    );
-    setDraftGroupByFields(normalizedDraftGroupByFields);
-  }, [atlasPanel.selectedFilters, dispatch, normalizedDraftGroupByFields]);
+    )
+    setDraftGroupByFields(normalizedDraftGroupByFields)
+  }, [atlasPanel.selectedFilters, dispatch, normalizedDraftGroupByFields])
 
   const hasPendingGroupFieldChanges = useMemo(
-    () =>
-      !areStringArraysEqual(
-        normalizedDraftGroupByFields,
-        atlasPanel.groupByFields,
-      ),
+    () => !areStringArraysEqual(normalizedDraftGroupByFields, atlasPanel.groupByFields),
     [atlasPanel.groupByFields, normalizedDraftGroupByFields],
-  );
+  )
 
   const handle3dAvailabilityChange = useCallback(
     (is3dAvailable: boolean) => {
-      dispatch(setAtlasPanelState({ is3dAvailable }));
+      dispatch(setAtlasPanelState({ is3dAvailable }))
     },
     [dispatch],
-  );
+  )
 
-  const hasGroupByFields = draftGroupByFields.length > 0;
-  const hasSelectableGroupFields = selectableGroupFields.length > 0;
+  const hasGroupByFields = draftGroupByFields.length > 0
+  const hasSelectableGroupFields = selectableGroupFields.length > 0
 
   return (
     <Modal
@@ -145,6 +110,13 @@ export default function AtlasPanelSettingsModal({
     >
       <Space direction="vertical" size={18} className="atlas-panel__settings-stack">
         <SettingsSection
+          title="3D"
+          description="Control whether the atlas mesh viewer is available in the Atlas tab."
+          actions={
+            <Switch checked={atlasPanel.is3dAvailable} onChange={handle3dAvailabilityChange} />
+          }
+        />
+        <SettingsSection
           title="Grouping fields"
           description="Choose the atlas fields used to group and filter nodes."
         >
@@ -157,14 +129,14 @@ export default function AtlasPanelSettingsModal({
                     <Button
                       size="small"
                       icon={<ArrowUpOutlined />}
-                      onClick={() => handleMoveGroupField(field, "up")}
+                      onClick={() => handleMoveGroupField(field, 'up')}
                       disabled={index === 0}
                       aria-label={`Move ${humanizeFieldName(field)} up`}
                     />
                     <Button
                       size="small"
                       icon={<ArrowDownOutlined />}
-                      onClick={() => handleMoveGroupField(field, "down")}
+                      onClick={() => handleMoveGroupField(field, 'down')}
                       disabled={index === draftGroupByFields.length - 1}
                       aria-label={`Move ${humanizeFieldName(field)} down`}
                     />
@@ -183,7 +155,7 @@ export default function AtlasPanelSettingsModal({
 
           {hasSelectableGroupFields ? (
             <Select
-              key={draftGroupByFields.join("|")}
+              key={draftGroupByFields.join('|')}
               placeholder="Select field"
               className="atlas-panel__settings-select"
               options={selectableGroupFields.map((field) => ({
@@ -206,18 +178,7 @@ export default function AtlasPanelSettingsModal({
             </Button>
           </div>
         </SettingsSection>
-
-        <SettingsSection
-          title="3D view"
-          description="Control whether the atlas mesh viewer is available in the Atlas tab."
-          actions={
-            <Switch
-              checked={atlasPanel.is3dAvailable}
-              onChange={handle3dAvailabilityChange}
-            />
-          }
-        />
       </Space>
     </Modal>
-  );
+  )
 }

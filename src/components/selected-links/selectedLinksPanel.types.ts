@@ -13,7 +13,12 @@ export type NetworkColumn = {
 
 export type LinkRow = {
   key: string;
+  rowId: string;
+  colId: string;
   linkLabel: string;
+  rowLabel: string;
+  colLabel: string;
+
   values: Record<string, number | null>;
 };
 
@@ -41,7 +46,7 @@ export type ExportedLink = {
   rowLabel: string;
   colId: string;
   colLabel: string;
-  directed?: boolean;
+
   values: Record<string, number | null>;
 };
 

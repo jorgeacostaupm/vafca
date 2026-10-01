@@ -19,6 +19,7 @@ export const pruneInvalidNetworkViews = createAsyncThunk<
     viewsOrder.forEach((viewId) => {
       const view = viewsById[viewId]
       if (!view) return
+      if (view.temporaryNetworkId) return
       if (validIds.has(view.compoundId)) return
       dispatch(removeNetworkView({ viewId: view.id }))
       dispatch(removeNetworkLayoutItem({ viewId: view.id }))

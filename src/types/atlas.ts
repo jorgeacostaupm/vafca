@@ -1,5 +1,6 @@
 import type { D3GroupingPaletteKey } from "@/config/groupingPalettes";
-import type { NodeCoordinates, NodeTagValue } from "@/types/network";
+import type { SpatialState } from '@/spatial/types';
+import type { NodeCoordinates } from "@/types/network";
 
 export type AtlasNode = {
   index: number;
@@ -7,13 +8,13 @@ export type AtlasNode = {
   atlasId: string | number;
   name: string;
   label: string;
-  tags: Record<string, NodeTagValue>;
+
   coords?: NodeCoordinates | null;
   metadata?: Record<string, unknown>;
-  mesh_points?: number[][];
 };
 
 export type AtlasDefinition = {
+  spatial?: SpatialState;
   id: string;
   name: string;
   description?: string;
@@ -33,7 +34,7 @@ export type AtlasLabel = {
   label: string;
   name?: string;
   acronym?: string;
-  tags?: Record<string, NodeTagValue>;
+
   metadata?: Record<string, unknown>;
   enabled: boolean;
 };
@@ -43,6 +44,7 @@ export type AtlasState = {
   labelsById: Record<string, AtlasLabel>;
   initialized: boolean;
   colorFields: string[];
+  aggregationFields: string[];
   colorPalette: D3GroupingPaletteKey;
   circularHierarchyFields: string[];
   circularHierarchyCategoryOrder: Record<string, string[]>;

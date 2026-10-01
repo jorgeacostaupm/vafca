@@ -16,12 +16,6 @@ export const clearUploadedAtlasAndSync = createAsyncThunk<
 
   const state = getState()
   const atlasId = getDatasetAtlasId(selectDatasetData(state))
-  const status = atlasId
-    ? (state.atlasDefinition.defaultStatusById[atlasId] ?? 'idle')
-    : 'idle'
-
-  if (atlasId && status === 'idle') {
-    await dispatch(loadDefaultAtlasDefinition({ atlasId }))
-  }
+  if (atlasId) await dispatch(loadDefaultAtlasDefinition({ atlasId }))
   await dispatch(syncDatasetDerivedState())
 })

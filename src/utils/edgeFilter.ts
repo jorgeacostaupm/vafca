@@ -14,8 +14,8 @@ import type {
   RuntimeEdgeMaskOptions,
 } from "@/types/edgeFilter";
 import type { Catalogs, Network, UiRangeMode } from "@/types/network";
-import { getNetworkValue, isDirectedNetwork } from "@/utils/networkData";
-import { computeNetworkDataStats } from "@/utils/networkDataStats";
+import { getNetworkValue } from "@/utils/networkData";
+import { resolveValueDomain } from "@/utils/valueDomain";
 
 export const MAX_NETWORK_FILTER_DEPTH = 5;
 
@@ -76,44 +76,6 @@ type ResolvedNetworkRange = {
   scaleType: "sequential" | "diverging";
 };
 
-const normalizeRange = (
-  range: [number, number] | null | undefined,
-): [number, number] | null => {
-  if (!range) return null;
-  const [a, b] = range;
-  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
-  return a <= b ? [a, b] : [b, a];
-};
-
-const expandFlatRange = (range: [number, number]): [number, number] => {
-  const [min, max] = range;
-  if (min !== max) return range;
-  const delta = Math.abs(min) > 0 ? Math.abs(min) * 0.05 : 1;
-  return [min - delta, max + delta];
-};
-
-const expectedRangeFromBounds = (entry?: { min?: number; max?: number }) =>
-  normalizeRange(
-    Number.isFinite(entry?.min) && Number.isFinite(entry?.max)
-      ? [entry?.min as number, entry?.max as number]
-      : null,
-  );
-
-const getObservedRange = (network: Network) => {
-  const stats = network.dataStats ?? computeNetworkDataStats(network);
-  const { min, max } = stats.allValues;
-  return min === null || max === null ? null : ([min, max] as [number, number]);
-};
-
-const symmetricAroundCenter = (
-  range: [number, number] | null,
-  center: number,
-): [number, number] | null => {
-  if (!range) return null;
-  const delta = Math.max(Math.abs(range[0] - center), Math.abs(range[1] - center));
-  return [center - delta, center + delta];
-};
-
 export const resolveNetworkFilterRange = ({
   network,
   catalogs,
@@ -123,34 +85,7 @@ export const resolveNetworkFilterRange = ({
   catalogs: Catalogs | undefined;
   mode: UiRangeMode;
 }): ResolvedNetworkRange => {
-  const statistic = catalogs?.statistics[network.statisticId];
-  const measure = catalogs?.measures[network.measureId];
-  const scaleType =
-    statistic?.scaleType ?? (statistic?.center === 0 ? "diverging" : "sequential");
-  const center = statistic?.center ?? (scaleType === "diverging" ? 0 : null);
-  const observed = getObservedRange(network);
-  const statisticRange =
-    normalizeRange(statistic?.expectedRange) ?? expectedRangeFromBounds(statistic);
-  const measureRange =
-    normalizeRange(measure?.expectedRange) ??
-    normalizeRange(
-      Number.isFinite(measure?.valueDomain?.min) &&
-        Number.isFinite(measure?.valueDomain?.max)
-        ? [measure?.valueDomain?.min as number, measure?.valueDomain?.max as number]
-        : null,
-    ) ??
-    expectedRangeFromBounds(measure);
-  const catalogRange = statisticRange ?? measureRange;
-  const fallback: [number, number] =
-    scaleType === "diverging" ? [-1, 1] : [0, 1];
-  const source =
-    mode === "catalog"
-      ? catalogRange ?? (center === null ? observed : symmetricAroundCenter(observed, center))
-      : center === null
-        ? observed ?? catalogRange
-        : symmetricAroundCenter(observed, center) ?? catalogRange;
-  const [min, max] = expandFlatRange(source ?? fallback);
-
+  const { min, max, scaleType } = resolveValueDomain({ network, catalogs, mode });
   return { min, max, scaleType };
 };
 
@@ -244,7 +179,6 @@ export const buildNetworkEdgeDomain = (
 
   const rows = firstNetwork.nodeIds.length;
   const cols = rows;
-  const directed = content.networks.some(isDirectedNetwork);
   const nodeCount = labelIds.length > 0 ? labelIds.length : rows;
   const key = `${content.nodeSet.id}:${rows}x${cols}:${labelIds.join("|")}`;
   const label = `${content.nodeSet.label} · ${nodeCount} ${content.nodeSet.terminology.plural} · ${rows}x${cols}`;
@@ -256,7 +190,6 @@ export const buildNetworkEdgeDomain = (
     rows,
     cols,
     nodeCount,
-    directed,
     labelIds,
   };
 };
@@ -277,7 +210,7 @@ export const buildAggregatedEdgeDomain = (
     rows,
     cols: rows,
     nodeCount: labels.length,
-    directed: isDirectedNetwork(network),
+
     labelIds: labels,
   };
 };
@@ -333,7 +266,7 @@ const validateRule = (
     edgeDomain.kind === "nodes" &&
     network.derivation?.type === "aggregation"
   ) {
-    addIssue(errors, "error", "Aggregated networks require Filter aggregated edges.", rule.id);
+    addIssue(errors, "error", "Aggregated networks cannot be filtered.", rule.id);
   }
   if (network && edgeDomain.kind === "aggregated") {
     const sameShape =
@@ -561,12 +494,12 @@ export const createRuntimeEdgeMask = (
 
   for (let i = 0; i < edgeDomain.rows; i += 1) {
     for (let j = 0; j < edgeDomain.cols; j += 1) {
-      if (!edgeDomain.directed && j < i) continue;
+      if (j < i) continue;
 
       totalCount += 1;
       const selected = evaluateNetworkFilterExpression(filter.root, i, j, networkIndex);
       values[i][j] = selected;
-      if (!edgeDomain.directed && i !== j) values[j][i] = selected;
+      if (i !== j) values[j][i] = selected;
       if (selected) selectedCount += 1;
     }
   }

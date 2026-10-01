@@ -9,5 +9,6 @@ export type NetworkLayoutProps = {
   cols?: number;
   rowHeight?: number;
   margin?: [number, number];
+  containerPadding?: [number, number] | null;
   dragHandleClass?: string;
 };

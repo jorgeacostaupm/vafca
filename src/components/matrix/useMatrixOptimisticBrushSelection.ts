@@ -3,9 +3,9 @@ import { useCallback, useEffect, useRef } from "react";
 import {
   getMatrixSelectedCellKey,
   getMatrixSelectedCellKeySet,
+  type MatrixSelectedCell,
   mergeOptimisticMatrixSelection,
   reconcileOptimisticMatrixSelection,
-  type MatrixSelectedCell,
 } from "@/components/matrix/components/matrixOptimisticSelection";
 import type { MatrixBrushPayload } from "@/types/matrixHeatmap";
 

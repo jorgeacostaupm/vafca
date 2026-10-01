@@ -8,40 +8,42 @@ import {
   type NetworkVisualizationState,
 } from '../networkVisualizationTypes'
 
-const populationKeyIncludes = (populationKey: string, populationId: string) =>
-  populationKey.split('+').includes(populationId)
-
 const clearDisabledCatalogFields = (
   controls: NetworkSelectorControlsState,
   payload: CatalogNetworkPrunePayload,
   invalidCompoundIds: Set<string>,
 ) => {
-  if (payload.catalog === 'populations' && populationKeyIncludes(controls.populationKey, payload.id)) {
-    controls.populationKey = ''
+  if (payload.catalog === 'sources' && controls.sourceId === payload.id) {
+    controls.sourceId = ''
     controls.measureId = ''
-    controls.statId = ''
-    controls.layerId = ''
+    controls.statisticId = ''
+    controls.aspectFilters = {}
     controls.selectedCompoundId = ''
     return
   }
 
   if (payload.catalog === 'measures' && controls.measureId === payload.id) {
     controls.measureId = ''
-    controls.statId = ''
-    controls.layerId = ''
+    controls.statisticId = ''
+    controls.aspectFilters = {}
     controls.selectedCompoundId = ''
     return
   }
 
-  if (payload.catalog === 'statistics' && controls.statId === payload.id) {
-    controls.statId = ''
-    controls.layerId = ''
+  if (payload.catalog === 'statistics' && controls.statisticId === payload.id) {
+    controls.statisticId = ''
+    controls.aspectFilters = {}
     controls.selectedCompoundId = ''
     return
   }
 
-  if (payload.catalog === 'layers' && controls.layerId === payload.id) {
-    controls.layerId = ''
+  if (
+    payload.catalog === 'aspectCatalogs' &&
+    Object.values(controls.aspectFilters).includes(payload.id)
+  ) {
+    controls.aspectFilters = Object.fromEntries(
+      Object.entries(controls.aspectFilters).filter(([, value]) => value !== payload.id),
+    )
     controls.selectedCompoundId = ''
     return
   }
@@ -107,7 +109,7 @@ export const networkControlReducers = {
         delete state.nodeLinkSettingsByViewId[viewId]
         return false
       }
-      if (action.payload.catalog === 'statistics' && view.statId === action.payload.id) {
+      if (action.payload.catalog === 'statistics' && view.statisticId === action.payload.id) {
         delete state.viewsById[viewId]
         delete state.matrixSettingsByViewId[viewId]
         delete state.nodeLinkSettingsByViewId[viewId]

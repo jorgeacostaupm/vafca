@@ -1,9 +1,10 @@
 import * as d3 from "d3";
 import type { RefObject } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { renderCircularScene } from "@/components/circular/circularSceneRenderer";
 import { applyCircularHoverSelectionStyles } from "@/components/circular/circularVisualEffects";
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import {
   getSharedHoverState,
   type SharedHoverState,
@@ -60,7 +61,7 @@ type UseCircularSceneArgs = {
   onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   onBrushDeselectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   getNodeColor: (node: CircularNode) => string;
-  valueLabel: string;
+  valueLabel: TooltipValueLabel;
 };
 
 const getHoverCell = (hoverState: SharedHoverState) =>
@@ -122,8 +123,9 @@ export const useCircularScene = ({
   const widthScaleRef = useRef<d3.ScaleLinear<number, number> | null>(null);
   const zoomLabelSetRef = useRef<Set<string> | null>(null);
   const nodeRadiusRef = useRef(CIRCULAR_NODE_RADIUS);
-  const selectedLinkIdsRef = useRef(selectedLinkIds);
-  selectedLinkIdsRef.current = selectedLinkIds;
+  const interactionState = useEffectEvent(() => ({
+    selectedLinkIds, visualStyle, onLabelToggle, onLinkSelect, onBrushSelectLinks, onBrushDeselectLinks,
+  }));
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -148,18 +150,18 @@ export const useCircularScene = ({
       brushEnabled,
       brushMode,
       geometricZoomEnabled,
-      selectedLinkIds: selectedLinkIdsRef.current,
-      visualStyle,
+      selectedLinkIds: interactionState().selectedLinkIds,
+      visualStyle: interactionState().visualStyle,
       linkColorResolver,
-      onLabelToggle,
-      onLinkSelect,
+      onLabelToggle: payload => interactionState().onLabelToggle?.(payload),
+      onLinkSelect: payload => interactionState().onLinkSelect?.(payload),
       onLinkHover,
       onLinkLeave,
       onNodeHover,
       onNodeLeave,
       onBrushZoom,
-      onBrushSelectLinks,
-      onBrushDeselectLinks,
+      onBrushSelectLinks: payload => interactionState().onBrushSelectLinks?.(payload),
+      onBrushDeselectLinks: payload => interactionState().onBrushDeselectLinks?.(payload),
       getNodeColor,
       valueLabel,
       setLocalHoverActive,
@@ -175,6 +177,12 @@ export const useCircularScene = ({
       return;
     }
 
+    const hover = getSharedHoverState();
+    applyCircularHoverSelectionStyles({
+      ...scene, selectedLinkIds: interactionState().selectedLinkIds,
+      visualStyle: interactionState().visualStyle, linkColorResolver, getNodeColor,
+      hoveredCell: getHoverCell(hover), hoveredNodeId: getHoverNodeId(hover),
+    });
     linkSelectionRef.current = scene.linkSelection;
     nodeSelectionRef.current = scene.nodeSelection;
     labelSelectionRef.current = scene.labelSelection;
@@ -199,17 +207,12 @@ export const useCircularScene = ({
     brushEnabled,
     brushMode,
     geometricZoomEnabled,
-    visualStyle,
     linkColorResolver,
-    onLabelToggle,
-    onLinkSelect,
     onLinkHover,
     onLinkLeave,
     onNodeHover,
     onNodeLeave,
     onBrushZoom,
-    onBrushSelectLinks,
-    onBrushDeselectLinks,
     getNodeColor,
     valueLabel,
   ]);

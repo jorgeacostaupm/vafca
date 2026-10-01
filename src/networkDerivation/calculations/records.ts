@@ -1,3 +1,4 @@
+import { dimensionKey, dimensionLabel } from "@/networkDerivation/calculations/dimensions";
 import type {
   NetworkCalculationOperation,
   NetworkCalculationOutputSpec,
@@ -7,8 +8,6 @@ import type {
   MatrixCellValue,
   Network,
   NetworkComparisonDerivation,
-  NetworkContext,
-  NetworkSource,
   NetworkValueDomain,
 } from "@/types/network";
 import { computeNetworkMatrixDataStats } from "@/utils/networkDataStats";
@@ -16,12 +15,11 @@ import { computeNetworkMatrixDataStats } from "@/utils/networkDataStats";
 type DerivedNetworkParams = {
   id: string;
   label: string;
-  context: NetworkContext;
+  sourceId: string;
+  dimensions: Record<string, string>;
   measureId: string;
   nodeSetId: string;
   nodeIds: string[];
-  symmetric: boolean;
-  source: NetworkSource;
   statisticId: string;
   derivation: NetworkComparisonDerivation;
   valueDomain: NetworkValueDomain;
@@ -31,13 +29,10 @@ type DerivedNetworkParams = {
 };
 
 export const populationLabel = (catalogs: Catalogs, populationId?: string) =>
-  populationId ? catalogs.populations[populationId]?.label ?? populationId : "Unknown";
+  populationId ? catalogs.sources[populationId]?.label ?? populationId : "Unknown";
 
 export const subjectLabel = (catalogs: Catalogs, subjectId?: string) =>
-  subjectId ? catalogs.subjects[subjectId]?.label ?? subjectId : "Unknown";
-
-export const layerLabel = (catalogs: Catalogs, layerId: string | null) =>
-  layerId ? catalogs.layers[layerId]?.label ?? layerId : "No layer";
+  subjectId ? catalogs.sources[subjectId]?.label ?? subjectId : "Unknown";
 
 export const measureLabel = (catalogs: Catalogs, measureId: string) =>
   catalogs.measures[measureId]?.label ?? measureId;
@@ -47,7 +42,8 @@ export const generateDerivedNetworkId = (params: {
   leftId?: string;
   rightId?: string;
   subjectId?: string;
-  layerId: string | null;
+  dimensions: Record<string, string>;
+  rightDimensions?: Record<string, string>;
   measureId: string;
   operator: string;
   existingIds: Set<string>;
@@ -59,7 +55,8 @@ export const generateDerivedNetworkId = (params: {
       params.subjectId ?? params.leftId,
       params.rightId ? "vs" : null,
       params.rightId,
-      params.layerId ?? "none",
+      dimensionKey(params.dimensions),
+      params.rightDimensions ? dimensionKey(params.rightDimensions) : null,
       params.measureId,
       params.operator,
     ]
@@ -80,7 +77,8 @@ export const generateDerivedNetworkLabel = (params: {
   referencePopulationId?: string;
   subjectId?: string;
   rightSubjectId?: string;
-  layerId: string | null;
+  dimensions: Record<string, string>;
+  rightDimensions?: Record<string, string>;
   measureId: string;
   suffix: string;
   useMinus?: boolean;
@@ -96,15 +94,18 @@ export const generateDerivedNetworkLabel = (params: {
     ? subjectLabel(params.catalogs, params.rightSubjectId)
     : right;
   const separator = params.useMinus ? " - " : " vs ";
-  return `${left}${separator}${rightLabel} · ${layerLabel(params.catalogs, params.layerId)} · ${measureLabel(params.catalogs, params.measureId)} · ${params.suffix}`;
+  return `${left}${separator}${rightLabel} · ${dimensionLabel(params.catalogs, params.dimensions)}${params.rightDimensions ? ` → ${dimensionLabel(params.catalogs, params.rightDimensions)}` : ""} · ${measureLabel(params.catalogs, params.measureId)} · ${params.suffix}`;
 };
 
 export const outputValueDomain = (output: NetworkCalculationOutputSpec): NetworkValueDomain => {
-  if (output.statId === "p_value") {
+  if (output.statisticId === "p_value") {
     return { min: 0, max: 1, center: null, units: output.units };
   }
-  if (output.statId === "difference") {
-    return { min: -1, max: 1, center: 0, units: output.units };
+  if (output.rangeMode === "non_negative_observed") {
+    return { min: 0, max: null, center: null, units: output.units };
+  }
+  if (output.statisticId === "difference") {
+    return { min: null, max: null, center: 0, units: output.units };
   }
   return { min: null, max: null, center: output.center, units: output.units };
 };
@@ -112,12 +113,11 @@ export const outputValueDomain = (output: NetworkCalculationOutputSpec): Network
 export const createDerivedNetwork = ({
   id,
   label,
-  context,
+  sourceId,
+  dimensions,
   measureId,
   nodeSetId,
   nodeIds,
-  symmetric,
-  source,
   statisticId,
   derivation,
   valueDomain,
@@ -128,9 +128,9 @@ export const createDerivedNetwork = ({
   return {
     id,
     label,
-    context: { ...context },
+    sourceId,
+    dimensions: { ...dimensions },
     measureId,
-    source,
     statisticId,
     nodeSetId,
     nodeIds,
@@ -138,7 +138,6 @@ export const createDerivedNetwork = ({
       format: "matrix",
       layout: "full",
       dtype: "float64",
-      symmetric,
       values: data,
       missingValue: null,
     },
@@ -158,7 +157,8 @@ export const createDerivedNetwork = ({
 
 export const buildProvenanceParameters = (params: {
   operation: NetworkCalculationOperation;
-  layerId: string | null;
+  dimensions: Record<string, string>;
+  rightDimensions?: Record<string, string>;
   measureId: string;
   leftPopulationId?: string;
   rightPopulationId?: string;
@@ -170,7 +170,8 @@ export const buildProvenanceParameters = (params: {
   extra?: Record<string, unknown>;
 }) => ({
   operation: params.operation,
-  layerId: params.layerId,
+  dimensions: params.dimensions,
+  rightDimensions: params.rightDimensions,
   measureId: params.measureId,
   leftPopulationId: params.leftPopulationId,
   rightPopulationId: params.rightPopulationId,

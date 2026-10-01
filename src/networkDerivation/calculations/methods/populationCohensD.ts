@@ -60,14 +60,14 @@ export const populationCohensDDefinition: NetworkCalculationMethodDefinition = {
     "n_left > 1 and n_right > 1",
   ],
   requiredInputs: [
-    { role: "leftMean", label: "Left mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
-    { role: "rightMean", label: "Right mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
-    { role: "leftStd", label: "Left std", kind: "population", statId: "std", sourceLevel: "population", required: true },
-    { role: "rightStd", label: "Right std", kind: "population", statId: "std", sourceLevel: "population", required: true },
+    { role: "leftMean", label: "Left mean", kind: "population", statisticId: "mean", sourceLevel: "population", required: true },
+    { role: "rightMean", label: "Right mean", kind: "population", statisticId: "mean", sourceLevel: "population", required: true },
+    { role: "leftStd", label: "Left std", kind: "population", statisticId: "std", sourceLevel: "population", required: true },
+    { role: "rightStd", label: "Right std", kind: "population", statisticId: "std", sourceLevel: "population", required: true },
   ],
   outputs: [
     {
-      statId: "cohens_d",
+      statisticId: "cohens_d",
       statLabel: "Cohen's d",
       statCategory: "comparison",
       operator: "cohens_d",
@@ -86,14 +86,14 @@ export const populationCohensDDefinition: NetworkCalculationMethodDefinition = {
       label: "Also compute Student t associated with Cohen's d",
       description: "Computes the pooled-variance Student t statistic equivalent to the effect size.",
       defaultEnabled: false,
-      outputs: [{ statId: "t_value", statLabel: "t value", statCategory: "comparison", operator: "student_t_from_cohens_d", comparisonType: "population_vs_population", labelSuffix: "Student t", units: "t", scaleType: "diverging", center: 0, rangeMode: "observed_symmetric", useDataRange: true }],
+      outputs: [{ statisticId: "t_value", statLabel: "t value", statCategory: "comparison", operator: "student_t_from_cohens_d", comparisonType: "population_vs_population", labelSuffix: "Student t", units: "t", scaleType: "diverging", center: 0, rangeMode: "observed_symmetric", useDataRange: true }],
     },
     {
       id: "student_p_value_from_cohens_d",
       label: "Also compute two-sided p-value associated with Cohen's d",
       description: "Computes the two-sided p-value of the equivalent pooled-variance Student t-test.",
       defaultEnabled: false,
-      outputs: [{ statId: "p_value", statLabel: "p-value", statCategory: "comparison", operator: "student_p_from_cohens_d", comparisonType: "population_vs_population", labelSuffix: "Student p-value", units: "p-value", scaleType: "sequential", center: null, rangeMode: "fixed", expectedRange: [0, 1] }],
+      outputs: [{ statisticId: "p_value", statLabel: "p-value", statCategory: "comparison", operator: "student_p_from_cohens_d", comparisonType: "population_vs_population", labelSuffix: "Student p-value", units: "p-value", scaleType: "sequential", center: null, rangeMode: "fixed", expectedRange: [0, 1] }],
     },
   ],
   requiresControlOrReference: true,
@@ -111,11 +111,11 @@ export const calculatePopulationCohensD: NetworkCalculationMethod["calculate"] =
   result,
   existingIds,
 }) => {
-  request.layerIds.forEach((layerId) => {
+  request.dimensionPairs.forEach((dimensionPair) => {
     request.measureIds.forEach((measureId) => {
       const resolved = ensureReady(
         "population_cohens_d",
-        layerId,
+        dimensionPair,
         measureId,
         result.skipped,
         request,
@@ -127,7 +127,7 @@ export const calculatePopulationCohensD: NetworkCalculationMethod["calculate"] =
       const rightMean = resolved.networks.rightMean!;
       const n = resolvePopulationSampleSizesOrSkip(
         "population_cohens_d",
-        layerId,
+        dimensionPair,
         measureId,
         request,
         state,

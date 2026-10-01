@@ -1,6 +1,5 @@
 import { Form, Space, Switch } from 'antd'
 
-import NetworkRangeControls from '@/components/network/NetworkRangeControls'
 import NetworkSelectorModeSetting from '@/components/network/settings/NetworkSelectorModeSetting'
 import NetworkViewTypeSetting from '@/components/network/settings/NetworkViewTypeSetting'
 import SettingsSection from '@/components/network/settings/SettingsSection'
@@ -11,6 +10,8 @@ import {
   setNetworkHideIsolatedNodes,
 } from '@/store/slices/networkVisualization'
 
+import AggregationSettings from './AggregationSettings'
+
 export default function NetworkViewsSettingsTab() {
   const dispatch = useAppDispatch()
   const networkControls = useAppSelector(selectNetworkControls)
@@ -18,11 +19,12 @@ export default function NetworkViewsSettingsTab() {
   return (
     <Space direction="vertical" size={20} style={{ width: '100%' }}>
       <SettingsSection
+        title="Networks"
         description="Use this menu to configure how networks are displayed, filtered, and synchronized."
       >
         <NetworkViewTypeSetting />
         <NetworkSelectorModeSetting />
-        <NetworkRangeControls />
+        <AggregationSettings />
 
         <Form layout="vertical" className="network-settings-views__switches">
           <Form.Item label="Coordinated zoom">
@@ -49,7 +51,7 @@ export default function NetworkViewsSettingsTab() {
               }
             />
           </Form.Item>
-          <Form.Item label="Self-links in % zooms" style={{ marginBottom: 0 }}>
+          <Form.Item label="Self-links in % filters" style={{ marginBottom: 0 }}>
             <Switch
               checked={networkControls.percentZoomIncludeAutoconnections}
               onChange={(value) =>

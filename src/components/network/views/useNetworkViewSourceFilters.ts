@@ -41,6 +41,7 @@ export const useNetworkViewSourceFilters = ({
       if (viewId === targetViewId) continue;
       const view = state.networkVisualization.viewsById[viewId];
       if (!view) continue;
+      if (view.coordinationDisabled) continue;
 
       const matrixSettings =
         state.networkVisualization.matrixSettingsByViewId[viewId];

@@ -9,6 +9,7 @@ export default function NetworkRankingsSettingsTab() {
   return (
     <Space direction="vertical" size={20} style={{ width: "100%" }}>
       <SettingsSection
+        title="Rankings"
         description="Use this menu to configure how selected network links and nodes are ranked."
       >
         <RankingTopNSetting />

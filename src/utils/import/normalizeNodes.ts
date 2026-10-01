@@ -1,4 +1,4 @@
-import { isRecord, isScalarTagValue } from "@/utils/import/guards";
+import { NodeMetadataSchema } from "@/utils/atlas/nodeMetadata";
 import { parseNodeImportRecord } from "@/utils/import/schemas/nodeSchema";
 import type {
   ImportedNetworkDraft,
@@ -11,9 +11,7 @@ type NormalizeNodesArgs = {
   nodeMetadataPayload: unknown | null;
   networks: ImportedNetworkDraft[];
   errors: NetworkImportIssue[];
-  warnings: NetworkImportIssue[];
   inference: NetworkImportInference;
-  strict: boolean;
 };
 
 const getNetworkNodeCount = (
@@ -33,32 +31,11 @@ const getNetworkNodeCount = (
   return firstSize;
 };
 
-const normalizeTags = (
-  value: unknown,
-  source: string,
-  errors: NetworkImportIssue[],
-) => {
-  if (value === undefined) return {};
-  if (!isRecord(value)) {
-    errors.push({
-      source,
-      path: `${source}.tags`,
-      message: "Node tags must be an object.",
-    });
-    return {};
-  }
-
-  return Object.fromEntries(
-    Object.entries(value).filter(([, tagValue]) => isScalarTagValue(tagValue)),
-  ) as NodeDraft["tags"];
-};
-
 const generatedNode = (index: number): NodeDraft => ({
   index,
   id: `node-${index + 1}`,
   label: `Node-${index + 1}`,
   name: `Node-${index + 1}`,
-  tags: {},
   metadata: {},
 });
 
@@ -66,9 +43,7 @@ export const normalizeNodes = ({
   nodeMetadataPayload,
   networks,
   errors,
-  warnings,
   inference,
-  strict,
 }: NormalizeNodesArgs): NodeDraft[] => {
   const size = getNetworkNodeCount(networks, errors);
   if (size === 0) return [];
@@ -77,13 +52,11 @@ export const normalizeNodes = ({
     const nodes = Array.from({ length: size }, (_, index) => generatedNode(index));
     inference.generatedNodes = true;
     inference.generatedNodeIds.push(...nodes.map((node) => node.id));
-    const issue = {
+    errors.push({
       source: "rois.json",
       path: "rois.json",
-      message: "rois.json is missing; generated generic Node labels from network size.",
-    };
-    if (strict) errors.push(issue);
-    else warnings.push(issue);
+      message: "rois.json is required.",
+    });
     return nodes;
   }
 
@@ -104,6 +77,11 @@ export const normalizeNodes = ({
       return [];
     }
 
+    const metadataResult = NodeMetadataSchema.safeParse(record);
+    if (!metadataResult.success) {
+      errors.push({ source, path: `${source}.metadata`, message: metadataResult.error.message });
+      return [];
+    }
     const index = record.index;
     if (index >= size) {
       errors.push({
@@ -132,11 +110,11 @@ export const normalizeNodes = ({
       : `node-${index + 1}`;
 
     if (!record.id) inference.generatedNodeIds.push(id);
-    if (strict && !record.id) {
+    if (!record.id) {
       errors.push({
         source,
         path: `${source}.id`,
-        message: "Strict import requires each Node to define id.",
+        message: "Each Node must define id.",
       });
     }
 
@@ -145,8 +123,9 @@ export const normalizeNodes = ({
       id,
       label,
       name,
-      tags: normalizeTags(record.tags, source, errors),
-      metadata: record.metadata ?? {},
+      ...(record.atlasId !== undefined ? { atlasId: record.atlasId } : {}),
+      metadata: metadataResult.data,
+      ...(record.coords !== undefined ? { coords: record.coords } : {}),
     }];
   });
 

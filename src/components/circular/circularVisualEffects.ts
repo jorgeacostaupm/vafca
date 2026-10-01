@@ -1,5 +1,7 @@
 import type * as d3 from "d3";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
+import { formatTooltipValue } from "@/components/common/tooltipValueLabel";
 import {
   CIRCULAR_LINK_OPACITY,
   CIRCULAR_NODE_HOVER_RADIUS_OFFSET,
@@ -66,6 +68,8 @@ export const applyCircularHoverSelectionStyles = (args: {
   const isSelectedNode = (node: CircularNode) =>
     node.labelId !== undefined && zoomLabelSet?.has(node.labelId);
   const getDisplayedLinkStrokeColor = (link: CircularLink) => {
+    const annotated = visualStyle.annotationLinkColors?.[`${link.rowId}::${link.colId}`];
+    if (annotated) return annotated;
     if ((hovered && isHoveredLink(link)) || (hoveredNode && isHoveredNodeLink(link))) {
       return visualStyle.highlightColor;
     }
@@ -109,6 +113,7 @@ export const applyCircularHoverSelectionStyles = (args: {
     })
     .attr("fill", (node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);
+      if (visualStyle.annotationNodeColors?.[labelId]) return visualStyle.annotationNodeColors[labelId];
       if (hoveredNode === labelId) return visualStyle.highlightColor;
       if (isSelectedNode(node)) return visualStyle.selectionColor;
       return getNodeColor(node);
@@ -125,6 +130,7 @@ export const applyCircularHoverSelectionStyles = (args: {
   labelSelection
     .attr("fill", (node: CircularNode) => {
       const labelId = node.labelId ?? String(node.id);
+      if (visualStyle.annotationNodeColors?.[labelId]) return visualStyle.annotationNodeColors[labelId];
       if (hoveredNode === labelId) return visualStyle.highlightColor;
       if (isSelectedNode(node)) return getReadableTextColor(visualStyle.selectionColor);
       return "#394b59";
@@ -146,7 +152,7 @@ export const syncCircularProgrammaticTooltip = (args: {
   hoveredNodeId?: string | null;
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  valueLabel?: string;
+  valueLabel?: TooltipValueLabel;
   width: number;
   height: number;
   zoomTransform: d3.ZoomTransform;
@@ -202,7 +208,7 @@ export const syncCircularProgrammaticTooltip = (args: {
     const colLabel = labelNames?.[hoveredLink.colId] ?? hoveredLink.colId;
     tooltipEl.innerHTML = `<div><strong>${escapeHtml(
       `${rowLabel} ↔ ${colLabel}`,
-    )}</strong></div><div>${escapeHtml(valueLabel)}: ${hoveredLink.value.toFixed(4)}</div>`;
+    )}</strong></div>${formatTooltipValue(valueLabel, hoveredLink.value, hoveredLink.rowId, hoveredLink.colId)}`;
     tooltipEl.style.opacity = "1";
     positionTooltip(screenX, screenY, wrapperRect);
     return;

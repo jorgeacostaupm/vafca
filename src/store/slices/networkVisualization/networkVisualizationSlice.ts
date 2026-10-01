@@ -18,11 +18,14 @@ const networkVisualizationSlice = createSlice({
 })
 
 export const {
-  setNetworkViewStatus,
-  patchNetworkControls,
-  pruneNetworkSelectionForDisabledCatalogItem,
-  resetNetworkControls,
-  addNetworkView,
+	  setNetworkViewStatus,
+	  patchNetworkControls,
+	  pruneNetworkSelectionForDisabledCatalogItem,
+	  resetNetworkControls,
+	  addTemporaryAggregatedNetworkView,
+	  setTemporaryAggregatedNetwork,
+  renameAggregatedGroups,
+	  addNetworkView,
   removeNetworkView,
   clearNetworkViews,
   mutateNetworkViewTypeLocally,

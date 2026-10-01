@@ -1,0 +1,5 @@
+[
+  { "index": 0, "id": "node-1", "label": "Node 1" },
+  { "index": 1, "id": "node-2", "label": "Node 2" },
+  { "index": 2, "id": "node-3", "label": "Node 3" }
+]

@@ -5,27 +5,9 @@ import type {
 import type { DatasetMeta, NetworkStats } from "@/types/datasetState";
 import type { Network } from "@/types/network";
 import type { NodeOrderEntry } from "@/types/nodeOrder";
-import { isDirectedNetwork, materializeNetworkMatrix } from "@/utils/networkData";
-import {
-  createNetworkCompoundId,
-  getNetworkPopulationIds,
-} from "@/utils/networkMetadata";
+import { materializeNetworkMatrix } from "@/utils/networkData";
+import { createNetworkCompoundId } from "@/utils/networkMetadata";
 import { buildNetworkStats } from "@/utils/networkStats";
-
-const toNodeOrderTags = (tags: Record<string, unknown>) =>
-  Object.fromEntries(
-    Object.entries(tags).filter(
-      (entry): entry is [string, string | number | boolean | null] => {
-        const value = entry[1];
-        return (
-          typeof value === "string" ||
-          typeof value === "number" ||
-          typeof value === "boolean" ||
-          value === null
-        );
-      },
-    ),
-  );
 
 export const getDatasetCatalogs = (dataset: DatasetMeta | null | undefined) =>
   dataset?.content.catalogs;
@@ -40,7 +22,6 @@ export const getDatasetNodeOrder = (
       label: node.name ?? node.label,
       name: node.name,
       acronym: node.label,
-      tags: toNodeOrderTags(node.tags),
       metadata: node.metadata,
     }));
 
@@ -57,23 +38,24 @@ export const getDatasetNetworkStats = (
 
 export const toDatasetNetworkSummary = (network: Network): DatasetNetworkSummary => ({
   compoundId: createNetworkCompoundId(network),
-  layerId: network.context.layerId ?? "none",
+  sourceId: network.sourceId,
   measureId: network.measureId,
-  statId: network.statisticId,
-  populationIds: getNetworkPopulationIds(network),
+  statisticId: network.statisticId,
+  dimensions: network.dimensions,
   size: network.nodeIds.length,
-  symmetric: !isDirectedNetwork(network),
+  symmetric: true,
 });
 
 export const toMaterializedNetworkView = (network: Network): MaterializedNetworkView => {
   const networkViewData = {
     id: network.id,
-    layerId: network.context.layerId ?? "none",
+    sourceId: network.sourceId,
     measureId: network.measureId,
-    statId: network.statisticId,
-    populationIds: getNetworkPopulationIds(network),
+    statisticId: network.statisticId,
+    dimensions: network.dimensions,
+    nodeIds: network.nodeIds,
     data: materializeNetworkMatrix(network),
-    symmetric: !isDirectedNetwork(network),
+    symmetric: true,
     dataStats: network.dataStats,
   };
   return {

@@ -1,0 +1,690 @@
+{
+  "source": "/home/jorge/mne_data/MNE-fsaverage-data/fsaverage/mri/aparc+aseg.mgz",
+  "coordinate_space": "fsaverage-tkrRAS",
+  "smooth_iterations": 10,
+  "rois": {
+    "lh-bankssts": {
+      "label": 1001,
+      "voxel_count": 1639,
+      "vertices": 2762,
+      "faces": 5568,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1603.7427088385837,
+      "exported": true
+    },
+    "lh-caudalanteriorcingulate": {
+      "label": 1002,
+      "voxel_count": 1687,
+      "vertices": 2092,
+      "faces": 4212,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1660.173698355599,
+      "exported": true
+    },
+    "lh-caudalmiddlefrontal": {
+      "label": 1003,
+      "voxel_count": 3804,
+      "vertices": 5276,
+      "faces": 10564,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 3765.0295924831785,
+      "exported": true
+    },
+    "lh-cuneus": {
+      "label": 1005,
+      "voxel_count": 1875,
+      "vertices": 3068,
+      "faces": 6152,
+      "connected_components": 2,
+      "watertight": true,
+      "volume_mm3": 1837.0363700733114,
+      "exported": true
+    },
+    "lh-entorhinal": {
+      "label": 1006,
+      "voxel_count": 1690,
+      "vertices": 1829,
+      "faces": 3666,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1667.1728971899292,
+      "exported": true
+    },
+    "lh-fusiform": {
+      "label": 1007,
+      "voxel_count": 5955,
+      "vertices": 7477,
+      "faces": 14974,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 5894.310471209978,
+      "exported": true
+    },
+    "lh-inferiorparietal": {
+      "label": 1008,
+      "voxel_count": 6585,
+      "vertices": 9174,
+      "faces": 18388,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6534.124994392439,
+      "exported": true
+    },
+    "lh-inferiortemporal": {
+      "label": 1009,
+      "voxel_count": 6213,
+      "vertices": 7321,
+      "faces": 14690,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6156.1539996065985,
+      "exported": true
+    },
+    "lh-isthmuscingulate": {
+      "label": 1010,
+      "voxel_count": 2340,
+      "vertices": 3097,
+      "faces": 6230,
+      "connected_components": 2,
+      "watertight": true,
+      "volume_mm3": 2297.886778786927,
+      "exported": true
+    },
+    "lh-lateraloccipital": {
+      "label": 1011,
+      "voxel_count": 6249,
+      "vertices": 9588,
+      "faces": 19268,
+      "connected_components": 3,
+      "watertight": false,
+      "volume_mm3": null,
+      "exported": true
+    },
+    "lh-lateralorbitofrontal": {
+      "label": 1012,
+      "voxel_count": 5973,
+      "vertices": 7049,
+      "faces": 14106,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 5922.947207095792,
+      "exported": true
+    },
+    "lh-lingual": {
+      "label": 1013,
+      "voxel_count": 4671,
+      "vertices": 6923,
+      "faces": 13886,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 4626.138573712052,
+      "exported": true
+    },
+    "lh-medialorbitofrontal": {
+      "label": 1014,
+      "voxel_count": 3932,
+      "vertices": 4871,
+      "faces": 9774,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 3890.25911189412,
+      "exported": true
+    },
+    "lh-middletemporal": {
+      "label": 1015,
+      "voxel_count": 6498,
+      "vertices": 7651,
+      "faces": 15370,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6438.2422349621,
+      "exported": true
+    },
+    "lh-parahippocampal": {
+      "label": 1016,
+      "voxel_count": 1945,
+      "vertices": 2724,
+      "faces": 5468,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1913.9489415244734,
+      "exported": true
+    },
+    "lh-paracentral": {
+      "label": 1017,
+      "voxel_count": 3404,
+      "vertices": 4516,
+      "faces": 9068,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 3364.6965393810847,
+      "exported": true
+    },
+    "lh-parsopercularis": {
+      "label": 1018,
+      "voxel_count": 3539,
+      "vertices": 4474,
+      "faces": 8968,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 3500.4857117136366,
+      "exported": true
+    },
+    "lh-parsorbitalis": {
+      "label": 1019,
+      "voxel_count": 1540,
+      "vertices": 1944,
+      "faces": 3908,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1514.1350739642087,
+      "exported": true
+    },
+    "lh-parstriangularis": {
+      "label": 1020,
+      "voxel_count": 2001,
+      "vertices": 3091,
+      "faces": 6226,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1959.899924810444,
+      "exported": true
+    },
+    "lh-pericalcarine": {
+      "label": 1021,
+      "voxel_count": 1518,
+      "vertices": 2858,
+      "faces": 5808,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1476.2345672667861,
+      "exported": true
+    },
+    "lh-postcentral": {
+      "label": 1022,
+      "voxel_count": 8031,
+      "vertices": 12513,
+      "faces": 25138,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 7955.0229141243035,
+      "exported": true
+    },
+    "lh-posteriorcingulate": {
+      "label": 1023,
+      "voxel_count": 3073,
+      "vertices": 3444,
+      "faces": 6896,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 3037.222524429253,
+      "exported": true
+    },
+    "lh-precentral": {
+      "label": 1024,
+      "voxel_count": 11310,
+      "vertices": 14205,
+      "faces": 28442,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 11228.956896573822,
+      "exported": true
+    },
+    "lh-precuneus": {
+      "label": 1025,
+      "voxel_count": 6498,
+      "vertices": 8850,
+      "faces": 17752,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6435.604896545221,
+      "exported": true
+    },
+    "lh-rostralanteriorcingulate": {
+      "label": 1026,
+      "voxel_count": 2029,
+      "vertices": 2213,
+      "faces": 4438,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 2002.494753039314,
+      "exported": true
+    },
+    "lh-rostralmiddlefrontal": {
+      "label": 1027,
+      "voxel_count": 8897,
+      "vertices": 11222,
+      "faces": 22496,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 8834.999331741952,
+      "exported": true
+    },
+    "lh-superiorfrontal": {
+      "label": 1028,
+      "voxel_count": 17434,
+      "vertices": 18437,
+      "faces": 36930,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 17365.714397779553,
+      "exported": true
+    },
+    "lh-superiorparietal": {
+      "label": 1029,
+      "voxel_count": 7496,
+      "vertices": 11846,
+      "faces": 23780,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 7414.292374166464,
+      "exported": true
+    },
+    "lh-superiortemporal": {
+      "label": 1030,
+      "voxel_count": 9356,
+      "vertices": 11272,
+      "faces": 22604,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 9282.669627505913,
+      "exported": true
+    },
+    "lh-supramarginal": {
+      "label": 1031,
+      "voxel_count": 6870,
+      "vertices": 8780,
+      "faces": 17588,
+      "connected_components": 3,
+      "watertight": false,
+      "volume_mm3": null,
+      "exported": true
+    },
+    "lh-frontalpole": {
+      "label": 1032,
+      "voxel_count": 869,
+      "vertices": 1096,
+      "faces": 2188,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 852.6037230758972,
+      "exported": true
+    },
+    "lh-temporalpole": {
+      "label": 1033,
+      "voxel_count": 2408,
+      "vertices": 2235,
+      "faces": 4478,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 2387.21380096322,
+      "exported": true
+    },
+    "lh-transversetemporal": {
+      "label": 1034,
+      "voxel_count": 1154,
+      "vertices": 1820,
+      "faces": 3708,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1128.6426176941839,
+      "exported": true
+    },
+    "lh-insula": {
+      "label": 1035,
+      "voxel_count": 6567,
+      "vertices": 6536,
+      "faces": 13092,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6521.17413030396,
+      "exported": true
+    },
+    "rh-bankssts": {
+      "label": 2001,
+      "voxel_count": 1749,
+      "vertices": 2585,
+      "faces": 5194,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1715.7902570496,
+      "exported": true
+    },
+    "rh-caudalanteriorcingulate": {
+      "label": 2002,
+      "voxel_count": 2003,
+      "vertices": 2457,
+      "faces": 4946,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1979.9056269266546,
+      "exported": true
+    },
+    "rh-caudalmiddlefrontal": {
+      "label": 2003,
+      "voxel_count": 3400,
+      "vertices": 4706,
+      "faces": 9432,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 3365.6808255924184,
+      "exported": true
+    },
+    "rh-cuneus": {
+      "label": 2005,
+      "voxel_count": 2032,
+      "vertices": 3310,
+      "faces": 6660,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1994.3035994640934,
+      "exported": true
+    },
+    "rh-entorhinal": {
+      "label": 2006,
+      "voxel_count": 1391,
+      "vertices": 1632,
+      "faces": 3268,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1367.8384598766934,
+      "exported": true
+    },
+    "rh-fusiform": {
+      "label": 2007,
+      "voxel_count": 5426,
+      "vertices": 7187,
+      "faces": 14406,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 5371.99266396025,
+      "exported": true
+    },
+    "rh-inferiorparietal": {
+      "label": 2008,
+      "voxel_count": 7347,
+      "vertices": 10337,
+      "faces": 20722,
+      "connected_components": 3,
+      "watertight": false,
+      "volume_mm3": null,
+      "exported": true
+    },
+    "rh-inferiortemporal": {
+      "label": 2009,
+      "voxel_count": 6418,
+      "vertices": 7692,
+      "faces": 15424,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6360.466137985898,
+      "exported": true
+    },
+    "rh-isthmuscingulate": {
+      "label": 2010,
+      "voxel_count": 2206,
+      "vertices": 2909,
+      "faces": 5850,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 2166.8601552873333,
+      "exported": true
+    },
+    "rh-lateraloccipital": {
+      "label": 2011,
+      "voxel_count": 6613,
+      "vertices": 9482,
+      "faces": 19040,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6553.142045441651,
+      "exported": true
+    },
+    "rh-lateralorbitofrontal": {
+      "label": 2012,
+      "voxel_count": 6525,
+      "vertices": 7345,
+      "faces": 14698,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6480.92369347038,
+      "exported": true
+    },
+    "rh-lingual": {
+      "label": 2013,
+      "voxel_count": 5015,
+      "vertices": 7112,
+      "faces": 14276,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 4970.364106001992,
+      "exported": true
+    },
+    "rh-medialorbitofrontal": {
+      "label": 2014,
+      "voxel_count": 4093,
+      "vertices": 4999,
+      "faces": 10046,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 4057.9044742318983,
+      "exported": true
+    },
+    "rh-middletemporal": {
+      "label": 2015,
+      "voxel_count": 7767,
+      "vertices": 8716,
+      "faces": 17460,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 7705.541437691149,
+      "exported": true
+    },
+    "rh-parahippocampal": {
+      "label": 2016,
+      "voxel_count": 2042,
+      "vertices": 2818,
+      "faces": 5656,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 2009.4387324571287,
+      "exported": true
+    },
+    "rh-paracentral": {
+      "label": 2017,
+      "voxel_count": 3557,
+      "vertices": 4785,
+      "faces": 9578,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 3519.175932188367,
+      "exported": true
+    },
+    "rh-parsopercularis": {
+      "label": 2018,
+      "voxel_count": 2878,
+      "vertices": 3791,
+      "faces": 7598,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 2842.5709811461143,
+      "exported": true
+    },
+    "rh-parsorbitalis": {
+      "label": 2019,
+      "voxel_count": 1790,
+      "vertices": 2275,
+      "faces": 4574,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1761.2940248170587,
+      "exported": true
+    },
+    "rh-parstriangularis": {
+      "label": 2020,
+      "voxel_count": 2281,
+      "vertices": 3329,
+      "faces": 6690,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 2247.4486690452372,
+      "exported": true
+    },
+    "rh-pericalcarine": {
+      "label": 2021,
+      "voxel_count": 1760,
+      "vertices": 3476,
+      "faces": 7140,
+      "connected_components": 5,
+      "watertight": false,
+      "volume_mm3": null,
+      "exported": true
+    },
+    "rh-postcentral": {
+      "label": 2022,
+      "voxel_count": 7588,
+      "vertices": 11950,
+      "faces": 24096,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 7501.103609343176,
+      "exported": true
+    },
+    "rh-posteriorcingulate": {
+      "label": 2023,
+      "voxel_count": 3137,
+      "vertices": 3407,
+      "faces": 6830,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 3106.225579920279,
+      "exported": true
+    },
+    "rh-precentral": {
+      "label": 2024,
+      "voxel_count": 11170,
+      "vertices": 14234,
+      "faces": 28528,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 11092.60509454961,
+      "exported": true
+    },
+    "rh-precuneus": {
+      "label": 2025,
+      "voxel_count": 6641,
+      "vertices": 9054,
+      "faces": 18168,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6571.835445053992,
+      "exported": true
+    },
+    "rh-rostralanteriorcingulate": {
+      "label": 2026,
+      "voxel_count": 1767,
+      "vertices": 2038,
+      "faces": 4136,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1740.6098906414336,
+      "exported": true
+    },
+    "rh-rostralmiddlefrontal": {
+      "label": 2027,
+      "voxel_count": 9177,
+      "vertices": 11495,
+      "faces": 23062,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 9119.444254901378,
+      "exported": true
+    },
+    "rh-superiorfrontal": {
+      "label": 2028,
+      "voxel_count": 15797,
+      "vertices": 16983,
+      "faces": 33990,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 15736.546617373982,
+      "exported": true
+    },
+    "rh-superiorparietal": {
+      "label": 2029,
+      "voxel_count": 7601,
+      "vertices": 11608,
+      "faces": 23316,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 7526.865279189286,
+      "exported": true
+    },
+    "rh-superiortemporal": {
+      "label": 2030,
+      "voxel_count": 9119,
+      "vertices": 10793,
+      "faces": 21626,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 9055.516629647444,
+      "exported": true
+    },
+    "rh-supramarginal": {
+      "label": 2031,
+      "voxel_count": 6201,
+      "vertices": 8063,
+      "faces": 16150,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6149.1201249038395,
+      "exported": true
+    },
+    "rh-frontalpole": {
+      "label": 2032,
+      "voxel_count": 1069,
+      "vertices": 1351,
+      "faces": 2710,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 1050.3512726239953,
+      "exported": true
+    },
+    "rh-temporalpole": {
+      "label": 2033,
+      "voxel_count": 2133,
+      "vertices": 2068,
+      "faces": 4140,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 2111.6948112813247,
+      "exported": true
+    },
+    "rh-transversetemporal": {
+      "label": 2034,
+      "voxel_count": 810,
+      "vertices": 1365,
+      "faces": 2778,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 786.4413326561192,
+      "exported": true
+    },
+    "rh-insula": {
+      "label": 2035,
+      "voxel_count": 6651,
+      "vertices": 6252,
+      "faces": 12516,
+      "connected_components": 1,
+      "watertight": true,
+      "volume_mm3": 6606.86799193684,
+      "exported": true
+    }
+  },
+  "expected_rois": 68,
+  "exported_rois": 68,
+  "watertight_rois": 64
+}

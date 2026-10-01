@@ -1,10 +1,9 @@
-import type { ZoomSelection } from "@/types/networkVisualization";
+import type {
+  NetworkPercentFilterMode,
+  ZoomSelection,
+} from "@/types/networkVisualization";
 
-export type PercentZoomMode =
-  | "top"
-  | "bottom"
-  | "absoluteTop"
-  | "absoluteBottom";
+export type PercentZoomMode = NetworkPercentFilterMode;
 
 type PercentZoomLink = {
   rowId: string;
@@ -192,3 +191,7 @@ export const buildPercentZoomSelection = ({
     linkIds: [...linkIds].sort(),
   };
 };
+
+export const buildPercentLinkFilterIds = (
+  args: BuildPercentZoomSelectionArgs,
+) => new Set(buildPercentZoomSelection(args)?.linkIds ?? []);

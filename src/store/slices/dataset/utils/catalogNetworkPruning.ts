@@ -1,7 +1,6 @@
 import type { DatasetNetworkSummary } from "@/types/datasetNetworkView";
 import type { UpdateCatalogPayload } from "@/types/datasetState";
 import type { Network } from "@/types/network";
-import { getNetworkPopulationIds } from "@/utils/networkMetadata";
 
 export type CatalogNetworkPrunePayload = {
   catalog: UpdateCatalogPayload["catalog"];
@@ -15,10 +14,12 @@ export const summaryMatchesCatalogItem = (
   catalog: UpdateCatalogPayload["catalog"],
   id: string,
 ) => {
-  if (catalog === "populations") return summary.populationIds.includes(id);
+  if (catalog === "sources") return summary.sourceId === id;
   if (catalog === "measures") return summary.measureId === id;
-  if (catalog === "statistics") return summary.statId === id;
-  if (catalog === "layers") return summary.layerId === id;
+  if (catalog === "statistics") return summary.statisticId === id;
+  if (catalog === "aspectCatalogs") {
+    return Object.values(summary.dimensions).includes(id);
+  }
   return false;
 };
 
@@ -36,10 +37,10 @@ export const networkMatchesCatalogItem = (
   catalog: UpdateCatalogPayload["catalog"],
   id: string,
 ) => {
-  if (catalog === "populations") return getNetworkPopulationIds(network).includes(id);
+  if (catalog === "sources") return network.sourceId === id;
   if (catalog === "measures") return network.measureId === id;
   if (catalog === "statistics") return network.statisticId === id;
-  if (catalog === "layers") return (network.context.layerId ?? "none") === id;
+  if (catalog === "aspectCatalogs") return Object.values(network.dimensions).includes(id);
   return false;
 };
 

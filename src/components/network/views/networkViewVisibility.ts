@@ -5,13 +5,27 @@ import type {
   ViewVisibility,
 } from "@/types/networkVisualization";
 import { filterIsolatedMatrixEntries } from "@/utils/matrixFiltering";
+import { buildPercentLinkFilterIds } from "@/utils/networkPercentZoom";
 
 export const buildNetworkViewValueFilters = (
   computed: ComputedView,
-): NetworkViewValueFilters => ({
-  measure: null,
-  stat: computed.statFilter,
-});
+): NetworkViewValueFilters => {
+  const percentFilter = computed.percentLinkFilter;
+
+  return {
+    measure: null,
+    stat: computed.statFilter,
+    percentLinkIds: percentFilter
+      ? buildPercentLinkFilterIds({
+          ...computed.inputMatrix,
+          symmetric: computed.symmetric,
+          mode: percentFilter.mode,
+          percent: percentFilter.percent,
+          includeAutoconnections: percentFilter.includeAutoconnections,
+        })
+      : null,
+  };
+};
 
 export const resolveViewVisibility = (computed: ComputedView): ViewVisibility => {
   const valueFilters = buildNetworkViewValueFilters(computed);

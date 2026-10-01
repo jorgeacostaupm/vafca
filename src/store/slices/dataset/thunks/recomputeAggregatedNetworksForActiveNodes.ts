@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 
 import {
   type AggregatedNetworkOrderMode,
-  buildNodeGroupsFromTags,
+  buildNodeGroupsFromMetadata,
   computeAggregatedNetworkData,
   createAggregatedNetwork,
   hashGroupOrder,
@@ -54,17 +54,13 @@ export const recomputeAggregatedNetworksForActiveNodes = createAsyncThunk<
       const orderMode =
         (aggregation.parameters.orderMode as AggregatedNetworkOrderMode | undefined) ??
         'matrix'
-      const categoryOrder =
-        orderMode === 'circular'
-          ? state.atlasUi.circularHierarchyCategoryOrder
-          : state.atlasUi.matrixHierarchyCategoryOrder
       const missingTagPolicy =
         aggregation.parameters.missingNodePolicy ?? 'unknown_group'
 
-      const groupResult = buildNodeGroupsFromTags({
+      const groupResult = buildNodeGroupsFromMetadata({
         nodeSet: datasetContent.nodeSet,
         fields: aggregation.fields,
-        categoryOrder,
+        categoryOrder: {},
         activeNodeIds: activeNodeSet,
         missingTagPolicy,
       })
@@ -101,10 +97,7 @@ export const recomputeAggregatedNetworksForActiveNodes = createAsyncThunk<
         ...nextNetwork,
         id: network.id,
         label: network.label,
-        context: {
-          ...nextNetwork.context,
-          layerId: network.context.layerId,
-        },
+        dimensions: { ...network.dimensions },
       })
     })
 

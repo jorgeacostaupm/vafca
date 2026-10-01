@@ -16,6 +16,7 @@ export const createDefaultRankingQueryForTarget = (
   linkCollectionMode: DEFAULT_LINK_COLLECTION_RANKING_MODE,
   allowLinkRankingAutoconnections: DEFAULT_LINK_RANKING_ALLOW_AUTOCONNECTIONS,
   allowNodeRankingAutoconnections: DEFAULT_NODE_RANKING_ALLOW_AUTOCONNECTIONS,
+  aspectFilters: {},
   scope: "allLinks",
   topN: DEFAULT_RANKING_TOP_N,
   threshold: 0,

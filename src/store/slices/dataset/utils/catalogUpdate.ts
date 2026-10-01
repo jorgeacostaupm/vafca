@@ -64,10 +64,11 @@ export const updateDatasetCatalogItem = (
   catalogs: Catalogs,
   payload: UpdateCatalogPayload,
 ) => {
-  const catalogMap = catalogs[payload.catalog] as Record<
-    string,
-    Record<string, unknown>
-  >
+  const catalogMap =
+    payload.catalog === 'aspectCatalogs'
+      ? catalogs.aspectCatalogs[payload.aspectId ?? '']
+      : (catalogs[payload.catalog] as Record<string, Record<string, unknown>>)
+  if (!catalogMap) return
   const existing = catalogMap[payload.id]
   if (!existing) return
 

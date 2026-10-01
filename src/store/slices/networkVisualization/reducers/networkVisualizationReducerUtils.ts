@@ -19,11 +19,11 @@ export const getSharedSettings = (
     statRange: source.statRange,
     measureRange: source.measureRange,
     hideIsolatedNodes: source.hideIsolatedNodes,
-    zoomLabelSelection: source.zoomLabelSelection,
     zoomHistory: source.zoomHistory,
     zoomIndex: source.zoomIndex,
     selectionVisible: source.selectionVisible,
     zoomLinkPercent: source.zoomLinkPercent,
+    percentLinkFilter: source.percentLinkFilter,
     useAsNodeFilter: source.useAsNodeFilter,
     useAsLinkFilter: source.useAsLinkFilter,
   }
@@ -73,6 +73,7 @@ export const setStatRange = (
   value: [number, number],
   segment?: 'negative' | 'positive',
   fallback?: StatRangeValue,
+  enabled?: boolean,
 ) => {
   if (!segment) {
     settings.statRange = value
@@ -92,6 +93,7 @@ export const setStatRange = (
   settings.statRange = {
     ...base,
     [segment]: value,
+    ...(enabled === undefined ? {} : { [`${segment}Enabled`]: enabled }),
   }
 }
 

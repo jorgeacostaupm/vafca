@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 
 import {
   type AggregatedNetworkOrderMode,
-  buildNodeGroupsFromTags,
+  buildNodeGroupsFromMetadata,
   computeAggregatedNetworkData,
   createAggregatedNetwork,
   findEquivalentAggregatedNetwork,
@@ -53,15 +53,11 @@ export const computeAggregatedNetworkFromVisualizationGroups = createAsyncThunk<
       )
     }
 
-    const categoryOrder =
-      orderMode === 'circular'
-        ? state.atlasUi.circularHierarchyCategoryOrder
-        : state.atlasUi.matrixHierarchyCategoryOrder
     const grouping = getCurrentVisualizationGrouping(
-      state.atlasUi.colorFields,
-      categoryOrder,
+      state.atlasUi.aggregationFields,
+      {},
     )
-    if (!grouping) return rejectWithValue('No active tag grouping found.')
+    if (!grouping) return rejectWithValue('No active metadata grouping found.')
 
     const activeNodeIds = state.atlasUi.order.filter(
       (id) => state.atlasUi.labelsById[id]?.enabled !== false,
@@ -70,14 +66,14 @@ export const computeAggregatedNetworkFromVisualizationGroups = createAsyncThunk<
     const activeNodeSetHash = hashNodeSet(activeNodeIds)
 
     const missingFields = grouping.fields.filter(
-      (field) => !datasetContent.nodeSet.nodes.some((node) => field in (node.tags ?? {})),
+      (field) => !datasetContent.nodeSet.nodes.some((node) => field in (node.metadata ?? {})),
     )
     if (missingFields.length > 0) {
-      return rejectWithValue(`Selected tag does not exist: ${missingFields.join(', ')}.`)
+      return rejectWithValue(`Selected metadata field does not exist: ${missingFields.join(', ')}.`)
     }
 
     await yieldToBrowser()
-    const groupResult = buildNodeGroupsFromTags({
+    const groupResult = buildNodeGroupsFromMetadata({
       nodeSet: datasetContent.nodeSet,
       fields: grouping.fields,
       categoryOrder: grouping.categoryOrder,
@@ -132,7 +128,7 @@ export const computeAggregatedNetworkFromVisualizationGroups = createAsyncThunk<
 
     const warnings = [
       groupResult.missingTagNodeIds.length > 0
-        ? 'Some active nodes do not have the selected tag and were assigned to Unknown.'
+        ? 'Some active nodes do not have the selected metadata field and were assigned to Unknown.'
         : null,
       groupResult.excludedNodeIds.length > 0
         ? 'Inactive nodes are excluded from the aggregation.'

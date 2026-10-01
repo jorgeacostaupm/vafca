@@ -15,7 +15,7 @@ export default function GroupingSettingsHeader({
         {notice}
       </span>
       <Typography.Text type="secondary">
-        These fields define the categorical grouping used by atlas nodes.
+        These fields define node and label colors. Configure ordering separately in each view’s settings.
       </Typography.Text>
     </Space>
   );

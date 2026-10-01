@@ -16,14 +16,14 @@ import type { RootState } from '@/types/store'
 
 const shouldPruneActiveNetworks = (payload: UpdateCatalogPayload) =>
   payload.changes.enabled === false &&
-  ['populations', 'measures', 'statistics', 'layers'].includes(payload.catalog)
+  ['sources', 'measures', 'statistics', 'aspectCatalogs'].includes(payload.catalog)
 
 const viewMatchesCatalogFallback = (
   view: RootState["networkVisualization"]["viewsById"][string],
   payload: CatalogNetworkPrunePayload,
 ) => {
   if (payload.catalog === 'measures') return view.measureId === payload.id
-  if (payload.catalog === 'statistics') return view.statId === payload.id
+  if (payload.catalog === 'statistics') return view.statisticId === payload.id
   return false
 }
 

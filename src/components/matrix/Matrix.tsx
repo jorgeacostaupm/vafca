@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from "react";
 
 import {
   type SharedHoverState,
@@ -13,6 +13,7 @@ import {
   resolveHeatmapAxisLabels,
   resolveHeatmapLegendRange,
 } from "@/components/matrix/components/matrixData";
+import { updateHeatmapLabelStyles } from "@/components/matrix/components/matrixLabels";
 import { buildHeatmapLayout } from "@/components/matrix/components/matrixLayout";
 import {
   syncHoveredCellOverlay,
@@ -27,11 +28,11 @@ import {
   getTooltipPositionForMatrixCell,
   getTooltipPositionForMatrixPointer,
 } from "@/components/matrix/matrixTooltip";
-import { useMatrixOptimisticBrushSelection } from "@/components/matrix/useMatrixOptimisticBrushSelection";
 import {
   DEFAULT_MATRIX_COLOR_SETTINGS,
   getMatrixVisualStyle,
 } from "@/config/matrixColorScales";
+import { DEFAULT_MATRIX_BACKGROUND_COLOR } from "@/config/ui";
 import type { HeatmapProps } from "@/types/matrixHeatmap";
 
 function MatrixHeatmap({
@@ -229,43 +230,11 @@ function MatrixHeatmap({
     [width, height, filtered, resolvedRowLabels, resolvedColLabels, labelNames],
   );
 
-  const paintSelectedCellsOverlay = useCallback(
-    (nextSelectedCells: Array<{ row: number; col: number }>) => {
-      const selectedLayer = selectedLayerRef.current;
-      const xScale = xScaleRef.current;
-      const yScale = yScaleRef.current;
-      const normalizedData = normalizedRef.current;
-      if (!selectedLayer || !xScale || !yScale) return;
-
-      updateSelectedCellsOverlay({
-        selectedLayer,
-        xScale,
-        yScale,
-        dataShape: {
-          rows: normalizedData.length,
-          cols: normalizedData[0]?.length ?? 0,
-        },
-        visibleData: normalizedData,
-        symmetric,
-        selectedCells: nextSelectedCells,
-        visualStyle: resolvedVisualStyle,
-      });
-    },
-    [resolvedVisualStyle, symmetric],
-  );
-
-  const {
-    getDisplayedSelectedCells,
-    handleBrushSelectLinks,
-    handleBrushDeselectLinks,
-  } = useMatrixOptimisticBrushSelection({
-    selectedCells,
-    selectionVisible,
-    symmetric,
-    onBrushSelectLinks,
-    onBrushDeselectLinks,
-    paintSelectedCells: paintSelectedCellsOverlay,
-  });
+  // ponytail: Redux chunks drive the overlay; optimistic removal would hide overlaps from other annotations.
+  const getDisplayedSelectedCells = useEffectEvent(() => selectionVisible ? selectedCells : []);
+  const getVisualStyle = useEffectEvent(() => resolvedVisualStyle);
+  const handleBrushSelectLinks = onBrushSelectLinks;
+  const handleBrushDeselectLinks = onBrushDeselectLinks;
 
   useEffect(() => {
     brushSelectLinksCbRef.current = handleBrushSelectLinks;
@@ -290,7 +259,7 @@ function MatrixHeatmap({
       scaleType: resolvedScaleType,
       scaleCenter: scaleCenter ?? null,
       colorScaleSettings: resolvedColorScaleSettings,
-      visualStyle: resolvedVisualStyle,
+      visualStyle: getVisualStyle(),
       title,
       valueLabel,
       resolvedRowLabels,
@@ -336,7 +305,7 @@ function MatrixHeatmap({
       visibleData: filtered,
       symmetric,
       selectedCells: getDisplayedSelectedCells(),
-      visualStyle: resolvedVisualStyle,
+      visualStyle: getVisualStyle(),
     });
   }, [
     filtered,
@@ -345,7 +314,6 @@ function MatrixHeatmap({
     resolvedScaleType,
     scaleCenter,
     resolvedColorScaleSettings,
-    resolvedVisualStyle,
     title,
     valueLabel,
     resolvedRowLabels,
@@ -358,7 +326,6 @@ function MatrixHeatmap({
     brushMode,
     showAllLabels,
     symmetric,
-    getDisplayedSelectedCells,
     svgRef,
     positionTooltipForCell,
     positionTooltipForPointer,
@@ -391,8 +358,16 @@ function MatrixHeatmap({
     height,
     symmetric,
     resolvedVisualStyle,
-    getDisplayedSelectedCells,
   ]);
+
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const style = getVisualStyle();
+    const svg = d3.select(svgRef.current);
+    svg.select('.heatmap-background').attr('fill', style.backgroundColor ?? DEFAULT_MATRIX_BACKGROUND_COLOR);
+    svg.selectAll('.heatmap-highlight line').attr('stroke', style.highlightColor);
+    updateHeatmapLabelStyles(svg, labelColors, selectedZoomLabels, style);
+  }, [svgRef, layout, filtered, labelColors, selectedZoomLabels, resolvedVisualStyle.annotationNodeColors, resolvedVisualStyle.backgroundColor, resolvedVisualStyle.highlightColor, resolvedVisualStyle.selectionColor]);
 
   const syncSharedHover = useCallback((hoverState: SharedHoverState) => {
     const xScale = xScaleRef.current;

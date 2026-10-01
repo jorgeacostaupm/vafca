@@ -1,12 +1,15 @@
 import type { ComponentType } from "react";
 import { useMemo } from "react";
 
+import { useTooltipValueLabel } from "@/components/common/useTooltipValueLabel";
 import ViewPanelTemplate from "@/components/layout/ViewPanelTemplate";
 import { useNodeLinkPanelInteractions } from "@/components/nodelink/useNodeLinkPanelInteractions";
 import { createCircularLinkColorResolver } from "@/config/matrixColorScales";
+import { useAnnotationStyle } from '@/hooks/useAnnotationStyle'
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { useMatrixColorEncoding } from "@/hooks/useMatrixColorEncoding";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { toggleAnnotationNode } from '@/store/slices/visualizationUi';
 import { selectNodeLinkVisualStyle } from "@/store/slices/visualizationUi";
 import type {
   NodeLinkInteractionProps,
@@ -46,6 +49,11 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
   circularBundlingEnabled,
   circularPositiveLinkColor,
   circularNegativeLinkColor,
+  visualStyleOverride,
+  labelNames: labelNamesOverride,
+  labelTitles: labelTitlesOverride,
+  labelAcronyms: labelAcronymsOverride,
+  nodeColors: nodeColorsOverride,
   brushEnabled,
   brushMode,
   geometricZoomEnabled,
@@ -54,19 +62,29 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
   onLabelToggle,
   onBrushZoom,
 }: NodeLinkViewTemplateProps<TExtra>) {
-  const { labelNames, labelTitles, labelAcronyms, nodeColors } =
-    useAtlasLabelPresentation();
-  const visualStyle = useAppSelector(selectNodeLinkVisualStyle);
+  const valueLabel = useTooltipValueLabel(compoundId, networkLabel);
+  const dispatch = useAppDispatch();
+  const atlasPresentation = useAtlasLabelPresentation();
+  const labelNames = labelNamesOverride ?? atlasPresentation.labelNames;
+  const labelTitles = labelTitlesOverride ?? atlasPresentation.labelTitles;
+  const labelAcronyms = labelAcronymsOverride ?? atlasPresentation.labelAcronyms;
+  const nodeColors = nodeColorsOverride ?? atlasPresentation.nodeColors;
+  const nodeLinkVisualStyle = useAppSelector(selectNodeLinkVisualStyle);
+  const visualStyle = useAnnotationStyle(visualStyleOverride ?? nodeLinkVisualStyle, selectionVisible);
   const { colorResolver: matrixLinkColorResolver } = useMatrixColorEncoding(valueDomain);
+  const positiveLinkColor =
+    circularPositiveLinkColor ?? visualStyle.positiveLinkColor;
+  const negativeLinkColor =
+    circularNegativeLinkColor ?? visualStyle.negativeLinkColor;
   const linkColorResolver = useMemo(
     () =>
-      circularPositiveLinkColor && circularNegativeLinkColor
+      positiveLinkColor && negativeLinkColor
         ? createCircularLinkColorResolver({
-            positive: circularPositiveLinkColor,
-            negative: circularNegativeLinkColor,
+            positive: positiveLinkColor,
+            negative: negativeLinkColor,
           })
         : matrixLinkColorResolver,
-    [circularNegativeLinkColor, circularPositiveLinkColor, matrixLinkColorResolver],
+    [matrixLinkColorResolver, negativeLinkColor, positiveLinkColor],
   );
   const {
     resolvedLabels,
@@ -97,6 +115,7 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
           labelAcronyms={labelAcronyms}
           nodeColors={nodeColors}
           networkLabel={networkLabel}
+          valueLabel={valueLabel}
           width={width}
           height={height}
           svgRef={svgRef}
@@ -115,7 +134,7 @@ export default function NodeLinkViewTemplate<TExtra extends object>({
           selectedLinkIds={selectionVisible ? selectedLinkIds : EMPTY_SELECTED_LINK_IDS}
           visualStyle={visualStyle}
           linkColorResolver={linkColorResolver}
-          onLabelToggle={onLabelToggle}
+          onLabelToggle={onLabelToggle ?? (id => dispatch(toggleAnnotationNode({ id, label: labelNames?.[id] ?? id })))}
           onLinkSelect={handleSelect}
           onLinkHover={handleLinkHover}
           onLinkLeave={handleLinkLeave}

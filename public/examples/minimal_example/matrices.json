@@ -1,0 +1,42 @@
+[
+  {
+    "id": "example-measure-1-mean-baseline-session-1",
+    "label": "Measure 1 mean — baseline, session 1",
+    "source": "example",
+    "measure": "measure-1",
+    "statistic": "mean",
+    "dimensions": { "condition": "baseline", "session": "session-1" },
+    "layout": "full",
+    "data": [[0, 0.2, 0.4], [0.2, 0, 0.6], [0.4, 0.6, 0]]
+  },
+  {
+    "id": "example-measure-1-median-task-session-1",
+    "label": "Measure 1 median — task, session 1",
+    "source": "example",
+    "measure": "measure-1",
+    "statistic": "median",
+    "dimensions": { "condition": "task", "session": "session-1" },
+    "layout": "full",
+    "data": [[0, 0.3, 0.5], [0.3, 0, 0.7], [0.5, 0.7, 0]]
+  },
+  {
+    "id": "example-measure-2-mean-baseline-session-2",
+    "label": "Measure 2 mean — baseline, session 2",
+    "source": "example",
+    "measure": "measure-2",
+    "statistic": "mean",
+    "dimensions": { "condition": "baseline", "session": "session-2" },
+    "layout": "full",
+    "data": [[0, 0.15, 0.35], [0.15, 0, 0.55], [0.35, 0.55, 0]]
+  },
+  {
+    "id": "example-measure-2-median-task-session-2",
+    "label": "Measure 2 median — task, session 2",
+    "source": "example",
+    "measure": "measure-2",
+    "statistic": "median",
+    "dimensions": { "condition": "task", "session": "session-2" },
+    "layout": "full",
+    "data": [[0, 0.25, 0.45], [0.25, 0, 0.65], [0.45, 0.65, 0]]
+  }
+]

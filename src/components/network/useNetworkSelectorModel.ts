@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 
 import { useNetworkViewLifecycle } from "@/components/network/useNetworkViewLifecycle";
+import { reconcileNetworkFilters } from "@/components/selectors/reconcileNetworkFilters";
 import { useNetworkFilterOptions } from "@/components/selectors/useNetworkFilterOptions";
 import { useDatasetNetworkSummaries } from "@/hooks/useDatasetNetworkSummaries";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -12,7 +13,7 @@ import {
 import {
   getDatasetCatalogs,
 } from "@/utils/datasetAccessors";
-import { buildNetworkSummaryLabel, normalizePopulationKey } from "@/utils/matrixViewUtils";
+import { buildNetworkSummaryLabel } from "@/utils/matrixViewUtils";
 
 export const useNetworkSelectorModel = () => {
   const dispatch = useAppDispatch();
@@ -23,10 +24,10 @@ export const useNetworkSelectorModel = () => {
   const { summaries, status, error } = useDatasetNetworkSummaries();
 
   const {
-    populationOptions,
+    sourceOptions,
     measures,
-    statOptions,
-    layerOptions,
+    statisticOptions,
+    aspectOptions,
     matches,
     allNetworkOptions,
     selectableNetworkSummaries,
@@ -34,10 +35,10 @@ export const useNetworkSelectorModel = () => {
     dataset,
     atlas,
     summaries,
-    populationKey: controls.populationKey,
+    sourceId: controls.sourceId,
     measureId: controls.measureId,
-    statId: controls.statId,
-    layerId: controls.layerId,
+    statisticId: controls.statisticId,
+    aspectFilters: controls.aspectFilters,
   });
 
   useNetworkViewLifecycle({
@@ -46,59 +47,30 @@ export const useNetworkSelectorModel = () => {
     summaries,
   });
 
-  const handlePopulationChange = useCallback(
-    (value?: string) => {
-      dispatch(
-        patchNetworkControls({
-          populationKey: value ?? "",
-          measureId: "",
-          statId: "",
-          layerId: "",
-          selectedCompoundId: "",
-        }),
-      );
+  const handleFilterChange = useCallback(
+    (patch: Partial<typeof controls>) => {
+      dispatch(patchNetworkControls({
+        ...reconcileNetworkFilters(
+          { ...controls, ...patch },
+          selectableNetworkSummaries,
+          aspectOptions.map((aspect) => aspect.id),
+        ),
+        selectedCompoundId: "",
+      }));
     },
-    [dispatch],
+    [controls, dispatch, selectableNetworkSummaries, aspectOptions],
   );
 
-  const handleMeasureChange = useCallback(
-    (value?: string) => {
-      dispatch(
-        patchNetworkControls({
-          measureId: value ?? "",
-          statId: "",
-          layerId: "",
-          selectedCompoundId: "",
-        }),
-      );
-    },
-    [dispatch],
-  );
-
-  const handleStatChange = useCallback(
-    (value?: string) => {
-      dispatch(
-        patchNetworkControls({
-          statId: value ?? "",
-          layerId: "",
-          selectedCompoundId: "",
-        }),
-      );
-    },
-    [dispatch],
-  );
-
-  const handleLayerChange = useCallback(
-    (value?: string) => {
-      dispatch(
-        patchNetworkControls({
-          layerId: value ?? "",
-          selectedCompoundId: "",
-        }),
-      );
-    },
-    [dispatch],
-  );
+  const handleSourceChange = (value?: string) =>
+    handleFilterChange({ sourceId: value ?? "" });
+  const handleMeasureChange = (value?: string) =>
+    handleFilterChange({ measureId: value ?? "" });
+  const handleStatisticChange = (value?: string) =>
+    handleFilterChange({ statisticId: value ?? "" });
+  const handleAspectChange = (aspectId: string, value?: string) =>
+    handleFilterChange({
+      aspectFilters: { ...controls.aspectFilters, [aspectId]: value ?? "" },
+    });
 
   const handleNetworkChange = useCallback(
     (value?: string) => {
@@ -106,10 +78,10 @@ export const useNetworkSelectorModel = () => {
         const shouldClearFields = controls.matrixSelectorMode === "combined";
         dispatch(
           patchNetworkControls({
-            populationKey: shouldClearFields ? "" : controls.populationKey,
+            sourceId: shouldClearFields ? "" : controls.sourceId,
             measureId: shouldClearFields ? "" : controls.measureId,
-            statId: shouldClearFields ? "" : controls.statId,
-            layerId: shouldClearFields ? "" : controls.layerId,
+            statisticId: shouldClearFields ? "" : controls.statisticId,
+            aspectFilters: shouldClearFields ? {} : controls.aspectFilters,
             selectedCompoundId: "",
           }),
         );
@@ -124,14 +96,12 @@ export const useNetworkSelectorModel = () => {
         return;
       }
 
-      const derivedPopulationKey = normalizePopulationKey(summary.populationIds);
-
       dispatch(
         patchNetworkControls({
-          populationKey: derivedPopulationKey,
+          sourceId: summary.sourceId,
           measureId: summary.measureId,
-          statId: summary.statId,
-          layerId: summary.layerId,
+          statisticId: summary.statisticId,
+          aspectFilters: summary.dimensions,
           selectedCompoundId: summary.compoundId,
         }),
       );
@@ -157,7 +127,7 @@ export const useNetworkSelectorModel = () => {
         compoundId: summary.compoundId,
         label: buildNetworkSummaryLabel(summary, catalogs),
         measureId: summary.measureId,
-        statId: summary.statId,
+        statisticId: summary.statisticId,
       }),
     );
   }, [
@@ -173,19 +143,24 @@ export const useNetworkSelectorModel = () => {
     status,
     error,
     measures,
-    populations: populationOptions,
-    layers: layerOptions,
-    stats: statOptions,
+    sources: sourceOptions,
+    aspects: aspectOptions,
+    statistics: statisticOptions,
     networks: allNetworkOptions,
-    disabled: {
-      measures: !controls.populationKey,
-      stats: !controls.measureId,
-      layers: !controls.statId,
+    labels: {
+      source: catalogs?.core.source.label ?? "Source",
+      measure: catalogs?.core.measure.label ?? "Measure",
+      statistic: catalogs?.core.statistic.label ?? "Statistic",
     },
-    onPopulationChange: handlePopulationChange,
+    disabled: {
+      measures: !controls.sourceId,
+      stats: !controls.measureId,
+      aspects: !controls.statisticId,
+    },
+    onSourceChange: handleSourceChange,
     onMeasureChange: handleMeasureChange,
-    onStatChange: handleStatChange,
-    onLayerChange: handleLayerChange,
+    onStatisticChange: handleStatisticChange,
+    onAspectChange: handleAspectChange,
     onNetworkChange: handleNetworkChange,
     onAddView: handleAddView,
   };

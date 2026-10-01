@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
+import { updateRoiMetadata } from '@/store/actions/updateRoiMetadata'
 import type { AtlasSource } from '@/types/atlas'
 
 import { initialAtlasDefinitionState } from './atlasDefinitionTypes'
@@ -27,6 +28,14 @@ const atlasDefinitionSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(updateRoiMetadata, (state, { payload }) => {
+        const atlases = [state.uploaded?.atlas, ...Object.values(state.defaultById)]
+        for (const atlas of atlases) {
+          if (atlas?.id !== payload.atlasId) continue
+          const node = atlas.nodes.find((node) => node.id === payload.id)
+          if (node) node.metadata = payload.metadata
+        }
+      })
       .addCase(loadDefaultAtlasDefinition.pending, (state, action) => {
         const atlasId = action.meta.arg?.atlasId ?? DEFAULT_ATLAS_STATUS_ID
         state.defaultStatusById[atlasId] = 'loading'

@@ -1,10 +1,11 @@
 import type { RefObject } from "react";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import type { CircularBundlePathPoint } from "@/types/circular";
 import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type { MatrixValueRange } from "@/types/matrixView";
 import type { ResolvedValueDomain } from "@/types/valueDomain";
-import type { MatrixVisualStyle } from "@/types/visualizationUi";
+import type { NodeLinkVisualStyle } from "@/types/visualizationUi";
 
 export type NodeLinkValueFilters = {
   measure?: [number, number] | null;
@@ -30,6 +31,11 @@ export type NodeLinkPanelCommonProps = {
   circularBundlingEnabled?: boolean;
   circularPositiveLinkColor?: string;
   circularNegativeLinkColor?: string;
+  visualStyleOverride?: NodeLinkVisualStyle;
+  labelNames?: Record<string, string>;
+  labelTitles?: Record<string, string>;
+  labelAcronyms?: Record<string, string>;
+  nodeColors?: Record<string, string>;
   onLabelToggle?: (label: string) => void;
   onBrushZoom?: (payload: { labels: string[] }) => void;
   onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
@@ -37,6 +43,7 @@ export type NodeLinkPanelCommonProps = {
 };
 
 export type NodeLinkPresentationProps = {
+  valueLabel: TooltipValueLabel;
   labelNames: Record<string, string>;
   labelTitles: Record<string, string>;
   labelAcronyms: Record<string, string>;
@@ -47,7 +54,7 @@ export type NetworkLinkColorResolver = (value: number) => string;
 
 export type NodeLinkInteractionProps = {
   selectedLinkIds: Set<string>;
-  visualStyle: MatrixVisualStyle;
+  visualStyle: NodeLinkVisualStyle;
   linkColorResolver: NetworkLinkColorResolver;
   onLinkSelect: (payload: {
     rowId: string;

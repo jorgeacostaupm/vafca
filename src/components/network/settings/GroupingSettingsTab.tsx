@@ -1,4 +1,4 @@
-import { CheckOutlined, ExportOutlined, ReloadOutlined } from '@ant-design/icons'
+import { CheckOutlined, ReloadOutlined } from '@ant-design/icons'
 import { Button, Select, Space, Typography } from 'antd'
 import { useCallback, useState } from 'react'
 
@@ -28,10 +28,7 @@ type GroupingDraft = {
   colorFields: string[]
   colorPalette: D3GroupingPaletteKey
 }
-type GroupingSettingsTabProps = {
-  onOpenAggregationModal?: () => void
-}
-export default function GroupingSettingsTab({ onOpenAggregationModal }: GroupingSettingsTabProps) {
+export default function GroupingSettingsTab() {
   const dispatch = useAppDispatch()
   const colorFields = useAppSelector(selectAtlasColorFields)
   const colorPalette = useAppSelector(selectAtlasColorPalette)
@@ -122,7 +119,7 @@ export default function GroupingSettingsTab({ onOpenAggregationModal }: Grouping
 
   return (
     <SettingsSection
-      description="Use this menu to configure how atlas fields group and color network nodes."
+      description="Use this menu to configure node and label colors. Ordering is configured independently in Matrices and Connectogram."
     >
       <div className="network-settings-grouping">
         <Space direction="vertical" size={12} className="network-settings-grouping__controls">
@@ -200,11 +197,6 @@ export default function GroupingSettingsTab({ onOpenAggregationModal }: Grouping
           <Button icon={<ReloadOutlined />} onClick={handleDiscard} disabled={!hasPendingChanges}>
             Reset
           </Button>
-          {onOpenAggregationModal ? (
-            <Button icon={<ExportOutlined />} onClick={onOpenAggregationModal}>
-              Aggregate networks
-            </Button>
-          ) : null}
         </Space>
       </div>
     </SettingsSection>

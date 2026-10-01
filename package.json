@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "check:ranking-sources": "node scripts/check-ranking-sources.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

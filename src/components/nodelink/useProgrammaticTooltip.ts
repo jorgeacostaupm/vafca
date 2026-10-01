@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import type { MutableRefObject, RefObject } from "react";
 import { useEffect } from "react";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import {
   type SharedHoverState,
   subscribeSharedHover,
@@ -28,7 +29,7 @@ type UseClassicProgrammaticTooltipArgs = {
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
   labelAcronyms?: Record<string, string>;
-  valueLabel: string;
+  valueLabel: TooltipValueLabel;
   zoomTransformRef: MutableRefObject<d3.ZoomTransform>;
 };
 

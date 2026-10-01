@@ -12,21 +12,21 @@ import type {
 
 export const populationDifferenceDefinition: NetworkCalculationMethodDefinition = {
   id: "population_difference",
-  label: "Difference between population means",
+  label: "Difference between populations",
   shortLabel: "Difference",
   scope: "population_vs_population",
   category: "group_comparison",
-  description: "Subtracts the right population mean from the left population mean.",
-  formulaText: "left mean - right mean",
-  interpretation: "Positive values indicate higher mean connectivity in the left population.",
-  requirements: ["Left population mean network", "Right population mean network"],
+  description: "Subtracts the selected right population statistic from the selected left population statistic.",
+  formulaText: "left value - right value",
+  interpretation: "Positive values indicate a higher selected statistic in the left population.",
+  requirements: ["Left population network", "Right population network"],
   requiredInputs: [
-    { role: "leftMean", label: "Left mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
-    { role: "rightMean", label: "Right mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
+    { role: "leftValue", label: "Left statistic", kind: "population", statisticId: "mean", sourceLevel: "population", required: true },
+    { role: "rightValue", label: "Right statistic", kind: "population", statisticId: "mean", sourceLevel: "population", required: true },
   ],
   outputs: [
     {
-      statId: "difference",
+      statisticId: "difference",
       statLabel: "Difference",
       statCategory: "comparison",
       operator: "difference",
@@ -36,7 +36,7 @@ export const populationDifferenceDefinition: NetworkCalculationMethodDefinition 
       scaleType: "diverging",
       center: 0,
       rangeMode: "observed_symmetric",
-      expectedRange: [-1, 1],
+      expectedRange: null,
       useDataRange: true,
     },
   ],
@@ -51,11 +51,11 @@ export const calculatePopulationDifference: NetworkCalculationMethod["calculate"
   result,
   existingIds,
 }) => {
-  request.layerIds.forEach((layerId) => {
+  request.dimensionPairs.forEach((dimensionPair) => {
     request.measureIds.forEach((measureId) => {
       const resolved = ensureReady(
         "population_difference",
-        layerId,
+        dimensionPair,
         measureId,
         result.skipped,
         request,
@@ -63,11 +63,11 @@ export const calculatePopulationDifference: NetworkCalculationMethod["calculate"
       );
       if (!resolved) return;
       result.warnings.push(...resolved.warnings);
-      const leftMean = resolved.networks.leftMean!;
-      const rightMean = resolved.networks.rightMean!;
-      const data = createBinaryData(leftMean, (i, j) => {
-        const left = getFiniteMatrixValueOrNull(leftMean, i, j);
-        const right = getFiniteMatrixValueOrNull(rightMean, i, j);
+      const leftValue = resolved.networks.leftValue!;
+      const rightValue = resolved.networks.rightValue!;
+      const data = createBinaryData(leftValue, (i, j) => {
+        const left = getFiniteMatrixValueOrNull(leftValue, i, j);
+        const right = getFiniteMatrixValueOrNull(rightValue, i, j);
         return left === null || right === null ? null : left - right;
       });
       maybePush(
@@ -76,17 +76,17 @@ export const calculatePopulationDifference: NetworkCalculationMethod["calculate"
           method: populationDifferenceDefinition,
           output: differenceOutput,
           endpoints: {
-            left: { type: "population", populationId: request.leftPopulationId, network: leftMean },
-            right: { type: "population", populationId: request.rightPopulationId, network: rightMean },
+            left: { type: "population", populationId: request.leftPopulationId, network: leftValue },
+            right: { type: "population", populationId: request.rightPopulationId, network: rightValue },
           },
-          dependencies: [leftMean.id, rightMean.id],
+          dependencies: [leftValue.id, rightValue.id],
           calculation: {
             data,
             statMethod: "left_minus_right",
-            formula: "left_mean - right_mean",
+            formula: "left_value - right_value",
             comparisonParameters: {
-              leftMeanNetworkId: leftMean.id,
-              rightMeanNetworkId: rightMean.id,
+              leftValueNetworkId: leftValue.id,
+              rightValueNetworkId: rightValue.id,
             },
           },
           labelMode: "minus",

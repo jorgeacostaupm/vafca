@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { type MutableRefObject } from "react";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import { buildHeatmapCells } from "@/components/matrix/components/matrixData";
 import type { HeatmapLayout } from "@/components/matrix/components/matrixLayout";
 import {
@@ -46,7 +47,7 @@ export const renderHeatmapCells = (args: {
   tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined>;
   layout: HeatmapLayout;
   data: number[][];
-  valueLabel: string;
+  valueLabel: TooltipValueLabel;
   colorResolver: (value: number) => string;
   highlights: HeatmapHighlightSelections;
   resolvedRowLabels?: string[];
@@ -134,6 +135,8 @@ export const renderHeatmapCells = (args: {
             resolveHeatmapTooltipLabel(payload.colId, labelNames, labelTitles),
             cell.value,
             valueLabel,
+            payload.rowId,
+            payload.colId,
           ),
         )
         .style("opacity", "1");

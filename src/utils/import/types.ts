@@ -1,15 +1,17 @@
 import type {
+  AspectDefinition,
+  CatalogItem,
   MatrixLayout,
+  NodeCoordinates,
   RangeMode,
   ScaleType,
+  Source,
   ValueRange,
 } from "@/types/network";
 import type { NetworkDataset } from "@/types/network";
 import type { NodeOrderEntry } from "@/types/nodeOrder";
 
 export const NORMALIZED_DATASET_SCHEMA_VERSION = "vafca-normalized-dataset-v1" as const;
-
-export type NetworkImportMode = "lenient" | "strict";
 
 export type NetworkImportIssue = {
   source: string;
@@ -25,9 +27,9 @@ export type RawMatrixFile = {
 };
 
 export type RawNetworkPackage = {
+  spatialFiles?: Record<string, Uint8Array>;
   fileName: string;
   files: string[];
-  manifest: unknown | null;
   catalogs: unknown | null;
   catalogFiles: Record<string, unknown>;
   nodeMetadata: unknown | null;
@@ -36,14 +38,11 @@ export type RawNetworkPackage = {
   warnings: NetworkImportIssue[];
 };
 
-export type LayerDraft = {
-  id: string;
-  label?: string;
-  description?: string | null;
-  enabled?: boolean;
-};
+export type SourceDraft = Source;
 
-export type MeasureDraft = {
+export type CatalogItemDraft = CatalogItem;
+
+export type MeasureDraft = CatalogItem & {
   id: string;
   label: string;
   min?: number;
@@ -53,7 +52,7 @@ export type MeasureDraft = {
   enabled?: boolean;
 };
 
-export type StatisticDraft = {
+export type StatisticDraft = CatalogItem & {
   id: string;
   label: string;
   category?: string;
@@ -68,18 +67,17 @@ export type StatisticDraft = {
   useDataRange?: boolean;
 };
 
-export type PopulationDraft = {
-  id: string;
-  label: string;
-  description?: string | null;
-  enabled?: boolean;
-};
-
 export type CatalogsDraft = {
-  layers: Record<string, LayerDraft>;
+  core: {
+    source: { id: "source"; label: string; description?: string | null };
+    measure: { id: "measure"; label: string; description?: string | null };
+    statistic: { id: "statistic"; label: string; description?: string | null };
+  };
+  aspects: AspectDefinition[];
+  sources: Record<string, SourceDraft>;
   measures: Record<string, MeasureDraft>;
   statistics: Record<string, StatisticDraft>;
-  populations: Record<string, PopulationDraft>;
+  aspectCatalogs: Record<string, Record<string, CatalogItemDraft>>;
 };
 
 export type NodeDraft = {
@@ -87,28 +85,21 @@ export type NodeDraft = {
   id: string;
   label: string;
   name?: string;
-  tags: Record<string, string | number | boolean | null>;
+  atlasId?: string | number;
+
   metadata: Record<string, unknown>;
+  coords?: NodeCoordinates | null;
 };
 
 export type ImportedNetworkDraft = {
   id: string;
   label: string;
-  kind: "population" | "subject" | "comparison";
   layout: MatrixLayout;
-  layerId: string;
+  sourceId: string;
   measureId: string;
   statisticId: string;
-  populationIds: string[];
-  subjectId?: string;
-  comparison?: {
-    left: string;
-    right: string;
-    comparisonType: string;
-  };
-  n?: number;
+  dimensions: Record<string, string>;
   data: (number | null)[][];
-  symmetric: boolean;
   valueDomain: {
     min: number | null;
     max: number | null;
@@ -134,9 +125,7 @@ export type NetworkDatasetDraft = {
     format: "zip";
     fileName: string;
     importedAt: string;
-    importMode: NetworkImportMode;
   };
-  manifest: Record<string, unknown>;
   atlas: {
     id: string;
     name: string;

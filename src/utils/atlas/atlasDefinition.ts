@@ -3,7 +3,7 @@ import type {
   AtlasNode,
   AtlasValidationResult,
 } from "@/types/atlas";
-import type { NodeTagValue } from "@/types/network";
+import { NodeMetadataSchema } from "@/utils/atlas/nodeMetadata";
 
 const UNKNOWN_GROUP = "__unknown__";
 
@@ -16,7 +16,6 @@ const CORE_NODE_FIELDS = new Set([
   "tags",
   "coords",
   "metadata",
-  "mesh_points",
 ]);
 
 const PRESENTATION_NODE_FIELDS = new Set(["acronym"]);
@@ -26,16 +25,6 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
-
-const isValidPoint = (value: unknown): value is number[] => {
-  if (!Array.isArray(value) || value.length !== 3) return false;
-  return value.every(isFiniteNumber);
-};
-
-const hasValidMeshPoints = (node: AtlasNode) => {
-  if (!Array.isArray(node.mesh_points) || node.mesh_points.length < 4) return false;
-  return node.mesh_points.every(isValidPoint);
-};
 
 const normalizeFieldValue = (value: unknown) => {
   if (typeof value === "string") {
@@ -57,20 +46,6 @@ const isScalar = (value: unknown) =>
 const isValidAtlasId = (value: unknown): value is string | number =>
   (typeof value === "string" && value.trim().length > 0) ||
   (typeof value === "number" && Number.isFinite(value));
-
-const isTagValue = (value: unknown): value is NodeTagValue => isScalar(value);
-
-const normalizeTags = (value: unknown): Record<string, NodeTagValue> => {
-  if (!isObject(value)) return {};
-  return Object.fromEntries(
-    Object.entries(value).filter((entry): entry is [string, NodeTagValue] =>
-      isTagValue(entry[1]),
-    ),
-  );
-};
-
-const normalizeMetadata = (value: unknown): Record<string, unknown> =>
-  isObject(value) ? { ...value } : {};
 
 const normalizeCoords = (value: unknown) => {
   if (value === null || value === undefined) return null;
@@ -100,13 +75,13 @@ const buildInternalNodeId = (atlasId: string, nodeAtlasId: string | number) => {
 };
 
 export const getNodeFieldValue = (node: AtlasNode | undefined | null, field: string) =>
-  node?.tags?.[field] ?? (node as unknown as Record<string, unknown> | null)?.[field];
+  node?.metadata?.[field] ?? (node as unknown as Record<string, unknown> | null)?.[field];
 
-const getTagFieldNames = (atlas: AtlasDefinition | null) => {
+const getMetadataFieldNames = (atlas: AtlasDefinition | null) => {
   if (!atlas?.nodes?.length) return [];
   const fields = new Set<string>();
   atlas.nodes.forEach((node) => {
-    Object.keys(node.tags ?? {}).forEach((field) => {
+    Object.keys(node.metadata ?? {}).forEach((field) => {
       fields.add(field);
     });
   });
@@ -115,7 +90,7 @@ const getTagFieldNames = (atlas: AtlasDefinition | null) => {
 
 export const getCommonNodeFields = (atlas: AtlasDefinition | null) => {
   if (!atlas?.nodes?.length) return [];
-  return getTagFieldNames(atlas).filter((key) =>
+  return getMetadataFieldNames(atlas).filter((key) =>
     atlas.nodes.some((node) => isScalar(getNodeFieldValue(node, key))),
   );
 };
@@ -123,7 +98,7 @@ export const getCommonNodeFields = (atlas: AtlasDefinition | null) => {
 export const atlasSupports3d = (atlas: AtlasDefinition | null) => {
   if (!atlas?.nodes?.length) return false;
 
-  return atlas.nodes.some(hasValidMeshPoints);
+  return Boolean(atlas.spatial?.matchedRois) || atlas.nodes.some(node => atlas.spatial?.anchors[node.id] || (node.coords != null && [node.coords.x, node.coords.y, node.coords.z].every(isFiniteNumber)));
 };
 
 export const validateAtlasDefinition = (
@@ -205,12 +180,13 @@ export const validateAtlasDefinition = (
     }
     seenIds.add(nodeIdKey);
 
-    const tags = normalizeTags(nodeRaw.tags);
+    const metadataResult = NodeMetadataSchema.safeParse(nodeRaw);
+    if (!metadataResult.success) return { ok: false, error: metadataResult.error.message };
+    const metadata = metadataResult.data;
     Object.entries(nodeRaw).forEach(([key, entryValue]) => {
       if (CORE_NODE_FIELDS.has(key) || PRESENTATION_NODE_FIELDS.has(key)) return;
-      if (isTagValue(entryValue)) tags[key] = entryValue;
+      if (isScalar(entryValue) && !Object.hasOwn(metadata, key)) metadata[key] = entryValue;
     });
-    const metadata = normalizeMetadata(nodeRaw.metadata);
     PRESENTATION_NODE_FIELDS.forEach((key) => {
       if (key in nodeRaw) metadata[key] = nodeRaw[key];
     });
@@ -221,10 +197,8 @@ export const validateAtlasDefinition = (
       atlasId: atlasNodeId,
       name,
       label,
-      tags,
       coords: normalizeCoords(nodeRaw.coords),
       metadata,
-      ...(Array.isArray(nodeRaw.mesh_points) ? { mesh_points: nodeRaw.mesh_points as number[][] } : {}),
     };
 
     nodes.push(node);
@@ -261,10 +235,5 @@ export const humanizeFieldName = (value: string) =>
     .replace(/^./, (char) => char.toUpperCase());
 
 export const normalizeNodeFieldValue = (value: unknown) => normalizeFieldValue(value);
-
-export const countNodesWithoutValidMeshPoints = (atlas: AtlasDefinition | null) => {
-  if (!atlas?.nodes?.length) return 0;
-  return atlas.nodes.reduce((count, node) => (hasValidMeshPoints(node) ? count : count + 1), 0);
-};
 
 export { UNKNOWN_GROUP };

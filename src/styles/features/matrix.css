@@ -30,7 +30,7 @@
 
 .matrix-sidebar {
   background: var(--color-surface);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: var(--space-4);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-md);

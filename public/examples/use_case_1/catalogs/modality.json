@@ -1,0 +1,8 @@
+{
+  "fmri": {
+    "label": "fMRI"
+  },
+  "eeg": {
+    "label": "EEG"
+  }
+}

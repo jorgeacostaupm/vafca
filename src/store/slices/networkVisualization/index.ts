@@ -6,8 +6,9 @@ export {
 } from './networkVisualizationSelectors'
 export { default } from './networkVisualizationSlice'
 export {
-  addNetworkView,
-  applyNetworkZoom,
+	  addNetworkView,
+	  addTemporaryAggregatedNetworkView,
+	  applyNetworkZoom,
   clearNetworkViews,
   mutateNetworkViewTypeLocally,
   patchNetworkControls,
@@ -15,14 +16,16 @@ export {
   patchNetworkNodeLinkSettings,
   pruneNetworkSelectionForDisabledCatalogItem,
   removeNetworkView,
+  renameAggregatedGroups,
   resetNetworkControls,
   resetNetworkViewSettings,
   resetNetworkZoomLabelSelection,
   setNetworkCircularBundlingEnabled,
   setNetworkCircularEdgeSettings,
   setNetworkCircularLinkTension,
-  setNetworkHideIsolatedNodes,
-  setNetworkViewStatus,
+	  setNetworkHideIsolatedNodes,
+	  setNetworkViewStatus,
+	  setTemporaryAggregatedNetwork,
   stepNetworkZoomHistory,
   toggleNetworkZoomLabelSelection,
   updateNetworkViewStatRange,
@@ -34,6 +37,7 @@ export type {
 } from './networkVisualizationTypes'
 export {
   addNetworkViewAndFormat,
+  aggregateNetworkView,
   markNetworkViewFormatting,
   mutateNetworkViewType,
   pruneInvalidNetworkViews,

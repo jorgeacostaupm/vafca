@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import type { MatrixValueRange } from "@/types/matrixView";
 import type { ScaleType } from "@/types/network";
 import type {
@@ -30,7 +31,7 @@ export type HeatmapProps = {
   width: number;
   height: number;
   title?: string;
-  valueLabel?: string;
+  valueLabel?: TooltipValueLabel;
   symmetric?: boolean;
   labels?: string[];
   rowLabels?: string[];

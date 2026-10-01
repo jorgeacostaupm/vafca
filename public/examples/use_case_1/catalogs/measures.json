@@ -1,0 +1,16 @@
+{
+  "pearson": {
+    "label": "Pearson correlation",
+    "expectedRange": [
+      -1,
+      1
+    ]
+  },
+  "cicoh": {
+    "label": "Corrected imaginary coherency",
+    "expectedRange": [
+      0,
+      1
+    ]
+  }
+}

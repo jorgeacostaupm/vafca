@@ -58,6 +58,19 @@ const buildMaskedMatrixData = ({
     };
   }
 
+  if (valueFilters.percentLinkIds) {
+    maskedMatrix = {
+      ...maskedMatrix,
+      data: applyLinkMask({
+        data: maskedMatrix.data,
+        rowLabels: maskedMatrix.rowLabels ?? [],
+        colLabels: maskedMatrix.colLabels ?? [],
+        allowedLinkIds: valueFilters.percentLinkIds,
+        preserveDiagonal: false,
+      }),
+    };
+  }
+
   if (zoomAllowedLinkIds) {
     maskedMatrix = {
       ...maskedMatrix,
@@ -85,11 +98,13 @@ const buildMaskedMatrixData = ({
 
 const buildMaskedNodeLinkData = ({
   computed,
+  valueFilters,
   allowedNodeIds,
   allowedLinkIds,
   zoomAllowedLinkIds,
 }: {
   computed: ComputedView;
+  valueFilters: NetworkViewValueFilters;
   allowedNodeIds: AllowedSet;
   allowedLinkIds: AllowedSet;
   zoomAllowedLinkIds: AllowedSet;
@@ -120,6 +135,19 @@ const buildMaskedNodeLinkData = ({
         rowLabels: maskedNodeLink.rowLabels,
         colLabels: maskedNodeLink.rowLabels,
         allowedLinkIds,
+      }),
+    };
+  }
+
+  if (valueFilters.percentLinkIds) {
+    maskedNodeLink = {
+      ...maskedNodeLink,
+      data: applyLinkMask({
+        data: maskedNodeLink.data,
+        rowLabels: maskedNodeLink.rowLabels,
+        colLabels: maskedNodeLink.rowLabels,
+        allowedLinkIds: valueFilters.percentLinkIds,
+        preserveDiagonal: false,
       }),
     };
   }
@@ -172,6 +200,7 @@ export const buildNetworkViewRenderData = ({
 
   const maskedNodeLink = buildMaskedNodeLinkData({
     computed,
+    valueFilters,
     allowedNodeIds,
     allowedLinkIds,
     zoomAllowedLinkIds,

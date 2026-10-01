@@ -58,13 +58,14 @@ export const networkSettingsReducers = {
       value: [number, number]
       segment?: 'negative' | 'positive'
       fallback?: StatRangeValue
+      enabled?: boolean
     }>,
   ) {
-    const { viewId, value, segment, fallback } = action.payload
+    const { viewId, value, segment, fallback, enabled } = action.payload
     const target = state.viewsById[viewId]
     if (!target) return
 
     const settings = ensureSettingsEntry(state, viewId, target.type)
-    setStatRange(settings, value, segment, fallback)
+    setStatRange(settings, value, segment, fallback, enabled)
   },
 } satisfies SliceCaseReducers<NetworkVisualizationState>

@@ -1,0 +1,20 @@
+{
+  "none": {
+    "label": "Not applicable"
+  },
+  "delta": {
+    "label": "Delta"
+  },
+  "theta": {
+    "label": "Theta"
+  },
+  "alpha": {
+    "label": "Alpha"
+  },
+  "beta": {
+    "label": "Beta"
+  },
+  "gamma": {
+    "label": "Gamma"
+  }
+}

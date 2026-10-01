@@ -1,0 +1,1158 @@
+[
+  {
+    "index": 0,
+    "id": "lh-bankssts",
+    "name": "Left banks of the superior temporal sulcus",
+    "label": "l_bankssts",
+    "coords": {
+      "x": -54.090396891813946,
+      "y": -44.88272326071797,
+      "z": 4.465557865368548,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "temporal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 1,
+    "id": "lh-caudalanteriorcingulate",
+    "name": "Left caudal anterior cingulate cortex",
+    "label": "l_caudalanteriorcingulate",
+    "coords": {
+      "x": -4.198284975847823,
+      "y": 18.992221739989674,
+      "z": 27.644878519997985,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "cingulate",
+      "yeo7": "Ventral Attention"
+    }
+  },
+  {
+    "index": 2,
+    "id": "lh-caudalmiddlefrontal",
+    "name": "Left caudal middle frontal gyrus",
+    "label": "l_caudalmiddlefrontal",
+    "coords": {
+      "x": -35.49501347848128,
+      "y": 10.476644784560174,
+      "z": 44.096394123816644,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Dorsal Attention"
+    }
+  },
+  {
+    "index": 3,
+    "id": "lh-cuneus",
+    "name": "Left cuneus",
+    "label": "l_cuneus",
+    "coords": {
+      "x": -7.348894974315093,
+      "y": -79.0642713394633,
+      "z": 18.58646779499171,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "occipital",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 4,
+    "id": "lh-entorhinal",
+    "name": "Left entorhinal cortex",
+    "label": "l_entorhinal",
+    "coords": {
+      "x": -23.237946947343552,
+      "y": -7.628725055377994,
+      "z": -32.15030556625117,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "temporal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 5,
+    "id": "lh-fusiform",
+    "name": "Left fusiform gyrus",
+    "label": "l_fusiform",
+    "coords": {
+      "x": -35.11572726560843,
+      "y": -43.57015462706832,
+      "z": -21.66175047806071,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "temporal",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 6,
+    "id": "lh-inferiorparietal",
+    "name": "Left inferior parietal cortex",
+    "label": "l_inferiorparietal",
+    "coords": {
+      "x": -40.92174873017641,
+      "y": -67.24167344930923,
+      "z": 28.189000774953495,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "parietal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 7,
+    "id": "lh-inferiortemporal",
+    "name": "Left inferior temporal gyrus",
+    "label": "l_inferiortemporal",
+    "coords": {
+      "x": -49.807964023404324,
+      "y": -35.40002786385197,
+      "z": -24.409763577833587,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "temporal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 8,
+    "id": "lh-isthmuscingulate",
+    "name": "Left isthmus of the cingulate cortex",
+    "label": "l_isthmuscingulate",
+    "coords": {
+      "x": -6.399186070094416,
+      "y": -45.83559221111706,
+      "z": 16.928327168791853,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "cingulate",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 9,
+    "id": "lh-lateraloccipital",
+    "name": "Left lateral occipital cortex",
+    "label": "l_lateraloccipital",
+    "coords": {
+      "x": -30.513709975776486,
+      "y": -87.80859583645223,
+      "z": -1.3837091525176228,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "occipital",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 10,
+    "id": "lh-lateralorbitofrontal",
+    "name": "Left lateral orbitofrontal cortex",
+    "label": "l_lateralorbitofrontal",
+    "coords": {
+      "x": -24.762695139777467,
+      "y": 28.106228753967066,
+      "z": -16.58309060359354,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 11,
+    "id": "lh-lingual",
+    "name": "Left lingual gyrus",
+    "label": "l_lingual",
+    "coords": {
+      "x": -15.23548249872346,
+      "y": -66.4786933989644,
+      "z": -5.11691023970811,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "occipital",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 12,
+    "id": "lh-medialorbitofrontal",
+    "name": "Left medial orbitofrontal cortex",
+    "label": "l_medialorbitofrontal",
+    "coords": {
+      "x": -5.826702988399365,
+      "y": 34.631449929283015,
+      "z": -16.404065739986187,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 13,
+    "id": "lh-middletemporal",
+    "name": "Left middle temporal gyrus",
+    "label": "l_middletemporal",
+    "coords": {
+      "x": -57.863091330001296,
+      "y": -30.982047701843257,
+      "z": -12.676576741703204,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "temporal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 14,
+    "id": "lh-parahippocampal",
+    "name": "Left parahippocampal gyrus",
+    "label": "l_parahippocampal",
+    "coords": {
+      "x": -23.794484039904372,
+      "y": -31.82484502398021,
+      "z": -18.688692504355647,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "temporal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 15,
+    "id": "lh-paracentral",
+    "name": "Left paracentral lobule",
+    "label": "l_paracentral",
+    "coords": {
+      "x": -8.02085302150387,
+      "y": -29.166640329158298,
+      "z": 55.64896907354748,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 16,
+    "id": "lh-parsopercularis",
+    "name": "Left pars opercularis",
+    "label": "l_parsopercularis",
+    "coords": {
+      "x": -45.51799580683193,
+      "y": 14.668052693520192,
+      "z": 12.597283073107953,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Ventral Attention"
+    }
+  },
+  {
+    "index": 17,
+    "id": "lh-parsorbitalis",
+    "name": "Left pars orbitalis",
+    "label": "l_parsorbitalis",
+    "coords": {
+      "x": -42.69162876137131,
+      "y": 39.141049973635496,
+      "z": -13.082770960101522,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 18,
+    "id": "lh-parstriangularis",
+    "name": "Left pars triangularis",
+    "label": "l_parstriangularis",
+    "coords": {
+      "x": -43.572026992007316,
+      "y": 30.193077805221723,
+      "z": 1.732819416891214,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 19,
+    "id": "lh-pericalcarine",
+    "name": "Left pericalcarine cortex",
+    "label": "l_pericalcarine",
+    "coords": {
+      "x": -12.658818519888563,
+      "y": -80.35637466478548,
+      "z": 5.440217283042927,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "occipital",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 20,
+    "id": "lh-postcentral",
+    "name": "Left postcentral gyrus",
+    "label": "l_postcentral",
+    "coords": {
+      "x": -42.97107127885231,
+      "y": -23.806347014636273,
+      "z": 44.00890924800581,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "parietal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 21,
+    "id": "lh-posteriorcingulate",
+    "name": "Left posterior cingulate cortex",
+    "label": "l_posteriorcingulate",
+    "coords": {
+      "x": -5.248769739144285,
+      "y": -17.39140558809804,
+      "z": 37.097636211159326,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "cingulate",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 22,
+    "id": "lh-precentral",
+    "name": "Left precentral gyrus",
+    "label": "l_precentral",
+    "coords": {
+      "x": -38.84068222287869,
+      "y": -10.439960880415532,
+      "z": 42.84101501325045,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 23,
+    "id": "lh-precuneus",
+    "name": "Left precuneus",
+    "label": "l_precuneus",
+    "coords": {
+      "x": -9.871261749655154,
+      "y": -57.878216966358636,
+      "z": 36.64529531681936,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "parietal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 24,
+    "id": "lh-rostralanteriorcingulate",
+    "name": "Left rostral anterior cingulate cortex",
+    "label": "l_rostralanteriorcingulate",
+    "coords": {
+      "x": -3.968062763788082,
+      "y": 35.513827630502206,
+      "z": 1.2980277671299323,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "cingulate",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 25,
+    "id": "lh-rostralmiddlefrontal",
+    "name": "Left rostral middle frontal gyrus",
+    "label": "l_rostralmiddlefrontal",
+    "coords": {
+      "x": -32.77019870207156,
+      "y": 42.76851251252725,
+      "z": 17.42067128114795,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Frontoparietal"
+    }
+  },
+  {
+    "index": 26,
+    "id": "lh-superiorfrontal",
+    "name": "Left superior frontal gyrus",
+    "label": "l_superiorfrontal",
+    "coords": {
+      "x": -11.613158608522406,
+      "y": 23.618773924264787,
+      "z": 43.42764400922074,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 27,
+    "id": "lh-superiorparietal",
+    "name": "Left superior parietal cortex",
+    "label": "l_superiorparietal",
+    "coords": {
+      "x": -23.415920502599544,
+      "y": -61.70221663214546,
+      "z": 47.494992105488386,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "parietal",
+      "yeo7": "Dorsal Attention"
+    }
+  },
+  {
+    "index": 28,
+    "id": "lh-superiortemporal",
+    "name": "Left superior temporal gyrus",
+    "label": "l_superiortemporal",
+    "coords": {
+      "x": -53.129250664016496,
+      "y": -16.77235053969522,
+      "z": -3.5413568766236616,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "temporal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 29,
+    "id": "lh-supramarginal",
+    "name": "Left supramarginal gyrus",
+    "label": "l_supramarginal",
+    "coords": {
+      "x": -51.5720334234903,
+      "y": -38.93428322636804,
+      "z": 31.402925313461658,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "parietal",
+      "yeo7": "Ventral Attention"
+    }
+  },
+  {
+    "index": 30,
+    "id": "lh-frontalpole",
+    "name": "Left frontal pole",
+    "label": "l_frontalpole",
+    "coords": {
+      "x": -7.252346533186295,
+      "y": 65.00499231675091,
+      "z": -9.597649196491522,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "frontal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 31,
+    "id": "lh-temporalpole",
+    "name": "Left temporal pole",
+    "label": "l_temporalpole",
+    "coords": {
+      "x": -30.96668858124616,
+      "y": 11.144166452381693,
+      "z": -35.29510802449714,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "temporal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 32,
+    "id": "lh-transversetemporal",
+    "name": "Left transverse temporal cortex",
+    "label": "l_transversetemporal",
+    "coords": {
+      "x": -44.106430247313995,
+      "y": -23.36690612395007,
+      "z": 7.671370960294997,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "temporal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 33,
+    "id": "lh-insula",
+    "name": "Left insula",
+    "label": "l_insula",
+    "coords": {
+      "x": -36.780405766057974,
+      "y": -3.794100413752407,
+      "z": 1.8136767243533347,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobe": "insula",
+      "yeo7": "Ventral Attention"
+    }
+  },
+  {
+    "index": 34,
+    "id": "rh-bankssts",
+    "name": "Right banks of the superior temporal sulcus",
+    "label": "r_bankssts",
+    "coords": {
+      "x": 53.124129604555,
+      "y": -40.858248330204866,
+      "z": 5.566335034592735,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "temporal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 35,
+    "id": "rh-caudalanteriorcingulate",
+    "name": "Right caudal anterior cingulate cortex",
+    "label": "r_caudalanteriorcingulate",
+    "coords": {
+      "x": 4.653933566452852,
+      "y": 19.57848452578359,
+      "z": 27.504737926952874,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "cingulate",
+      "yeo7": "Ventral Attention"
+    }
+  },
+  {
+    "index": 36,
+    "id": "rh-caudalmiddlefrontal",
+    "name": "Right caudal middle frontal gyrus",
+    "label": "r_caudalmiddlefrontal",
+    "coords": {
+      "x": 35.747530442070264,
+      "y": 12.21135008578313,
+      "z": 44.295677177416096,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Dorsal Attention"
+    }
+  },
+  {
+    "index": 37,
+    "id": "rh-cuneus",
+    "name": "Right cuneus",
+    "label": "r_cuneus",
+    "coords": {
+      "x": 7.333441615759671,
+      "y": -79.83231229863615,
+      "z": 19.67886067659427,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "occipital",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 38,
+    "id": "rh-entorhinal",
+    "name": "Right entorhinal cortex",
+    "label": "r_entorhinal",
+    "coords": {
+      "x": 23.49821283970598,
+      "y": -6.527890325914201,
+      "z": -32.47719518149771,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "temporal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 39,
+    "id": "rh-fusiform",
+    "name": "Right fusiform gyrus",
+    "label": "r_fusiform",
+    "coords": {
+      "x": 35.390695611593216,
+      "y": -43.321096933054996,
+      "z": -21.110546774476465,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "temporal",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 40,
+    "id": "rh-inferiorparietal",
+    "name": "Right inferior parietal cortex",
+    "label": "r_inferiorparietal",
+    "coords": {
+      "x": 43.84081263343082,
+      "y": -61.69032303919325,
+      "z": 28.86247733581554,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "parietal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 41,
+    "id": "rh-inferiortemporal",
+    "name": "Right inferior temporal gyrus",
+    "label": "r_inferiortemporal",
+    "coords": {
+      "x": 50.261904469781285,
+      "y": -32.50000687791216,
+      "z": -25.050866225523404,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "temporal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 42,
+    "id": "rh-isthmuscingulate",
+    "name": "Right isthmus of the cingulate cortex",
+    "label": "r_isthmuscingulate",
+    "coords": {
+      "x": 7.249991917180855,
+      "y": -45.199057440062866,
+      "z": 16.20880701743217,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "cingulate",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 43,
+    "id": "rh-lateraloccipital",
+    "name": "Right lateral occipital cortex",
+    "label": "r_lateraloccipital",
+    "coords": {
+      "x": 31.215336441613875,
+      "y": -87.29314637747903,
+      "z": 0.30270618157726487,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "occipital",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 44,
+    "id": "rh-lateralorbitofrontal",
+    "name": "Right lateral orbitofrontal cortex",
+    "label": "r_lateralorbitofrontal",
+    "coords": {
+      "x": 24.251681766106987,
+      "y": 28.046352404982986,
+      "z": -17.742567204223878,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 45,
+    "id": "rh-lingual",
+    "name": "Right lingual gyrus",
+    "label": "r_lingual",
+    "coords": {
+      "x": 15.593218595968128,
+      "y": -65.96459974064604,
+      "z": -4.419553366821316,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "occipital",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 46,
+    "id": "rh-medialorbitofrontal",
+    "name": "Right medial orbitofrontal cortex",
+    "label": "r_medialorbitofrontal",
+    "coords": {
+      "x": 6.389386289079715,
+      "y": 35.57720315375527,
+      "z": -15.561334676905002,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 47,
+    "id": "rh-middletemporal",
+    "name": "Right middle temporal gyrus",
+    "label": "r_middletemporal",
+    "coords": {
+      "x": 57.96443274031992,
+      "y": -29.440680580797768,
+      "z": -12.85720701265217,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "temporal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 48,
+    "id": "rh-parahippocampal",
+    "name": "Right parahippocampal gyrus",
+    "label": "r_parahippocampal",
+    "coords": {
+      "x": 24.85235137589079,
+      "y": -31.82719985571028,
+      "z": -17.4020519743959,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "temporal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 49,
+    "id": "rh-paracentral",
+    "name": "Right paracentral lobule",
+    "label": "r_paracentral",
+    "coords": {
+      "x": 7.988285316293901,
+      "y": -27.761049465049002,
+      "z": 55.344072617242304,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 50,
+    "id": "rh-parsopercularis",
+    "name": "Right pars opercularis",
+    "label": "r_parsopercularis",
+    "coords": {
+      "x": 45.88671625316336,
+      "y": 14.51805995351674,
+      "z": 13.95243710864122,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Frontoparietal"
+    }
+  },
+  {
+    "index": 51,
+    "id": "rh-parsorbitalis",
+    "name": "Right pars orbitalis",
+    "label": "r_parsorbitalis",
+    "coords": {
+      "x": 43.866266835315535,
+      "y": 39.46467197571446,
+      "z": -11.737217961859754,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 52,
+    "id": "rh-parstriangularis",
+    "name": "Right pars triangularis",
+    "label": "r_parstriangularis",
+    "coords": {
+      "x": 46.23850625302611,
+      "y": 29.61760140747583,
+      "z": 4.021305091985836,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Frontoparietal"
+    }
+  },
+  {
+    "index": 53,
+    "id": "rh-pericalcarine",
+    "name": "Right pericalcarine cortex",
+    "label": "r_pericalcarine",
+    "coords": {
+      "x": 12.726284594242872,
+      "y": -79.61617592305713,
+      "z": 6.3400496793568575,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "occipital",
+      "yeo7": "Visual"
+    }
+  },
+  {
+    "index": 54,
+    "id": "rh-postcentral",
+    "name": "Right postcentral gyrus",
+    "label": "r_postcentral",
+    "coords": {
+      "x": 42.27960750731318,
+      "y": -22.460775185502783,
+      "z": 44.22039896217157,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "parietal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 55,
+    "id": "rh-posteriorcingulate",
+    "name": "Right posterior cingulate cortex",
+    "label": "r_posteriorcingulate",
+    "coords": {
+      "x": 5.4610355206744705,
+      "y": -17.022668241078076,
+      "z": 37.60660787734017,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "cingulate",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 56,
+    "id": "rh-precentral",
+    "name": "Right precentral gyrus",
+    "label": "r_precentral",
+    "coords": {
+      "x": 37.85778165725501,
+      "y": -9.722402749845884,
+      "z": 44.31381173113301,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 57,
+    "id": "rh-precuneus",
+    "name": "Right precuneus",
+    "label": "r_precuneus",
+    "coords": {
+      "x": 9.94431015509423,
+      "y": -56.85773955055165,
+      "z": 37.63803998319333,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "parietal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 58,
+    "id": "rh-rostralanteriorcingulate",
+    "name": "Right rostral anterior cingulate cortex",
+    "label": "r_rostralanteriorcingulate",
+    "coords": {
+      "x": 5.070353316534825,
+      "y": 34.93510065069661,
+      "z": 1.7418127728149395,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "cingulate",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 59,
+    "id": "rh-rostralmiddlefrontal",
+    "name": "Right rostral middle frontal gyrus",
+    "label": "r_rostralmiddlefrontal",
+    "coords": {
+      "x": 33.635569778973064,
+      "y": 42.483554900116985,
+      "z": 18.27877257962186,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Frontoparietal"
+    }
+  },
+  {
+    "index": 60,
+    "id": "rh-superiorfrontal",
+    "name": "Right superior frontal gyrus",
+    "label": "r_superiorfrontal",
+    "coords": {
+      "x": 12.481846124882207,
+      "y": 25.368660661536577,
+      "z": 43.09272945871742,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Default Mode"
+    }
+  },
+  {
+    "index": 61,
+    "id": "rh-superiorparietal",
+    "name": "Right superior parietal cortex",
+    "label": "r_superiorparietal",
+    "coords": {
+      "x": 23.20727214046337,
+      "y": -60.26366155307556,
+      "z": 49.38093657074691,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "parietal",
+      "yeo7": "Dorsal Attention"
+    }
+  },
+  {
+    "index": 62,
+    "id": "rh-superiortemporal",
+    "name": "Right superior temporal gyrus",
+    "label": "r_superiortemporal",
+    "coords": {
+      "x": 53.97444111008108,
+      "y": -13.137547940223694,
+      "z": -4.9583035943465985,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "temporal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 63,
+    "id": "rh-supramarginal",
+    "name": "Right supramarginal gyrus",
+    "label": "r_supramarginal",
+    "coords": {
+      "x": 51.742249034577355,
+      "y": -33.44049855331702,
+      "z": 31.01432353201088,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "parietal",
+      "yeo7": "Ventral Attention"
+    }
+  },
+  {
+    "index": 64,
+    "id": "rh-frontalpole",
+    "name": "Right frontal pole",
+    "label": "r_frontalpole",
+    "coords": {
+      "x": 9.091442941004022,
+      "y": 64.38586327570887,
+      "z": -11.224328051949662,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "frontal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 65,
+    "id": "rh-temporalpole",
+    "name": "Right temporal pole",
+    "label": "r_temporalpole",
+    "coords": {
+      "x": 31.690474163508327,
+      "y": 11.135449343606046,
+      "z": -33.077556294939654,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "temporal",
+      "yeo7": "Limbic"
+    }
+  },
+  {
+    "index": 66,
+    "id": "rh-transversetemporal",
+    "name": "Right transverse temporal cortex",
+    "label": "r_transversetemporal",
+    "coords": {
+      "x": 44.59262801010386,
+      "y": -21.11499024414375,
+      "z": 8.420046822949004,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "temporal",
+      "yeo7": "Somatomotor"
+    }
+  },
+  {
+    "index": 67,
+    "id": "rh-insula",
+    "name": "Right insula",
+    "label": "r_insula",
+    "coords": {
+      "x": 37.95151367749587,
+      "y": -3.3906852912013226,
+      "z": 1.9260331860894873,
+      "space": "fsaverage"
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobe": "insula",
+      "yeo7": "Ventral Attention"
+    }
+  }
+]

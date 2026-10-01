@@ -1,19 +1,22 @@
-import { EyeOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Space, Table, Tooltip } from 'antd'
+import { EyeOutlined, SwapOutlined } from '@ant-design/icons'
+import { Button, Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { type ReactNode, useCallback, useMemo, useState } from 'react'
+import { type CSSProperties, type ReactNode, useCallback, useMemo, useState } from 'react'
 
 import ResizableContainer from '@/components/layout/ResizableContainer'
 import { getRankingMetricLabel } from '@/components/rankings/rankingOptions'
 import { useRankingRowInteractions } from '@/components/rankings/useRankingRowInteractions'
+import { useAtlasLabelPresentation } from '@/hooks/useAtlasLabelPresentation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectDatasetContent } from '@/store/slices/dataset'
 import { addNetworkViewAndFormat } from '@/store/slices/networkVisualization'
-import { addSelectedLink, removeSelectedLink } from '@/store/slices/visualizationUi'
+import { addSelectedLink, removeSelectedLinks } from '@/store/slices/visualizationUi'
+import { selectActiveAnnotationLinks } from '@/store/slices/visualizationUi/annotationSelectors';
 import type { LinkRankingRow, NetworkRankingRow, RankingResult, RankingRow } from '@/types/rankings'
 import { toDatasetNetworkSummary } from '@/utils/datasetAccessors'
 import { buildNetworkSummaryLabel } from '@/utils/matrixViewUtils'
 import { getNetworkCompoundId } from '@/utils/rankings/rankingNetworkMetadata'
+import { getRankingDimensions, getRankingDimensionValue, getRankingExtremeLabel } from '@/utils/rankings/rankingPresentation'
 
 type Props = {
   result: RankingResult
@@ -35,21 +38,6 @@ const compareText = (a?: string, b?: string) =>
 const compareNumber = (a?: number, b?: number) => (a ?? Number.NaN) - (b ?? Number.NaN)
 const TABLE_CHROME_HEIGHT = 104
 
-const getLayerValueClassName = (
-  valuesByLayer: Record<string, number> | undefined,
-  layerId: string,
-) => {
-  const entries = Object.entries(valuesByLayer ?? {}).filter(([, value]) => Number.isFinite(value))
-  if (entries.length < 2) return undefined
-  const values = entries.map(([, value]) => value)
-  const max = Math.max(...values)
-  const min = Math.min(...values)
-  const value = valuesByLayer?.[layerId]
-  if (value === max) return 'ranking-layer-cell ranking-layer-cell--max'
-  if (value === min) return 'ranking-layer-cell ranking-layer-cell--min'
-  return 'ranking-layer-cell'
-}
-
 const getLinkIds = (row: LinkRankingRow) => ({
   direct: `${row.sourceId}::${row.targetId}`,
   reverse: `${row.targetId}::${row.sourceId}`,
@@ -57,13 +45,22 @@ const getLinkIds = (row: LinkRankingRow) => ({
 
 const formatLinkLabel = (row: LinkRankingRow) => `${row.sourceLabel} ↔ ${row.targetLabel}`
 
+const getRankingRowKey = (row: RankingRow) =>
+  row.type === 'network'
+    ? row.networkId
+    : row.type === 'node'
+      ? `${row.networkSourceId}::${row.nodeId}`
+      : `${row.networkSourceId}::${row.sourceId}::${row.targetId}::${row.bestNetworkId ?? 'all'}`
+
 export default function RankingResultsTable({ result }: Props) {
   const dispatch = useAppDispatch()
+  const activeAnnotationId = useAppSelector(state => state.visualizationUi.activeAnnotationId)
   const [pagination, setPagination] = useState({ current: 1, pageSize: 25 })
   const [columnOrder, setColumnOrder] = useState<string[]>([])
   const [draggedColumnKey, setDraggedColumnKey] = useState<string | null>(null)
   const datasetContent = useAppSelector((state) => selectDatasetContent(state))
-  const selectedLinks = useAppSelector((state) => state.visualizationUi.selectedLinks)
+  const selectedLinks = useAppSelector(selectActiveAnnotationLinks)
+  const { nodeColors } = useAtlasLabelPresentation()
   const { handleEnter, handleLeave, handleSelect } = useRankingRowInteractions()
   const scoreColumnTitle = getRankingMetricLabel(result.query)
 
@@ -71,6 +68,23 @@ export default function RankingResultsTable({ result }: Props) {
     () => new Set(selectedLinks.map((link) => link.id)),
     [selectedLinks],
   )
+  const isLinkSelected = useCallback((row: LinkRankingRow) => {
+    const { direct, reverse } = getLinkIds(row)
+    return selectedLinkIds.has(direct) || selectedLinkIds.has(reverse)
+  }, [selectedLinkIds])
+  const renderRoi = useCallback((id: string, label: string) => {
+    const color = nodeColors[id]
+    return (
+      <span
+        className="ranking-roi-label"
+        style={{
+          '--ranking-roi-color': color,
+        } as CSSProperties}
+      >
+        {label}
+      </span>
+    )
+  }, [nodeColors])
 
   const networkLinksCountLabel = useMemo(() => {
     if (result.query.target !== 'networks') return undefined
@@ -107,7 +121,7 @@ export default function RankingResultsTable({ result }: Props) {
       sources: [
         {
           compoundId: sourceNetwork ? getNetworkCompoundId(sourceNetwork) : '',
-          networkLabel: row.bestLayerId ?? 'Ranking',
+          networkLabel: row.bestAspectValue ?? 'Ranking',
           value: row.score,
         },
       ],
@@ -117,58 +131,15 @@ export default function RankingResultsTable({ result }: Props) {
   const addLink = useCallback((row: LinkRankingRow) => {
     const { direct, reverse } = getLinkIds(row)
     if (selectedLinkIds.has(direct) || selectedLinkIds.has(reverse)) {
-      dispatch(removeSelectedLink(selectedLinkIds.has(direct) ? direct : reverse))
+      dispatch(removeSelectedLinks({ annotationId: activeAnnotationId!, ids: [selectedLinkIds.has(direct) ? direct : reverse] }))
       return
     }
     dispatch(addSelectedLink(createSelectedLink(row)))
-  }, [createSelectedLink, dispatch, selectedLinkIds])
+  }, [activeAnnotationId, createSelectedLink, dispatch, selectedLinkIds])
 
-  const addRankingLinks = useCallback(() => {
-    result.rows
-      .filter((row): row is LinkRankingRow => row.type === 'link')
-      .forEach((row) => {
-        const { direct, reverse } = getLinkIds(row)
-        if (selectedLinkIds.has(direct) || selectedLinkIds.has(reverse)) return
-        dispatch(addSelectedLink(createSelectedLink(row)))
-      })
-  }, [createSelectedLink, dispatch, result.rows, selectedLinkIds])
-
-  const removeRankingLinks = useCallback(() => {
-    result.rows
-      .filter((row): row is LinkRankingRow => row.type === 'link')
-      .forEach((row) => {
-        const { direct, reverse } = getLinkIds(row)
-        if (selectedLinkIds.has(direct)) dispatch(removeSelectedLink(direct))
-        if (selectedLinkIds.has(reverse)) dispatch(removeSelectedLink(reverse))
-      })
-  }, [dispatch, result.rows, selectedLinkIds])
-
-  const linkActionsTitle = useMemo(() => (
-    <Space size={4}>
-      <Tooltip title="Add all">
-        <Button
-          size="small"
-          icon={<PlusOutlined />}
-          aria-label="Add all ranking links"
-          onClick={(event) => {
-            event.stopPropagation()
-            addRankingLinks()
-          }}
-        />
-      </Tooltip>
-      <Tooltip title="Remove all">
-        <Button
-          size="small"
-          icon={<MinusOutlined />}
-          aria-label="Remove all ranking links"
-          onClick={(event) => {
-            event.stopPropagation()
-            removeRankingLinks()
-          }}
-        />
-      </Tooltip>
-    </Space>
-  ), [addRankingLinks, removeRankingLinks])
+  const rankedLinks = result.rows.filter(
+    (row): row is LinkRankingRow => row.type === 'link',
+  )
 
   const openNetworkView = useCallback((row: NetworkRankingRow) => {
     const network = datasetContent?.networkIndex[row.networkId]
@@ -180,7 +151,7 @@ export default function RankingResultsTable({ result }: Props) {
         compoundId: summary.compoundId,
         label: buildNetworkSummaryLabel(summary, datasetContent.catalogs),
         measureId: summary.measureId,
-        statId: summary.statId,
+        statisticId: summary.statisticId,
       }),
     )
   }, [datasetContent, dispatch])
@@ -214,16 +185,6 @@ export default function RankingResultsTable({ result }: Props) {
       return [
         ...common,
         {
-          key: 'layer',
-          title: 'Layer',
-          dataIndex: 'layerId',
-          sorter: (a, b) =>
-            compareText(
-              a.type === 'network' ? a.layerId : undefined,
-              b.type === 'network' ? b.layerId : undefined,
-            ),
-        },
-        {
           key: 'score',
           title: scoreColumnTitle,
           dataIndex: 'score',
@@ -252,20 +213,6 @@ export default function RankingResultsTable({ result }: Props) {
     }
 
     if (result.query.target === 'links') {
-      const isAggregatedLinkRanking = result.query.linkCollectionMode !== 'expanded'
-      const isOneRowPerLayer = result.query.linkCollectionMode === 'expanded'
-      const networkIds = Array.from(
-        new Set(
-          result.rows.flatMap((row) =>
-            row.type === 'link' ? Object.keys(row.valuesByLayer ?? {}) : [],
-          ),
-        ),
-      ).sort()
-      const hasBestLayer = result.rows.some((row) => row.type === 'link' && Boolean(row.bestLayerId))
-      const hasMultipleNetworks = result.rows.some(
-        (row) =>
-          row.type === 'link' && typeof row.nNetworksUsed === 'number' && row.nNetworksUsed > 1,
-      )
       return [
         ...common,
         {
@@ -278,86 +225,19 @@ export default function RankingResultsTable({ result }: Props) {
               b.type === 'link' ? formatLinkLabel(b) : undefined,
             ),
           render: (_: unknown, row: RankingRow) =>
-            row.type === 'link' ? formatLinkLabel(row) : '',
+            row.type === 'link' ? (
+              <div className="ranking-link-label" title={formatLinkLabel(row)}>
+                {renderRoi(row.sourceId, row.sourceLabel)}
+                <span className="ranking-link-label__direction" aria-hidden="true">
+                  <SwapOutlined />
+                </span>
+                {renderRoi(row.targetId, row.targetLabel)}
+              </div>
+            ) : '',
         },
-        ...(!isOneRowPerLayer
-          ? [
-              {
-                key: 'score',
-                title: scoreColumnTitle,
-                dataIndex: 'score',
-                render: formatScore,
-                sorter: (a: RankingRow, b: RankingRow) => compareNumber(a.score, b.score),
-              },
-            ]
-          : []),
-        ...(isAggregatedLinkRanking
-          ? networkIds.map((layerId) => ({
-              key: `layer-${layerId}`,
-              title: datasetContent?.catalogs.layers[layerId]?.label ?? layerId,
-              sorter: (a: RankingRow, b: RankingRow) =>
-                compareNumber(
-                  a.type === 'link' ? a.valuesByLayer?.[layerId] : undefined,
-                  b.type === 'link' ? b.valuesByLayer?.[layerId] : undefined,
-                ),
-              render: (_: unknown, row: RankingRow) => {
-                if (row.type !== 'link') return ''
-                const value = row.valuesByLayer?.[layerId]
-                return (
-                  <span className={getLayerValueClassName(row.valuesByLayer, layerId)}>
-                    {formatScore(value)}
-                  </span>
-                )
-              },
-            }))
-          : []),
-        ...(!isAggregatedLinkRanking && hasBestLayer
-          ? [
-              {
-                key: 'layer',
-                title: 'Layer',
-                dataIndex: 'bestLayerId',
-                sorter: (a: RankingRow, b: RankingRow) =>
-                  compareText(
-                    a.type === 'link' ? a.bestLayerId : undefined,
-                    b.type === 'link' ? b.bestLayerId : undefined,
-                  ),
-              },
-            ]
-          : []),
-        ...(!isAggregatedLinkRanking && hasMultipleNetworks
-          ? [
-              {
-                key: 'nNetworksUsed',
-                title: 'N networks',
-                dataIndex: 'nNetworksUsed',
-                sorter: (a: RankingRow, b: RankingRow) =>
-                  compareNumber(
-                    a.type === 'link' ? a.nNetworksUsed : undefined,
-                    b.type === 'link' ? b.nNetworksUsed : undefined,
-                  ),
-              },
-            ]
-          : []),
         {
-          key: 'actions',
-          title: linkActionsTitle,
-          render: (_: unknown, row: RankingRow) => {
-            if (row.type !== 'link') return null
-            const { direct, reverse } = getLinkIds(row)
-            const exists = selectedLinkIds.has(direct) || selectedLinkIds.has(reverse)
-            return (
-              <Button
-                size="small"
-                icon={exists ? <MinusOutlined /> : <PlusOutlined />}
-                aria-label={exists ? 'Remove link' : 'Add link'}
-                onClick={(event) => {
-                  event.stopPropagation()
-                  addLink(row)
-                }}
-              />
-            )
-          },
+          key: 'score', title: scoreColumnTitle, dataIndex: 'score', render: formatScore,
+          sorter: (a, b) => compareNumber(a.score, b.score),
         },
       ]
     }
@@ -374,6 +254,8 @@ export default function RankingResultsTable({ result }: Props) {
             a.type === 'node' ? a.label : undefined,
             b.type === 'node' ? b.label : undefined,
           ),
+        render: (_: unknown, row: RankingRow) =>
+          row.type === 'node' ? renderRoi(row.nodeId, row.label) : '',
       },
       {
         key: 'score',
@@ -394,23 +276,39 @@ export default function RankingResultsTable({ result }: Props) {
       },
     ]
   }, [
-    addLink,
-    datasetContent,
-    linkActionsTitle,
     openNetworkView,
     result.query,
-    result.rows,
+    renderRoi,
     scoreColumnTitle,
-    selectedLinkIds,
   ])
 
   const columns = useMemo<ColumnsType<RankingRow>>(() => {
-    const keys = baseColumns.map((column) => column.key)
+    const dimensions = datasetContent ? getRankingDimensions(result.query, datasetContent) : []
+    const variableColumns: RankingTableColumn[] = dimensions.filter(dimension =>
+      dimension.values.length > 1 && (dimension.id === 'source' || result.query.target === 'networks' ||
+        (result.query.target === 'links' && (result.query.linkCollectionMode === 'expanded' || getRankingExtremeLabel(result.query)))),
+    ).map(dimension => {
+      const extreme = dimension.id !== 'source' && result.query.target === 'links' && result.query.linkCollectionMode !== 'expanded'
+        ? getRankingExtremeLabel(result.query) : undefined
+      const value = (row: RankingRow) => {
+        const raw = datasetContent ? getRankingDimensionValue(row, dimension.id, result.query, datasetContent) : undefined
+        return raw && (dimension.id === 'source' || row.type === 'network') ? dimension.labelFor(raw) : raw
+      }
+      return {
+        key: `dimension-${dimension.id}`, title: `${dimension.label}${extreme ? ` (${extreme})` : ''}`,
+        render: (_: unknown, row: RankingRow) => value(row) ?? '—',
+        sorter: (a, b) => compareText(value(a), value(b)),
+      }
+    })
+    const visibleColumns = [...baseColumns]
+    const scoreIndex = visibleColumns.findIndex(column => column.key === 'score')
+    visibleColumns.splice(scoreIndex, 0, ...variableColumns)
+    const keys = visibleColumns.map((column) => column.key)
     const orderedKeys = [
       ...columnOrder.filter((key) => keys.includes(key)),
       ...keys.filter((key) => !columnOrder.includes(key)),
     ]
-    const columnByKey = new Map(baseColumns.map((column) => [column.key, column]))
+    const columnByKey = new Map(visibleColumns.map((column) => [column.key, column]))
 
     return orderedKeys.flatMap((key) => {
       const column = columnByKey.get(key)
@@ -461,7 +359,7 @@ export default function RankingResultsTable({ result }: Props) {
         },
       ]
     })
-  }, [baseColumns, columnOrder, draggedColumnKey])
+  }, [baseColumns, columnOrder, draggedColumnKey, datasetContent, result.query])
 
   const tableScrollX = useMemo(
     () =>
@@ -477,13 +375,18 @@ export default function RankingResultsTable({ result }: Props) {
         {({ height }) => (
           <Table<RankingRow>
             size="small"
-            rowKey={(row) =>
-              row.type === 'network'
-                ? row.networkId
-                : row.type === 'node'
-                  ? row.nodeId
-                  : `${row.sourceId}::${row.targetId}::${row.bestNetworkId ?? 'all'}`
-            }
+            rowKey={getRankingRowKey}
+            rowSelection={result.query.target === 'links' ? {
+              selectedRowKeys: rankedLinks.filter(isLinkSelected).map(getRankingRowKey),
+              onSelect: (row) => {
+                if (row.type === 'link') addLink(row)
+              },
+              onSelectAll: (_selected, _selectedRows, changedRows) => {
+                changedRows.forEach((row) => {
+                  if (row.type === 'link') addLink(row)
+                })
+              },
+            } : undefined}
             columns={columns}
             className={[
               'ranking-result__table',

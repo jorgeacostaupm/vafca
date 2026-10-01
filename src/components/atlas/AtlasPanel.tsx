@@ -1,22 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { shallowEqual } from "react-redux";
 
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   selectAtlasColorFields,
   selectAtlasLabelsById,
   selectAtlasLabelSearchTextById,
   selectAtlasOrder,
 } from "@/store/slices/atlasUi";
-import { getCommonNodeFields } from "@/utils/atlas/atlasDefinition";
+import { setAtlasPanelState } from "@/store/slices/visualizationUi";
+import { atlasSupports3d, getCommonNodeFields } from "@/utils/atlas/atlasDefinition";
 
 import AtlasManagementModal from "./AtlasManagementModal";
-import { AtlasPanelControls } from "./AtlasPanelControls";
 import { AtlasPanelFilters } from "./AtlasPanelFilters";
 import { useAtlasPanelData } from "./atlasPanelHooks";
 import { AtlasPanelLayout } from "./AtlasPanelLayout";
 import { AtlasPanelList } from "./AtlasPanelList";
-import AtlasPanelSettingsModal from "./AtlasPanelSettingsModal";
 import AtlasPanelToolbar from "./AtlasPanelToolbar";
 import { AtlasPanelViewer } from "./AtlasPanelViewer";
 import { useActiveAtlasDefinition } from "./hooks/useActiveAtlasDefinition";
@@ -30,8 +29,8 @@ import {
 const EXPANDED_GROUPS = new Set<string>();
 
 export default function AtlasPanel() {
+  const dispatch = useAppDispatch();
   const [managementOpen, setManagementOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const atlasOrder = useAppSelector(selectAtlasOrder);
   const labelsById = useAppSelector(selectAtlasLabelsById);
   const colorFields = useAppSelector(selectAtlasColorFields);
@@ -61,7 +60,7 @@ export default function AtlasPanel() {
     [stateAtlasDefinition],
   );
 
-  const has3d = atlasPanel.is3dAvailable;
+  const has3d = atlasSupports3d(stateAtlasDefinition);
 
   useAtlasPanelNormalization({
     colorFields,
@@ -70,7 +69,6 @@ export default function AtlasPanel() {
   });
 
   const {
-    fieldOptionsByField,
     groupedRows,
     totalCount,
     enabledCount,
@@ -82,7 +80,6 @@ export default function AtlasPanel() {
     atlasDefinition: stateAtlasDefinition,
     query: atlasPanel.query,
     groupByFields: atlasPanel.groupByFields,
-    selectedFilters: atlasPanel.selectedFilters,
     collapsedGroups: EXPANDED_GROUPS,
     enabledCount: effectiveEnabledCount,
   });
@@ -97,6 +94,11 @@ export default function AtlasPanel() {
     groupedRows,
   });
 
+  useEffect(() => {
+    if (Object.keys(atlasPanel.selectedFilters).length === 0) return;
+    dispatch(setAtlasPanelState({ selectedFilters: {}, collapsedGroups: [] }));
+  }, [atlasPanel.selectedFilters, dispatch]);
+
   return (
     <>
       <AtlasPanelLayout
@@ -104,23 +106,14 @@ export default function AtlasPanel() {
         toolbar={
           <AtlasPanelToolbar
             onOpenManagement={() => setManagementOpen(true)}
-            onOpenSettings={() => setSettingsOpen(true)}
-          />
-        }
-        controls={
-          <AtlasPanelControls
-            totalCount={totalCount}
-            enabledCount={enabledCount}
-            effectiveEnabledCount={effectiveEnabledCount}
           />
         }
         filters={
           <AtlasPanelFilters
             query={atlasPanel.query}
-            groupByFields={atlasPanel.groupByFields}
-            selectedFilters={atlasPanel.selectedFilters}
-            fieldOptionsByField={fieldOptionsByField}
             totalCount={totalCount}
+            enabledCount={enabledCount}
+            effectiveEnabledCount={effectiveEnabledCount}
             allEnabled={allEnabled}
             allDisabled={allDisabled}
           />
@@ -132,16 +125,12 @@ export default function AtlasPanel() {
             useColumns={useColumns}
           />
         }
-        viewer={<AtlasPanelViewer enableMeshPoints />}
+        viewer={<AtlasPanelViewer enableSpatial />}
       />
 
       <AtlasManagementModal
         open={managementOpen}
         onClose={() => setManagementOpen(false)}
-      />
-      <AtlasPanelSettingsModal
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
       />
     </>
   );

@@ -1,5 +1,4 @@
-export type NodeTagValue = string | number | boolean | null;
-
+import type { SpatialState } from '@/spatial/types';
 export type NodeCoordinates = {
   x: number;
   y: number;
@@ -11,8 +10,9 @@ export type Node = {
   id: string;
   label: string;
   name?: string;
+  atlasId?: string | number;
   index?: number;
-  tags: Record<string, NodeTagValue>;
+
   metadata: Record<string, unknown>;
   coords?: NodeCoordinates | null;
 };
@@ -23,6 +23,7 @@ export type NodeTerminology = {
 };
 
 export type NodeSet = {
+  spatial?: SpatialState;
   id: string;
   label: string;
   description?: string | null;

@@ -1,3 +1,10 @@
+import { escapeHtml } from "@/utils/html";
+
+export type TooltipValueLabel = string | ((value: number, rowId: string, colId: string) => string);
+
+export const formatTooltipValue = (label: TooltipValueLabel, value: number, rowId: string, colId: string) =>
+  typeof label === "function" ? label(value, rowId, colId) : `<div>${escapeHtml(label)}: ${value.toFixed(4)}</div>`;
+
 const MATRIX_LABEL_SEPARATOR = " · ";
 
 export const buildTooltipValueLabel = (networkLabel?: string) => {

@@ -10,13 +10,11 @@ import type {
 } from "@/components/circular/circularPanelTypes";
 import { useCircularProgrammaticTooltip } from "@/components/circular/useCircularProgrammaticTooltip";
 import { useCircularScene } from "@/components/circular/useCircularScene";
-import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import NodeLinkViewTemplate from "@/components/nodelink/NodeLinkViewTemplate";
-import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
+import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { useAppSelector } from "@/store/hooks";
-import { selectDatasetData } from "@/store/slices/dataset";
+import { selectCircularVisualStyle } from "@/store/slices/visualizationUi";
 import type { CircularNode as Node } from "@/types/nodelink";
-import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
 export default function CircularNodeLinkPanel({
   atlasDefinition,
@@ -24,9 +22,9 @@ export default function CircularNodeLinkPanel({
   circularHierarchyCategoryOrder,
   ...props
 }: CircularNodeLinkPanelProps) {
-  const dataset = useAppSelector((state) => selectDatasetData(state));
   const atlas = useAppSelector((state) => state.atlasUi);
-  const currentAtlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
+  const visualStyleOverride = useAppSelector(selectCircularVisualStyle);
+  const { presentationAtlasDefinition: currentAtlasDefinition } = useAtlasLabelPresentation();
 
   return (
     <NodeLinkViewTemplate
@@ -34,10 +32,11 @@ export default function CircularNodeLinkPanel({
       rendererProps={{
         atlasDefinition: atlasDefinition ?? currentAtlasDefinition,
         circularHierarchyFields:
-          circularHierarchyFields ?? atlas.colorFields,
+          circularHierarchyFields ?? atlas.circularHierarchyFields,
         circularHierarchyCategoryOrder:
           circularHierarchyCategoryOrder ?? atlas.circularHierarchyCategoryOrder,
       }}
+      visualStyleOverride={visualStyleOverride}
       {...props}
     />
   );
@@ -45,7 +44,7 @@ export default function CircularNodeLinkPanel({
 
 function CircularNodeLink({
   data,
-  networkLabel,
+  valueLabel,
   labels,
   labelNames,
   labelTitles,
@@ -114,10 +113,7 @@ function CircularNodeLink({
     },
     [nodeColors],
   );
-  const valueLabel = useMemo(
-    () => buildTooltipValueLabel(networkLabel),
-    [networkLabel],
-  );
+
 
   const {
     wrapperRef,

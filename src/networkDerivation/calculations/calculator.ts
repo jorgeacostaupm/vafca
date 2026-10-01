@@ -47,7 +47,7 @@ export {
   calculateStudentTFromCohensD,
 } from "@/networkDerivation/calculations/methods/populationCohensD";
 export { calculatePopulationDifference } from "@/networkDerivation/calculations/methods/populationDifference";
-export { calculatePopulationReferenceZScore } from "@/networkDerivation/calculations/methods/populationReferenceZScore";
+export { calculatePopulationOneSampleZScore } from "@/networkDerivation/calculations/methods/populationOneSampleZScore";
 export { calculateSubjectDifference } from "@/networkDerivation/calculations/methods/subjectDifference";
 export { calculateSubjectZScoreVsPopulation } from "@/networkDerivation/calculations/methods/subjectZScoreVsPopulation";
 export {

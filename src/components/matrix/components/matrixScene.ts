@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { type MutableRefObject } from "react";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import { renderHeatmapBrush } from "@/components/matrix/components/matrixBrush";
 import { renderHeatmapCells } from "@/components/matrix/components/matrixCells";
 import { renderColumnLabels, renderRowLabels } from "@/components/matrix/components/matrixLabels";
@@ -14,6 +15,7 @@ import type {
   HeatmapHighlightSelections,
   HeatmapLegendRange,
 } from "@/components/matrix/components/matrixTypes";
+import { DEFAULT_MATRIX_BACKGROUND_COLOR } from "@/config/ui";
 import type { HeatmapProps } from "@/types/matrixHeatmap";
 import type { ScaleType } from "@/types/network";
 import type {
@@ -32,7 +34,7 @@ type RenderHeatmapSceneArgs = {
   colorScaleSettings: MatrixColorScaleSettings;
   visualStyle: MatrixVisualStyle;
   title?: string;
-  valueLabel: string;
+  valueLabel: TooltipValueLabel;
   resolvedRowLabels?: string[];
   resolvedColLabels?: string[];
   labelNames?: Record<string, string>;
@@ -142,6 +144,13 @@ export const renderHeatmapScene = ({
     .attr("transform", `translate(${layout.margin.left}, ${layout.margin.top})`);
 
   renderTitle({ root, title });
+
+  root
+    .append("rect")
+    .attr("class", "heatmap-background")
+    .attr("width", layout.size)
+    .attr("height", layout.size)
+    .attr("fill", visualStyle.backgroundColor ?? DEFAULT_MATRIX_BACKGROUND_COLOR);
 
   const highlights = createHighlightLayer({ root, visualStyle });
 

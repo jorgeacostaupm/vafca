@@ -1,0 +1,661 @@
+VAFCA Spatial View Refactor Specification
+========================================
+
+Purpose
+-------
+
+Refactor the VAFCA 3D spatial view so that:
+
+1. ROI geometry is rendered only once.
+2. Geometry mode and point mode have clearly separated responsibilities.
+3. Anatomical ROIs are displayed with a low-salience, matte, transparent appearance.
+4. Projected shadows are disabled.
+5. Directional shading is softened so the atlas does not visually compete with connectivity links.
+6. Existing node/link selection state remains coordinated across the application.
+7. Resource ownership and disposal are unambiguous.
+
+Current issue
+-------------
+
+The current implementation contains two different geometry-rendering paths:
+
+- createAtlasView(...)
+  - clones the loaded atlas root
+  - adds it to spatialGroup
+  - controls ROI materials, opacity, hover, selection, and visibility
+
+- createSpatialScene(...)
+  - calls createSpatialGeometryBuilder(...)
+  - loops over atlas.nodes
+  - creates a new THREE.Mesh(spatial.geometry, material)
+  - adds that mesh to nodesGroup
+
+In geometry mode, this can result in the same ROI geometry being rendered twice:
+
+    atlasView.root
+        -> ROI meshes from the GLB
+
+    nodesGroup
+        -> ROI meshes rebuilt from spatial.geometry
+
+The target architecture must guarantee that geometry mode has only one visible ROI representation.
+
+
+1. Required rendering architecture
+----------------------------------
+
+The spatial scene must follow this behavior:
+
+mode = "points"
+    -> createSpatialScene renders point/sphere node markers
+    -> createAtlasView does not render ROI geometry
+    -> linksGroup renders connectivity links
+
+mode = "geometry"
+    -> createAtlasView renders ROI geometry
+    -> nodesGroup MUST NOT render a second ROI mesh
+    -> linksGroup renders connectivity links
+
+mode = "none"
+    -> no node/ROI geometry
+
+Target scene hierarchy:
+
+scene
+└── spatialGroup
+    ├── atlasView.root       [geometry mode only]
+    │   ├── ROI 1
+    │   ├── ROI 2
+    │   └── ...
+    ├── nodesGroup           [points mode only]
+    │   ├── point 1
+    │   ├── point 2
+    │   └── ...
+    └── linksGroup           [connectivity links]
+
+Important architectural rule:
+
+In geometry mode, createAtlasView() is the sole owner and renderer of ROI geometry.
+
+createSpatialScene() may:
+- use ROI geometry for lookup
+- store ROI references
+- compute spatial centers/anchors
+- use those centers for links
+- coordinate selection
+
+but it must NOT instantiate a second visible ROI mesh from spatial.geometry.
+
+
+2. Modify createAtlasView.ts
+----------------------------
+
+createAtlasView() should completely control the visual appearance of ROI geometry.
+
+The GLB provides geometry only.
+VAFCA provides scientific appearance and interaction styling.
+
+Do not rely on:
+- imported atlas colors
+- imported textures
+- vertex colors
+- emissive decoration
+- imported transparency
+
+Replace imported materials with VAFCA-controlled MeshStandardMaterial instances.
+
+Recommended material:
+
+const material = new THREE.MeshStandardMaterial({
+  color: appColors.spatialNeutral,
+  transparent: true,
+  opacity: SPATIAL_ATLAS_CONTEXT_OPACITY,
+  roughness: 1,
+  metalness: 0,
+  depthTest: true,
+  depthWrite: false,
+  side: THREE.FrontSide,
+})
+
+For every atlas mesh:
+
+mesh.castShadow = false
+mesh.receiveShadow = false
+
+Do not enable projected shadows for anatomical ROI geometry.
+
+
+3. Atlas opacity states
+-----------------------
+
+Add or keep explicit atlas opacity constants in config/ui.
+
+Recommended starting values:
+
+export const SPATIAL_ATLAS_CONTEXT_OPACITY = 0.12
+export const SPATIAL_ATLAS_HOVER_OPACITY = 0.40
+export const SPATIAL_ATLAS_SELECTED_OPACITY = 0.90
+export const SPATIAL_ATLAS_INCIDENT_OPACITY = 0.75
+
+Suggested semantics:
+
+context ROI
+    opacity = 0.12
+
+hovered ROI
+    opacity = 0.40
+
+selected ROI
+    opacity = 0.90
+
+ROI incident to a selected link
+    opacity = 0.75
+
+
+4. Update logic in createAtlasView.ts
+-------------------------------------
+
+Selection and hover must be handled independently.
+
+Recommended logic:
+
+const selectedActive =
+  Boolean(id && selected.has(id))
+
+const hoveredActive =
+  Boolean(id && hovered === id)
+
+material.opacity =
+  selectedActive
+    ? SPATIAL_ATLAS_SELECTED_OPACITY
+    : hoveredActive
+      ? SPATIAL_ATLAS_HOVER_OPACITY
+      : SPATIAL_ATLAS_CONTEXT_OPACITY
+
+Color behavior:
+
+selected / hovered ROI
+    -> use the current VAFCA interaction color
+
+context ROI
+    -> appColors.spatialNeutral
+
+Do not use arbitrary colors from the imported GLB.
+
+
+5. Expose ROI meshes from createAtlasView()
+-------------------------------------------
+
+createAtlasView() should expose a map of rendered ROI meshes so that
+createSpatialScene() can reuse them instead of creating duplicates.
+
+Recommended:
+
+const roiMeshes =
+  new Map<string, THREE.Mesh>()
+
+During traversal:
+
+const id =
+  object.userData.vafcaRoiId as string | undefined
+
+if (id) {
+  roiMeshes.set(id, object)
+}
+
+Return:
+
+return {
+  root,
+  meshes,
+  roiMeshes,
+  update,
+  dispose,
+}
+
+If future atlases allow one ROI to contain multiple meshes, evolve this to:
+
+Map<string, THREE.Mesh[]>
+
+or:
+
+Map<string, THREE.Object3D>
+
+
+6. Modify createSpatialScene.ts
+-------------------------------
+
+The current node loop creates a THREE.Mesh for every spatial node.
+
+This must change.
+
+The loop should always preserve centers/anchors, but only create visible node
+meshes in points mode.
+
+Recommended structure:
+
+for (const node of atlas.nodes) {
+  const spatial = build(node)
+
+  if (!spatial)
+    continue
+
+  const ids = new Set<string>([
+    node.id,
+  ])
+
+  if (
+    node.atlasId !== undefined
+    && node.atlasId !== null
+  ) {
+    ids.add(
+      String(node.atlasId),
+    )
+  }
+
+  // Always keep the center/anchor.
+  for (const id of ids) {
+    centers.set(
+      id,
+      spatial.center.clone(),
+    )
+  }
+
+  // GEOMETRY MODE
+  if (mode === 'geometry') {
+    const atlasMesh =
+      atlasView.roiMeshes.get(
+        node.id,
+      )
+
+    if (atlasMesh) {
+      for (const id of ids) {
+        nodes.set(
+          id,
+          atlasMesh,
+        )
+      }
+    }
+
+    continue
+  }
+
+  // POINTS MODE
+  if (mode === 'points') {
+    const material =
+      new THREE.MeshStandardMaterial({
+        color: appColors.spatialNode,
+        transparent: true,
+        opacity:
+          SPATIAL_SCENE.pointOpacity,
+        roughness: 0.9,
+        metalness: 0,
+      })
+
+    const mesh =
+      new THREE.Mesh(
+        spatial.geometry,
+        material,
+      )
+
+    mesh.userData = {
+      nodeId: node.id,
+      vafcaRoiId: node.id,
+      baseOpacity:
+        material.opacity,
+    }
+
+    mesh.castShadow = false
+    mesh.receiveShadow = false
+
+    nodesGroup.add(mesh)
+
+    for (const id of ids) {
+      nodes.set(
+        id,
+        mesh,
+      )
+    }
+
+    pointMeshes.add(mesh)
+  }
+}
+
+Critical rule:
+
+if (mode === 'geometry') {
+    // DO NOT call:
+    // new THREE.Mesh(spatial.geometry, ...)
+}
+
+
+7. Keep centers independently from visible geometry
+---------------------------------------------------
+
+The centers map is needed for link endpoints and spatial lookup.
+
+Do not make center availability depend on whether a visible node mesh is created.
+
+centers.set(...)
+
+must happen before:
+
+if (mode === 'geometry') continue
+
+
+8. Fix atlasId lookup
+---------------------
+
+Do not create the string "undefined" as a lookup key.
+
+Replace:
+
+new Set([
+  node.id,
+  String(node.atlasId),
+])
+
+with:
+
+const ids =
+  new Set<string>([
+    node.id,
+  ])
+
+if (
+  node.atlasId !== undefined
+  && node.atlasId !== null
+) {
+  ids.add(
+    String(node.atlasId),
+  )
+}
+
+
+9. Separate point-mesh ownership
+--------------------------------
+
+createSpatialScene() must only dispose resources it owns.
+
+Introduce:
+
+const pointMeshes =
+  new Set<THREE.Mesh>()
+
+Only meshes created in points mode are added to pointMeshes.
+
+In geometry mode, nodes may reference meshes owned by atlasView.
+
+Therefore, do not dispose every mesh found in nodes.values().
+
+
+10. Dispose logic
+-----------------
+
+Remove the current pattern:
+
+for (const mesh of new Set(nodes.values())) {
+  mesh.geometry.dispose()
+  mesh.material.dispose()
+}
+
+Reason:
+In geometry mode, nodes may reference atlasView meshes.
+atlasView.dispose() already owns and disposes those resources.
+
+Correct approach:
+
+atlasView.dispose()
+
+for (const mesh of pointMeshes) {
+  mesh.geometry.dispose()
+
+  if (Array.isArray(mesh.material)) {
+    for (const material of mesh.material) {
+      material.dispose()
+    }
+  } else {
+    mesh.material.dispose()
+  }
+}
+
+Then dispose links normally.
+
+
+11. Disable projected shadows
+-----------------------------
+
+In createSpatialScene.ts:
+
+renderer.shadowMap.enabled = false
+
+For atlas meshes:
+
+mesh.castShadow = false
+mesh.receiveShadow = false
+
+For point meshes:
+
+mesh.castShadow = false
+mesh.receiveShadow = false
+
+
+12. Soften anatomical shading
+-----------------------------
+
+Even with shadowMap disabled, a strong DirectionalLight can create dark regions
+on MeshStandardMaterial surfaces.
+
+In geometry mode, use more ambient light and less directional light.
+
+Recommended starting point:
+
+const isGeometry =
+  mode === 'geometry'
+
+const ambientIntensity =
+  isGeometry
+    ? SPATIAL_SCENE.ambientIntensity * 1.5
+    : SPATIAL_SCENE.ambientIntensity
+
+const directionalIntensity =
+  isGeometry
+    ? SPATIAL_SCENE.directionalIntensity * 0.25
+    : SPATIAL_SCENE.directionalIntensity
+
+const ambientLight =
+  new THREE.AmbientLight(
+    0xffffff,
+    ambientIntensity,
+  )
+
+scene.add(ambientLight)
+
+const directionalLight =
+  new THREE.DirectionalLight(
+    0xffffff,
+    directionalIntensity,
+  )
+
+directionalLight.position.set(
+  ...SPATIAL_SCENE.lightPosition,
+)
+
+directionalLight.castShadow = false
+
+scene.add(directionalLight)
+
+Use white light instead of appColors.surface.
+
+
+13. Material appearance
+-----------------------
+
+Atlas geometry:
+
+roughness = 1
+metalness = 0
+flatShading = false
+side = THREE.FrontSide
+
+This produces a matte anatomical appearance.
+
+Do not use MeshBasicMaterial initially.
+
+The goal is:
+
+soft shape cues
++
+no strong directional shadows
++
+low-salience context
+
+
+14. Transparency and depth buffer
+---------------------------------
+
+For context atlas ROIs:
+
+transparent = true
+depthTest = true
+depthWrite = false
+
+Reason:
+Transparent anatomical surfaces should not aggressively write into the depth
+buffer and obscure links or deeper ROIs.
+
+Keep depthTest enabled so the spatial order is not completely lost.
+
+
+15. Keep link rendering separate
+--------------------------------
+
+linksGroup remains the owner of functional connectivity links.
+
+The atlas must not contain FC links.
+
+Changing:
+- population
+- band
+- measure
+- statistic
+- threshold
+- link filter
+
+must update links only.
+
+The atlas GLB must remain loaded and unchanged except for interaction styling.
+
+
+16. Final target behavior
+-------------------------
+
+Geometry mode:
+
+scene
+└── spatialGroup
+    ├── atlasView.root
+    │   ├── ROI mesh
+    │   ├── ROI mesh
+    │   └── ...
+    └── linksGroup
+        ├── link
+        ├── link
+        └── ...
+
+No duplicate ROI meshes.
+
+Point mode:
+
+scene
+└── spatialGroup
+    ├── nodesGroup
+    │   ├── point node
+    │   ├── point node
+    │   └── ...
+    └── linksGroup
+
+No atlas ROI geometry.
+
+
+17. Expected visual result
+--------------------------
+
+Default atlas:
+
+neutral gray
+opacity ≈ 0.12
+matte
+no projected shadows
+soft anatomical shading
+
+Hovered ROI:
+
+opacity ≈ 0.40
+
+Selected ROI:
+
+selection color
+opacity ≈ 0.90
+
+ROI incident to selected link:
+
+opacity ≈ 0.75
+
+Connectivity links should remain visually more salient than the anatomical
+context.
+
+
+18. Acceptance criteria
+-----------------------
+
+The refactor is complete when all of the following are true:
+
+1. In geometry mode, only createAtlasView() renders ROI geometry.
+
+2. createSpatialScene() does not instantiate a second ROI mesh in geometry mode.
+
+3. In points mode, node markers are rendered normally.
+
+4. Atlas geometry is not rendered in points mode.
+
+5. centers are available in both points and geometry modes.
+
+6. nodes lookup can reference atlasView ROI meshes in geometry mode.
+
+7. No "undefined" atlasId lookup key is created.
+
+8. Projected shadows are disabled.
+
+9. Anatomical shading is visibly softer than before.
+
+10. Atlas materials are matte and neutral by default.
+
+11. Context ROI opacity is low enough that links remain visually dominant.
+
+12. Selection and hover increase ROI salience.
+
+13. createSpatialScene() only disposes point meshes it owns.
+
+14. atlasView.dispose() is the sole disposer of atlas ROI geometry/materials.
+
+15. No geometry is double-disposed.
+
+16. No ROI is visually duplicated.
+
+17. Changing network configuration does not reload or recreate the atlas.
+
+18. Existing link rendering and camera/orbit interaction continue to work.
+
+
+19. Key architectural rule
+--------------------------
+
+In geometry mode, createAtlasView() is the sole owner and renderer of ROI
+geometry.
+
+createSpatialScene() may use the atlas meshes for lookup and interaction and may
+compute spatial anchors for links, but it must not instantiate a second visible
+mesh from spatial.geometry.
+
+In points mode, createSpatialScene() owns and renders the point markers instead.

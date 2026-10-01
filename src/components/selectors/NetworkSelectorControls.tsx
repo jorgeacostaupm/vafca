@@ -23,15 +23,16 @@ export default function NetworkSelectorControls() {
     status,
     error,
     measures,
-    populations,
-    layers,
-    stats,
+    sources,
+    aspects,
+    statistics,
     networks,
+    labels,
     disabled,
-    onPopulationChange,
+    onSourceChange,
     onMeasureChange,
-    onStatChange,
-    onLayerChange,
+    onStatisticChange,
+    onAspectChange,
     onNetworkChange,
     onAddView,
   } = useNetworkSelectorModel()
@@ -74,19 +75,19 @@ export default function NetworkSelectorControls() {
         </div>
       ) : (
         <div className="network-selector-controls__filter-grid">
-          <Form.Item label="Population">
+          <Form.Item label={labels.source}>
             <Select
-              placeholder="Select population..."
-              value={controls.populationKey || undefined}
-              onChange={onPopulationChange}
+              placeholder={`Select ${labels.source.toLowerCase()}...`}
+              value={controls.sourceId || undefined}
+              onChange={onSourceChange}
               allowClear
-              options={populations}
+              options={sources}
             />
           </Form.Item>
 
-          <Form.Item label="Measure">
+          <Form.Item label={labels.measure}>
             <Select
-              placeholder="Select measure..."
+              placeholder={`Select ${labels.measure.toLowerCase()}...`}
               value={controls.measureId || undefined}
               onChange={onMeasureChange}
               allowClear
@@ -95,27 +96,29 @@ export default function NetworkSelectorControls() {
             />
           </Form.Item>
 
-          <Form.Item label="Statistic">
+          <Form.Item label={labels.statistic}>
             <Select
-              placeholder="Select statistic..."
-              value={controls.statId || undefined}
-              onChange={onStatChange}
+              placeholder={`Select ${labels.statistic.toLowerCase()}...`}
+              value={controls.statisticId || undefined}
+              onChange={onStatisticChange}
               allowClear
               disabled={disabled.stats}
-              options={stats}
+              options={statistics}
             />
           </Form.Item>
 
-          <Form.Item label="Layer">
-            <Select
-              placeholder="Select layer..."
-              value={controls.layerId || undefined}
-              onChange={onLayerChange}
-              allowClear
-              disabled={disabled.layers}
-              options={layers}
-            />
-          </Form.Item>
+          {aspects.map((aspect) => (
+            <Form.Item key={aspect.id} label={aspect.label}>
+              <Select
+                placeholder={`Select ${aspect.label.toLowerCase()}...`}
+                value={controls.aspectFilters[aspect.id] || undefined}
+                onChange={(value) => onAspectChange(aspect.id, value)}
+                allowClear
+                disabled={disabled.aspects}
+                options={aspect.options}
+              />
+            </Form.Item>
+          ))}
 
           {addButton}
         </div>

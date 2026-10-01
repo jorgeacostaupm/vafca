@@ -1,0 +1,8 @@
+{
+  "mean": {
+    "label": "Population mean"
+  },
+  "std": {
+    "label": "Population standard deviation"
+  }
+}

@@ -1,4 +1,4 @@
-import { ColorPicker, Form, Select, Slider, Space, Switch, Typography } from 'antd'
+import { Form, Select, Slider, Space, Switch, Typography } from 'antd'
 
 import { getMatrixColorScaleDefinitions } from '@/config/matrixColorScales'
 import { MAX_MATRIX_COLOR_DISCRETE_STEPS, MIN_MATRIX_COLOR_DISCRETE_STEPS } from '@/config/ui'
@@ -8,7 +8,6 @@ import {
   setDraftMatrixColorDiscretize,
   setDraftMatrixColorInvert,
   setDraftMatrixColorScale,
-  setDraftMatrixInteractionColor,
 } from '@/store/slices/visualizationUi'
 import type { ScaleType } from '@/types/network'
 import type { MatrixColorScaleSettings } from '@/types/visualizationUi'
@@ -24,7 +23,6 @@ type MatrixScaleSettingsSectionProps = {
 const normalizeSliderValue = (value: number | [number, number]) =>
   Array.isArray(value) ? value[0] : value
 
-const toHex = (color: { toHexString: () => string }) => color.toHexString()
 
 export default function MatrixScaleSettingsSection({
   scaleType,
@@ -55,36 +53,6 @@ export default function MatrixScaleSettingsSection({
         <MatrixColorScalePreview scaleType={scaleType} settings={settings} />
 
         <div className="matrix-settings-color-grid">
-          <Form.Item label="Highlight">
-            <ColorPicker
-              value={settings.highlightColor}
-              showText
-              onChange={(color) =>
-                dispatch(
-                  setDraftMatrixInteractionColor({
-                    scaleType,
-                    colorRole: 'highlight',
-                    color: toHex(color),
-                  }),
-                )
-              }
-            />
-          </Form.Item>
-          <Form.Item label="Selection">
-            <ColorPicker
-              value={settings.selectionColor}
-              showText
-              onChange={(color) =>
-                dispatch(
-                  setDraftMatrixInteractionColor({
-                    scaleType,
-                    colorRole: 'selection',
-                    color: toHex(color),
-                  }),
-                )
-              }
-            />
-          </Form.Item>
         </div>
 
         <div className="matrix-settings-toggle-grid">

@@ -15,6 +15,19 @@ import type {
 } from "@/types/rankings";
 import type { RankingTarget } from "@/types/rankings";
 
+const pruneAspectFilters = (
+  filters: RankingQuery["aspectFilters"],
+  disabledValueId: string,
+) => {
+  if (!filters) return filters;
+  return Object.fromEntries(
+    Object.entries(filters).map(([aspectId, values]) => [
+      aspectId,
+      values.filter((value) => value !== disabledValueId),
+    ]),
+  );
+};
+
 const pruneRankingQueryForCatalogItem = (
   query: RankingQuery,
   payload: CatalogNetworkPrunePayload,
@@ -22,32 +35,25 @@ const pruneRankingQueryForCatalogItem = (
   const invalidNetworkIds = new Set(payload.invalidNetworkIds);
   const next: RankingQuery = { ...query };
 
-  if (
-    payload.catalog === "populations" &&
-    next.sourceType === "population" &&
-    next.sourceId === payload.id
-  ) {
-    delete next.sourceId;
+  if (payload.catalog === "sources") {
+    next.sourceIds = next.sourceIds?.filter((sourceId) => sourceId !== payload.id);
+    if (next.sourceIds?.length === 0) delete next.sourceIds;
+    if (next.sourceId === payload.id) delete next.sourceId;
   }
 
   if (payload.catalog === "measures" && next.measureId === payload.id) {
     delete next.measureId;
     delete next.statisticId;
-    delete next.layerIds;
+    delete next.aspectFilters;
   }
 
   if (payload.catalog === "statistics" && next.statisticId === payload.id) {
     delete next.statisticId;
-    delete next.layerIds;
+    delete next.aspectFilters;
   }
 
-  if (payload.catalog === "layers" && next.layerIds?.includes(payload.id)) {
-    const layerIds = next.layerIds.filter((layerId) => layerId !== payload.id);
-    if (layerIds.length > 0) {
-      next.layerIds = layerIds;
-    } else {
-      delete next.layerIds;
-    }
+  if (payload.catalog === "aspectCatalogs") {
+    next.aspectFilters = pruneAspectFilters(next.aspectFilters, payload.id);
   }
 
   if (next.networkId && invalidNetworkIds.has(next.networkId)) {

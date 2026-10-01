@@ -1,77 +1,206 @@
 .links-panel {
-  display: grid;
-  grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 1fr);
-  gap: var(--space-4);
-  align-items: start;
-}
-
-.links-panel__table,
-.links-panel__atlas {
+  height: calc(100dvh - var(--space-3) - var(--space-3));
+  min-height: 0;
   min-width: 0;
 }
 
-.links-panel__stack,
-.links-panel__control-card {
-  width: 100%;
+.links-panel__splitter {
+  height: 100%;
 }
 
-.links-controls {
-  display: grid;
-  gap: var(--space-3);
-  width: 100%;
-}
-
-.links-controls__header {
+.links-panel__list,
+.links-panel__atlas {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
   gap: var(--space-3);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.links-controls__title {
-  margin: 0 !important;
+.links-panel--view-enabled .links-panel__list {
+  padding-right: var(--space-3);
 }
 
-.links-controls__network-picker {
-  width: 100%;
+.links-panel__atlas {
+  padding-left: var(--space-3);
+}
+
+.links-panel__control-card {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.links-panel__control-card > .ant-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+  min-height: 0;
+}
+
+.links-panel__control-card .annotations-list-controls { flex-shrink: 0; }
+
+.links-panel__table {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.links-panel__atlas > .selected-links-view-card {
+  flex: 1;
+}
+
+.links-controls__column-picker {
+  margin-top: var(--space-3);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
 }
 
 .links-controls__network-select {
   width: 100%;
 }
 
-.links-atlas {
-  background: linear-gradient(160deg, #0b0f16 0%, #121a28 55%, #182334 100%);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
+.links-controls__field-grid.ant-form {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-3);
-  min-height: 520px;
 }
 
-.links-atlas__header {
-  display: flex;
+.links-controls__field-grid .ant-form-item {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.links-controls__add-columns {
+  width: fit-content;
+}
+
+.selected-links-table .ant-table {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.selected-links-table .ant-table-container table {
+  border-spacing: 0;
+}
+
+.selected-links-table .ant-table-thead > tr > th {
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border-secondary);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.selected-links-table .ant-table-tbody > tr > td {
+  border-bottom-color: var(--color-border-secondary);
+}
+
+.selected-links-table .ant-table-tbody > tr {
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.selected-links-table .ant-table-tbody > tr:hover > td {
+  background: var(--color-primary-subtle);
+}
+
+.selected-links-table .ant-table-tbody > tr.selected-links-table__row--active > td {
+  background: var(--color-selection-soft);
+}
+
+.selected-links-table__link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.selected-links-table__node {
+  border-inline-start: var(--space-1) solid var(--selected-link-node-color, transparent);
+  padding-inline-start: var(--space-2);
+  color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-links-table__node:last-child {
+  text-align: right;
+}
+
+.selected-links-table__direction {
+  display: inline-flex;
+  width: 28px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.selected-links-table__value {
+  display: inline-flex;
+  min-width: 76px;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.selected-links-table__empty-value {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.selected-links-table .ant-pagination {
+  margin: var(--space-3) 0 0;
+}
+
+.selected-links-view {
+  container-type: size;
+  display: grid;
+  place-items: center;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.links-atlas__canvas,
+.selected-links-view__renderer,
+.selected-links-view__empty {
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 0;
 }
 
 .links-atlas__canvas {
-  flex: 1;
-  min-height: 420px;
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: radial-gradient(circle at top, rgba(54, 84, 122, 0.45), rgba(8, 12, 18, 0.95));
+  background: var(--color-surface);
 }
 
 .selected-links-view-card.ant-card {
-  min-height: 520px;
-  height: 520px;
-  background: var(--color-surface);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .selected-links-view-card .ant-card-body {
@@ -80,17 +209,35 @@
   padding: var(--space-3);
 }
 
-.selected-links-view-card__title {
-  font-weight: 600;
-  font-family: var(--font-display);
+.selected-links-view-card__heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .selected-links-view-card__summary.ant-typography {
   font-size: 12px;
 }
 
+.panel-card.selected-links-view-card .ant-card-head-wrapper {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.selected-links-view-card .ant-card-extra {
+  max-width: 100%;
+}
+
 .selected-links-view-card__actions {
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.selected-links-view-card__actions > .network-view-zoom-controls {
+  padding: 0;
+  border: 0;
 }
 
 .selected-links-view-card__actions .ant-segmented-item-selected {
@@ -100,18 +247,12 @@
 .selected-links-view-card__actions .ant-segmented-item-selected,
 .selected-links-view-card__actions .ant-segmented-item-selected .ant-segmented-item-label,
 .selected-links-view-card__actions .ant-segmented-item-selected .anticon {
-  color: #fff;
-}
-
-.selected-links-view {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-width: 0;
+  color: var(--color-surface);
 }
 
 .selected-links-view__empty {
-  min-height: 420px;
+  min-height: 0;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -119,34 +260,49 @@
   background: var(--color-surface);
 }
 
-.selected-links-view__renderer {
-  flex: 1;
-  height: 100%;
-  min-height: 0;
-  min-width: 0;
+.links-panel__control-card .network-settings-section__header {
+  flex-wrap: wrap;
 }
 
-.links-atlas--empty {
-  min-height: 320px;
+.network-links-3d {
+  height: 100%;
+  min-width: 0;
+  overflow: auto;
+}
+
+.network-links-3d__canvas {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.links-atlas__focus {
+  display: contents;
+}
+
+.links-atlas__focus-select {
+  min-width: 140px;
+  max-width: 240px;
+}
+
+.selected-links-table .ant-table-tbody > tr.selected-links-table__row--active > td:first-child {
+  box-shadow: inset var(--space-1) 0 0 var(--color-visual-selection);
+}
+
+.annotations-selector { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.annotations-swatch { display: inline-block; width: 1em; height: 1em; border-radius: 50%; }
+.annotations-editor { margin-bottom: var(--space-3); }
+
+.annotations-description { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.annotations-panel__header,
+.annotations-list-controls__header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--color-surface-2);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  padding: var(--space-4);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
-@media (max-width: 640px) {
-  .links-panel {
-    grid-template-columns: 1fr;
-  }
-
-  .links-controls__header {
-    flex-direction: column;
-  }
-
-  .links-atlas {
-    min-height: 420px;
-  }
-}
+.annotations-panel__tabs .ant-tabs-nav,
+.annotations-list-controls__tabs .ant-tabs-nav { margin-bottom: 0; }

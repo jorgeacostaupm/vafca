@@ -1,42 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect } from 'react'
 
-import type { SelectedLink } from "@/types/visualizationUi";
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import type { SelectedLink } from '@/types/visualizationUi'
+import { patchWorkspaceUi } from '@/workspace/workspaceUiSlice'
 
 export const useSelectedLinkNetworkSelection = (links: SelectedLink[]) => {
-  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>([]);
-  const dismissedNetworkIdsRef = useRef<Set<string>>(new Set());
-
+  const dispatch = useAppDispatch()
+  const { selectedNetworkIds, dismissedNetworkIds } = useAppSelector(state => state.workspaceUi)
   useEffect(() => {
-    if (links.length === 0) return;
-    setSelectedNetworkIds((prev) => {
-      const seen = new Set(prev);
-      const additions: string[] = [];
-      links.forEach((link) => {
-        link.sources.forEach((source) => {
-          if (seen.has(source.compoundId)) return;
-          if (dismissedNetworkIdsRef.current.has(source.compoundId)) return;
-          seen.add(source.compoundId);
-          additions.push(source.compoundId);
-        });
-      });
-      return additions.length > 0 ? [...prev, ...additions] : prev;
-    });
-  }, [links]);
-
-  const setUserSelectedNetworkIds = useCallback((nextSelection: string[]) => {
-    setSelectedNetworkIds((prev) => {
-      const nextSet = new Set(nextSelection);
-      const removed = prev.filter((id) => !nextSet.has(id));
-      const added = nextSelection.filter((id) => !prev.includes(id));
-      removed.forEach((id) => dismissedNetworkIdsRef.current.add(id));
-      added.forEach((id) => dismissedNetworkIdsRef.current.delete(id));
-      return nextSelection;
-    });
-  }, []);
-
-  return {
-    selectedNetworkIds,
-    setUserSelectedNetworkIds,
-  };
-};
-
+    const next = new Set(selectedNetworkIds)
+    links.forEach(link => link.sources.forEach(source => {
+      if (!dismissedNetworkIds.includes(source.compoundId)) next.add(source.compoundId)
+    }))
+    if (next.size !== selectedNetworkIds.length) dispatch(patchWorkspaceUi({ selectedNetworkIds: [...next] }))
+  }, [dispatch, links, selectedNetworkIds, dismissedNetworkIds])
+  const setUserSelectedNetworkIds = useCallback((next: string[]) => {
+    const dismissed = new Set(dismissedNetworkIds)
+    selectedNetworkIds.filter(id => !next.includes(id)).forEach(id => dismissed.add(id))
+    next.forEach(id => dismissed.delete(id))
+    dispatch(patchWorkspaceUi({ selectedNetworkIds: next, dismissedNetworkIds: [...dismissed] }))
+  }, [dispatch, selectedNetworkIds, dismissedNetworkIds])
+  return { selectedNetworkIds, setUserSelectedNetworkIds }
+}

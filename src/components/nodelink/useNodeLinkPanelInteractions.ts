@@ -5,9 +5,9 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   addSelectedLink,
   addSelectedLinks,
-  removeSelectedLink,
   removeSelectedLinks,
 } from "@/store/slices/visualizationUi";
+import { selectActiveAnnotationLinks,selectAnnotationLinkColors } from '@/store/slices/visualizationUi/annotationSelectors';
 import type { NodeLinkBrushLink } from "@/types/nodelink";
 import type { SelectedLink } from "@/types/visualizationUi";
 
@@ -33,7 +33,8 @@ export const useNodeLinkPanelInteractions = ({
   networkLabel,
 }: UseNodeLinkPanelInteractionsArgs) => {
   const dispatch = useAppDispatch();
-  const selectedLinks = useAppSelector((state) => state.visualizationUi.selectedLinks);
+  const activeAnnotationId = useAppSelector(state => state.visualizationUi.activeAnnotationId);
+  const selectedLinks = useAppSelector(selectActiveAnnotationLinks);
 
   const resolvedLabels = useMemo(() => {
     const count = data.length;
@@ -41,9 +42,10 @@ export const useNodeLinkPanelInteractions = ({
     return undefined;
   }, [data, labels]);
 
+  const linkColors = useAppSelector(selectAnnotationLinkColors);
   const selectedLinkIds = useMemo(
-    () => new Set(selectedLinks.map((link) => link.id)),
-    [selectedLinks],
+    () => new Set(Object.keys(linkColors)),
+    [linkColors],
   );
 
   const handleSelect = useCallback(
@@ -54,7 +56,7 @@ export const useNodeLinkPanelInteractions = ({
         selectedLinks.find((link) => link.id === directId) ??
         selectedLinks.find((link) => link.id === reverseId);
       if (existing) {
-        dispatch(removeSelectedLink(existing.id));
+        dispatch(removeSelectedLinks({ annotationId: activeAnnotationId!, ids: [existing.id] }));
         return;
       }
       dispatch(
@@ -74,7 +76,7 @@ export const useNodeLinkPanelInteractions = ({
         }),
       );
     },
-    [dispatch, selectedLinks, compoundId, networkLabel],
+    [activeAnnotationId, dispatch, selectedLinks, compoundId, networkLabel],
   );
 
   const handleLinkHover = useCallback(
@@ -143,11 +145,11 @@ export const useNodeLinkPanelInteractions = ({
         `${link.rowId}::${link.colId}`,
         `${link.colId}::${link.rowId}`,
       ]);
-      if (ids.length > 0) {
-        dispatch(removeSelectedLinks(ids));
+      if (ids.length > 0 && activeAnnotationId) {
+        dispatch(removeSelectedLinks({ annotationId: activeAnnotationId, ids }));
       }
     },
-    [dispatch],
+    [activeAnnotationId, dispatch],
   );
 
   return {

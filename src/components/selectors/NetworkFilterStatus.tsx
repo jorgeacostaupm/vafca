@@ -2,7 +2,6 @@ import { Tag, Typography } from "antd";
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
-  clearAggregatedNetworkEdgeFilter,
   clearNetworkEdgeFilter,
 } from "@/store/slices/networkFilters";
 
@@ -11,11 +10,7 @@ export default function NetworkFilterStatus() {
   const activeMask = useAppSelector(
     (state) => state.networkFilters.activeEdgeMask,
   );
-  const activeAggregatedMask = useAppSelector(
-    (state) => state.networkFilters.activeAggregatedEdgeMask,
-  );
-
-  if (!activeMask && !activeAggregatedMask) return null;
+  if (!activeMask) return null;
 
   return (
     <div className="network-control-card__filters">
@@ -28,17 +23,7 @@ export default function NetworkFilterStatus() {
           closable
           onClose={() => dispatch(clearNetworkEdgeFilter())}
         >
-          Original links: {activeMask.selectedCount} / {activeMask.totalCount}
-        </Tag>
-      ) : null}
-      {activeAggregatedMask ? (
-        <Tag
-          color="purple"
-          closable
-          onClose={() => dispatch(clearAggregatedNetworkEdgeFilter())}
-        >
-          Aggregated edges: {activeAggregatedMask.selectedCount} /{" "}
-          {activeAggregatedMask.totalCount}
+          Links: {activeMask.selectedCount} / {activeMask.totalCount}
         </Tag>
       ) : null}
     </div>

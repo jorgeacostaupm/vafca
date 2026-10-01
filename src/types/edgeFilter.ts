@@ -60,7 +60,7 @@ export type NetworkEdgeDomain = {
   rows: number;
   cols: number;
   nodeCount: number;
-  directed: boolean;
+
   labelIds: string[];
 };
 

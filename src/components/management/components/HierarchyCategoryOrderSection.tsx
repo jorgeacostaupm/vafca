@@ -43,23 +43,15 @@ export default function HierarchyCategoryOrderSection({
                 .join(" · ");
 
         return (
-          <div
-            key={editor.key}
-            style={{
-              border: "1px solid var(--color-border)",
-              borderRadius: 8,
-              padding: 8,
-              background: "var(--color-surface)",
-            }}
-          >
+          <div key={editor.key} className="hierarchy-category-order">
             <Typography.Text strong>{humanizeFieldName(editor.field)}</Typography.Text>
-            <Typography.Text type="secondary" style={{ display: "block" }}>
+            <Typography.Text type="secondary" className="hierarchy-category-order__parent">
               {parentDescription}
             </Typography.Text>
             <Button
               size="small"
               icon={<SwapOutlined />}
-              style={{ marginTop: 6 }}
+              className="hierarchy-category-order__invert"
               onClick={() =>
                 onUpdateCategoryOrder({
                   ...categoryOrder,
@@ -74,7 +66,7 @@ export default function HierarchyCategoryOrderSection({
             <Space
               direction="vertical"
               size={6}
-              style={{ width: "100%", marginTop: 6 }}
+              className="hierarchy-category-order__values"
             >
               {editor.values.map((value, index) => (
                 <div key={value} className="atlas-panel__field-row">

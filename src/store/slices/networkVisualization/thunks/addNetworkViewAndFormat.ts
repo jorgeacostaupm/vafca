@@ -15,12 +15,12 @@ export const addNetworkViewAndFormat = createAsyncThunk<
     compoundId: string
     label: string
     measureId: string
-    statId: string
+    statisticId: string
   },
   { state: RootState; dispatch: AppDispatch }
 >(
   'networkVisualization/addNetworkViewAndFormat',
-  async ({ type, compoundId, label, measureId, statId }, { dispatch, getState }) => {
+  async ({ type, compoundId, label, measureId, statisticId }, { dispatch, getState }) => {
     const viewId = `${compoundId}::${getState().networkVisualization.nextViewSeq}`
     dispatch(
       addNetworkView({
@@ -28,7 +28,7 @@ export const addNetworkViewAndFormat = createAsyncThunk<
         compoundId,
         label,
         measureId,
-        statId,
+        statisticId,
       }),
     )
     dispatch(

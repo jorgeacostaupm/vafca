@@ -36,37 +36,15 @@ export const networkZoomReducers = {
   },
   toggleNetworkZoomLabelSelection(
     state,
-    action: PayloadAction<{
-      viewId: string
-      label: string
-      orderedLabels?: string[]
-    }>,
+    action: PayloadAction<{ viewId?: string; label: string; orderedLabels?: string[] }>,
   ) {
-    const { viewId, label, orderedLabels } = action.payload
-    const descriptor = state.viewsById[viewId]
-    if (!descriptor) return
-
-    const settings = ensureSettingsEntry(state, viewId, descriptor.type)
-    const current = settings.zoomLabelSelection ?? []
-    const exists = current.includes(label)
-    const nextRaw = exists
-      ? current.filter((item) => item !== label)
-      : [...current, label]
-
-    settings.zoomLabelSelection =
-      orderedLabels && nextRaw.length > 1
-        ? orderedLabels.filter((item) => nextRaw.includes(item))
-        : nextRaw
+    const { label } = action.payload
+    // Node selection belongs to the dataset, including when no network view is open.
+    state.selectedNodeIds = state.selectedNodeIds.includes(label)
+      ? state.selectedNodeIds.filter(id => id !== label)
+      : [...state.selectedNodeIds, label]
   },
-  resetNetworkZoomLabelSelection(
-    state,
-    action: PayloadAction<{ viewId: string }>,
-  ) {
-    const { viewId } = action.payload
-    const descriptor = state.viewsById[viewId]
-    if (!descriptor) return
-
-    const settings = ensureSettingsEntry(state, viewId, descriptor.type)
-    settings.zoomLabelSelection = []
+  resetNetworkZoomLabelSelection(state) {
+    state.selectedNodeIds = []
   },
 } satisfies SliceCaseReducers<NetworkVisualizationState>

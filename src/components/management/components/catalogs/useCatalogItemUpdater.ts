@@ -8,8 +8,13 @@ export const useCatalogItemUpdater = () => {
   const dispatch = useAppDispatch();
 
   return useCallback(
-    (catalog: CatalogKey, id: string, changes: Record<string, unknown>) => {
-      dispatch(updateCatalogItemAndPruneActiveNetworks({ catalog, id, changes }));
+    (
+      catalog: CatalogKey,
+      id: string,
+      changes: Record<string, unknown>,
+      aspectId?: string,
+    ) => {
+      dispatch(updateCatalogItemAndPruneActiveNetworks({ catalog, aspectId, id, changes }));
     },
     [dispatch],
   );

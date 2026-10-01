@@ -1,203 +1,59 @@
-import {
-  CalculatorOutlined,
-  DatabaseOutlined,
-  FilterOutlined,
-  SettingOutlined,
-} from "@ant-design/icons";
-import { Button, Space, Tooltip } from "antd";
-import { useState } from "react";
+import { FilterOutlined } from '@ant-design/icons'
+import { Button, Tooltip } from 'antd'
+import { useState } from 'react'
 
-import DerivedNetworkCalculationModal, {
-  type DerivedNetworkCalculationTab,
-} from "@/components/calculations/DerivedNetworkCalculationModal";
-import DataManagementModal from "@/components/management/DataManagementModal";
-import NetworkEdgeFilterModal from "@/components/network/edge-filter/NetworkEdgeFilterModal";
-import NetworkVisualizationSettingsModal, {
-  type NetworkVisualizationSettingsTabKey,
-} from "@/components/network/settings/NetworkVisualizationSettingsModal";
-import { DEFAULT_NETWORK_SETTINGS_TAB } from "@/config/ui";
-import { getAvailableNetworkCalculations } from "@/networkDerivation/calculations";
-import { useAppSelector } from "@/store/hooks";
-import { selectDatasetContent } from "@/store/slices/dataset";
-
-type DataActionProps = {
-  open: boolean;
-  onOpen: () => void;
-  onClose: () => void;
-};
-
-function DataAction({ open, onOpen, onClose }: DataActionProps) {
-  return (
-    <>
-      <Tooltip title="Manage loaded datasets and matrix metadata">
-        <Button
-          aria-label="Manage data"
-          icon={<DatabaseOutlined />}
-          onClick={onOpen}
-        />
-      </Tooltip>
-      <DataManagementModal open={open} onClose={onClose} />
-    </>
-  );
-}
-
-type SettingsActionProps = {
-  open: boolean;
-  activeTab: NetworkVisualizationSettingsTabKey;
-  onOpenAggregationModal: () => void;
-  onOpen: () => void;
-  onClose: () => void;
-  onTabChange: (tab: NetworkVisualizationSettingsTabKey) => void;
-};
-
-function SettingsAction({
-  open,
-  activeTab,
-  onOpenAggregationModal,
-  onOpen,
-  onClose,
-  onTabChange,
-}: SettingsActionProps) {
-  return (
-    <>
-      <Tooltip title="Visualization settings">
-        <Button
-          aria-label="Visualization settings"
-          icon={<SettingOutlined />}
-          onClick={onOpen}
-        />
-      </Tooltip>
-      <NetworkVisualizationSettingsModal
-        open={open}
-        onClose={onClose}
-        activeTab={activeTab}
-        onOpenAggregationModal={onOpenAggregationModal}
-        onTabChange={onTabChange}
-      />
-    </>
-  );
-}
+import AnnotationSelector from '@/components/annotations/AnnotationSelector'
+import ToggleButton from '@/components/common/ToggleButton'
+import NetworkEdgeFilterModal from '@/components/network/edge-filter/NetworkEdgeFilterModal'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { patchNetworkControls, selectNetworkControls } from '@/store/slices/networkVisualization'
+import { selectUiRangeMode, setUiRangeMode } from '@/store/slices/visualizationUi'
 
 function FilterAction() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   return (
     <>
       <Tooltip title="Configure edge filters">
         <Button
-          aria-label="Configure edge filters"
+          aria-label="Global filter"
           icon={<FilterOutlined />}
           onClick={() => setOpen(true)}
-        />
+        >
+          Global filter
+        </Button>
       </Tooltip>
       <NetworkEdgeFilterModal open={open} onClose={() => setOpen(false)} />
     </>
-  );
-}
-
-type ComputeActionProps = {
-  open: boolean;
-  initialTab: DerivedNetworkCalculationTab;
-  onOpen: () => void;
-  onClose: () => void;
-  onOpenGroupingSettings: () => void;
-};
-
-function ComputeAction({
-  open,
-  initialTab,
-  onOpen,
-  onClose,
-  onOpenGroupingSettings,
-}: ComputeActionProps) {
-  const datasetContent = useAppSelector(
-    (state) => selectDatasetContent(state),
-  );
-  const calculationAvailable =
-    datasetContent && getAvailableNetworkCalculations(datasetContent).length > 0;
-
-  return (
-    <>
-      <Tooltip
-        title={
-          calculationAvailable
-            ? "Compute derived networks from the loaded dataset data"
-            : "No derived matrix calculations are available with the currently loaded data."
-        }
-      >
-        <Button
-          aria-label="Compute derived networks"
-          icon={<CalculatorOutlined />}
-          disabled={!calculationAvailable}
-          onClick={onOpen}
-        />
-      </Tooltip>
-      {open ? (
-        <DerivedNetworkCalculationModal
-          open={open}
-          initialTab={initialTab}
-          onClose={onClose}
-          onOpenGroupingSettings={() => {
-            onClose();
-            onOpenGroupingSettings();
-          }}
-        />
-      ) : null}
-    </>
-  );
+  )
 }
 
 export default function NetworkSelectorActions() {
-  const [dataOpen, setDataOpen] = useState(false);
-  const [computeOpen, setComputeOpen] = useState(false);
-  const [computeInitialTab, setComputeInitialTab] =
-    useState<DerivedNetworkCalculationTab>("comparison");
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] =
-    useState<NetworkVisualizationSettingsTabKey>(DEFAULT_NETWORK_SETTINGS_TAB);
-
-  const openSettings = (
-    tab: NetworkVisualizationSettingsTabKey = DEFAULT_NETWORK_SETTINGS_TAB,
-  ) => {
-    setSettingsTab(tab);
-    setSettingsOpen(true);
-  };
-
-  const openComputeModal = (tab: DerivedNetworkCalculationTab = "comparison") => {
-    setComputeInitialTab(tab);
-    setComputeOpen(true);
-  };
-
-  const openAggregationModal = () => {
-    setSettingsOpen(false);
-    openComputeModal("aggregated");
-  };
+  const dispatch = useAppDispatch()
+  const rangeMode = useAppSelector(selectUiRangeMode)
+  const { syncZoom } = useAppSelector(selectNetworkControls)
 
   return (
     <div className="network-action-toolbar" aria-label="Network tools">
-      <Space size={6}>
-        <DataAction
-          open={dataOpen}
-          onOpen={() => setDataOpen(true)}
-          onClose={() => setDataOpen(false)}
-        />
-        <ComputeAction
-          open={computeOpen}
-          initialTab={computeInitialTab}
-          onOpen={() => openComputeModal("comparison")}
-          onClose={() => setComputeOpen(false)}
-          onOpenGroupingSettings={() => openSettings("grouping")}
-        />
-        <FilterAction />
-        <SettingsAction
-          open={settingsOpen}
-          activeTab={settingsTab}
-          onOpenAggregationModal={openAggregationModal}
-          onOpen={() => openSettings(DEFAULT_NETWORK_SETTINGS_TAB)}
-          onClose={() => setSettingsOpen(false)}
-          onTabChange={setSettingsTab}
-        />
-      </Space>
+      <FilterAction />
+      <Tooltip title="Share color scales between active matrices with the same connectivity measure and statistic">
+        <ToggleButton
+          className="network-global-scale"
+          active={rangeMode === 'shared'}
+          onClick={() => dispatch(setUiRangeMode(rangeMode === 'shared' ? 'view_observed' : 'shared'))}
+        >
+          Global scale
+        </ToggleButton>
+      </Tooltip>
+      <Tooltip title="Synchronize zoom between compatible views">
+        <ToggleButton
+          active={syncZoom}
+          onClick={() => dispatch(patchNetworkControls({ syncZoom: !syncZoom }))}
+        >
+          Coordinated zoom
+        </ToggleButton>
+      </Tooltip>
+      <AnnotationSelector />
     </div>
-  );
+  )
 }

@@ -2,9 +2,11 @@ import { createFullMatrixData } from "@/networkDerivation/calculations/matrixMat
 import {
   assertContextCompatible,
   findEquivalentDerivedNetwork,
-  resolveCalculationInputsForLayerMeasure,
+  resolveCalculationInputsForDimensions,
 } from "@/networkDerivation/calculations/resolution";
+import { isValidSampleSize, populationSampleSize } from "@/networkDerivation/calculations/sampleSizes";
 import {
+  type DimensionComparison,
   type NetworkCalculationBatchRequest,
   type NetworkCalculationOperation,
   type NetworkCalculationResult,
@@ -15,46 +17,32 @@ import type { MatrixCellValue, Network } from "@/types/network";
 
 export const alternative = "two-sided";
 
-const getPopulationNFromNetworkOrCatalog = (
-  network: Network | undefined,
-  state: NetworkCalculationState,
-  populationId?: string,
-) => {
-  if (
-    network?.source.type === "population" &&
-    Number.isFinite(network.source.n)
-  ) {
-    return network.source.n;
-  }
-  return populationId ? state.catalogs.populations[populationId]?.n ?? null : null;
-};
-
 export const ensureReady = (
   operation: NetworkCalculationOperation,
-  layerId: string,
+  dimensionPair: DimensionComparison,
   measureId: string,
   skipped: NetworkCalculationSkipped[],
   request: NetworkCalculationBatchRequest,
   state: NetworkCalculationState,
   subjectId?: string,
 ) => {
-  const resolved = resolveCalculationInputsForLayerMeasure(
+  const resolved = resolveCalculationInputsForDimensions(
     { ...request, operation },
     state,
-    layerId,
+    dimensionPair,
     measureId,
     subjectId,
   );
-  if (resolved.missingRoles.length) {
+  if (resolved.missingRoles.length || resolved.warnings.length) {
     skipped.push({
       operation,
-      layerId,
+      dimensionPair,
       measureId,
       subjectId,
       leftPopulationId: request.leftPopulationId,
       rightPopulationId: request.rightPopulationId,
       referencePopulationId: request.referencePopulationId,
-      reason: `Missing inputs: ${resolved.missingRoles.join(", ")}`,
+      reason: resolved.missingRoles.length ? `Missing inputs: ${resolved.missingRoles.join(", ")}` : resolved.warnings.join("; "),
       missingInputs: resolved.missingRoles,
     });
     return null;
@@ -66,7 +54,7 @@ export const ensureReady = (
   } catch (error) {
     skipped.push({
       operation,
-      layerId,
+      dimensionPair,
       measureId,
       subjectId,
       leftPopulationId: request.leftPopulationId,
@@ -99,7 +87,7 @@ export const maybePush = (
 
 export const resolvePopulationSampleSizesOrSkip = (
   operation: NetworkCalculationOperation,
-  layerId: string,
+  dimensionPair: DimensionComparison,
   measureId: string,
   request: NetworkCalculationBatchRequest,
   state: NetworkCalculationState,
@@ -107,12 +95,12 @@ export const resolvePopulationSampleSizesOrSkip = (
   rightMean: Network,
   skipped: NetworkCalculationSkipped[],
 ) => {
-  const nLeft = getPopulationNFromNetworkOrCatalog(leftMean, state, request.leftPopulationId);
-  const nRight = getPopulationNFromNetworkOrCatalog(rightMean, state, request.rightPopulationId);
-  if (!nLeft || !nRight || nLeft <= 1 || nRight <= 1) {
+  const nLeft = populationSampleSize(leftMean.sourceId, request, state);
+  const nRight = populationSampleSize(rightMean.sourceId, request, state);
+  if (!isValidSampleSize(nLeft) || !isValidSampleSize(nRight)) {
     skipped.push({
       operation,
-      layerId,
+      dimensionPair,
       measureId,
       leftPopulationId: request.leftPopulationId,
       rightPopulationId: request.rightPopulationId,

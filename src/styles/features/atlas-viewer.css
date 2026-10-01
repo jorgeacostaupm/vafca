@@ -1,37 +1,14 @@
 .atlas-panel__viewer {
-  background: linear-gradient(160deg, #0b0f16 0%, #121a28 55%, #182334 100%);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
   min-height: 0;
   height: 100%;
   width: 100%;
-  max-width: none;
-  margin: 0 auto;
-}
-
-.atlas-panel__viewer--empty {
-  justify-content: center;
-}
-
-.atlas-panel__viewer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .atlas-panel__viewer-canvas {
-  flex: 1 1 auto;
-  min-height: 0;
   position: relative;
-  border-radius: var(--radius-sm);
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: radial-gradient(circle at top, rgba(54, 84, 122, 0.45), rgba(8, 12, 18, 0.95));
 }
 
 .atlas-tooltip {
@@ -49,11 +26,4 @@
   white-space: nowrap;
 }
 
-@media (max-width: 640px) {
-  .atlas-panel__viewer {
-    min-height: 420px;
-    height: auto;
-    max-width: none;
-    margin: 0;
-  }
-}
+.atlas-tooltip { white-space: pre-line; }

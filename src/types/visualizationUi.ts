@@ -13,7 +13,7 @@ export type SelectedLink = {
   colId: string;
   rowLabel: string;
   colLabel: string;
-  directed?: boolean;
+
   sources: Array<{
     compoundId: string;
     networkLabel: string;
@@ -22,6 +22,7 @@ export type SelectedLink = {
 };
 
 export type AtlasPanelState = {
+  hoveredNodeId?: string | null;
   query: string;
   groupByFields: string[];
   groupByFieldsInitialized: boolean;
@@ -30,6 +31,8 @@ export type AtlasPanelState = {
   nodeVisibilityDraft: Record<string, boolean> | null;
   viewerHeight: number;
   is3dAvailable: boolean;
+  showInactiveNodes: boolean;
+  spatialMode: "geometry" | "points" | "none";
 };
 
 export type MatrixColorScaleSettings = {
@@ -46,26 +49,60 @@ export type MatrixColorSettings = Record<ScaleType, MatrixColorScaleSettings>;
 export type MatrixColorSettingsState = {
   applied: MatrixColorSettings;
   draft: MatrixColorSettings;
+  backgroundColor: {
+    applied: string;
+    draft: string;
+  };
 };
 
 export type MatrixVisualStyle = {
+  annotationLinkColors?: Record<string, string>;
+  annotationNodeColors?: Record<string, string>;
+  annotationCellColors?: Record<string, string>;
   highlightColor: string;
   selectionColor: string;
+  backgroundColor?: string;
 };
 
-export type NodeLinkVisualStyle = MatrixVisualStyle;
+export type NodeLinkVisualStyle = MatrixVisualStyle & {
+  positiveLinkColor?: string;
+  negativeLinkColor?: string;
+};
 
-export type VisualizationUiState = {
-  hoveredCell: HoveredCell;
-  hoveredNodeId: string | null;
+export type SpatialVisualStyle = {
+  nodeColor: string;
+  divergingNodeColor: string;
+  positiveLinkColor: string;
+  negativeLinkColor: string;
+  neutralLinkColor: string;
+};
+
+export type Annotation = {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  active: boolean;
+  nodes: Array<{ id: string; label: string }>;
   selectedLinks: SelectedLink[];
   selectedLinksById: Record<string, SelectedLink>;
   selectedLinkIdsByRowId: Record<string, string[]>;
   atlasLinkIds: string[];
+};
+
+export type VisualizationUiState = {
+  spatialVisualStyle: SpatialVisualStyle;
+  hoveredCell: HoveredCell;
+  hoveredNodeId: string | null;
+  annotations: Annotation[];
+  currentAnnotationId: string;
+  activeAnnotationId: string | null;
+  annotationOverlapColor: string;
   selectedLinksDownloadStatus: "idle" | "loading" | "ready" | "error";
   selectedLinksDownloadError: string | null;
   uiRangeMode: UiRangeMode;
   matrixColorSettings: MatrixColorSettingsState;
   nodeLinkVisualStyle: NodeLinkVisualStyle;
+  circularVisualStyle: NodeLinkVisualStyle;
   atlasPanel: AtlasPanelState;
 };

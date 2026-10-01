@@ -51,13 +51,13 @@ export const welchTTestDefinition: NetworkCalculationMethodDefinition = {
     "n_left > 1 and n_right > 1",
   ],
   requiredInputs: [
-    { role: "leftMean", label: "Left mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
-    { role: "rightMean", label: "Right mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
-    { role: "leftStd", label: "Left std", kind: "population", statId: "std", sourceLevel: "population", required: true },
-    { role: "rightStd", label: "Right std", kind: "population", statId: "std", sourceLevel: "population", required: true },
+    { role: "leftMean", label: "Left mean", kind: "population", statisticId: "mean", sourceLevel: "population", required: true },
+    { role: "rightMean", label: "Right mean", kind: "population", statisticId: "mean", sourceLevel: "population", required: true },
+    { role: "leftStd", label: "Left std", kind: "population", statisticId: "std", sourceLevel: "population", required: true },
+    { role: "rightStd", label: "Right std", kind: "population", statisticId: "std", sourceLevel: "population", required: true },
   ],
   outputs: [
-    { statId: "t_value", statLabel: "t value", statCategory: "comparison", operator: "welch_t", comparisonType: "population_vs_population", labelSuffix: "Welch t", units: "t", scaleType: "diverging", center: 0, rangeMode: "observed_symmetric", useDataRange: true },
+    { statisticId: "t_value", statLabel: "t value", statCategory: "comparison", operator: "welch_t", comparisonType: "population_vs_population", labelSuffix: "Welch t", units: "t", scaleType: "diverging", center: 0, rangeMode: "observed_symmetric", useDataRange: true },
   ],
   associatedOutputs: [
     {
@@ -65,7 +65,7 @@ export const welchTTestDefinition: NetworkCalculationMethodDefinition = {
       label: "Also compute two-sided Welch p-value",
       description: "Computes a two-sided p-value using the Student t CDF and per-cell Welch df.",
       defaultEnabled: false,
-      outputs: [{ statId: "p_value", statLabel: "p-value", statCategory: "comparison", operator: "welch_p_value", comparisonType: "population_vs_population", labelSuffix: "Welch p-value", units: "p-value", scaleType: "sequential", center: null, rangeMode: "fixed", expectedRange: [0, 1] }],
+      outputs: [{ statisticId: "p_value", statLabel: "p-value", statCategory: "comparison", operator: "welch_p_value", comparisonType: "population_vs_population", labelSuffix: "Welch p-value", units: "p-value", scaleType: "sequential", center: null, rangeMode: "fixed", expectedRange: [0, 1] }],
     },
   ],
   requiresControlOrReference: true,
@@ -81,11 +81,11 @@ export const calculatePopulationWelchT: NetworkCalculationMethod["calculate"] = 
   result,
   existingIds,
 }) => {
-  request.layerIds.forEach((layerId) => {
+  request.dimensionPairs.forEach((dimensionPair) => {
     request.measureIds.forEach((measureId) => {
       const resolved = ensureReady(
         "population_welch_t",
-        layerId,
+        dimensionPair,
         measureId,
         result.skipped,
         request,
@@ -97,7 +97,7 @@ export const calculatePopulationWelchT: NetworkCalculationMethod["calculate"] = 
       const rightMean = resolved.networks.rightMean!;
       const n = resolvePopulationSampleSizesOrSkip(
         "population_welch_t",
-        layerId,
+        dimensionPair,
         measureId,
         request,
         state,

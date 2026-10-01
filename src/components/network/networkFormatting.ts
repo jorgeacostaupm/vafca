@@ -44,6 +44,7 @@ export const collectVisibleGraph = ({
   valueFilters?: {
     measure?: [number, number] | null;
     stat?: MatrixValueRange;
+    percentLinkIds?: Set<string> | null;
   };
 }): ViewVisibility => {
   const linkIds = new Set<string>();
@@ -60,6 +61,9 @@ export const collectVisibleGraph = ({
       if (!Number.isFinite(value)) continue;
       if (!valuePassesRangeFilter(value, measureRange)) continue;
       if (!valuePassesRangeFilter(value, statRange)) continue;
+      if (valueFilters?.percentLinkIds && !valueFilters.percentLinkIds.has(buildLinkKey(rowId, colId))) {
+        continue;
+      }
       if (!value) continue;
       linkIds.add(buildLinkKey(rowId, colId));
       connectedNodeIds.add(rowId);
@@ -168,9 +172,9 @@ export const pickSharedSettings = (
     statRange: source.statRange,
     brushEnabled: source.brushEnabled,
     hideIsolatedNodes: source.hideIsolatedNodes,
-    zoomLabelSelection: source.zoomLabelSelection,
     zoomHistory: source.zoomHistory,
     zoomIndex: source.zoomIndex,
+    percentLinkFilter: source.percentLinkFilter,
     useAsNodeFilter: source.useAsNodeFilter,
     useAsLinkFilter: source.useAsLinkFilter,
   };
@@ -185,7 +189,10 @@ export const toMatrixStatFilter = (
       ? ([statRange[0], statRange[1]] as [number, number])
       : null;
   }
-  return [statRange.negative, statRange.positive] as Array<[number, number]>;
+  return [
+    ...(statRange.negativeEnabled === false ? [] : [statRange.negative]),
+    ...(statRange.positiveEnabled === false ? [] : [statRange.positive]),
+  ];
 };
 
 export const toNodeLinkStatFilter = (
@@ -193,5 +200,8 @@ export const toNodeLinkStatFilter = (
 ): MatrixValueRange => {
   if (!statRange) return null;
   if (Array.isArray(statRange)) return statRange;
-  return [statRange.negative, statRange.positive] as Array<[number, number]>;
+  return [
+    ...(statRange.negativeEnabled === false ? [] : [statRange.negative]),
+    ...(statRange.positiveEnabled === false ? [] : [statRange.positive]),
+  ];
 };

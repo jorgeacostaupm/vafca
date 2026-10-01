@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import { positionCircularTooltipForNode } from "@/components/circular/circularTooltipPosition";
 import { syncCircularProgrammaticTooltip } from "@/components/circular/circularVisualEffects";
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import {
   type SharedHoverState,
   subscribeSharedHover,
@@ -28,7 +29,7 @@ type UseCircularProgrammaticTooltipArgs = {
   degreeById: Map<string, number>;
   labelNames?: Record<string, string>;
   labelTitles?: Record<string, string>;
-  valueLabel: string;
+  valueLabel: TooltipValueLabel;
   zoomTransformRef: MutableRefObject<d3.ZoomTransform>;
 };
 

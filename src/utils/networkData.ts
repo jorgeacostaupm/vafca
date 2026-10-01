@@ -9,14 +9,9 @@ const isMatrixNetworkData = (
   data: Network["data"],
 ): data is MatrixNetworkData => data.format === "matrix";
 
-export const getNetworkKind = (network: Network) => network.source.type;
+export const getNetworkKind = (network: Network) => network.sourceId;
 
 export const getNetworkNodeIds = (network: Network) => network.nodeIds;
-
-export const isDirectedNetwork = (network: Network) => {
-  if (isMatrixNetworkData(network.data)) return !network.data.symmetric;
-  return network.data.directed;
-};
 
 const getMatrixValue = (
   data: MatrixNetworkData,
@@ -31,14 +26,14 @@ const getMatrixValue = (
   const size = networkMatrixSize(data);
   if (data.layout === "upper_triangular") {
     if (row > col) {
-      return data.symmetric ? getMatrixValue(data, col, row) : data.missingValue;
+      return getMatrixValue(data, col, row);
     }
     const index = row * size - (row * (row - 1)) / 2 + (col - row);
     return (data.values as MatrixCellValue[])[index] ?? data.missingValue;
   }
 
   if (col > row) {
-    return data.symmetric ? getMatrixValue(data, col, row) : data.missingValue;
+    return getMatrixValue(data, col, row);
   }
   const index = (row * (row + 1)) / 2 + col;
   return (data.values as MatrixCellValue[])[index] ?? data.missingValue;
@@ -62,11 +57,9 @@ export function* iterateNetworkEdges(network: Network): Generator<NetworkEdge> {
 
   const nodeIds = getNetworkNodeIds(network);
   const size = networkMatrixSize(network.data);
-  const directed = isDirectedNetwork(network);
 
   for (let row = 0; row < size; row += 1) {
-    const startCol = directed ? 0 : row;
-    for (let col = startCol; col < size; col += 1) {
+    for (let col = row; col < size; col += 1) {
       const value = getMatrixValue(network.data, row, col);
       if (typeof value !== "number" || !Number.isFinite(value)) continue;
       yield {
@@ -99,7 +92,7 @@ export const materializeNetworkMatrix = (network: Network): number[][] => {
     const targetIndex = indexById.get(edge.targetId);
     if (sourceIndex === undefined || targetIndex === undefined) continue;
     matrix[sourceIndex][targetIndex] = edge.value;
-    if (!network.data.directed) matrix[targetIndex][sourceIndex] = edge.value;
+    matrix[targetIndex][sourceIndex] = edge.value;
   }
   return matrix;
 };
@@ -126,7 +119,6 @@ export const getNetworkValue = (
   );
   if (edge) return edge.value;
 
-  if (network.data.directed) return null;
   return network.data.edges.find(
     (item) =>
       item.sourceId === targetNodeId &&

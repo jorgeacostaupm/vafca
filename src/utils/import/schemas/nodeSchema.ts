@@ -3,7 +3,17 @@ import { z } from "zod";
 import { addZodIssues } from "@/utils/import/schemas/importSchemaIssues";
 import type { NetworkImportIssue } from "@/utils/import/types";
 
+const NodeCoordinatesSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+  space: z.string().optional(),
+});
+
+
 export const NodeImportSchema = z.object({
+  atlasId: z.union([z.string(), z.number()]).optional(),
+  coords: NodeCoordinatesSchema.nullable().optional(),
   id: z.string().optional(),
   index: z.number().int().nonnegative(),
   label: z.string().optional(),

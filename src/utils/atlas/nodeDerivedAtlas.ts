@@ -1,4 +1,5 @@
 import type { AtlasDefinition, AtlasNode, AtlasSource } from "@/types/atlas";
+import type { NodeSet } from "@/types/network";
 import type { NodeOrderEntry, NodeOrderItem } from "@/types/nodeOrder";
 import { normalizeNodeOrder } from "@/utils/nodeOrder";
 
@@ -31,47 +32,10 @@ const getNodeOrderExtraFields = (
   );
 };
 
-const getNodeOrderTags = (
-  item: NodeOrderItem | NodeOrderEntry | undefined,
-) => {
+const getNodeOrderMetadata = (item: NodeOrderItem | NodeOrderEntry | undefined) => {
   const extras = getNodeOrderExtraFields(item);
-  const flatTags = Object.fromEntries(
-    Object.entries(extras).filter(
-      (entry): entry is [string, string | number | boolean | null] => {
-        const value = entry[1];
-        return (
-          value === null ||
-          typeof value === "string" ||
-          typeof value === "number" ||
-          typeof value === "boolean"
-        );
-      },
-    ),
-  );
-  const itemRecord = item && isNodeOrderObject(item)
-    ? (item as Record<string, unknown>)
-    : null;
-  const tags = itemRecord?.tags;
-  const nestedTags =
-    typeof tags === "object" &&
-    tags !== null &&
-    !Array.isArray(tags)
-      ? Object.fromEntries(
-          Object.entries(tags).filter(
-            (entry): entry is [string, string | number | boolean | null] => {
-              const value = entry[1];
-              return (
-                value === null ||
-                typeof value === "string" ||
-                typeof value === "number" ||
-                typeof value === "boolean"
-              );
-            },
-          ),
-        )
-      : {};
-
-  return { ...flatTags, ...nestedTags };
+  const { metadata, ...fields } = extras;
+  return { ...fields, ...(metadata && typeof metadata === 'object' && !Array.isArray(metadata) ? metadata : {}) };
 };
 
 export const buildNodeDerivedAtlas = (
@@ -90,9 +54,8 @@ export const buildNodeDerivedAtlas = (
       atlasId: entry.id,
       label: entry.acronym ?? entry.label,
       name: entry.label,
-      tags: getNodeOrderTags(nodeOrder[index]),
+      metadata: getNodeOrderMetadata(nodeOrder[index]),
       coords: null,
-      metadata: {},
     })),
   };
 };
@@ -106,5 +69,35 @@ export const buildNodeDerivedAtlasSource = (
   return {
     atlas,
     fileName: "Generated from node set",
+  };
+};
+
+export const buildAtlasSourceFromNodeSet = (
+  nodeSet: NodeSet | undefined,
+  fileName: string,
+): AtlasSource | null => {
+  if (!nodeSet?.nodes.length) return null;
+
+  return {
+    atlas: {
+      id: nodeSet.id,
+      spatial: nodeSet.spatial,
+      name: nodeSet.label,
+      description: nodeSet.description ?? undefined,
+      version: nodeSet.version ?? undefined,
+      coordinateSystem: nodeSet.coordinateSystem ?? undefined,
+      nodes: [...nodeSet.nodes]
+        .sort((left, right) => (left.index ?? 0) - (right.index ?? 0))
+        .map<AtlasNode>((node, index) => ({
+          index: node.index ?? index,
+          id: node.id,
+          atlasId: node.atlasId ?? node.id,
+          name: node.name ?? node.label,
+          label: node.label,
+          coords: node.coords ?? null,
+          metadata: node.metadata,
+        })),
+    },
+    fileName,
   };
 };

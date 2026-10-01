@@ -1,5 +1,5 @@
 import type { MatrixLayout } from "@/types/network";
-import { isNonEmptyString, isRecord, toSlug } from "@/utils/import/guards";
+import { isNonEmptyString, toSlug } from "@/utils/import/guards";
 import { parseMatrixImportRecord } from "@/utils/import/schemas/matrixSchema";
 import type {
   ImportedNetworkDraft,
@@ -8,82 +8,18 @@ import type {
   RawMatrixFile,
 } from "@/utils/import/types";
 
-const UNKNOWN_IMPORT_METADATA = "Unknown";
-
-type MatrixMetadataFallbacks = {
-  symmetric: boolean;
-};
-
 type NormalizeMatrixNetworksArgs = {
   matrixFiles: RawMatrixFile[];
-  fallbacks: MatrixMetadataFallbacks;
   errors: NetworkImportIssue[];
   warnings: NetworkImportIssue[];
   inference: NetworkImportInference;
-  strict: boolean;
 };
 
-const getOptionalString = (
-  record: Record<string, unknown>,
-  keys: string[],
-) => {
-  for (const key of keys) {
-    const value = record[key];
-    if (isNonEmptyString(value)) return value.trim();
-  }
-  return null;
-};
-
-const getPopulationIds = (
-  record: Record<string, unknown>,
-  fallback: string,
-) => {
-  if (Array.isArray(record.populationIds)) {
-    const ids = record.populationIds.filter(isNonEmptyString).map((id) => id.trim());
-    if (ids.length > 0) return ids;
-  }
-  const population = getOptionalString(record, ["population", "populationId"]);
-  return [population ?? fallback];
-};
-
-const getSubjectId = (
-  record: Record<string, unknown>,
-  fallback: string,
-) => getOptionalString(record, ["subject", "subjectId"]) ?? fallback;
-
-const getNetworkKind = (record: Record<string, unknown>) =>
-  record.kind === "subject"
-    ? "subject"
-    : record.kind === "comparison" || isRecord(record.comparison)
-      ? "comparison"
-      : "population";
-
-const getComparison = (
-  record: Record<string, unknown>,
-  populationIds: string[],
-) => {
-  if (!isRecord(record.comparison)) {
-    return {
-      left: populationIds[0] ?? "left",
-      right: populationIds[1] ?? "right",
-      comparisonType: "comparison",
-    };
-  }
-
-  return {
-    left: getOptionalString(record.comparison, ["left", "leftPopulation"]) ??
-      populationIds[0] ??
-      "left",
-    right: getOptionalString(record.comparison, ["right", "rightPopulation"]) ??
-      populationIds[1] ??
-      "right",
-    comparisonType: getOptionalString(record.comparison, ["type", "comparisonType"]) ??
-      "comparison",
-  };
-};
+const getOptionalString = (value: unknown) =>
+  isNonEmptyString(value) ? value.trim() : null;
 
 const getMatrixLayout = (record: Record<string, unknown>): MatrixLayout => {
-  const raw = getOptionalString(record, ["layout", "matrixType", "type"]);
+  const raw = getOptionalString(record.layout);
   if (
     raw === "full" ||
     raw === "upper_triangular" ||
@@ -121,7 +57,6 @@ const materializeTriangularData = (
   values: (number | null)[],
   size: number,
   layout: Exclude<MatrixLayout, "full">,
-  symmetric: boolean,
 ) => {
   const data = Array.from({ length: size }, () =>
     Array.from<number | null>({ length: size }).fill(null),
@@ -133,7 +68,7 @@ const materializeTriangularData = (
       for (let column = row; column < size; column += 1) {
         const value = values[valueIndex];
         data[row][column] = value;
-        if (symmetric) data[column][row] = value;
+        data[column][row] = value;
         valueIndex += 1;
       }
     }
@@ -144,7 +79,7 @@ const materializeTriangularData = (
     for (let column = 0; column <= row; column += 1) {
       const value = values[valueIndex];
       data[row][column] = value;
-      if (symmetric) data[column][row] = value;
+      data[column][row] = value;
       valueIndex += 1;
     }
   }
@@ -154,7 +89,6 @@ const materializeTriangularData = (
 const normalizeMatrixData = (
   data: unknown,
   layout: MatrixLayout,
-  symmetric: boolean,
   source: string,
   errors: NetworkImportIssue[],
 ) => {
@@ -195,7 +129,7 @@ const normalizeMatrixData = (
       if (cell === undefined) return null;
       values.push(cell);
     }
-    return materializeTriangularData(values, size, layout, symmetric);
+    return materializeTriangularData(values, size, layout);
   }
 
   const size = data.length;
@@ -252,7 +186,8 @@ const hasSymmetricValues = (data: (number | null)[][]) => {
     for (let column = row + 1; column < data.length; column += 1) {
       const left = data[row][column];
       const right = data[column][row];
-      if (left === null || right === null) continue;
+      if (left === right) continue;
+      if (left === null || right === null) return false;
       if (Math.abs(left - right) > tolerance) return false;
     }
   }
@@ -270,26 +205,22 @@ const addInferredField = (
 
 export const normalizeMatrixNetworks = ({
   matrixFiles,
-  fallbacks,
   errors,
   warnings,
   inference,
-  strict,
 }: NormalizeMatrixNetworksArgs): ImportedNetworkDraft[] => {
   const usedIds = new Set<string>();
 
   return matrixFiles.flatMap((file, index) => {
     const source = file.source;
-    const mode = strict ? "strict" : "lenient";
-    const record = parseMatrixImportRecord(file.payload, mode, source, errors);
+    const record = parseMatrixImportRecord(file.payload, source, errors);
 
     if (!record) {
       return [];
     }
 
     const layout = getMatrixLayout(record);
-    const symmetric = fallbacks.symmetric;
-    const data = normalizeMatrixData(record.data, layout, symmetric, source, errors);
+    const data = normalizeMatrixData(record.data, layout, source, errors);
     if (!data) return [];
     if ("rois" in record) {
       warnings.push({
@@ -299,88 +230,48 @@ export const normalizeMatrixNetworks = ({
       });
     }
 
-    const label = getOptionalString(record, ["label", "name"]);
-    const idSource = getOptionalString(record, ["id"]) ?? label;
+    const label = getOptionalString(record.label);
+    const idSource = getOptionalString(record.id) ?? label;
     const generatedId = `network-${String(index + 1).padStart(3, "0")}`;
     const id = toSlug(idSource ?? generatedId, generatedId);
 
     if (!idSource) {
       inference.generatedNetworkIds.push(id);
       addInferredField(inference, source, "id", id);
-      if (strict) {
-        errors.push({
-          source,
-          path: `${source}.id`,
-          message: "Strict import requires each network to define id or label.",
-        });
-      }
+      errors.push({
+        source,
+        path: `${source}.id`,
+        message: "Each network must define id or label.",
+      });
     }
     if (usedIds.has(id)) {
       errors.push({ source, path: `${source}.id`, message: `Duplicate network id '${id}'.` });
     }
     usedIds.add(id);
 
-    const inferredLayerId = `layer-${index + 1}`;
-    const layerId = getOptionalString(record, ["layer", "layerId"]) ?? inferredLayerId;
-    const measureId = getOptionalString(record, ["measure", "measureId"]) ??
-      UNKNOWN_IMPORT_METADATA;
-    const statisticId = getOptionalString(record, ["stat", "statId"]) ??
-      UNKNOWN_IMPORT_METADATA;
-    const populationIds = getPopulationIds(record, UNKNOWN_IMPORT_METADATA);
-    const kind = getNetworkKind(record);
-    const subjectId = kind === "subject" ? getSubjectId(record, id) : undefined;
-
-    if (!getOptionalString(record, ["layer", "layerId"])) {
-      addInferredField(inference, source, "layer", layerId);
-    }
-    if (!getOptionalString(record, ["measure", "measureId"])) {
-      addInferredField(inference, source, "measure", measureId);
-    }
-    if (!getOptionalString(record, ["stat", "statId"])) {
-      addInferredField(inference, source, "stat", statisticId);
-    }
-    if (!getOptionalString(record, ["population", "populationId"]) && !Array.isArray(record.populationIds)) {
-      addInferredField(inference, source, "population", populationIds.join("+"));
-    }
-    if (strict) {
-      for (const field of ["layer", "measure", "stat", "population"] as const) {
-        const keys = field === "population" ? ["population", "populationId"] : [field, `${field}Id`];
-        if (!getOptionalString(record, keys) && !(field === "population" && Array.isArray(record.populationIds))) {
-          errors.push({
-            source,
-            path: `${source}.${field}`,
-            message: `Strict import requires matrix.${field}.`,
-          });
-        }
-      }
-    } else if (
-      symmetric &&
-      layout === "full" &&
-      !hasSymmetricValues(data)
-    ) {
-      warnings.push({
+    if (layout === "full" && !hasSymmetricValues(data)) {
+      errors.push({
         source,
         path: `${source}.data`,
-        message: "Matrix is declared symmetric but contains asymmetric values.",
+        message: "Only undirected networks are supported; matrix values must be symmetric.",
       });
+      return [];
     }
 
     return [{
       id,
       label: label ?? id,
-      kind,
       layout,
-      layerId: toSlug(layerId, "default"),
-      measureId: toSlug(measureId, "connectivity"),
-      statisticId: toSlug(statisticId, "value"),
-      populationIds: populationIds.map((value) => toSlug(value, "dataset")),
-      subjectId: subjectId ? toSlug(subjectId, id) : undefined,
-      comparison: kind === "comparison" ? getComparison(record, populationIds) : undefined,
-      n: typeof record.n === "number" && Number.isInteger(record.n) && record.n > 0
-        ? record.n
-        : undefined,
+      sourceId: record.source.trim(),
+      measureId: record.measure.trim(),
+      statisticId: record.statistic.trim(),
+      dimensions: Object.fromEntries(
+        Object.entries(record.dimensions).map(([key, value]) => [
+          key.trim(),
+          value.trim(),
+        ]),
+      ),
       data,
-      symmetric,
       valueDomain: computeValueDomain(data),
       source,
     }];

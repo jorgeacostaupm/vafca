@@ -1,11 +1,11 @@
 import { AimOutlined, AppstoreOutlined, LinkOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Form, Segmented, Select, Tooltip } from 'antd'
-import { useMemo, type ReactNode } from 'react'
+import { type ReactNode,useMemo } from 'react'
 
 import {
-  getCompatibleLayerOptions,
   getMeasureOptions,
-  getRankingLayerSelectionPatch,
+  getRankingAspectOptions,
+  getRankingAspectSelectionPatch,
   getRankingQueryMissingFields,
   getSourceOptions,
   getStatisticOptions,
@@ -17,7 +17,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectDatasetContent } from '@/store/slices/dataset'
 import { patchRankingQuery, runRankingQuery, setRankingTarget } from '@/store/slices/rankings'
 import type { RankingTarget } from '@/types/rankings'
-import { ALL_COMPATIBLE_LAYERS } from '@/utils/rankings/rankingNetworkMetadata'
+import { ALL_COMPATIBLE_ASPECT_VALUES } from '@/utils/rankings/rankingNetworkMetadata'
 
 const createRankingTargetOption = (value: RankingTarget, icon: ReactNode, label: string) => ({
   value,
@@ -35,17 +35,6 @@ const rankingTargetOptions = [
   createRankingTargetOption('links', <LinkOutlined />, 'Links'),
   createRankingTargetOption('nodes', <AimOutlined />, 'Nodes'),
 ]
-
-const splitSourceValue = (value?: string) => {
-  if (!value) {
-    return { sourceType: undefined, sourceId: undefined }
-  }
-  const [sourceType, ...rest] = value.split('::')
-  return {
-    sourceType: sourceType as 'population' | 'subject' | 'comparison',
-    sourceId: rest.join('::'),
-  }
-}
 
 export default function RankingQueryControls() {
   const dispatch = useAppDispatch()
@@ -71,24 +60,18 @@ export default function RankingQueryControls() {
     () => getStatisticOptions(datasetContent, query),
     [datasetContent, query],
   )
-  const layerOptions = useMemo(
-    () => getCompatibleLayerOptions(datasetContent, query),
+  const aspectOptions = useMemo(
+    () => getRankingAspectOptions(datasetContent, query),
     [datasetContent, query],
   )
-  const isNodeRanking = query.target === 'nodes'
-  const selectableLayerOptions = useMemo(
-    () =>
-      isNodeRanking
-        ? layerOptions.filter((option) => option.value !== ALL_COMPATIBLE_LAYERS)
-        : layerOptions,
-    [layerOptions, isNodeRanking],
-  )
-  const selectedSourceValue =
-    query.sourceType && query.sourceId ? `${query.sourceType}::${query.sourceId}` : undefined
+  const labels = {
+    source: datasetContent?.catalogs.core.source.label ?? 'Source',
+    measure: datasetContent?.catalogs.core.measure.label ?? 'Measure',
+    statistic: datasetContent?.catalogs.core.statistic.label ?? 'Statistic',
+  }
+  const selectedSourceValue = query.sourceIds ?? (query.sourceId ? [query.sourceId] : [])
   const selectedMeasureValue = query.measureId
   const selectedStatisticValue = query.statisticId
-  const selectedLayerValues = query.layerIds ?? []
-  const selectedSingleLayerValue = query.layerIds?.[0]
   const missingFields = getRankingQueryMissingFields(query, datasetContent)
   const canAddRanking = missingFields.length === 0 && status !== 'loading'
 
@@ -96,11 +79,14 @@ export default function RankingQueryControls() {
     dispatch(setRankingTarget(target))
   }
 
-  const updateSource = (value?: string) => {
-    const source = splitSourceValue(value)
+  const updateSource = (sourceIds: string[]) => {
     dispatch(
       patchRankingQuery({
-        ...source,
+        sourceIds,
+        sourceId: undefined,
+        networkKind: undefined,
+        aggregationGroupingKey: undefined,
+        mode: sourceIds.length === 1 ? query.mode : 'networkCollection',
         networkId: undefined,
       }),
     )
@@ -124,46 +110,50 @@ export default function RankingQueryControls() {
     )
   }
 
-  const updateLayers = (layerIds?: string[]) => {
+  const updateAspect = (aspectId: string, values?: string[]) => {
+    const current = query.aspectFilters ?? {}
+    const previous = current[aspectId] ?? []
     const switchedFromAllToSpecific =
-      selectedLayerValues.includes(ALL_COMPATIBLE_LAYERS) &&
-      layerIds &&
-      layerIds.length > 1 &&
-      layerIds.includes(ALL_COMPATIBLE_LAYERS)
-    let nextLayerIds: string[]
+      previous.includes(ALL_COMPATIBLE_ASPECT_VALUES) &&
+      values &&
+      values.length > 1 &&
+      values.includes(ALL_COMPATIBLE_ASPECT_VALUES)
+    let nextValues: string[]
     if (switchedFromAllToSpecific) {
-      nextLayerIds = layerIds.filter((layerId) => layerId !== ALL_COMPATIBLE_LAYERS)
-    } else if (!layerIds || layerIds.includes(ALL_COMPATIBLE_LAYERS)) {
-      nextLayerIds = layerIds?.includes(ALL_COMPATIBLE_LAYERS) ? [ALL_COMPATIBLE_LAYERS] : []
+      nextValues = values.filter((value) => value !== ALL_COMPATIBLE_ASPECT_VALUES)
+    } else if (!values || values.includes(ALL_COMPATIBLE_ASPECT_VALUES)) {
+      nextValues = values?.includes(ALL_COMPATIBLE_ASPECT_VALUES)
+        ? [ALL_COMPATIBLE_ASPECT_VALUES]
+        : []
     } else {
-      nextLayerIds = layerIds
+      nextValues = values
     }
+    const nextAspectFilters = {
+      ...current,
+      [aspectId]: nextValues,
+    }
+    const singleNetworkMode = Boolean(datasetContent?.catalogs.aspects.every((aspect) => {
+      const selected = nextAspectFilters[aspect.id] ?? []
+      return selected.length === 1 && !selected.includes(ALL_COMPATIBLE_ASPECT_VALUES)
+    }))
 
     dispatch(
       patchRankingQuery({
-        layerIds: nextLayerIds,
-        ...getRankingLayerSelectionPatch(datasetContent, query, nextLayerIds),
-        mode: nextLayerIds?.length === 1 ? 'singleNetwork' : 'networkCollection',
-        networkId: undefined,
-      }),
-    )
-  }
-
-  const updateSingleLayer = (layerId?: string) => {
-    dispatch(
-      patchRankingQuery({
-        layerIds: layerId ? [layerId] : [],
-        ...getRankingLayerSelectionPatch(datasetContent, query, layerId ? [layerId] : []),
-        mode: 'singleNetwork',
+        aspectFilters: nextAspectFilters,
+        ...getRankingAspectSelectionPatch(datasetContent, query, nextAspectFilters),
+        mode: singleNetworkMode ? 'singleNetwork' : 'networkCollection',
         networkId: undefined,
       }),
     )
   }
 
   return (
-    <Form layout="vertical" className="network-selector-controls">
-      <div className="ranking-query-controls__main-row ">
-        <Form.Item label="Ranking type" className="network-segmented-setting">
+    <Form layout="vertical" className="network-selector-controls ranking-query-controls">
+      <div className="ranking-query-controls__main-row">
+        <Form.Item
+          label="Ranking type"
+          className="network-segmented-setting ranking-query-controls__target"
+        >
           <Segmented
             value={query.target}
             onChange={(value) => updateTarget(value as RankingTarget)}
@@ -171,18 +161,20 @@ export default function RankingQueryControls() {
           />
         </Form.Item>
 
-        <Form.Item label="Source">
+        <Form.Item label={labels.source} className="ranking-query-controls__source">
           <Select
-            placeholder="Select a source..."
+            mode="multiple"
+            maxTagCount="responsive"
+            placeholder={`Select ${labels.source.toLowerCase()}...`}
             value={selectedSourceValue}
             options={sourceOptions}
             onChange={updateSource}
           />
         </Form.Item>
 
-        <Form.Item label="Measure">
+        <Form.Item label={labels.measure} className="ranking-query-controls__field">
           <Select
-            placeholder="Select a measure..."
+            placeholder={`Select ${labels.measure.toLowerCase()}...`}
             value={selectedMeasureValue}
             disabled={!datasetContent}
             options={measureOptions}
@@ -190,9 +182,9 @@ export default function RankingQueryControls() {
           />
         </Form.Item>
 
-        <Form.Item label="Statistic">
+        <Form.Item label={labels.statistic} className="ranking-query-controls__field">
           <Select
-            placeholder="Select a statistic..."
+            placeholder={`Select ${labels.statistic.toLowerCase()}...`}
             value={selectedStatisticValue}
             disabled={!datasetContent}
             options={statisticOptions}
@@ -200,7 +192,7 @@ export default function RankingQueryControls() {
           />
         </Form.Item>
 
-        <Form.Item label="Ranking metric">
+        <Form.Item label="Ranking metric" className="ranking-query-controls__field">
           <Select
             placeholder="Select a score..."
             value={query.metric}
@@ -209,26 +201,19 @@ export default function RankingQueryControls() {
           />
         </Form.Item>
 
-        <Form.Item label="Layers" className="ranking-query-controls__layers">
-          {isNodeRanking ? (
+        {aspectOptions.map((aspect) => (
+          <Form.Item key={aspect.id} label={aspect.label} className="ranking-query-controls__layers">
             <Select
-              placeholder="Select one layer..."
-              value={selectedSingleLayerValue}
-              disabled={!datasetContent}
-              options={selectableLayerOptions}
-              onChange={updateSingleLayer}
-            />
-          ) : (
-            <Select
-              placeholder="Select layers..."
+              placeholder={`Select ${aspect.label.toLowerCase()}...`}
               mode="multiple"
-              value={selectedLayerValues}
+              maxTagCount="responsive"
+              value={query.aspectFilters?.[aspect.id] ?? []}
               disabled={!datasetContent}
-              options={selectableLayerOptions}
-              onChange={updateLayers}
+              options={aspect.options}
+              onChange={(values) => updateAspect(aspect.id, values)}
             />
-          )}
-        </Form.Item>
+          </Form.Item>
+        ))}
 
         <Button
           className="ranking-query-controls__submit"

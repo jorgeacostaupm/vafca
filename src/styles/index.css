@@ -18,3 +18,5 @@
 @import "./features/atlas-viewer.css";
 @import "./features/selected-links.css";
 @import "./features/rankings.css";
+
+@import "./features/grouping-legend.css";

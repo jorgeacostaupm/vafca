@@ -1,5 +1,7 @@
 import * as d3 from "d3";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
+import { formatTooltipValue } from "@/components/common/tooltipValueLabel";
 import {
   configureDraggableNodes,
   syncNodeLinkPositions,
@@ -55,7 +57,7 @@ type RenderClassicElementsArgs = {
   onNodeHover?: (id: string) => void;
   onNodeLeave?: () => void;
   getNodeColor: (node: ClassicNode) => string;
-  valueLabel?: string;
+  valueLabel?: TooltipValueLabel;
   showTooltip: (html: string, event: MouseEvent | PointerEvent) => void;
   moveTooltip: (event: MouseEvent | PointerEvent) => void;
   hideTooltip: () => void;
@@ -247,7 +249,7 @@ export const renderClassicElements = ({
       showTooltip(
         `<div><strong>${escapeHtml(
           `${rowLabel} ↔ ${colLabel}`,
-        )}</strong></div><div>${escapeHtml(valueLabel)}: ${link.value.toFixed(4)}</div>`,
+        )}</strong></div>${formatTooltipValue(valueLabel, link.value, link.rowId, link.colId)}`,
         event,
       );
       onLinkHover?.({ rowId: link.rowId, colId: link.colId });

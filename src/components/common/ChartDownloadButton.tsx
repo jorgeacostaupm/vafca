@@ -8,6 +8,7 @@ type ChartDownloadButtonProps = {
   svgRef: RefObject<SVGSVGElement | null>;
   fileName: string;
   size?: "small" | "middle" | "large";
+  onInteractiveDownload?: () => void;
 };
 
 const menuItems: MenuProps["items"] = [
@@ -21,12 +22,17 @@ export default function ChartDownloadButton({
   svgRef,
   fileName,
   size = "small",
+  onInteractiveDownload,
 }: ChartDownloadButtonProps) {
   const handleClick = useCallback<NonNullable<MenuProps["onClick"]>>(
     (info) => {
       const svg = svgRef.current;
       if (!svg) return;
       const key = String(info.key);
+      if (key === "html") {
+        onInteractiveDownload?.();
+        return;
+      }
       if (key === "svg") {
         void exportSvgElement(svg, { format: "svg", fileName });
         return;
@@ -49,12 +55,12 @@ export default function ChartDownloadButton({
         });
       }
     },
-    [fileName, svgRef],
+    [fileName, svgRef, onInteractiveDownload],
   );
 
   return (
     <Dropdown
-      menu={{ items: menuItems, onClick: handleClick }}
+      menu={{ items: onInteractiveDownload ? [...menuItems!, { key: "html", label: "Interactive HTML" }] : menuItems, onClick: handleClick }}
       placement="bottomRight"
       trigger={["click"]}
     >

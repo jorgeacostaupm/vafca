@@ -1,14 +1,17 @@
+import { formatTooltipValue, type TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import { escapeHtml } from "@/utils/html";
 
 export const formatHeatmapTooltipHtml = (
   rowLabel: string,
   colLabel: string,
   value: number,
-  valueLabel = "Value",
+  valueLabel: TooltipValueLabel = "Value",
+  rowId = rowLabel,
+  colId = colLabel,
 ) =>
   `<div><strong>${escapeHtml(
     `${rowLabel} ↔ ${colLabel}`,
-  )}</strong></div><div>${escapeHtml(valueLabel)}: ${value.toFixed(4)}</div>`;
+  )}</strong></div>${formatTooltipValue(valueLabel, value, rowId, colId)}`;
 
 export const resolveHeatmapTooltipLabel = (
   labelId: string,

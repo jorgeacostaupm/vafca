@@ -1,61 +1,53 @@
-import {
-  EyeInvisibleOutlined,
-  EyeOutlined,
-  FilterOutlined,
-  FullscreenOutlined,
-  LeftOutlined,
-  ReloadOutlined,
-  RightOutlined,
-} from "@ant-design/icons";
-import { Button, Popover } from "antd";
-import type { RefObject } from "react";
+import { FilterOutlined } from '@ant-design/icons'
+import { Button, Divider, Popover } from 'antd'
+import { useState } from 'react'
 
-import ChartDownloadButton from "@/components/common/ChartDownloadButton";
-import NetworkFilterRolePopover from "@/components/network/NetworkFilterRolePopover";
-import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
-import NetworkBrushControls from "@/components/network/views/NetworkBrushControls";
-import type { buildNetworkViewRenderData } from "@/components/network/views/networkViewData";
-import NetworkZoomModesPopover from "@/components/network/views/NetworkZoomModesPopover";
-import { useAppDispatch } from "@/store/hooks";
+import NetworkFilterRolePopover from '@/components/network/NetworkFilterRolePopover'
+import type { buildNetworkViewRenderData } from '@/components/network/views/networkViewData'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   patchNetworkMatrixSettings,
   patchNetworkNodeLinkSettings,
-  resetNetworkZoomLabelSelection,
-  stepNetworkZoomHistory,
+  selectNetworkControls,
   updateNetworkViewStatRange,
-} from "@/store/slices/networkVisualization";
-import type { MatrixBrushMode } from "@/types/matrixHeatmap";
-import type {
-  ComputedView,
-  SharedNetworkViewSettings,
-} from "@/types/networkVisualization";
+} from '@/store/slices/networkVisualization'
+import type { AggregateNetworkViewRequest } from '@/store/slices/networkVisualization/thunks/aggregateNetworkView'
+import type { MatrixBrushMode } from '@/types/matrixHeatmap'
+import type { ComputedView, SharedNetworkViewSettings } from '@/types/networkVisualization'
+
+import AggregateNetworkModal from './AggregateNetworkModal'
+import EditAggregatedGroupLabels from './EditAggregatedGroupLabels'
 
 type SharedPanelSettingsPatch = Partial<
   SharedNetworkViewSettings & { brushEnabled: boolean; brushMode: MatrixBrushMode }
->;
+>
 
 type NetworkViewActionsProps = {
-  view: ComputedView["view"];
-  computed: ComputedView;
-  renderData: ReturnType<typeof buildNetworkViewRenderData>;
-  isMatrixView: boolean;
-  viewTitle: string;
-  svgRef: RefObject<SVGSVGElement | null>;
-};
+  view: ComputedView['view']
+  computed: ComputedView
+  renderData: ReturnType<typeof buildNetworkViewRenderData>
+  isMatrixView: boolean
+  sourceNetworkId: string
+  isAggregatedNetwork: boolean
+  isTemporaryNetwork: boolean
+}
 
 export default function NetworkViewActions({
   view,
   computed,
   renderData,
   isMatrixView,
-  viewTitle,
-  svgRef,
+  sourceNetworkId,
+  isAggregatedNetwork,
+  isTemporaryNetwork,
 }: NetworkViewActionsProps) {
-  const dispatch = useAppDispatch();
-  const zoomTargetsByType = useNetworkZoomTargets();
-  const canZoomBack = computed.zoomState.index > 0;
-  const canZoomForward =
-    computed.zoomState.index < computed.zoomState.history.length - 1;
+  const dispatch = useAppDispatch()
+  const networkControls = useAppSelector(selectNetworkControls)
+  const [aggregationRequest, setAggregationRequest] = useState<Omit<AggregateNetworkViewRequest, 'fields'> | null>(null)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const aggregationDisabledReason = isAggregatedNetwork
+    ? 'Aggregated networks cannot be aggregated again'
+    : null
   const patchSharedSettings = (patch: SharedPanelSettingsPatch) => {
     if (isMatrixView) {
       dispatch(
@@ -63,8 +55,8 @@ export default function NetworkViewActions({
           viewId: view.id,
           patch,
         }),
-      );
-      return;
+      )
+      return
     }
 
     dispatch(
@@ -72,8 +64,8 @@ export default function NetworkViewActions({
         viewId: view.id,
         patch,
       }),
-    );
-  };
+    )
+  }
 
   const filterContent = (
     <NetworkFilterRolePopover
@@ -82,136 +74,90 @@ export default function NetworkViewActions({
       statCenter={computed.valueDomain.center ?? 0}
       statSliderMin={computed.statSliderMin}
       statSliderMax={computed.statSliderMax}
-      onStatRangeChange={(value, segment) =>
+      onStatRangeChange={(value, segment, enabled) =>
         dispatch(
           updateNetworkViewStatRange({
             viewId: view.id,
             value,
             segment,
+            enabled,
             fallback: computed.statRangeValue,
           }),
         )
       }
       useAsNodeFilter={computed.useAsNodeFilter}
-      onUseAsNodeFilterChange={(checked) =>
-        patchSharedSettings({ useAsNodeFilter: checked })
-      }
+      onUseAsNodeFilterChange={(checked) => patchSharedSettings({ useAsNodeFilter: checked })}
       useAsLinkFilter={computed.useAsLinkFilter}
-      onUseAsLinkFilterChange={(checked) =>
-        patchSharedSettings({ useAsLinkFilter: checked })
-      }
+      onUseAsLinkFilterChange={(checked) => patchSharedSettings({ useAsLinkFilter: checked })}
+      percentLinkFilter={computed.percentLinkFilter}
+      includeAutoconnections={networkControls.percentZoomIncludeAutoconnections}
+      onPercentLinkFilterChange={(percentLinkFilter) => patchSharedSettings({ percentLinkFilter })}
     />
-  );
+  )
+  const handleAggregate = () => {
+    const snapshot =
+      renderData.type === 'matrix'
+        ? {
+            data: renderData.payload.data,
+            rowLabels: renderData.payload.rowLabels,
+            colLabels: renderData.payload.colLabels,
+            symmetric: computed.symmetric,
+          }
+        : {
+            data: renderData.payload.data,
+            rowLabels: renderData.payload.labels,
+            colLabels: renderData.payload.labels,
+            symmetric: computed.symmetric,
+          }
+
+    setFilterOpen(false)
+    setAggregationRequest({
+      sourceViewId: view.id,
+      sourceNetworkId,
+      sourceViewType: view.type,
+      snapshot,
+    })
+  }
 
   return (
     <div className="network-view-actions">
-      <ChartDownloadButton svgRef={svgRef} fileName={`${viewTitle} ${view.label}`} />
-      <NetworkBrushControls
-        enabled={computed.brushEnabled}
-        mode={computed.brushMode}
-        isMatrixView={isMatrixView}
-        onChange={patchSharedSettings}
-      />
-      {!isMatrixView ? (
-        <Button
-          size="small"
-          type={computed.geometricZoomEnabled ? "default" : "text"}
-          aria-label="Toggle geometric zoom"
-          title="Geometric zoom"
-          icon={<FullscreenOutlined />}
-          onClick={() =>
-            dispatch(
-              patchNetworkNodeLinkSettings({
-                viewId: view.id,
-                patch: {
-                  geometricZoomEnabled: !computed.geometricZoomEnabled,
-                },
-              }),
-            )
+      {aggregationRequest && (
+        <AggregateNetworkModal request={aggregationRequest} onClose={() => setAggregationRequest(null)} />
+      )}
+      {isTemporaryNetwork && <EditAggregatedGroupLabels viewId={view.id} />}
+      {!isTemporaryNetwork ? (
+        <Popover
+          open={filterOpen}
+          onOpenChange={setFilterOpen}
+          content={
+            <div className="network-view-filter-menu">
+              {filterContent}
+              <Divider />
+              <Button
+                className="network-view-filter-menu__aggregate"
+                size="small"
+                type="text"
+                aria-label="Aggregate network"
+                title={aggregationDisabledReason ?? 'Aggregate network'}
+                disabled={aggregationDisabledReason !== null}
+                onClick={handleAggregate}
+              >
+                Aggregate network
+              </Button>
+            </div>
           }
-        />
+          trigger="click"
+          placement="rightTop"
+          destroyTooltipOnHide
+        >
+          <Button
+            size="small"
+            type={computed.useAsNodeFilter || computed.useAsLinkFilter ? 'default' : 'text'}
+            aria-label="Filter role settings"
+            icon={<FilterOutlined />}
+          />
+        </Popover>
       ) : null}
-      <Button
-        size="small"
-        type={computed.selectionVisible ? "default" : "text"}
-        aria-label={
-          computed.selectionVisible ? "Hide selection" : "Show selection"
-        }
-        title={computed.selectionVisible ? "Hide selection" : "Show selection"}
-        icon={
-          computed.selectionVisible ? <EyeOutlined /> : <EyeInvisibleOutlined />
-        }
-        onClick={() =>
-          patchSharedSettings({
-            selectionVisible: !computed.selectionVisible,
-          })
-        }
-      />
-      <NetworkZoomModesPopover view={view} computed={computed} renderData={renderData} />
-      <Button
-        size="small"
-        type="text"
-        aria-label="Clear node selection"
-        title="Clear node selection"
-        icon={<ReloadOutlined />}
-        disabled={computed.zoomLabelSelection.length === 0}
-        onClick={() =>
-          dispatch(
-            resetNetworkZoomLabelSelection({
-              viewId: view.id,
-            }),
-          )
-        }
-      />
-      <Button
-        size="small"
-        type="text"
-        aria-label="Zoom back"
-        title="Zoom back"
-        icon={<LeftOutlined />}
-        disabled={!canZoomBack}
-        onClick={() =>
-          dispatch(
-            stepNetworkZoomHistory({
-              targetViewIds: zoomTargetsByType(view.id),
-              delta: -1,
-            }),
-          )
-        }
-      />
-      <Button
-        size="small"
-        type="text"
-        aria-label="Zoom forward"
-        title="Zoom forward"
-        icon={<RightOutlined />}
-        disabled={!canZoomForward}
-        onClick={() =>
-          dispatch(
-            stepNetworkZoomHistory({
-              targetViewIds: zoomTargetsByType(view.id),
-              delta: 1,
-            }),
-          )
-        }
-      />
-      <Popover
-        content={filterContent}
-        trigger="click"
-        placement="rightTop"
-        destroyTooltipOnHide
-      >
-        <Button
-          size="small"
-          type={
-            computed.useAsNodeFilter || computed.useAsLinkFilter
-              ? "default"
-              : "text"
-          }
-          aria-label="Filter role settings"
-          icon={<FilterOutlined />}
-        />
-      </Popover>
     </div>
-  );
+  )
 }

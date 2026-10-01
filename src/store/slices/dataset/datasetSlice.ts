@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
+import { updateRoiMetadata } from '@/store/actions/updateRoiMetadata'
 import type {
   DatasetMeta,
   UpdateCatalogPayload,
@@ -42,6 +43,11 @@ const datasetSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(updateRoiMetadata, (state, { payload }) => {
+        if (state.nodeSet?.id !== payload.nodeSetId) return
+        const node = state.nodeSet?.nodes.find((node) => node.id === payload.id)
+        if (node) node.metadata = payload.metadata
+      })
       .addCase(computeDerivedNetworks.fulfilled, (state, action) => {
         if (!state.catalogs || action.payload.networks.length === 0) return
         registerGeneratedNetworksInDataset(state, action.payload.networks)

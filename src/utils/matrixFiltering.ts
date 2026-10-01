@@ -3,7 +3,7 @@ import { resolveMatrixValue } from "@/utils/matrixValue";
 
 
 export const normalizeMatrixValueRanges = (range: MatrixValueRange) => {
-  if (!range) return [] as Array<[number, number]>;
+  if (!range || range.length === 0) return [] as Array<[number, number]>;
   return Array.isArray(range[0])
     ? (range as Array<[number, number]>)
     : ([range as [number, number]] as Array<[number, number]>);
@@ -14,7 +14,7 @@ export const valuePassesRangeFilter = (
   range: MatrixValueRange,
 ) => {
   const ranges = normalizeMatrixValueRanges(range);
-  if (ranges.length === 0) return true;
+  if (ranges.length === 0) return range == null;
   return ranges.some((item) => {
     const [min, max] = item[0] <= item[1] ? item : [item[1], item[0]];
     return value >= min && value <= max;

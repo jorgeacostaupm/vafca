@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import type { AtlasDefinition } from "@/types/atlas";
 
 import {
-  buildFieldOptionsByField,
   buildGroupedRows,
   buildNodeFieldValuesById,
   filterIds,
@@ -25,7 +24,6 @@ export const useAtlasPanelData = ({
   atlasDefinition,
   query,
   groupByFields,
-  selectedFilters,
   collapsedGroups,
   enabledCount,
 }: {
@@ -34,7 +32,6 @@ export const useAtlasPanelData = ({
   atlasDefinition: AtlasDefinition | null;
   query: string;
   groupByFields: string[];
-  selectedFilters: Record<string, string>;
   collapsedGroups: Set<string>;
   enabledCount: number;
 }) => {
@@ -45,41 +42,17 @@ export const useAtlasPanelData = ({
     [atlasDefinition, groupByFields],
   );
 
-  const fieldOptionsByField = useMemo(
-    () =>
-      buildFieldOptionsByField({
-        groupByFields,
-        orderedIds,
-        labelSearchTextById,
-        nodeFieldValuesById,
-        normalizedQuery,
-        selectedFilters,
-      }),
-    [
-      groupByFields,
-      orderedIds,
-      labelSearchTextById,
-      nodeFieldValuesById,
-      normalizedQuery,
-      selectedFilters,
-    ],
-  );
-
   const filteredIds = useMemo(
     () =>
       filterIds({
         orderedIds,
         labelSearchTextById,
-        nodeFieldValuesById,
         normalizedQuery,
-        selectedFilters,
       }),
     [
       orderedIds,
       labelSearchTextById,
-      nodeFieldValuesById,
       normalizedQuery,
-      selectedFilters,
     ],
   );
 
@@ -99,7 +72,6 @@ export const useAtlasPanelData = ({
   const allDisabled = totalCount > 0 && enabledCount === 0;
 
   return {
-    fieldOptionsByField,
     groupedRows,
     totalCount,
     enabledCount,

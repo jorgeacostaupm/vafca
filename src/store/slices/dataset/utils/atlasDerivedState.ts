@@ -24,7 +24,7 @@ export const buildAtlasOrder = (
       name: node.name ?? entry.name ?? entry.label,
       label: node.name ?? entry.label,
       acronym: node.label ?? entry.label,
-      tags: node.tags,
+
       metadata: node.metadata,
     }
   })
@@ -46,10 +46,10 @@ export const buildAtlasOrderFromDefinition = (
     label: node.name ?? node.label ?? String(node.id),
     name: node.name ?? node.label ?? String(node.id),
     acronym: node.label ?? node.name ?? String(node.id),
-    tags: node.tags,
+
     metadata: node.metadata,
   }))
 
 export const getInitialDataFileName = (
-  file: InitialDataConfig['initialDatasetFile'] | InitialDataConfig['testAtlasFile'],
+  file: InitialDataConfig['initialDatasetFile'],
 ) => file.path.split('/').pop() ?? file.label

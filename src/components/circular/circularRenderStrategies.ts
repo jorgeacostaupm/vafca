@@ -1,5 +1,7 @@
 import * as d3 from "d3";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
+import { formatTooltipValue } from "@/components/common/tooltipValueLabel";
 import {
   CIRCULAR_LABEL_DY,
   CIRCULAR_LABEL_FONT_SIZE,
@@ -132,7 +134,7 @@ type RenderCircularElementsArgs = {
   onNodeHover?: (id: string) => void;
   onNodeLeave?: () => void;
   getNodeColor: (node: CircularNode) => string;
-  valueLabel?: string;
+  valueLabel?: TooltipValueLabel;
   showTooltip: (html: string, event: MouseEvent | PointerEvent) => void;
   showNodeTooltip: (html: string, node: CircularNode) => void;
   moveTooltip: (event: MouseEvent | PointerEvent) => void;
@@ -256,7 +258,7 @@ export const renderCircularElements = ({
       showTooltip(
         `<div><strong>${escapeHtml(
           `${rowLabel} ↔ ${colLabel}`,
-        )}</strong></div><div>${escapeHtml(valueLabel)}: ${link.value.toFixed(4)}</div>`,
+        )}</strong></div>${formatTooltipValue(valueLabel, link.value, link.rowId, link.colId)}`,
         event,
       );
       onLinkHover?.({ rowId: link.rowId, colId: link.colId });

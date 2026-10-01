@@ -8,6 +8,7 @@ import type {
 
 const decoder = new TextDecoder("utf-8", { fatal: false });
 
+
 const isJsonFile = (path: string) => path.toLowerCase().endsWith(".json");
 
 const normalizePath = (path: string) => path.replace(/^\/+/, "");
@@ -97,10 +98,12 @@ export const readNetworkZip = (
     });
   }
 
+  const nodeMetadata = paths.includes("rois.json") ? readJson(files, "rois.json", errors) : null;
+
   const unsupportedJsonFiles = paths.filter(
     (path) =>
-      isJsonFile(path) &&
-      !["manifest.json", "catalogs.json", "rois.json", "matrices.json"].includes(path) &&
+      isJsonFile(path) && !path.startsWith("spatial/") &&
+      !["catalogs.json", "rois.json", "matrices.json", "session.json"].includes(path) &&
       !path.startsWith("matrices/") &&
       !path.startsWith("catalogs/"),
   );
@@ -121,11 +124,11 @@ export const readNetworkZip = (
 
   return {
     fileName,
+    spatialFiles: Object.fromEntries(Object.entries(files).filter(([path]) => path.startsWith("spatial/"))),
     files: paths,
-    manifest: paths.includes("manifest.json") ? readJson(files, "manifest.json", errors) : null,
     catalogs: paths.includes("catalogs.json") ? readJson(files, "catalogs.json", errors) : null,
     catalogFiles,
-    nodeMetadata: paths.includes("rois.json") ? readJson(files, "rois.json", errors) : null,
+    nodeMetadata,
     matrixFiles,
     errors,
     warnings,

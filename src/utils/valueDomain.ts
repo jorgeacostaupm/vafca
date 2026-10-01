@@ -9,7 +9,7 @@ import type {
   ValueRange,
 } from "@/types/network";
 import type { ResolvedValueDomain } from "@/types/valueDomain";
-import { computeNetworkMatrixDataStats } from "@/utils/networkDataStats";
+import { computeNetworkDataStats, computeNetworkMatrixDataStats } from "@/utils/networkDataStats";
 
 type NetworkLike = Network | MaterializedNetworkView;
 type CatalogsLike = Catalogs | undefined;
@@ -18,20 +18,19 @@ type ResolveValueDomainArgs = {
   network: NetworkLike;
   catalogs: CatalogsLike;
   mode: UiRangeMode;
-  observedData?: number[][];
 };
 
 const FALLBACK_SEQUENTIAL: ValueRange = [0, 1];
 const FALLBACK_DIVERGING: ValueRange = [-1, 1];
 
 const isNetwork = (network: NetworkLike): network is Network =>
-  "source" in network && "statisticId" in network;
+  !Array.isArray(network.data);
 
 const getMeasureId = (network: NetworkLike) =>
   isNetwork(network) ? network.measureId : network.measureId;
 
 const getStatisticId = (network: NetworkLike) =>
-  isNetwork(network) ? network.statisticId : network.statId;
+  isNetwork(network) ? network.statisticId : network.statisticId;
 
 const normalizeRange = (range: ValueRange | null | undefined): ValueRange | null => {
   if (!range) return null;
@@ -79,23 +78,26 @@ const getStatisticExpectedRange = (
   return normalizeRange(statistic.expectedRange) ?? expectedRangeFromBounds(statistic);
 };
 
-const inferScaleType = (statistic?: { scaleType?: ScaleType; center?: number | null }) => {
-  if (statistic?.scaleType) return statistic.scaleType;
-  return statistic?.center === 0 ? "diverging" : "sequential";
-};
-
-const getStatisticConfig = (catalogs: CatalogsLike, statisticId: string) => {
+const getStatisticConfig = (
+  catalogs: CatalogsLike,
+  statisticId: string,
+  range: ValueRange | null,
+) => {
   const statistic = catalogs?.statistics?.[statisticId];
-  const scaleType = inferScaleType(statistic);
+  const scaleType: ScaleType = range
+    ? range[0] < 0 && range[1] > 0 ? "diverging" : "sequential"
+    : statistic?.scaleType ?? (statistic?.center === 0 ? "diverging" : "sequential");
   return {
     scaleType,
-    center: statistic?.center ?? (scaleType === "diverging" ? 0 : null),
+    center: scaleType === "diverging" ? (range ? 0 : statistic?.center ?? 0) : null,
   };
 };
 
-const getNetworkDataStats = (network: NetworkLike): NetworkDataStats =>
+export const getNetworkDataStats = (network: NetworkLike): NetworkDataStats =>
   network.dataStats ??
-  computeNetworkMatrixDataStats((isNetwork(network) ? [] : network.data) as number[][]);
+  (isNetwork(network)
+    ? computeNetworkDataStats(network)
+    : computeNetworkMatrixDataStats(network.data));
 
 const observedRange = (bucket: NetworkDataStatsBucket): ValueRange | null =>
   bucket.min === null || bucket.max === null ? null : [bucket.min, bucket.max];
@@ -109,15 +111,6 @@ const symmetricAroundCenter = (
   return [center - delta, center + delta];
 };
 
-const resolveObservedRange = (
-  network: NetworkLike,
-  observedData: number[][] | undefined,
-): ValueRange | null => {
-  const stats = observedData
-    ? computeNetworkMatrixDataStats(observedData)
-    : getNetworkDataStats(network);
-  return observedRange(stats.allValues);
-};
 
 const toDomain = ({
   range,
@@ -145,44 +138,47 @@ export const resolveValueDomain = ({
   network,
   catalogs,
   mode,
-  observedData,
 }: ResolveValueDomainArgs): ResolvedValueDomain => {
   const measureId = getMeasureId(network);
   const statisticId = getStatisticId(network);
-  const statistic = getStatisticConfig(catalogs, statisticId);
-  const center = statistic.center;
-  const observed = resolveObservedRange(network, observedData);
+  const observed = observedRange(getNetworkDataStats(network).allValues);
   const statisticExpected = getStatisticExpectedRange(catalogs, statisticId);
+  if (!statisticExpected && catalogs?.statistics[statisticId]?.rangeMode === "non_negative_observed") {
+    return {
+      min: 0,
+      max: observed && observed[1] > 0 ? observed[1] : FALLBACK_SEQUENTIAL[1],
+      center: null,
+      scaleType: "sequential",
+      mode,
+      source: observed ? "view_observed" : "fallback",
+      symmetric: false,
+    };
+  }
+  if (!statisticExpected && catalogs?.statistics[statisticId]?.rangeMode === "observed_symmetric") {
+    return toDomain({
+      range: symmetricAroundCenter(observed, 0),
+      center: 0,
+      scaleType: "diverging",
+      mode,
+      source: observed ? "view_observed" : "fallback",
+      fallback: FALLBACK_DIVERGING,
+      symmetric: true,
+    });
+  }
   const measureExpected = getMeasureExpectedRange(catalogs, measureId);
+  const statistic = getStatisticConfig(catalogs, statisticId, statisticExpected ?? measureExpected);
+  const center = statistic.center;
   const fallback =
     statistic.scaleType === "diverging" ? FALLBACK_DIVERGING : FALLBACK_SEQUENTIAL;
 
-  if (mode === "catalog") {
-    const catalogRange = statisticExpected ?? measureExpected;
-    const fallbackObserved =
-      statistic.scaleType === "diverging" && center !== null
-        ? symmetricAroundCenter(observed, center)
-        : observed;
-    return toDomain({
-      range: catalogRange ?? fallbackObserved,
-      center,
-      scaleType: statistic.scaleType,
-      mode,
-      source: catalogRange ? "catalog" : fallbackObserved ? "view_observed" : "fallback",
-      fallback,
-      symmetric: !catalogRange && Boolean(fallbackObserved) && statistic.scaleType === "diverging",
-    });
-  }
-
   const symmetric = statistic.scaleType === "diverging" && center !== null;
-  const catalogFallback = statisticExpected ?? measureExpected;
   return toDomain({
     range: symmetric ? symmetricAroundCenter(observed, center) : observed,
     center,
     scaleType: statistic.scaleType,
     mode,
-    source: observed ? "view_observed" : catalogFallback ? "catalog" : "fallback",
-    fallback: catalogFallback ?? fallback,
+    source: observed ? "view_observed" : "fallback",
+    fallback,
     symmetric,
   });
 };

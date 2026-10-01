@@ -1,6 +1,7 @@
 import { memo, useCallback } from "react";
 
 import NetworkViewFrame from "@/components/layout/NetworkViewFrame";
+import RankingDetails from "@/components/rankings/RankingDetails";
 import { formatRankingPanelTitle } from "@/components/rankings/rankingOptions";
 import RankingResultsTable from "@/components/rankings/RankingResultsTable";
 import { useAppSelector } from "@/store/hooks";
@@ -15,7 +16,7 @@ function RankingResultPanelContainer({
   resultId,
   onRemove,
 }: RankingResultPanelContainerProps) {
-  const datasetContent = useAppSelector((state) => selectDatasetContent(state));
+  const dataset = useAppSelector(selectDatasetContent);
   const result = useAppSelector((state) => state.rankings.resultsById[resultId]);
   const handleRemove = useCallback(() => {
     onRemove(resultId);
@@ -25,7 +26,8 @@ function RankingResultPanelContainer({
 
   return (
     <NetworkViewFrame
-      title={formatRankingPanelTitle(result, datasetContent)}
+      title={formatRankingPanelTitle(result, dataset)}
+      actions={<RankingDetails result={result} />}
       className="ranking-panel-card"
       onRemove={handleRemove}
     >

@@ -5,64 +5,63 @@ import type {
   ValueRange,
 } from "./networkData";
 
-export type Layer = {
+export type CoreAspectId = "source" | "measure" | "statistic";
+
+export type CoreAspectConfig = {
+  id: CoreAspectId;
+  label: string;
+  description?: string | null;
+  metadata?: Record<string, unknown>;
+};
+
+export type AspectDefinition = {
+  id: string;
+  label: string;
+  description?: string | null;
+  metadata?: Record<string, unknown>;
+};
+
+export type CatalogItem = {
   id: string;
   label: string;
   description?: string | null;
   enabled?: boolean;
+  order?: number;
   metadata?: Record<string, unknown>;
 };
 
-export type Measure = {
-  id: string;
-  label: string;
-  description?: string | null;
+export type SourceKind = "population" | "subject" | "comparison";
+
+export type Source = CatalogItem & {
+  kind: SourceKind;
+  n?: number;
+  left?: string;
+  right?: string;
+};
+
+export type Measure = CatalogItem & {
   expectedRange?: ValueRange | null;
   min?: number;
   max?: number;
   valueDomain?: NetworkValueDomain;
-  symmetric?: boolean;
-  directed?: boolean;
-  enabled?: boolean;
-  metadata?: Record<string, unknown>;
 };
 
-export type Statistic = {
-  id: string;
-  label: string;
+export type Statistic = CatalogItem & {
   category?: string;
-  description?: string | null;
   scaleType: ScaleType;
   center: number | null;
   rangeMode: RangeMode;
   expectedRange?: ValueRange | null;
   min?: number;
   max?: number;
-  enabled?: boolean;
   useDataRange?: boolean;
-  metadata?: Record<string, unknown>;
-};
-
-export type Population = {
-  id: string;
-  label: string;
-  description?: string | null;
-  n?: number;
-  enabled?: boolean;
-  metadata: Record<string, unknown>;
-};
-
-export type Subject = {
-  id: string;
-  label: string;
-  enabled?: boolean;
-  metadata: Record<string, unknown>;
 };
 
 export type Catalogs = {
-  layers: Record<string, Layer>;
+  core: Record<CoreAspectId, CoreAspectConfig>;
+  aspects: AspectDefinition[];
+  sources: Record<string, Source>;
   measures: Record<string, Measure>;
   statistics: Record<string, Statistic>;
-  populations: Record<string, Population>;
-  subjects: Record<string, Subject>;
+  aspectCatalogs: Record<string, Record<string, CatalogItem>>;
 };

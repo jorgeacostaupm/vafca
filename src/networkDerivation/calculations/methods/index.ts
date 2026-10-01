@@ -1,6 +1,6 @@
 import { populationCohensD } from "@/networkDerivation/calculations/methods/populationCohensD";
 import { populationDifference } from "@/networkDerivation/calculations/methods/populationDifference";
-import { populationReferenceZScore } from "@/networkDerivation/calculations/methods/populationReferenceZScore";
+import { populationOneSampleZScore } from "@/networkDerivation/calculations/methods/populationOneSampleZScore";
 import { subjectDifference } from "@/networkDerivation/calculations/methods/subjectDifference";
 import { subjectZScoreVsPopulation } from "@/networkDerivation/calculations/methods/subjectZScoreVsPopulation";
 import { twoSampleZTest } from "@/networkDerivation/calculations/methods/twoSampleZTest";
@@ -11,10 +11,13 @@ import type {
   NetworkCalculationOperation,
 } from "@/networkDerivation/calculations/types";
 
+import { correlation } from "./correlation";
+
 const methods: NetworkCalculationMethod[] = [
+  correlation,
   subjectZScoreVsPopulation,
   subjectDifference,
-  populationReferenceZScore,
+  populationOneSampleZScore,
   populationDifference,
   populationCohensD,
   twoSampleZTest,
@@ -22,9 +25,10 @@ const methods: NetworkCalculationMethod[] = [
 ];
 
 const definitions: NetworkCalculationMethodDefinition[] = [
+  correlation.definition,
   subjectZScoreVsPopulation.definition,
   subjectDifference.definition,
-  populationReferenceZScore.definition,
+  populationOneSampleZScore.definition,
   populationDifference.definition,
   populationCohensD.definition,
   twoSampleZTest.definition,

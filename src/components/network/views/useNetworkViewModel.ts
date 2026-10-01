@@ -7,7 +7,6 @@ import {
   buildNetworkViewRenderData,
 } from "@/components/network/views/networkViewData";
 import {
-  buildRuntimeAggregatedAllowedLinkIds,
   buildRuntimeAllowedLinkIds,
   combineAllowedLinkIds,
 } from "@/components/network/views/networkViewMasks";
@@ -16,15 +15,18 @@ import {
   resolveNetworkViewWithContext,
 } from "@/components/network/views/useNetworkViewResolver";
 import { useNetworkViewSourceFilters } from "@/components/network/views/useNetworkViewSourceFilters";
+import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
+import { selectSharedMatrixDomains } from "@/store/slices/networkVisualization/sharedMatrixDomainSelectors";
+import type { MaterializedNetworkView } from "@/types/datasetNetworkView";
+import { buildAggregatedNodeColors, shortenAggregatedNodeLabels } from "@/utils/aggregatedNodePresentation";
 import {
-  getDatasetCatalogs,
   getMaterializedNetworkByCompoundId,
 } from "@/utils/datasetAccessors";
-import { resolveValueDomain } from "@/utils/valueDomain";
 
 export const useNetworkViewModel = (viewId: string) => {
+  const { nodeColors } = useAtlasLabelPresentation();
   const svgRef = useRef<SVGSVGElement>(null);
   const view = useAppSelector(
     (state) => state.networkVisualization.viewsById[viewId],
@@ -38,19 +40,39 @@ export const useNetworkViewModel = (viewId: string) => {
   const activeEdgeMask = useAppSelector(
     (state) => state.networkFilters.activeEdgeMask,
   );
-  const activeAggregatedEdgeMask = useAppSelector(
-    (state) => state.networkFilters.activeAggregatedEdgeMask,
-  );
   const context = useNetworkViewComputationContext();
+  const sharedColorDomain = useAppSelector(state => selectSharedMatrixDomains(state)[viewId]);
   const compoundId = view?.compoundId;
+  const temporaryNetwork = useAppSelector((state) =>
+    view?.temporaryNetworkId
+      ? state.networkVisualization.temporaryNetworksById[view.temporaryNetworkId] ?? null
+      : null,
+  );
   const selectNetworkView = useMemo(
     () =>
       createSelector([selectDatasetData], (dataset) =>
-        compoundId ? getMaterializedNetworkByCompoundId(dataset, compoundId) ?? null : null,
+        compoundId && !temporaryNetwork
+          ? getMaterializedNetworkByCompoundId(dataset, compoundId) ?? null
+          : null,
       ),
-    [compoundId],
+    [compoundId, temporaryNetwork],
   );
-  const networkView = useAppSelector(selectNetworkView);
+  const datasetNetworkView = useAppSelector(selectNetworkView);
+  const networkView = useMemo<MaterializedNetworkView | null>(() => {
+    if (!temporaryNetwork) return datasetNetworkView;
+    return {
+      id: temporaryNetwork.id,
+      compoundId: temporaryNetwork.id,
+      sourceId: "temporary",
+      measureId: temporaryNetwork.measureId,
+      statisticId: temporaryNetwork.statisticId,
+      dimensions: {},
+      nodeIds: temporaryNetwork.rowLabels,
+      data: temporaryNetwork.data,
+      symmetric: temporaryNetwork.symmetric,
+      dataStats: temporaryNetwork.dataStats,
+    };
+  }, [datasetNetworkView, temporaryNetwork]);
   const settings = view?.type === "matrix" ? matrixSettings : nodeLinkSettings;
   const computed = useMemo(
     () =>
@@ -69,7 +91,9 @@ export const useNetworkViewModel = (viewId: string) => {
   const sourceNetwork = networkView
     ? context.dataset?.content?.networkIndex[networkView.id]
     : undefined;
-  const isAggregatedNetwork = sourceNetwork?.derivation?.type === "aggregation";
+  const isTemporaryNetwork = Boolean(temporaryNetwork);
+  const isAggregatedNetwork =
+    isTemporaryNetwork || sourceNetwork?.derivation?.type === "aggregation";
   const targetIsFilterSource = Boolean(
     computed?.useAsNodeFilter || computed?.useAsLinkFilter,
   );
@@ -100,10 +124,7 @@ export const useNetworkViewModel = (viewId: string) => {
       sourceFilters.visibilityByViewId,
     );
     const runtimeAllowedLinkIds = isAggregatedNetwork
-      ? buildRuntimeAggregatedAllowedLinkIds({
-          mask: activeAggregatedEdgeMask,
-          dataset: context.dataset,
-        })
+      ? null
       : buildRuntimeAllowedLinkIds({
           mask: activeEdgeMask,
           nodeOrderIds: context.nodeOrderIds,
@@ -120,39 +141,43 @@ export const useNetworkViewModel = (viewId: string) => {
       allowedNodeIds,
       allowedLinkIds,
     });
-    const renderedData = renderData.payload.data;
-    const valueDomain = resolveValueDomain({
-      network: sourceNetwork ?? networkView,
-      catalogs: getDatasetCatalogs(context.dataset),
-      mode: context.uiRangeMode,
-      observedData: renderedData,
-    });
+    const groups = temporaryNetwork?.groups ?? (sourceNetwork?.derivation?.type === 'aggregation' ? sourceNetwork.derivation.groups : []);
+    const viewColors = isAggregatedNetwork ? buildAggregatedNodeColors(groups) : nodeColors;
     return {
       kind: "ready" as const,
       view,
       computed: {
         ...computed,
-        valueDomain,
+        valueDomain: sharedColorDomain ?? computed.valueDomain,
+        labelNames: temporaryNetwork ? shortenAggregatedNodeLabels(temporaryNetwork.labelNames) : undefined,
+        labelTitles: temporaryNetwork?.labelTitles,
+        labelAcronyms: temporaryNetwork?.labelAcronyms,
+        nodeColors: viewColors,
       },
       renderData,
       networkView,
       svgRef,
       valueFilters,
       isMatrixView: view.type === "matrix",
+      isAggregatedNetwork,
+      isTemporaryNetwork,
       className: computed.isRangeFilterSource
         ? "network-view-card--range-filter-source"
         : undefined,
     };
   }, [
-    activeAggregatedEdgeMask,
     activeEdgeMask,
+    sourceNetwork,
+    sharedColorDomain,
     computed,
     context,
     isAggregatedNetwork,
+    isTemporaryNetwork,
     networkView,
-    sourceNetwork,
+    nodeColors,
     sourceFilters,
     svgRef,
+    temporaryNetwork,
     view,
     viewId,
   ]);

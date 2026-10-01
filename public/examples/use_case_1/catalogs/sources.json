@@ -1,0 +1,17 @@
+{
+  "controls": {
+    "label": "Healthy controls",
+    "kind": "population",
+    "n": 35
+  },
+  "ltle": {
+    "label": "Left temporal lobe epilepsy",
+    "kind": "population",
+    "n": 18
+  },
+  "rtle": {
+    "label": "Right temporal lobe epilepsy",
+    "kind": "population",
+    "n": 16
+  }
+}

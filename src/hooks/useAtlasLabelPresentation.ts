@@ -4,18 +4,18 @@ import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
 import { useAppSelector } from "@/store/hooks";
 import { selectDatasetData } from "@/store/slices/dataset";
 import type { AtlasDefinition } from "@/types/atlas";
-import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
+import { buildAggregatedNodeColors } from '@/utils/aggregatedNodePresentation';
 import {
   getDatasetAtlasId,
   getDatasetAtlasLabel,
   getDatasetNodeOrder,
 } from "@/utils/datasetAccessors";
 import {
-  buildGroupingColorCategoryKey,
   buildNodeGroupingColorById,
   buildNodeGroupingColorCategories,
 } from "@/utils/groupingColoring";
 import { buildLabelNameMap, normalizeNodeOrder } from "@/utils/nodeOrder";
+import { orderAtlasLabels } from "@/utils/orderAtlasLabels";
 
 type UseAtlasLabelPresentationArgs = {
   useMatrixHierarchyOrder?: boolean;
@@ -26,6 +26,7 @@ export const useAtlasLabelPresentation = ({
 }: UseAtlasLabelPresentationArgs = {}) => {
   const dataset = useAppSelector((state) => selectDatasetData(state));
   const atlas = useAppSelector((state) => state.atlasUi);
+  const temporaryNetworks = useAppSelector(state => state.networkVisualization.temporaryNetworksById);
   const datasetAtlasId = getDatasetAtlasId(dataset);
   const datasetAtlasLabel = getDatasetAtlasLabel(dataset);
 
@@ -45,7 +46,7 @@ export const useAtlasLabelPresentation = ({
           atlasId: id,
           name: label?.name ?? label?.label ?? id,
           label: label?.acronym ?? label?.label ?? id,
-          tags: label?.tags ?? {},
+
           metadata: label?.metadata ?? {},
           coords: null,
         };
@@ -138,31 +139,28 @@ export const useAtlasLabelPresentation = ({
 
     const baseIds = atlas.order.filter((id) => atlas.labelsById[id]?.enabled !== false);
     if (!useMatrixHierarchyOrder) return baseIds;
-    if (!stateAtlasDefinition?.nodes?.length) return baseIds;
-    if (atlas.colorFields.length === 0) return baseIds;
-
-    const hierarchyLayout = buildCircularHierarchyLayout({
-      labelIds: baseIds,
-      radius: 1,
-      atlasDefinition: stateAtlasDefinition,
-      hierarchyFields: atlas.colorFields,
-      categoryOrder: atlas.matrixHierarchyCategoryOrder,
-    });
-
-    if (hierarchyLayout.length === 0) return baseIds;
-
-    return [...hierarchyLayout]
-      .sort((a, b) => a.order - b.order)
-      .map((item) => item.labelId);
+    return orderAtlasLabels(baseIds, stateAtlasDefinition, atlas.matrixHierarchyFields, atlas.matrixHierarchyCategoryOrder);
   }, [
     atlas.labelsById,
-    atlas.colorFields,
+    atlas.matrixHierarchyFields,
     atlas.order,
     atlas.matrixHierarchyCategoryOrder,
     stateAtlasDefinition,
     nodeOrderIds,
     useMatrixHierarchyOrder,
   ]);
+
+  const aggregatedGroups = useMemo(() => [
+    ...(dataset?.content?.networks.flatMap(network => network.derivation?.type === 'aggregation' ? network.derivation.groups : []) ?? []),
+    ...Object.values(temporaryNetworks).flatMap(network => network.groups),
+  ], [dataset?.content?.networks, temporaryNetworks]);
+
+  const groupingCategories = useMemo(
+    () => buildNodeGroupingColorCategories({
+      atlasDefinition: stateAtlasDefinition, groupingFields: atlas.colorFields, colorPalette: atlas.colorPalette,
+    }),
+    [stateAtlasDefinition, atlas.colorFields, atlas.colorPalette],
+  );
 
   const nodeColors = useMemo(
     () => {
@@ -171,42 +169,24 @@ export const useAtlasLabelPresentation = ({
         groupingFields: atlas.colorFields,
         colorPalette: atlas.colorPalette,
       });
-      if (atlas.colorFields.length === 0) return baseColors;
-
-      const categories = buildNodeGroupingColorCategories({
-        atlasDefinition: stateAtlasDefinition,
-        groupingFields: atlas.colorFields,
-        colorPalette: atlas.colorPalette,
-      });
-      const colorByCategory = new Map(
-        categories.map((category) => [category.key, category.color]),
-      );
-
-      dataset?.content?.networks.forEach((network) => {
-        if (network.derivation?.type !== "aggregation") return;
-        network.derivation.groups.forEach((group) => {
-          const values = atlas.colorFields.map((field) => group.criteria[field] ?? "Unknown");
-          const color = colorByCategory.get(buildGroupingColorCategoryKey(values));
-          if (color) baseColors[group.id] = color;
-        });
-      });
-
-      return baseColors;
+      return { ...baseColors, ...buildAggregatedNodeColors(aggregatedGroups) };
     },
     [
       atlas.colorFields,
       atlas.colorPalette,
       stateAtlasDefinition,
-      dataset?.content?.networks,
+      aggregatedGroups,
     ],
   );
 
   return {
+    presentationAtlasDefinition: stateAtlasDefinition,
     nodeOrderIds,
     activeLabelIds,
     labelNames,
     labelTitles,
     labelAcronyms,
     nodeColors,
+    groupingCategories,
   };
 };

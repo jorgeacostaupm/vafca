@@ -8,8 +8,7 @@ export type NetworkStats = {
   total: number;
   byStat: Record<string, number>;
   byMeasure: Record<string, number>;
-  byMeasureStatPopulation: Record<string, Record<string, Record<string, number>>>;
-  byMeasureStatPopulationSet: Record<string, Record<string, Record<string, number>>>;
+  byMeasureStatisticSource: Record<string, Record<string, Record<string, number>>>;
 };
 
 export type DatasetMeta = {
@@ -59,6 +58,7 @@ export type DatasetOperationsState = {
 
 export type UpdateCatalogPayload = {
   catalog: keyof Catalogs;
+  aspectId?: string;
   id: string;
   changes: Record<string, unknown>;
 };

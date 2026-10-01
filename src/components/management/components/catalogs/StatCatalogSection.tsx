@@ -1,79 +1,71 @@
-import { CheckOutlined } from "@ant-design/icons";
-import { Button, Card, Input, InputNumber, Space, Switch, Typography } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { CheckOutlined } from '@ant-design/icons'
+import { Button, Card, Input, InputNumber, Space, Switch, Typography } from 'antd'
+import { useEffect, useMemo, useState } from 'react'
 
-import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
-import {
-  isEnabled,
-  normalizeNumber,
-} from "@/components/management/utils/catalogValues";
-import type { Statistic } from "@/types/network";
+import { useCatalogItemUpdater } from '@/components/management/components/catalogs/useCatalogItemUpdater'
+import { isEnabled, normalizeNumber } from '@/components/management/utils/catalogValues'
+import type { Statistic } from '@/types/network'
 
 type StatDraft = {
-  id: string;
-  label: string;
-  description: string;
-  enabled: boolean;
-  min?: number;
-  max?: number;
-};
+  id: string
+  label: string
+  description: string
+  enabled: boolean
+  min?: number
+  max?: number
+}
 
 type EditableStat = Statistic & {
-  description?: string | null;
-  enabled?: boolean;
-};
+  description?: string | null
+  enabled?: boolean
+}
 
 type StatCatalogSectionProps = {
-  stats: EditableStat[];
-  emptyMessage: string;
-};
+  stats: EditableStat[]
+  emptyMessage: string
+}
 
 const toDraft = (stat: EditableStat): StatDraft => ({
   id: stat.id,
-  label: stat.label ?? "",
-  description: stat.description ?? "",
+  label: stat.label ?? '',
+  description: stat.description ?? '',
   enabled: isEnabled(stat),
   min: stat.expectedRange?.[0] ?? stat.min ?? undefined,
   max: stat.expectedRange?.[1] ?? stat.max ?? undefined,
-});
+})
 
 const toDrafts = (stats: EditableStat[]) =>
-  Object.fromEntries(stats.map((stat) => [stat.id, toDraft(stat)]));
+  Object.fromEntries(stats.map((stat) => [stat.id, toDraft(stat)]))
 
-const draftsAreEqual = (
-  draft: StatDraft | undefined,
-  stat: EditableStat,
-) => {
-  if (!draft) return false;
-  const baseline = toDraft(stat);
+const draftsAreEqual = (draft: StatDraft | undefined, stat: EditableStat) => {
+  if (!draft) return false
+  const baseline = toDraft(stat)
   return (
     draft.label === baseline.label &&
     draft.description === baseline.description &&
     draft.enabled === baseline.enabled &&
     draft.min === baseline.min &&
     draft.max === baseline.max
-  );
-};
+  )
+}
 
 const hasInvalidRange = (draft: StatDraft) =>
-  draft.min !== undefined && draft.max !== undefined && draft.min > draft.max;
+  draft.min !== undefined && draft.max !== undefined && draft.min > draft.max
 
 function StatCatalogSection({ stats, emptyMessage }: StatCatalogSectionProps) {
-  const updateItem = useCatalogItemUpdater();
-  const [drafts, setDrafts] = useState<Record<string, StatDraft>>(() =>
-    toDrafts(stats),
-  );
+  const updateItem = useCatalogItemUpdater()
+  const [drafts, setDrafts] = useState<Record<string, StatDraft>>(() => toDrafts(stats))
 
   useEffect(() => {
-    setDrafts(toDrafts(stats));
-  }, [stats]);
+    setDrafts(toDrafts(stats))
+  }, [stats])
 
   const dirtyStats = useMemo(
     () => stats.filter((stat) => !draftsAreEqual(drafts[stat.id], stat)),
     [drafts, stats],
-  );
-  const invalidRange = Object.values(drafts).some(hasInvalidRange);
-  const canSave = dirtyStats.length > 0 && !invalidRange;
+  )
+  const invalidRange = Object.values(drafts).some(hasInvalidRange)
+  const canSave = dirtyStats.length > 0 && !invalidRange
 
   const updateDraft = (id: string, changes: Partial<StatDraft>) => {
     setDrafts((current) => ({
@@ -82,22 +74,22 @@ function StatCatalogSection({ stats, emptyMessage }: StatCatalogSectionProps) {
         ...current[id],
         ...changes,
       },
-    }));
-  };
+    }))
+  }
 
   const handleSave = () => {
     dirtyStats.forEach((stat) => {
-      const draft = drafts[stat.id];
-      if (!draft) return;
-      updateItem("statistics", stat.id, {
+      const draft = drafts[stat.id]
+      if (!draft) return
+      updateItem('statistics', stat.id, {
         label: draft.label,
         description: draft.description,
         enabled: draft.enabled,
         min: draft.min,
         max: draft.max,
-      });
-    });
-  };
+      })
+    })
+  }
 
   return (
     <div className="catalog-management-section">
@@ -106,7 +98,7 @@ function StatCatalogSection({ stats, emptyMessage }: StatCatalogSectionProps) {
           <Typography.Text type="secondary">{emptyMessage}</Typography.Text>
         ) : null}
         {stats.map((stat) => {
-          const draft = drafts[stat.id] ?? toDraft(stat);
+          const draft = drafts[stat.id] ?? toDraft(stat)
 
           return (
             <Card key={stat.id} size="small" className="catalog-management-card">
@@ -166,14 +158,12 @@ function StatCatalogSection({ stats, emptyMessage }: StatCatalogSectionProps) {
                 />
               </Space>
             </Card>
-          );
+          )
         })}
       </div>
       <div className="catalog-management-actions">
         {invalidRange ? (
-          <Typography.Text type="danger">
-            Min must be less than or equal to max.
-          </Typography.Text>
+          <Typography.Text type="danger">Min must be less than or equal to max.</Typography.Text>
         ) : null}
         <Button
           size="small"
@@ -186,7 +176,7 @@ function StatCatalogSection({ stats, emptyMessage }: StatCatalogSectionProps) {
         </Button>
       </div>
     </div>
-  );
+  )
 }
 
-export default StatCatalogSection;
+export default StatCatalogSection

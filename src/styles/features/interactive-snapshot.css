@@ -1,0 +1,5 @@
+body{font-family:system-ui,sans-serif;margin:24px;background:var(--snapshot-surface);color:var(--snapshot-text)}
+svg{max-width:100%;height:auto}ul{list-style:none;padding:0}li{margin:4px 0}
+.snapshot-muted{opacity:var(--snapshot-muted-opacity)!important}.snapshot-highlight{filter:drop-shadow(0 0 2px var(--snapshot-visualHighlight))}
+[data-snapshot-ids]:focus{outline:2px solid var(--snapshot-visualHighlight)}
+[role=tooltip]{position:fixed;max-width:calc(100vw - 24px);padding:10px;background:var(--snapshot-surface);border:1px solid var(--snapshot-border);pointer-events:none;z-index:1}

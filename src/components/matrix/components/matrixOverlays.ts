@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import {
   HIGHLIGHT_AXIS_STROKE,
   HIGHLIGHT_GAP,
@@ -108,16 +109,19 @@ export const updateSelectedCellsOverlay = (args: {
   const cellWidth = xScale.bandwidth();
   const cellHeight = yScale.bandwidth();
 
-  const blocks = buildSelectionRectBlocks({
-    selectedCells,
-    visibleData,
-    rows,
-    cols,
-    symmetric,
-  });
+  const cellsByColor = new Map<string, Array<{ row: number; col: number }>>();
+  for (const cell of selectedCells ?? []) {
+    const color = visualStyle.annotationCellColors?.[`${cell.row}::${cell.col}`] ?? visualStyle.selectionColor;
+    const cells = cellsByColor.get(color) ?? [];
+    cells.push(cell);
+    cellsByColor.set(color, cells);
+  }
+  const blocks = [...cellsByColor].flatMap(([color, cells]) => buildSelectionRectBlocks({
+    selectedCells: cells, visibleData, rows, cols, symmetric,
+  }).map(block => ({ ...block, key: `${color}:${block.key}`, color })));
 
   selectedLayer
-    .selectAll<SVGRectElement, MatrixSelectionRect>("rect")
+    .selectAll<SVGRectElement, MatrixSelectionRect & { color: string }>("rect")
     .data(blocks, (block) => block.key)
     .join(
       (enter) => enter.append("rect"),
@@ -129,7 +133,7 @@ export const updateSelectedCellsOverlay = (args: {
     .attr("width", (block) => Math.max(cellWidth * block.colSpan - inset * 2, 0))
     .attr("height", (block) => Math.max(cellHeight * block.rowSpan - inset * 2, 0))
     .attr("fill", "none")
-    .attr("stroke", visualStyle.selectionColor)
+    .attr("stroke", block => block.color)
     .attr("stroke-width", SELECTED_STROKE)
     .attr("pointer-events", "none");
 };
@@ -147,7 +151,7 @@ export const syncHoveredCellOverlay = (args: {
   size: number;
   highlights: HeatmapHighlightSelections;
   tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined>;
-  valueLabel: string;
+  valueLabel: TooltipValueLabel;
   positionTooltipForCell: (
     colX: number,
     rowY: number,
@@ -242,7 +246,7 @@ export const syncHoveredCellOverlay = (args: {
 
   tooltip
     .style("opacity", "1")
-    .html(formatHeatmapTooltipHtml(rowLabel, colLabel, value, valueLabel));
+    .html(formatHeatmapTooltipHtml(rowLabel, colLabel, value, valueLabel, hoveredCell.rowId, hoveredCell.colId));
 
   positionTooltipForCell(colX, rowY, bandwidthX, bandwidthY);
 };

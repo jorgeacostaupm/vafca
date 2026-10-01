@@ -1,6 +1,5 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useRef } from "react";
 
-import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import NodeLinkViewTemplate from "@/components/nodelink/NodeLinkViewTemplate";
 import { useClassicNodeLinkScene } from "@/components/nodelink/useNodeLinkScene";
 import type {
@@ -27,7 +26,7 @@ type NodeLinkProps = Omit<NodeLinkPanelCommonProps, "compoundId"> &
 
 function NodeLink({
   data,
-  networkLabel,
+  valueLabel,
   labels,
   labelNames,
   labelTitles,
@@ -68,7 +67,7 @@ function NodeLink({
     [nodeColors],
   );
 
-  const valueLabel = useMemo(() => buildTooltipValueLabel(networkLabel), [networkLabel]);
+
 
   const { wrapperRef, tooltipRef } = useClassicNodeLinkScene({
     data,

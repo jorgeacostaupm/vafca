@@ -4,21 +4,26 @@ import type { AtlasState } from "@/types/atlas";
 import type { AtlasDefinition } from "@/types/atlas";
 import type { DatasetNetworkSummary } from "@/types/datasetNetworkView";
 import type { DatasetMeta } from "@/types/datasetState";
-import { buildCircularHierarchyLayout } from "@/utils/circular/hierarchy";
 import {
   getDatasetCatalogs,
   getDatasetNodeOrder,
 } from "@/utils/datasetAccessors";
 import {
   buildNetworkSummaryLabel,
-  formatPopulationSetLabel,
-  hasOnlyEnabledPopulations,
+  hasEnabledSource,
   isEnabled,
-  normalizePopulationKey,
 } from "@/utils/matrixViewUtils";
 import { buildLabelNameMap, normalizeNodeOrder } from "@/utils/nodeOrder";
+import { orderAtlasLabels } from "@/utils/orderAtlasLabels";
 
 type Option = { value: string; label: string };
+
+export type AspectFilterOptions = {
+  id: string;
+  label: string;
+  options: Option[];
+  disabled: boolean;
+};
 
 type LabelFormatter = (args: {
   summary: DatasetNetworkSummary;
@@ -29,10 +34,10 @@ type UseNetworkFilterOptionsArgs = {
   dataset: DatasetMeta | null;
   atlas: AtlasState;
   summaries: DatasetNetworkSummary[];
-  populationKey: string;
+  sourceId: string;
   measureId: string;
-  statId: string;
-  layerId: string;
+  statisticId: string;
+  aspectFilters: Record<string, string>;
   atlasDefinition?: AtlasDefinition | null;
   useMatrixHierarchyOrder?: boolean;
   labelFormatter?: LabelFormatter;
@@ -41,19 +46,54 @@ type UseNetworkFilterOptionsArgs = {
 const defaultLabelFormatter: LabelFormatter = ({ summary, dataset }) =>
   buildNetworkSummaryLabel(summary, getDatasetCatalogs(dataset));
 
+const sortOptions = (options: Option[]) =>
+  [...options].sort((a, b) => a.label.localeCompare(b.label));
+
+const uniqueOptions = (
+  ids: Iterable<string>,
+  labelForId: (id: string) => string,
+) => sortOptions(
+  Array.from(new Set(ids)).map((id) => ({
+    value: id,
+    label: labelForId(id),
+  })),
+);
+
+const matchesCore = (
+  summary: DatasetNetworkSummary,
+  sourceId: string,
+  measureId: string,
+  statisticId: string,
+) =>
+  (!sourceId || summary.sourceId === sourceId) &&
+  (!measureId || summary.measureId === measureId) &&
+  (!statisticId || summary.statisticId === statisticId);
+
+const matchesAspectFilters = (
+  summary: DatasetNetworkSummary,
+  aspectFilters: Record<string, string>,
+  aspectIds?: string[],
+) => {
+  const entries = Object.entries(aspectFilters).filter((entry) =>
+    aspectIds ? aspectIds.includes(entry[0]) : true,
+  );
+  return entries.every(([id, value]) => !value || summary.dimensions[id] === value);
+};
+
 export const useNetworkFilterOptions = ({
   dataset,
   atlas,
   summaries,
-  populationKey,
+  sourceId,
   measureId,
-  statId,
-  layerId,
+  statisticId,
+  aspectFilters,
   atlasDefinition,
   useMatrixHierarchyOrder = false,
   labelFormatter = defaultLabelFormatter,
 }: UseNetworkFilterOptionsArgs) => {
   const catalogs = getDatasetCatalogs(dataset);
+  const aspects = catalogs?.aspects ?? [];
   const nodeOrderEntries = useMemo(
     () => normalizeNodeOrder(getDatasetNodeOrder(dataset)),
     [dataset],
@@ -82,139 +122,84 @@ export const useNetworkFilterOptions = ({
     if (atlas.order.length === 0) return nodeOrderIds;
     const baseIds = atlas.order.filter((id) => atlas.labelsById[id]?.enabled !== false);
     if (!useMatrixHierarchyOrder) return baseIds;
-    if (!atlasDefinition?.nodes?.length) return baseIds;
-    if (atlas.colorFields.length === 0) return baseIds;
-
-    const hierarchyLayout = buildCircularHierarchyLayout({
-      labelIds: baseIds,
-      radius: 1,
-      atlasDefinition,
-      hierarchyFields: atlas.colorFields,
-      categoryOrder: atlas.matrixHierarchyCategoryOrder,
-    });
-    if (hierarchyLayout.length === 0) return baseIds;
-
-    return [...hierarchyLayout]
-      .sort((a, b) => a.order - b.order)
-      .map((item) => item.labelId);
+    return orderAtlasLabels(baseIds, atlasDefinition, atlas.matrixHierarchyFields, atlas.matrixHierarchyCategoryOrder);
   }, [atlas, nodeOrderIds, atlasDefinition, useMatrixHierarchyOrder]);
-
-  const populationOptions = useMemo<Option[]>(() => {
-    const keys = new Set(
-      summaries
-        .filter((summary) =>
-          hasOnlyEnabledPopulations(
-            summary.populationIds,
-            catalogs?.populations,
-          ),
-        )
-        .map((summary) => normalizePopulationKey(summary.populationIds)),
-    );
-
-    return Array.from(keys)
-      .sort()
-      .map((key) => ({
-        value: key,
-        label: formatPopulationSetLabel(key.split("+"), catalogs),
-      }));
-  }, [summaries, catalogs]);
-
-  const measures = useMemo<Option[]>(() => {
-    const filtered = summaries.filter((summary) => {
-      if (
-        populationKey &&
-        normalizePopulationKey(summary.populationIds) !== populationKey
-      ) {
-        return false;
-      }
-      return true;
-    });
-
-    const ids = new Set(filtered.map((summary) => summary.measureId));
-
-    return Array.from(ids)
-      .filter((id) => isEnabled(catalogs?.measures[id]))
-      .sort()
-      .map((id) => ({
-        value: id,
-        label: catalogs?.measures[id]?.label ?? id,
-      }));
-  }, [summaries, populationKey, catalogs]);
-
-  const statOptions = useMemo<Option[]>(() => {
-    const filtered = summaries.filter((summary) => {
-      if (
-        populationKey &&
-        normalizePopulationKey(summary.populationIds) !== populationKey
-      ) {
-        return false;
-      }
-      if (measureId && summary.measureId !== measureId) return false;
-      return true;
-    });
-
-    return Array.from(new Set(filtered.map((summary) => summary.statId)))
-      .filter((id) => isEnabled(catalogs?.statistics[id]))
-      .sort()
-      .map((id) => ({
-        value: id,
-        label: catalogs?.statistics[id]?.label ?? id,
-      }));
-  }, [summaries, populationKey, measureId, catalogs]);
-
-  const layerOptions = useMemo<Option[]>(() => {
-    const filtered = summaries.filter((summary) => {
-      if (
-        populationKey &&
-        normalizePopulationKey(summary.populationIds) !== populationKey
-      ) {
-        return false;
-      }
-      if (measureId && summary.measureId !== measureId) return false;
-      if (statId && summary.statId !== statId) return false;
-      return true;
-    });
-
-    return Array.from(new Set(filtered.map((summary) => summary.layerId)))
-      .filter((id) => isEnabled(catalogs?.layers[id]))
-      .sort()
-      .map((id) => ({
-        value: id,
-        label: catalogs?.layers[id]?.label ?? id,
-      }));
-  }, [summaries, populationKey, measureId, statId, catalogs]);
 
   const selectableNetworkSummaries = useMemo(() => {
     return summaries.filter((summary) => {
+      if (!hasEnabledSource(summary.sourceId, catalogs?.sources)) return false;
       if (!isEnabled(catalogs?.measures[summary.measureId])) return false;
-      if (!isEnabled(catalogs?.layers[summary.layerId])) return false;
-      if (!isEnabled(catalogs?.statistics[summary.statId])) return false;
-      if (
-        !hasOnlyEnabledPopulations(
-          summary.populationIds,
-          catalogs?.populations,
-        )
-      ) {
-        return false;
-      }
-      return true;
+      if (!isEnabled(catalogs?.statistics[summary.statisticId])) return false;
+      return aspects.every((aspect) =>
+        isEnabled(catalogs?.aspectCatalogs[aspect.id]?.[summary.dimensions[aspect.id]]),
+      );
     });
-  }, [summaries, catalogs]);
+  }, [summaries, catalogs, aspects]);
+
+  const sourceOptions = useMemo<Option[]>(() => {
+    return uniqueOptions(
+      selectableNetworkSummaries.map((summary) => summary.sourceId),
+      (id) => catalogs?.sources[id]?.label ?? id,
+    );
+  }, [selectableNetworkSummaries, catalogs]);
+
+  const measures = useMemo<Option[]>(() => {
+    const filtered = selectableNetworkSummaries.filter((summary) =>
+      matchesCore(summary, sourceId, "", ""),
+    );
+    return uniqueOptions(
+      filtered.map((summary) => summary.measureId),
+      (id) => catalogs?.measures[id]?.label ?? id,
+    );
+  }, [selectableNetworkSummaries, sourceId, catalogs]);
+
+  const statisticOptions = useMemo<Option[]>(() => {
+    const filtered = selectableNetworkSummaries.filter((summary) =>
+      matchesCore(summary, sourceId, measureId, ""),
+    );
+    return uniqueOptions(
+      filtered.map((summary) => summary.statisticId),
+      (id) => catalogs?.statistics[id]?.label ?? id,
+    );
+  }, [selectableNetworkSummaries, sourceId, measureId, catalogs]);
+
+  const aspectOptions = useMemo<AspectFilterOptions[]>(() => {
+    return aspects.map((aspect, index) => {
+      const previousAspectIds = aspects.slice(0, index).map((item) => item.id);
+      const filtered = selectableNetworkSummaries.filter(
+        (summary) =>
+          matchesCore(summary, sourceId, measureId, statisticId) &&
+          matchesAspectFilters(summary, aspectFilters, previousAspectIds),
+      );
+      return {
+        id: aspect.id,
+        label: aspect.label,
+        disabled: !statisticId,
+        options: uniqueOptions(
+          filtered
+            .map((summary) => summary.dimensions[aspect.id])
+            .filter((id): id is string => Boolean(id)),
+          (id) => catalogs?.aspectCatalogs[aspect.id]?.[id]?.label ?? id,
+        ),
+      };
+    });
+  }, [
+    aspects,
+    selectableNetworkSummaries,
+    sourceId,
+    measureId,
+    statisticId,
+    aspectFilters,
+    catalogs,
+  ]);
 
   const matches = useMemo(() => {
-    return selectableNetworkSummaries.filter((summary) => {
-      if (
-        populationKey &&
-        normalizePopulationKey(summary.populationIds) !== populationKey
-      ) {
-        return false;
-      }
-      if (measureId && summary.measureId !== measureId) return false;
-      if (statId && summary.statId !== statId) return false;
-      if (layerId && summary.layerId !== layerId) return false;
-      return true;
-    });
-  }, [selectableNetworkSummaries, populationKey, measureId, statId, layerId]);
+    return selectableNetworkSummaries.filter(
+      (summary) =>
+        matchesCore(summary, sourceId, measureId, statisticId) &&
+        matchesAspectFilters(summary, aspectFilters),
+    );
+  }, [selectableNetworkSummaries, sourceId, measureId, statisticId, aspectFilters]);
 
   const allNetworkOptions = useMemo<Option[]>(() => {
     return selectableNetworkSummaries.map((summary) => ({
@@ -243,10 +228,10 @@ export const useNetworkFilterOptions = ({
     nodeOrderIds,
     labelNames,
     activeLabelIds,
-    populationOptions,
+    sourceOptions,
     measures,
-    statOptions,
-    layerOptions,
+    statisticOptions,
+    aspectOptions,
     matches,
     networkOptions,
     allNetworkOptions,

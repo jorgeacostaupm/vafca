@@ -13,6 +13,7 @@ export default function AtlasMetadataSummary() {
   if (!data) return null;
 
   const nodeOrder = getDatasetNodeOrder(data);
+  const spatial = data.content.nodeSet.spatial;
   const atlasLabel = getDatasetAtlasLabel(data);
 
   return (
@@ -26,6 +27,9 @@ export default function AtlasMetadataSummary() {
         <Typography.Text strong>Node count:</Typography.Text>
         <Typography.Text type="secondary">{nodeOrder.length}</Typography.Text>
       </Space>
+      {spatial && <Typography.Text type={spatial.warnings.length ? "warning" : "secondary"}>
+        3D atlas: {spatial.matchedRois}/{nodeOrder.length} ROIs matched
+      </Typography.Text>}
     </Space>
   );
 }

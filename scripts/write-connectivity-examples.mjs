@@ -69,7 +69,7 @@ const createAal90Atlas = () => ({
     atlasId: index,
     name: `AAL 90 ROI ${String(index + 1).padStart(3, "0")}`,
     label: `ROI ${index + 1}`,
-    tags: {
+    metadata: {
       hemisphere: index % 2 === 0 ? "left" : "right",
       lobule: ["Frontal", "Parietal", "Temporal", "Occipital"][index % 4],
     },
@@ -83,8 +83,8 @@ const createCatalogs = ({ layers = ["alpha"], measures = ["plv"], stats = ["mean
     beta: { id: "beta", label: "Beta", description: "Beta layer (13-30 Hz)" },
   };
   const measureEntries = {
-    plv: { id: "plv", label: "PLV", description: "Phase Locking Value", expectedRange, symmetric: true, directed: false },
-    ciplv: { id: "ciplv", label: "ciPLV", description: "Corrected imaginary PLV", expectedRange, symmetric: true, directed: false },
+    plv: { id: "plv", label: "PLV", description: "Phase Locking Value", expectedRange },
+    ciplv: { id: "ciplv", label: "ciPLV", description: "Corrected imaginary PLV", expectedRange },
   };
   const statEntries = {
     value: { id: "value", label: "Value", category: "subject", scaleType: "sequential", center: null, rangeMode: "inherit_measure" },
@@ -121,7 +121,7 @@ const matrix = ({ id, kind, layerId, measureId, statId, source, data, layout = "
   source,
   stat: { id: statId, method: statId === "mean" ? "arithmetic" : null, parameters: {} },
   geometry: { atlasId: "aal-90", shape: [90, 90], roiOrderRef: "atlas.rois", roiOrder: null },
-  encoding: { layout, dtype: "float32", symmetric: true, missingValue: null },
+  encoding: { layout, dtype: "float32", missingValue: null },
   valueDomain,
   provenance: { generatedBy: "test-generator", createdAt: null, software: "codex-generated", version: null, dependencies: [], parameters: {} },
   data,

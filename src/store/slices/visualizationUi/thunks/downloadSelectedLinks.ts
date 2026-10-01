@@ -20,6 +20,8 @@ import {
 } from '@/utils/datasetAccessors'
 import { buildNetworkSummaryLabel } from '@/utils/matrixViewUtils'
 
+import { selectCurrentAnnotation } from '../annotationSelectors'
+
 export type DownloadSelectedLinksResult = {
   mode: DownloadMode
   linksCount: number
@@ -35,7 +37,7 @@ export const downloadSelectedLinks = createAsyncThunk<
   'visualizationUi/downloadSelectedLinks',
   async ({ mode, selectedNetworkIds }, { getState, rejectWithValue }) => {
     const state = getState()
-    const { selectedLinks, atlasLinkIds } = state.visualizationUi
+    const { selectedLinks, atlasLinkIds } = selectCurrentAnnotation(state)
 
     const selectedIdSet = new Set(atlasLinkIds)
     const linksToDownload =

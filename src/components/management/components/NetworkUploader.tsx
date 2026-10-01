@@ -2,10 +2,7 @@ import { InboxOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import { Alert, Space, Spin, Typography, Upload } from "antd";
 
-import {
-  DEFAULT_NETWORK_IMPORT_MODE,
-  MAX_VISIBLE_IMPORT_ISSUES,
-} from "@/config/ui";
+import { MAX_VISIBLE_IMPORT_ISSUES } from "@/config/ui";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   loadDatasetFromUploadedZip,
@@ -28,7 +25,6 @@ function NetworkUploader() {
       await dispatch(
         loadDatasetFromUploadedZip({
           files: [file],
-          mode: DEFAULT_NETWORK_IMPORT_MODE,
         }),
       ).unwrap();
     } catch {
@@ -59,7 +55,7 @@ function NetworkUploader() {
         </p>
         <p className="ant-upload-text">Drag and drop one VAFCA ZIP dataset here</p>
         <p className="ant-upload-hint">
-          Or click to choose a file. Imports use lenient validation by default.
+          Or click to choose a file. The complete dataset format is validated before loading.
         </p>
       </Dragger>
 

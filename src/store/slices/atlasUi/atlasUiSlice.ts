@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
 import { DEFAULT_D3_GROUPING_PALETTE } from '@/config/groupingPalettes'
+import { updateRoiMetadata } from '@/store/actions/updateRoiMetadata'
 import type { AtlasLabel, AtlasState } from '@/types/atlas'
 import type { NodeOrderEntry } from '@/types/nodeOrder'
 
@@ -13,6 +14,12 @@ import {
 const atlasUiSlice = createSlice({
   name: 'atlasUi',
   initialState: initialAtlasUiState,
+  extraReducers: (builder) => {
+    builder.addCase(updateRoiMetadata, (state, { payload }) => {
+      const label = state.labelsById[payload.id]
+      if (label) label.metadata = payload.metadata
+    })
+  },
   reducers: {
     setAtlasLabels(state, action: PayloadAction<SetAtlasLabelsPayload>) {
       state.order = action.payload.order
@@ -54,6 +61,9 @@ const atlasUiSlice = createSlice({
         if (label) label.enabled = enabled
       }
     },
+    setAggregationFields(state, action: PayloadAction<string[]>) {
+      state.aggregationFields = action.payload
+    },
     setAtlasColorFields(state, action: PayloadAction<string[]>) {
       state.colorFields = action.payload
     },
@@ -88,6 +98,7 @@ export const {
   setLabelsEnabled,
   setAllLabels,
   setAtlasColorFields,
+  setAggregationFields,
   setAtlasColorPalette,
   setCircularHierarchyFields,
   setCircularHierarchyCategoryOrder,
@@ -121,7 +132,7 @@ export const buildAtlasState = (
       label: item.label,
       name: item.name,
       acronym: item.acronym,
-      tags: item.tags,
+
       metadata: item.metadata,
       enabled,
     }
@@ -133,6 +144,7 @@ export const buildAtlasState = (
     labelsById,
     initialized: true,
     colorFields: previous?.colorFields ?? [],
+    aggregationFields: previous?.aggregationFields ?? [],
     colorPalette: previous?.colorPalette ?? DEFAULT_D3_GROUPING_PALETTE,
     circularHierarchyFields: previous?.circularHierarchyFields ?? [],
     circularHierarchyCategoryOrder: previous?.circularHierarchyCategoryOrder ?? {},

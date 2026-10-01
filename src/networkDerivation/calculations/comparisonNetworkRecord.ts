@@ -1,3 +1,6 @@
+import { absoluteCalculationOutput } from "@/networkDerivation/calculations/absoluteDifference";
+import { dimensionKey, dimensionLabel, sameDimensions } from "@/networkDerivation/calculations/dimensions";
+import { inputStatisticsLabel, methodInputStatistics } from "@/networkDerivation/calculations/inputStatistics";
 import {
   buildProvenanceParameters,
   createDerivedNetwork,
@@ -14,7 +17,6 @@ import type {
   NetworkCalculationState,
 } from '@/networkDerivation/calculations/types'
 import type {
-  ComparisonSide,
   MatrixCellValue,
   Network,
   NetworkComparisonDerivation,
@@ -71,23 +73,6 @@ const endpointLabel = (state: NetworkCalculationState, endpoint: ComparisonEndpo
     ? subjectLabel(state.catalogs, endpoint.subjectId)
     : populationLabel(state.catalogs, endpoint.populationId)
 
-const endpointSource = (
-  state: NetworkCalculationState,
-  endpoint: ComparisonEndpoint,
-): ComparisonSide =>
-  endpoint.type === 'subject'
-    ? {
-        type: 'subject',
-        subjectId: endpoint.subjectId,
-        label: endpointLabel(state, endpoint),
-      }
-    : {
-        type: 'population',
-        populationId: endpoint.populationId ?? 'unknown-population',
-        label: endpointLabel(state, endpoint),
-        n: endpoint.n ?? undefined,
-      }
-
 const endpointComparisonParameters = (left: ComparisonEndpoint, right: ComparisonEndpoint) => ({
   leftPopulationId: left.type === 'population' ? left.populationId : undefined,
   rightPopulationId: right.type === 'population' ? right.populationId : undefined,
@@ -104,17 +89,38 @@ const labelParams = (left: ComparisonEndpoint, right: ComparisonEndpoint) => ({
   rightSubjectId: right.type === 'subject' ? right.subjectId : undefined,
 })
 
+const comparisonSourceId = (leftId?: string, rightId?: string) =>
+  `${leftId ?? 'unknown'}-vs-${rightId ?? 'unknown'}`
+    .trim()
+    .replaceAll(/[^A-Za-z0-9_-]/g, '_')
+
 export const createComparisonNetwork = ({
   runtime,
   method,
-  output,
+  output: requestedOutput,
   endpoints,
   dependencies,
-  calculation,
+  calculation: signedCalculation,
   labelMode = 'vs',
 }: CreateComparisonNetworkParams) => {
   const { state, request, existingIds } = runtime
+  const inputStatistics = methodInputStatistics(request, method)
+  const statisticsLabel = inputStatisticsLabel(request, method, state.catalogs)
+  const statisticsKey = encodeURIComponent(JSON.stringify(inputStatistics))
+  const absolute = request.absoluteDifference && requestedOutput.scaleType === 'diverging'
+  const output = absolute
+    ? absoluteCalculationOutput(requestedOutput)
+    : requestedOutput
+  const calculation = absolute ? {
+    ...signedCalculation,
+    data: signedCalculation.data.map((row) => row.map((value) => value === null ? null : Math.abs(value))),
+    formula: `abs(${signedCalculation.formula})`,
+    statMethod: `absolute_${signedCalculation.statMethod}`,
+    comparisonParameters: { ...signedCalculation.comparisonParameters, absoluteDifference: true, absoluteValue: true },
+  } : signedCalculation
   const baseNetwork = endpoints.left.network
+  const rightDimensions = sameDimensions(baseNetwork.dimensions, endpoints.right.network.dimensions)
+    ? undefined : endpoints.right.network.dimensions
   const ids = {
     left: endpointId(endpoints.left),
     right: endpointId(endpoints.right),
@@ -124,9 +130,10 @@ export const createComparisonNetwork = ({
     leftId: ids.left,
     rightId: ids.right,
     subjectId: endpoints.left.type === 'subject' ? endpoints.left.subjectId : undefined,
-    layerId: baseNetwork.context.layerId,
+    dimensions: baseNetwork.dimensions,
+    rightDimensions,
     measureId: baseNetwork.measureId,
-    operator: output.operator,
+    operator: `${output.operator}_${statisticsKey}`,
     existingIds,
   })
   existingIds.add(id)
@@ -141,7 +148,15 @@ export const createComparisonNetwork = ({
     rightNetworkId: endpoints.right.network.id,
     parameters: {
       methodId: method.id,
+      inputStatistics,
+      inputStatisticsLabel: statisticsLabel,
+      leftDimensions: baseNetwork.dimensions,
+      rightDimensions: endpoints.right.network.dimensions,
       ...endpointParams,
+      left: ids.left,
+      right: ids.right,
+      leftLabel: endpointLabel(state, endpoints.left),
+      rightLabel: endpointLabel(state, endpoints.right) + (rightDimensions ? ` · ${dimensionLabel(state.catalogs, rightDimensions)}` : ""),
       alternative: output.operator.includes('p') ? 'two-sided' : undefined,
       ...calculation.comparisonParameters,
     },
@@ -150,15 +165,17 @@ export const createComparisonNetwork = ({
   const label = generateDerivedNetworkLabel({
     catalogs: state.catalogs,
     ...labelParams(endpoints.left, endpoints.right),
-    layerId: baseNetwork.context.layerId,
+    dimensions: baseNetwork.dimensions,
+    rightDimensions,
     measureId: baseNetwork.measureId,
-    suffix: output.labelSuffix,
+    suffix: `${output.labelSuffix} (${statisticsLabel})`,
     useMinus: labelMode === 'minus',
   })
 
   const provenanceParameters = buildProvenanceParameters({
     operation: method.id,
-    layerId: baseNetwork.context.layerId,
+    dimensions: baseNetwork.dimensions,
+    rightDimensions,
     measureId: baseNetwork.measureId,
     ...endpointParams,
     formula: calculation.formula,
@@ -166,30 +183,22 @@ export const createComparisonNetwork = ({
     extra: calculation.provenanceExtra,
   })
 
-  const source = {
-    type: 'comparison' as const,
-    left: endpointSource(state, endpoints.left),
-    right: endpointSource(state, endpoints.right),
-  }
-
   return createDerivedNetwork({
     id,
     label,
-    context: baseNetwork.context,
+    sourceId: `${comparisonSourceId(ids.left, ids.right)}-statistics-${statisticsKey}` + (rightDimensions ? `-context-${encodeURIComponent(dimensionKey(rightDimensions))}` : ""),
+    dimensions: baseNetwork.dimensions,
     measureId: baseNetwork.measureId,
     nodeSetId: baseNetwork.nodeSetId,
     nodeIds: baseNetwork.nodeIds,
-    symmetric:
-      baseNetwork.data.format === 'matrix'
-        ? baseNetwork.data.symmetric
-        : !baseNetwork.data.directed,
-    source,
-    statisticId: output.statId,
+    statisticId: output.statisticId,
     derivation,
     valueDomain: outputValueDomain(output),
     dependencies,
     provenanceParameters: {
       ...provenanceParameters,
+      inputStatistics,
+      absoluteValue: Boolean(absolute),
       statisticMethod: calculation.statMethod,
       statisticParameters: calculation.statParameters ?? {},
     },

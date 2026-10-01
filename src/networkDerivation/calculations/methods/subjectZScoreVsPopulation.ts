@@ -26,13 +26,13 @@ export const subjectZScoreVsPopulationDefinition: NetworkCalculationMethodDefini
     "Reference population std network",
   ],
   requiredInputs: [
-    { role: "subjectValue", label: "Subject value", kind: "subject", statId: "value", sourceLevel: "subject", required: true },
-    { role: "referenceMean", label: "Reference mean", kind: "population", statId: "mean", sourceLevel: "population", required: true },
-    { role: "referenceStd", label: "Reference std", kind: "population", statId: "std", sourceLevel: "population", required: true },
+    { role: "subjectValue", label: "Subject value", kind: "subject", statisticId: "value", sourceLevel: "subject", required: true },
+    { role: "referenceMean", label: "Reference mean", kind: "population", statisticId: "mean", sourceLevel: "population", required: true },
+    { role: "referenceStd", label: "Reference std", kind: "population", statisticId: "std", sourceLevel: "population", required: true },
   ],
   outputs: [
     {
-      statId: "zscore",
+      statisticId: "zscore",
       statLabel: "z-score",
       statCategory: "comparison",
       operator: "zscore",
@@ -58,11 +58,11 @@ export const calculateSubjectZScoreVsPopulation: NetworkCalculationMethod["calcu
   existingIds,
 }) => {
   request.subjectIds?.forEach((subjectId) => {
-    request.layerIds.forEach((layerId) => {
+    request.dimensionPairs.forEach((dimensionPair) => {
       request.measureIds.forEach((measureId) => {
         const resolved = ensureReady(
           "subject_zscore_vs_population",
-          layerId,
+          dimensionPair,
           measureId,
           result.skipped,
           request,

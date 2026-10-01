@@ -1,7 +1,7 @@
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, SwapOutlined } from "@ant-design/icons";
 import type { TableColumnsType } from "antd";
 import { Button, Table, Typography } from "antd";
-import { useMemo } from "react";
+import { type CSSProperties, useMemo } from "react";
 
 import type {
   LinkRow,
@@ -11,6 +11,7 @@ import {
   SELECTED_LINKS_TABLE_DEFAULT_PAGE_SIZE,
   SELECTED_LINKS_TABLE_PAGE_SIZE_OPTIONS,
 } from "@/config/ui";
+import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 
 type SelectedLinksTableProps = {
   rows: LinkRow[];
@@ -29,6 +30,8 @@ export default function SelectedLinksTable({
   onToggleAtlasLinkId,
   onRemoveSelectedLink,
 }: SelectedLinksTableProps) {
+  const { nodeColors } = useAtlasLabelPresentation();
+  const atlasLinkIdSet = useMemo(() => new Set(atlasLinkIds), [atlasLinkIds]);
   const columns = useMemo<TableColumnsType<LinkRow>>(
     () => [
       {
@@ -36,12 +39,27 @@ export default function SelectedLinksTable({
         dataIndex: "linkLabel",
         key: "link",
         fixed: "left",
+        width: 280,
+        render: (_: string, record) => (
+          <div className="selected-links-table__link" title={record.linkLabel}>
+            <span className="selected-links-table__node" style={{
+              '--selected-link-node-color': nodeColors[record.rowId],
+            } as CSSProperties}>{record.rowLabel}</span>
+            <span className="selected-links-table__direction" aria-hidden="true">
+              <SwapOutlined />
+            </span>
+            <span className="selected-links-table__node" style={{
+              '--selected-link-node-color': nodeColors[record.colId],
+            } as CSSProperties}>{record.colLabel}</span>
+          </div>
+        ),
       },
       ...networkColumns.map((column) => ({
         title: column.label,
         dataIndex: ["values", column.compoundId],
         key: column.compoundId,
         align: "center" as const,
+        width: 140,
         sorter: (a: LinkRow, b: LinkRow) => {
           const va = a.values[column.compoundId];
           const vb = b.values[column.compoundId];
@@ -52,15 +70,20 @@ export default function SelectedLinksTable({
         },
         render: (value: number | null) =>
           value === null ? (
-            <Typography.Text type="secondary">n/a</Typography.Text>
+            <Typography.Text className="selected-links-table__empty-value">
+              n/a
+            </Typography.Text>
           ) : (
-            <Typography.Text strong>{value.toFixed(4)}</Typography.Text>
+            <span className="selected-links-table__value">
+              {value.toFixed(4)}
+            </span>
           ),
       })),
       {
         title: "",
         key: "actions",
         fixed: "right",
+        width: 52,
         render: (_: unknown, record: LinkRow) => (
           <Button
             size="small"
@@ -73,15 +96,19 @@ export default function SelectedLinksTable({
         ),
       },
     ],
-    [networkColumns, onRemoveSelectedLink],
+    [networkColumns, onRemoveSelectedLink, nodeColors],
   );
 
   return (
     <Table
+      className="selected-links-table"
       rowSelection={{
         selectedRowKeys: atlasLinkIds,
         onChange: (keys) => onSetAtlasLinkIds(keys.map((key) => String(key))),
       }}
+      rowClassName={(record) =>
+        atlasLinkIdSet.has(record.key) ? "selected-links-table__row--active" : ""
+      }
       onRow={(record) => ({
         onClick: (event) => {
           const target = event.target as HTMLElement | null;

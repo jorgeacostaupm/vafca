@@ -1,32 +1,27 @@
+import { loadSpatialAtlas } from '@/spatial/loadSpatialAtlas';
 import { normalizeNetworkPackage } from "@/utils/import/normalizeNetworkPackage";
 import { readNetworkZip } from "@/utils/import/readNetworkZip";
-import type {
-  NetworkImportMode,
-  NetworkImportResult,
-} from "@/utils/import/types";
+import type { RawNetworkPackage } from '@/utils/import/types';
+import type { NetworkImportResult } from "@/utils/import/types";
 
-export const loadNetworkImport = async (
-  file: File,
-  mode: NetworkImportMode,
-): Promise<NetworkImportResult> => {
-  if (!file.name.toLowerCase().endsWith(".zip")) {
-    throw new Error("Upload a ZIP dataset.");
+const importPackage = async (raw: RawNetworkPackage): Promise<NetworkImportResult> => {
+  const result = normalizeNetworkPackage(raw);
+  if (!result.normalized.issues.errors.length) {
+    const spatial = await loadSpatialAtlas(raw.spatialFiles ?? {}, result.dataset.nodeSet.nodes, raw.nodeMetadata);
+    if (spatial) {
+      result.dataset.nodeSet.spatial = spatial;
+      result.normalized.issues.warnings.push(...spatial.warnings.map(message => ({ source: 'spatial/manifest.json', path: 'spatial', message })));
+    }
   }
-
-  const rawPackage = readNetworkZip(file.name, await file.arrayBuffer());
-  return normalizeNetworkPackage(rawPackage, mode);
+  return result;
 };
 
-export const loadNetworkImportFromBytes = (
-  fileName: string,
-  bytes: ArrayBuffer,
-  mode: NetworkImportMode,
-): NetworkImportResult => {
-  if (!fileName.toLowerCase().endsWith(".zip")) {
-    throw new Error("Upload a ZIP dataset.");
-  }
+export const loadNetworkImport = async (file: File): Promise<NetworkImportResult> =>
+  loadNetworkImportFromBytes(file.name, await file.arrayBuffer());
 
-  return normalizeNetworkPackage(readNetworkZip(fileName, bytes), mode);
+export const loadNetworkImportFromBytes = async (fileName: string, bytes: ArrayBuffer): Promise<NetworkImportResult> => {
+  if (!fileName.toLowerCase().endsWith('.zip')) throw new Error('Upload a ZIP dataset.');
+  return importPackage(readNetworkZip(fileName, bytes));
 };
 
 export const downloadNormalizedDataset = (

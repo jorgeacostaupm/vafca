@@ -5,7 +5,10 @@ import {
   getMatrixVisualStyle,
 } from "@/config/matrixColorScales";
 import { useAppSelector } from "@/store/hooks";
-import { selectAppliedMatrixColorSettings } from "@/store/slices/visualizationUi";
+import {
+  selectAppliedMatrixBackgroundColor,
+  selectAppliedMatrixColorSettings,
+} from "@/store/slices/visualizationUi";
 import type { ResolvedValueDomain } from "@/types/valueDomain";
 
 const FALLBACK_DOMAIN: ResolvedValueDomain = {
@@ -20,11 +23,12 @@ const FALLBACK_DOMAIN: ResolvedValueDomain = {
 
 export const useMatrixColorEncoding = (valueDomain?: ResolvedValueDomain) => {
   const matrixColorSettings = useAppSelector(selectAppliedMatrixColorSettings);
+  const matrixBackgroundColor = useAppSelector(selectAppliedMatrixBackgroundColor);
   const domain = valueDomain ?? FALLBACK_DOMAIN;
   const scaleSettings = matrixColorSettings[domain.scaleType];
   const visualStyle = useMemo(
-    () => getMatrixVisualStyle(scaleSettings),
-    [scaleSettings],
+    () => getMatrixVisualStyle(scaleSettings, matrixBackgroundColor),
+    [matrixBackgroundColor, scaleSettings],
   );
   const colorResolver = useMemo(
     () =>

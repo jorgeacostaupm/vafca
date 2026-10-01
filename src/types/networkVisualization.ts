@@ -1,6 +1,7 @@
+import type { AtlasDefinition } from "@/types/atlas";
 import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type { MatrixValueRange, StatRangeValue } from "@/types/matrixView";
-import type { UiRangeMode } from "@/types/network";
+import type { NetworkDataStats, NodeGroup, UiRangeMode } from "@/types/network";
 import type { ResolvedValueDomain } from "@/types/valueDomain";
 
 export type NetworkViewType = "matrix" | "circular" | "classic";
@@ -13,9 +14,20 @@ export type ZoomSelection = {
   linkIds?: string[];
 } | null;
 
+export type NetworkPercentFilterMode =
+  | "top"
+  | "bottom"
+  | "absoluteTop"
+  | "absoluteBottom";
+
+export type NetworkPercentLinkFilter = {
+  mode: NetworkPercentFilterMode;
+  percent: number;
+  includeAutoconnections: boolean;
+};
+
 export type ZoomableViewSettings = {
   statRange?: StatRangeValue;
-  zoomLabelSelection?: string[];
   zoomHistory?: ZoomSelection[];
   zoomIndex?: number;
 };
@@ -31,11 +43,11 @@ export type SharedNetworkViewSettings = {
   statRange?: StatRangeValue;
   measureRange?: [number, number];
   hideIsolatedNodes?: boolean;
-  zoomLabelSelection?: string[];
   zoomHistory?: ZoomSelection[];
   zoomIndex?: number;
   selectionVisible?: boolean;
   zoomLinkPercent?: number;
+  percentLinkFilter?: NetworkPercentLinkFilter | null;
   useAsNodeFilter?: boolean;
   useAsLinkFilter?: boolean;
 };
@@ -60,11 +72,34 @@ export type NetworkViewDescriptor = {
   id: string;
   type: NetworkViewType;
   compoundId: string;
+  temporaryNetworkId?: string;
+  coordinationDisabled?: boolean;
   label: string;
   measureId: string;
-  statId: string;
+  statisticId: string;
   status: ViewLoadStatus;
+  loadingMessage?: string;
   error?: string;
+};
+
+export type TemporaryAggregatedNetwork = {
+  id: string;
+  sourceViewId: string;
+  sourceNetworkLabel: string;
+  label: string;
+  measureId: string;
+  statisticId: string;
+  data: number[][];
+  rowLabels: string[];
+  colLabels: string[];
+  symmetric: boolean;
+  groups: NodeGroup[];
+  labelNames: Record<string, string>;
+  labelTitles: Record<string, string>;
+  labelAcronyms: Record<string, string>;
+  nodeColors: Record<string, string>;
+  dataStats?: NetworkDataStats;
+  createdAt: string;
 };
 
 export type NetworkLayoutItem = {
@@ -78,10 +113,10 @@ export type NetworkLayoutItem = {
 export type NetworkSelectorControlsState = {
   viewType: NetworkViewType;
   matrixSelectorMode: NetworkMatrixSelectorMode;
-  populationKey: string;
+  sourceId: string;
   measureId: string;
-  statId: string;
-  layerId: string;
+  statisticId: string;
+  aspectFilters: Record<string, string>;
   selectedCompoundId: string;
   syncZoom: boolean;
   hideIsolatedNodes: boolean;
@@ -115,10 +150,16 @@ export type NodeLinkViewRenderData = {
 };
 
 export type ComputedView = {
+  orderingAtlasDefinition?: AtlasDefinition | null;
+  inputMatrix: CanonicalMatrixData;
   view: NetworkViewDescriptor;
   data: number[][];
   rowLabels: string[];
   colLabels: string[];
+  labelNames?: Record<string, string>;
+  labelTitles?: Record<string, string>;
+  labelAcronyms?: Record<string, string>;
+  nodeColors?: Record<string, string>;
   symmetric: boolean;
   settings?: MatrixNetworkViewSettings | NodeLinkNetworkViewSettings;
   zoomState: ZoomState;
@@ -139,6 +180,7 @@ export type ComputedView = {
   circularNegativeLinkColor: string;
   selectionVisible: boolean;
   zoomLinkPercent: number;
+  percentLinkFilter: NetworkPercentLinkFilter | null;
   useAsNodeFilter: boolean;
   useAsLinkFilter: boolean;
   isRangeFilterSource: boolean;

@@ -1,0 +1,30 @@
+{
+  "delta": {
+    "label": "Delta",
+    "description": "2-4 Hz"
+  },
+  "theta": {
+    "label": "Theta",
+    "description": "4-7 Hz"
+  },
+  "alpha_low": {
+    "label": "Alpha Low",
+    "description": "8-10 Hz"
+  },
+  "alpha_high": {
+    "label": "Alpha High",
+    "description": "10-12 Hz"
+  },
+  "beta_low": {
+    "label": "Beta Low",
+    "description": "12-20 Hz"
+  },
+  "beta_high": {
+    "label": "Beta High",
+    "description": "20-30 Hz"
+  },
+  "gamma": {
+    "label": "Gamma",
+    "description": "30-50 Hz"
+  }
+}

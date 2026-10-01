@@ -1,28 +1,41 @@
-import { Typography } from "antd";
-import type { ReactNode } from "react";
+import { Typography } from 'antd'
+import type { CSSProperties, ReactNode } from 'react'
 
 type SettingsSectionProps = {
-  title?: string;
-  description?: string;
-  actions?: ReactNode;
-  children?: ReactNode;
-};
+  title?: string
+  titleFontSize?: CSSProperties['fontSize']
+  description?: string
+  actions?: ReactNode
+  padded?: boolean
+  children?: ReactNode
+}
 
 export default function SettingsSection({
   title,
+  titleFontSize,
   description,
   actions,
+  padded = true,
   children,
 }: SettingsSectionProps) {
-  const hasHeader = title || description || actions;
+  const hasHeader = title || description || actions
+  const sectionClassName = padded
+    ? 'network-settings-section'
+    : 'network-settings-section network-settings-section--no-padding'
+  const titleClassName = titleFontSize
+    ? 'network-settings-section__title network-settings-section__title--custom-size'
+    : 'network-settings-section__title'
+  const titleStyle = titleFontSize
+    ? ({ '--network-settings-section-title-font-size': titleFontSize } as CSSProperties)
+    : undefined
 
   return (
-    <section className="network-settings-section">
+    <section className={sectionClassName}>
       {hasHeader ? (
         <div className="network-settings-section__header">
           <div>
             {title ? (
-              <Typography.Title level={5} className="network-settings-section__title">
+              <Typography.Title level={5} className={titleClassName} style={titleStyle}>
                 {title}
               </Typography.Title>
             ) : null}
@@ -37,5 +50,5 @@ export default function SettingsSection({
       ) : null}
       {children}
     </section>
-  );
+  )
 }

@@ -43,7 +43,7 @@ export default function GroupingHierarchyPreviews({
     controls.circularBundlingEnabled ?? DEFAULT_CIRCULAR_BUNDLING_ENABLED;
 
   if (!dataset) {
-    return <Alert type="info" message="Load a dataset to preview grouping order." />;
+    return <Alert type="info" message="Load a dataset to preview node colors." />;
   }
 
   return (

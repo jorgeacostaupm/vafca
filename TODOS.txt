@@ -1,8 +1,4 @@
 
-----------------> GRAPH THEORY MEASURES: poder obtener graph theory measures basicacas ad hoc de las redes visualizadas
-----------------> FILTERING: se deberian pdoer guardar filtros para reutilizarlos
-----------------> FILTERING: parte del filtering consistente es el que se extrae de vistas
-----------------> ATLAS: poder seleccionar atlas 2d, 3d o no en settings
 
 
 

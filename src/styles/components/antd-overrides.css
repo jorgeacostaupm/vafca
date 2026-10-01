@@ -19,7 +19,7 @@
 
 .ant-card,
 .ant-card-bordered {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border-color: var(--color-border);
   box-shadow: var(--shadow-sm);
   background: var(--color-surface);
@@ -45,6 +45,21 @@
   color: var(--color-primary);
 }
 
+.ant-btn.ant-btn-default.app-toggle-button:not(:disabled):not(.ant-btn-disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.ant-btn.ant-btn-default.app-toggle-button[aria-pressed="true"]:not(:disabled):not(.ant-btn-disabled) {
+  border-color: var(--color-success);
+  box-shadow: var(--shadow-toggle-active);
+}
+
+.ant-btn.ant-btn-default.app-toggle-button[aria-pressed="true"]:not(:disabled):not(.ant-btn-disabled):focus-visible {
+  box-shadow: var(--shadow-toggle-active), var(--focus-ring);
+}
+
 .ant-btn-primary {
   box-shadow: none;
 }
@@ -58,7 +73,7 @@
 .ant-btn[disabled]:hover {
   color: var(--color-text-muted);
   border-color: var(--color-border);
-  background: #eef1f5;
+  background: var(--color-disabled-bg);
   box-shadow: none;
 }
 
@@ -87,13 +102,13 @@
 }
 
 .ant-input::placeholder {
-  color: #8c98a8;
+  color: var(--color-placeholder);
 }
 
 .ant-input[disabled],
 .ant-select-disabled .ant-select-selector,
 .ant-picker-disabled {
-  background: #eef1f5;
+  background: var(--color-disabled-bg);
   color: var(--color-text-muted);
 }
 
@@ -107,7 +122,7 @@
 
 .ant-tabs-ink-bar {
   height: 3px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .ant-divider {
@@ -119,12 +134,12 @@
 }
 
 .ant-table {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .ant-table-thead > tr > th {
-  background: #eef2f8;
+  background: var(--color-surface-2);
   color: var(--color-text);
   font-weight: 600;
 }

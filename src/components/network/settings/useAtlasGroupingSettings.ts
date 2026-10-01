@@ -61,6 +61,8 @@ export const useAtlasGroupingSettings = ({
   const colorCategories = useMemo<AtlasColorCategoryItem[]>(() => {
     const includedIds = new Set(enabledIds);
 
+    const allCategories = buildNodeGroupingColorCategories({ atlasDefinition, groupingFields: effectiveColorFields, colorPalette: effectiveColorPalette });
+    const colorByKey = new Map(allCategories.map(category => [category.key, category.color]));
     return buildNodeGroupingColorCategories({
       atlasDefinition,
       groupingFields: effectiveColorFields,
@@ -70,7 +72,7 @@ export const useAtlasGroupingSettings = ({
       key: entry.key,
       label: entry.values.join(" · "),
       count: entry.count,
-      color: entry.color,
+      color: colorByKey.get(entry.key) ?? entry.color,
     }));
   }, [atlasDefinition, effectiveColorFields, effectiveColorPalette, enabledIds]);
 

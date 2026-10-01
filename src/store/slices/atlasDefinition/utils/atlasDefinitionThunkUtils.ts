@@ -1,5 +1,4 @@
 export const DEFAULT_ATLAS_STATUS_ID = '__default_atlas__'
-export const DEFAULT_ATLAS_DEFINITION_PATH = 'data/atlas_3d_no_mesh_points.json'
 
 export const buildPublicDataUrl = (path: string) =>
   `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`

@@ -10,8 +10,9 @@ import NodeLinkPanel from "@/components/nodelink/NodeLinkPanel";
 import { useAppDispatch } from "@/store/hooks";
 import {
   applyNetworkZoom,
-  toggleNetworkZoomLabelSelection,
 } from "@/store/slices/networkVisualization";
+import { toggleAnnotationNode } from '@/store/slices/visualizationUi'
+import type { NetworkViewValueFilters } from "@/types/networkViews";
 import type { ComputedView } from "@/types/networkVisualization";
 
 type NetworkViewRendererProps = {
@@ -20,10 +21,7 @@ type NetworkViewRendererProps = {
   renderData: ReturnType<typeof buildNetworkViewRenderData>;
   isMatrixView: boolean;
   svgRef: RefObject<SVGSVGElement | null>;
-  valueFilters: {
-    measure: null;
-    stat: ComputedView["statFilter"];
-  };
+  valueFilters: NetworkViewValueFilters;
 };
 
 function NetworkViewRenderer({
@@ -39,15 +37,9 @@ function NetworkViewRenderer({
 
   const handleLabelToggle = useCallback(
     (label: string) => {
-      dispatch(
-        toggleNetworkZoomLabelSelection({
-          viewId: view.id,
-          label,
-          orderedLabels: computed.availableLabels,
-        }),
-      );
+      dispatch(toggleAnnotationNode({ id: label, label: computed.labelNames?.[label] ?? label }));
     },
-    [computed.availableLabels, dispatch, view.id],
+    [computed.labelNames, dispatch],
   );
   const handleMatrixBrushZoom = useCallback(
     (payload: { rowLabels: string[]; colLabels: string[] }) => {
@@ -115,6 +107,9 @@ function NetworkViewRenderer({
         legendMax={computed.valueDomain.max}
         valueDomain={computed.valueDomain}
         valueFilters={valueFilters}
+        labelNames={computed.labelNames}
+        labelTitles={computed.labelTitles}
+        labelColors={computed.nodeColors}
         brushEnabled={computed.brushEnabled}
         brushMode={computed.brushMode}
         showAllLabels={Boolean(computed.zoomState.current)}
@@ -151,6 +146,10 @@ function NetworkViewRenderer({
     brushMode: computed.brushMode,
     geometricZoomEnabled: computed.geometricZoomEnabled,
     hideIsolatedNodes: computed.hideIsolatedNodes,
+    labelNames: computed.labelNames,
+    labelTitles: computed.labelTitles,
+    labelAcronyms: computed.labelAcronyms,
+    nodeColors: computed.nodeColors,
     onLabelToggle: handleLabelToggle,
     onBrushZoom: handleNodeLinkBrushZoom,
   };
@@ -159,6 +158,7 @@ function NetworkViewRenderer({
     return (
       <CircularNodeLinkPanel
         {...commonNodeLinkProps}
+        atlasDefinition={computed.orderingAtlasDefinition}
         circularLinkTension={computed.circularLinkTension}
         circularBundlingEnabled={computed.circularBundlingEnabled}
         circularPositiveLinkColor={computed.circularPositiveLinkColor}

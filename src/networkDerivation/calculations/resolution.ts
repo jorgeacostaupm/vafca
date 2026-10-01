@@ -1,117 +1,39 @@
-import { getNetworkCalculationMethodDefinitions } from "@/networkDerivation/calculations/methods";
+import { sameDimensions } from "@/networkDerivation/calculations/dimensions";
+import { inputSourceId, inputStatisticId } from "@/networkDerivation/calculations/inputStatistics";
+import { getNetworkCalculationMethodDefinition, getNetworkCalculationMethodDefinitions } from "@/networkDerivation/calculations/methods";
+import { missingSampleSizeIds } from "@/networkDerivation/calculations/sampleSizes";
 import type {
-  CalculationInputRole,
+  DimensionComparison,
   NetworkCalculationBatchRequest,
+  NetworkCalculationInputSpec,
   NetworkCalculationOperation,
   NetworkCalculationState,
   ResolvedCalculationInputs,
 } from "@/networkDerivation/calculations/types";
 import type { Network } from "@/types/network";
 
-const sameContext = (
-  network: Network,
-  request: NetworkCalculationBatchRequest,
-  layerId: string,
-  measureId: string,
-) =>
-  network.context.layerId === layerId &&
-  network.measureId === measureId &&
-  (request.conditionId === undefined ||
-    network.context.conditionId === request.conditionId) &&
-  (request.sessionId === undefined ||
-    network.context.sessionId === request.sessionId) &&
-  (request.taskId === undefined || network.context.taskId === request.taskId);
-
-const hasPopulation = (network: Network, populationId?: string) =>
-  Boolean(
-    populationId &&
-      network.source.type === "population" &&
-      network.source.populationId === populationId,
-  );
-
-const hasSubject = (network: Network, subjectId?: string) =>
-  Boolean(
-    subjectId &&
-      network.source.type === "subject" &&
-      network.source.subjectId === subjectId,
-  );
-
-const roleCriteria = (
-  role: CalculationInputRole,
-  request: NetworkCalculationBatchRequest,
-  subjectId?: string,
-) => {
-  switch (role) {
-    case "subjectValue":
-      return { sourceType: "subject" as const, statisticId: "value", subjectId };
-    case "leftSubjectValue":
-      return { sourceType: "subject" as const, statisticId: "value", subjectId };
-    case "rightSubjectValue":
-      return {
-        sourceType: "subject" as const,
-        statisticId: "value",
-        subjectId: request.rightSubjectId,
-      };
-    case "targetMean":
-      return {
-        sourceType: "population" as const,
-        statisticId: "mean",
-        populationId: request.leftPopulationId,
-      };
-    case "referenceMean":
-      return {
-        sourceType: "population" as const,
-        statisticId: "mean",
-        populationId: request.referencePopulationId ?? request.rightPopulationId,
-      };
-    case "referenceStd":
-      return {
-        sourceType: "population" as const,
-        statisticId: "std",
-        populationId: request.referencePopulationId ?? request.rightPopulationId,
-      };
-    case "leftMean":
-      return {
-        sourceType: "population" as const,
-        statisticId: "mean",
-        populationId: request.leftPopulationId,
-      };
-    case "rightMean":
-      return {
-        sourceType: "population" as const,
-        statisticId: "mean",
-        populationId: request.rightPopulationId,
-      };
-    case "leftStd":
-      return {
-        sourceType: "population" as const,
-        statisticId: "std",
-        populationId: request.leftPopulationId,
-      };
-    case "rightStd":
-      return {
-        sourceType: "population" as const,
-        statisticId: "std",
-        populationId: request.rightPopulationId,
-      };
-  }
-};
+const sourceKind = (state: NetworkCalculationState, sourceId: string) =>
+  state.catalogs.sources[sourceId]?.kind;
 
 const findRoleNetwork = (
-  role: CalculationInputRole,
+  input: NetworkCalculationInputSpec,
+  operation: NetworkCalculationOperation,
   request: NetworkCalculationBatchRequest,
   state: NetworkCalculationState,
-  layerId: string,
+  dimensionPair: DimensionComparison,
   measureId: string,
   subjectId?: string,
 ) => {
-  const criteria = roleCriteria(role, request, subjectId);
+  const { role } = input;
+  const statisticId = inputStatisticId(request, operation, input);
+  const sourceId = inputSourceId(role, request, subjectId);
   const candidates = state.networks.filter((network) => {
-    if (network.source.type !== criteria.sourceType) return false;
-    if (network.statisticId !== criteria.statisticId) return false;
-    if (!sameContext(network, request, layerId, measureId)) return false;
-    if ("subjectId" in criteria) return hasSubject(network, criteria.subjectId);
-    return hasPopulation(network, criteria.populationId);
+    if (sourceKind(state, network.sourceId) !== input.kind) return false;
+    if (network.statisticId !== statisticId) return false;
+    const rightRole = role.startsWith("right") || role.startsWith("reference");
+    const dimensions = rightRole ? dimensionPair.right : dimensionPair.left;
+    if (network.measureId !== measureId || !sameDimensions(network.dimensions, dimensions)) return false;
+    return Boolean(sourceId && network.sourceId === sourceId);
   });
 
   return {
@@ -120,43 +42,29 @@ const findRoleNetwork = (
   };
 };
 
-const requiredRolesForOperation = (
-  operation: NetworkCalculationOperation,
-): CalculationInputRole[] => {
-  if (operation === "subject_zscore_vs_population") {
-    return ["subjectValue", "referenceMean", "referenceStd"];
-  }
-  if (operation === "subject_difference") {
-    return ["leftSubjectValue", "rightSubjectValue"];
-  }
-  if (operation === "population_reference_zscore") {
-    return ["targetMean", "referenceMean", "referenceStd"];
-  }
-  if (operation === "population_difference") return ["leftMean", "rightMean"];
-  return ["leftMean", "rightMean", "leftStd", "rightStd"];
-};
-
-export const resolveCalculationInputsForLayerMeasure = (
+export const resolveCalculationInputsForDimensions = (
   request: NetworkCalculationBatchRequest & {
     operation?: NetworkCalculationOperation;
   },
   state: NetworkCalculationState,
-  layerId: string,
+  dimensionPair: DimensionComparison,
   measureId: string,
   subjectId?: string,
 ): ResolvedCalculationInputs => {
   const operation = request.operation ?? request.operations[0];
-  const roles = requiredRolesForOperation(operation);
+  const inputs = getNetworkCalculationMethodDefinition(operation)?.requiredInputs ?? [];
   const networks: ResolvedCalculationInputs["networks"] = {};
   const warnings: string[] = [];
-  const missingRoles: CalculationInputRole[] = [];
+  const missingRoles: ResolvedCalculationInputs["missingRoles"] = [];
 
-  roles.forEach((role) => {
+  inputs.forEach((input) => {
+    const { role } = input;
     const { network, ambiguous } = findRoleNetwork(
-      role,
+      input,
+      operation,
       request,
       state,
-      layerId,
+      dimensionPair,
       measureId,
       subjectId,
     );
@@ -167,7 +75,7 @@ export const resolveCalculationInputsForLayerMeasure = (
     networks[role] = network;
     if (ambiguous) {
       warnings.push(
-        `Multiple candidate networks found for ${role}. The first candidate was used.`,
+        `Multiple candidate networks found for ${role}. Select an unambiguous input context.`,
       );
     }
   });
@@ -185,7 +93,6 @@ export const assertContextCompatible = (networks: Network[]) => {
   const [first] = networks;
   const incompatible = networks.find(
     (network) =>
-      network.context.layerId !== first.context.layerId ||
       network.measureId !== first.measureId ||
       !sameNodeOrder(first, network),
   );
@@ -199,104 +106,65 @@ export const validateNetworkCalculationRequest = (
   state: NetworkCalculationState,
 ) => {
   const errors: string[] = [];
+  if (request.operations.length === 1 && request.operations[0] === "correlation") {
+    const networks = [request.correlationNetworkAId, request.correlationNetworkBId].map((id) => state.networkIndex[id ?? ""]);
+    if (networks.some((network) => !network)) errors.push("Select Network A and Network B.");
+    else { try { assertContextCompatible(networks); } catch (error) { errors.push((error as Error).message); } }
+    return { valid: !errors.length, errors };
+  }
   if (!request.operations.length) errors.push("Select at least one calculation method.");
-  if (!request.layerIds.length) errors.push("Select at least one layer.");
+  if (!request.dimensionPairs.length) errors.push("Select at least one dimension combination.");
+  const aspectIds = state.catalogs.aspects.map((aspect) => aspect.id);
+  if (request.dimensionPairs.some((pair) => [pair.left, pair.right].some((dimensions) =>
+    Object.keys(dimensions).length !== aspectIds.length || aspectIds.some((id) =>
+      !state.catalogs.aspectCatalogs[id]?.[dimensions[id]],
+    ),
+  ))) errors.push("Select valid values for every dimension.");
+  missingSampleSizeIds(request, state).forEach((id) =>
+    errors.push(`Enter an integer sample size greater than 1 for '${state.catalogs.sources[id]?.label ?? id}'.`),
+  );
   if (!request.measureIds.length) errors.push("Select at least one measure.");
   request.operations.forEach((operation) => {
-    if (!getNetworkCalculationMethodDefinitions().some((method) => method.id === operation)) {
+    const method = getNetworkCalculationMethodDefinition(operation);
+    if (!method) {
       errors.push(`Unknown calculation operation '${operation}'.`);
+      return;
     }
-    if (
-      (operation === "subject_zscore_vs_population" ||
-        operation === "subject_difference") &&
-      !request.subjectIds?.length
-    ) {
-      errors.push("Select at least one subject.");
-    }
-    if (operation === "subject_difference" && !request.rightSubjectId) {
-      errors.push("Select a right/control subject.");
-    }
-    if (
-      operation !== "subject_zscore_vs_population" &&
-      operation !== "subject_difference" &&
-      !request.leftPopulationId
-    ) {
-      errors.push("Select a left/target population.");
-    }
-    if (
-      operation !== "subject_zscore_vs_population" &&
-      operation !== "subject_difference" &&
-      operation !== "population_reference_zscore" &&
-      !request.rightPopulationId
-    ) {
-      errors.push("Select a right/control population.");
-    }
-    if (operation === "population_reference_zscore" && !request.referencePopulationId) {
-      errors.push("Select a reference population.");
-    }
+    method.requiredInputs.forEach((input) => {
+      const id = inputStatisticId(request, operation, input);
+      if (!id || !state.catalogs.statistics[id]) {
+        errors.push(`Select a statistic for ${method.label}: ${input.label}.`);
+      }
+      const sourceIds = input.role === "subjectValue" || input.role === "leftSubjectValue"
+        ? request.subjectIds ?? [] : [inputSourceId(input.role, request)];
+      if (!sourceIds.length || sourceIds.some((sourceId) =>
+        !sourceId || sourceKind(state, sourceId) !== input.kind,
+      )) errors.push(`Select a valid source for ${method.label}: ${input.label}.`);
+    });
   });
   if (!state.networks.length) errors.push("No networks are loaded.");
   return { valid: errors.length === 0, errors };
 };
 
 export const getAvailableNetworkCalculations = (state: NetworkCalculationState) => {
-  const hasSubjectValue = state.networks.some(
-    (network) =>
-      network.source.type === "subject" && network.statisticId === "value",
+  const kinds = new Set(state.networks.map((network) => sourceKind(state, network.sourceId)));
+  // Statistics are assigned by the user; catalog IDs need not be named mean/std/value.
+  return getNetworkCalculationMethodDefinitions().filter((method) =>
+    method.requiredInputs.every((input) => kinds.has(input.kind)),
   );
-  const populationMeanIds = new Set(
-    state.networks
-      .filter(
-        (network) =>
-          network.source.type === "population" &&
-          network.statisticId === "mean",
-      )
-      .map((network) =>
-        network.source.type === "population" ? network.source.populationId : "",
-      )
-      .filter(Boolean),
-  );
-  const populationStdIds = new Set(
-    state.networks
-      .filter(
-        (network) =>
-          network.source.type === "population" &&
-          network.statisticId === "std",
-      )
-      .map((network) =>
-        network.source.type === "population" ? network.source.populationId : "",
-      )
-      .filter(Boolean),
-  );
-  const populationWithMeanAndStd = [...populationMeanIds].filter((id) =>
-    populationStdIds.has(id),
-  );
-  const subjectScope = hasSubjectValue && populationWithMeanAndStd.length > 0;
-  const subjectComparisonScope =
-    state.networks.filter(
-      (network) =>
-        network.source.type === "subject" && network.statisticId === "value",
-    ).length >= 2;
-  const populationScope = populationMeanIds.size >= 2;
-  return getNetworkCalculationMethodDefinitions().filter((method) => {
-    if (method.scope === "subject_vs_population") return subjectScope;
-    if (method.scope === "subject_vs_subject") return subjectComparisonScope;
-    if (method.id === "population_difference") return populationScope;
-    return populationWithMeanAndStd.length >= 2;
-  });
 };
 
 export const findEquivalentDerivedNetwork = (
   candidate: Pick<
     Network,
-    "source" | "statisticId" | "context" | "measureId" | "derivation"
+    "sourceId" | "statisticId" | "dimensions" | "measureId" | "derivation"
   >,
   networkIndex: Record<string, Network>,
 ) =>
   Object.values(networkIndex).find((network) => {
-    if (network.source.type !== candidate.source.type) return false;
+    if (network.sourceId !== candidate.sourceId) return false;
     if (network.statisticId !== candidate.statisticId) return false;
-    if (network.context.layerId !== candidate.context.layerId) return false;
+    if (!sameDimensions(network.dimensions, candidate.dimensions)) return false;
     if (network.measureId !== candidate.measureId) return false;
     if (
       !candidate.derivation ||

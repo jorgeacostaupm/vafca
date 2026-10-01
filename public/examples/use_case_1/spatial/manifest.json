@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "coordinate_space": "fsaverage",
+  "atlas": {
+    "type": "surface-atlas",
+    "format": "glb",
+    "file": "desikan68.glb",
+    "mapping": { "roi_field": "id", "model_field": "name" }
+  }
+}

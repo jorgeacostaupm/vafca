@@ -8,7 +8,7 @@ type LinkEndpoint = {
 
 export type SelectedLinkDraft = Pick<
   SelectedLink,
-  "id" | "rowId" | "colId" | "rowLabel" | "colLabel" | "directed"
+  "id" | "rowId" | "colId" | "rowLabel" | "colLabel"
 >;
 
 const buildLinkId = (rowId: string, colId: string) => `${rowId}::${colId}`;
@@ -27,15 +27,12 @@ const compareEndpoints = (left: LinkEndpoint, right: LinkEndpoint) => {
 export const createSelectedLinkDraft = ({
   row,
   col,
-  symmetric,
 }: {
   row: LinkEndpoint;
   col: LinkEndpoint;
-  symmetric: boolean;
 }): SelectedLinkDraft => {
-  const directed = !symmetric;
   const [source, target] =
-    symmetric && compareEndpoints(col, row) < 0 ? [col, row] : [row, col];
+    compareEndpoints(col, row) < 0 ? [col, row] : [row, col];
 
   return {
     id: buildLinkId(source.id, target.id),
@@ -43,17 +40,20 @@ export const createSelectedLinkDraft = ({
     colId: target.id,
     rowLabel: source.label,
     colLabel: target.label,
-    directed,
   };
 };
 
 export const getSelectedLinkRemovalIds = (
   rowId: string,
   colId: string,
-  symmetric: boolean,
 ) => {
   const id = buildLinkId(rowId, colId);
-  if (!symmetric || rowId === colId) return [id];
+  if (rowId === colId) return [id];
   return [id, buildLinkId(colId, rowId)];
 };
 
+export const findSelectedLinkId = (
+  selected: Record<string, SelectedLink>,
+  rowId: string,
+  colId: string,
+) => getSelectedLinkRemovalIds(rowId, colId).find((id) => selected[id]);

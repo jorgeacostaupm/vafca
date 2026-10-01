@@ -9,13 +9,17 @@ type NodeGroupingColorCategory = {
   key: string;
   values: string[];
   count: number;
+  nodeIds: string[];
   color: string;
 };
 
 const buildNodeGroupingValues = (node: AtlasNode, groupingFields: string[]) =>
   groupingFields.map((field) => normalizeNodeFieldValue(getNodeFieldValue(node, field)));
 
-export const buildGroupingColorCategoryKey = (values: string[]) => values.join("||");
+export const buildNodeGroupingCategoryById = (atlas: AtlasDefinition | null, fields: string[]) =>
+  Object.fromEntries((atlas?.nodes ?? []).map(node => [String(node.id), JSON.stringify(buildNodeGroupingValues(node, fields))]));
+
+export const buildGroupingColorCategoryKey = (values: string[]) => JSON.stringify(values);
 
 export const buildNodeGroupingColorCategories = ({
   atlasDefinition,
@@ -31,7 +35,7 @@ export const buildNodeGroupingColorCategories = ({
   if (!atlasDefinition?.nodes?.length || groupingFields.length === 0) return [];
 
   const palette = D3_GROUPING_PALETTES[colorPalette].palette;
-  const categories = new Map<string, { values: string[]; count: number }>();
+  const categories = new Map<string, { values: string[]; count: number; nodeIds: string[] }>();
 
   atlasDefinition.nodes.forEach((node) => {
     const id = String(node.id);
@@ -42,9 +46,10 @@ export const buildNodeGroupingColorCategories = ({
     const current = categories.get(key);
     if (current) {
       current.count += 1;
+      current.nodeIds.push(id);
       return;
     }
-    categories.set(key, { values, count: 1 });
+    categories.set(key, { values, count: 1, nodeIds: [id] });
   });
 
   return Array.from(categories.entries())
@@ -53,6 +58,7 @@ export const buildNodeGroupingColorCategories = ({
       key,
       values: entry.values,
       count: entry.count,
+      nodeIds: entry.nodeIds,
       color: palette[index % palette.length],
     }));
 };

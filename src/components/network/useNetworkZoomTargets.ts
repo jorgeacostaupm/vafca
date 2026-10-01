@@ -20,10 +20,14 @@ export const useNetworkZoomTargets = () => {
 
       const trigger = viewsById[viewId];
       if (!trigger) return [viewId];
+      if (trigger.coordinationDisabled) return [viewId];
 
       const views = viewsOrder
         .map((id) => viewsById[id])
-        .filter((view): view is NetworkViewDescriptor => Boolean(view));
+        .filter(
+          (view): view is NetworkViewDescriptor =>
+            Boolean(view) && !view.coordinationDisabled,
+        );
       const isMatrix = trigger.type === "matrix";
 
       return views

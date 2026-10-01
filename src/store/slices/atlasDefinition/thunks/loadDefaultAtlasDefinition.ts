@@ -1,11 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
 import type { AtlasDefinition } from '@/types/atlas'
+import type { RootState } from '@/types/store'
 import { validateAtlasDefinition } from '@/utils/atlas/atlasDefinition'
+import { buildAtlasSourceFromNodeSet } from '@/utils/atlas/nodeDerivedAtlas'
 
 import {
   buildPublicDataUrl,
-  DEFAULT_ATLAS_DEFINITION_PATH,
   DEFAULT_ATLAS_STATUS_ID,
 } from '../utils/atlasDefinitionThunkUtils'
 
@@ -21,16 +22,20 @@ export const loadDefaultAtlasDefinition = createAsyncThunk<
     atlas: AtlasDefinition | null
   },
   { atlasId?: string; path?: string } | void,
-  { rejectValue: AtlasDefinitionLoadError }
+  { state: RootState; rejectValue: AtlasDefinitionLoadError }
 >(
   'atlasDefinition/loadDefaultAtlasDefinition',
-  async (payload, { rejectWithValue }) => {
+  async (payload, { getState, rejectWithValue }) => {
     const requestedAtlasId = payload?.atlasId
     const statusAtlasId = requestedAtlasId ?? DEFAULT_ATLAS_STATUS_ID
 
     try {
+      if (!payload?.path) {
+        const source = buildAtlasSourceFromNodeSet(getState().dataset.nodeSet ?? undefined, 'Dataset ROIs');
+        return { atlasId: source?.atlas.id ?? statusAtlasId, requestedAtlasId, atlas: source?.atlas ?? null };
+      }
       const response = await fetch(
-        buildPublicDataUrl(payload?.path ?? DEFAULT_ATLAS_DEFINITION_PATH),
+        buildPublicDataUrl(payload.path),
       )
       if (!response.ok) {
         return rejectWithValue({
@@ -39,7 +44,8 @@ export const loadDefaultAtlasDefinition = createAsyncThunk<
         })
       }
 
-      const result = validateAtlasDefinition(await response.json())
+      const raw: unknown = await response.json()
+      const result = validateAtlasDefinition(raw)
       if (!result.ok) {
         return rejectWithValue({
           atlasId: statusAtlasId,

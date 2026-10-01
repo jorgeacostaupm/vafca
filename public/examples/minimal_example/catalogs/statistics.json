@@ -1,0 +1,12 @@
+{
+  "mean": {
+    "label": "Mean",
+    "scaleType": "sequential",
+    "rangeMode": "inherit_measure"
+  },
+  "median": {
+    "label": "Median",
+    "scaleType": "sequential",
+    "rangeMode": "inherit_measure"
+  }
+}

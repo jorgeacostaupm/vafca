@@ -6,10 +6,6 @@ import {
   UNKNOWN_GROUP,
 } from "@/utils/atlas/atlasDefinition";
 
-import { ALL_FILTER } from "../panelConstants";
-
-export type SelectOption = { value: string; label: string };
-
 const orderGroupValues = (values: string[]) => {
   return [...values].sort((a, b) => {
     const pa = a === UNKNOWN_GROUP ? 1 : 0;
@@ -50,78 +46,20 @@ const matchesQuery = (
   return (labelSearchTextById[id] ?? id.toLowerCase()).includes(normalizedQuery);
 };
 
-const matchesFilters = (
-  id: string,
-  nodeFieldValuesById: Map<string, Record<string, string>>,
-  selectedFilters: Record<string, string>,
-  ignoredField?: string,
-) => {
-  for (const [field, selected] of Object.entries(selectedFilters)) {
-    if (field === ignoredField || selected === ALL_FILTER) continue;
-    const value = nodeFieldValuesById.get(id)?.[field] ?? UNKNOWN_GROUP;
-    if (value !== selected) return false;
-  }
-  return true;
-};
-
 export const filterIds = ({
   orderedIds,
   labelSearchTextById,
-  nodeFieldValuesById,
   normalizedQuery,
-  selectedFilters,
 }: {
   orderedIds: string[];
   labelSearchTextById: Record<string, string>;
-  nodeFieldValuesById: Map<string, Record<string, string>>;
   normalizedQuery: string;
-  selectedFilters: Record<string, string>;
 }) => {
-  if (!normalizedQuery && Object.keys(selectedFilters).length === 0) {
-    return orderedIds;
-  }
+  if (!normalizedQuery) return orderedIds;
 
-  return orderedIds.filter((id) => {
-    if (!matchesQuery(id, labelSearchTextById, normalizedQuery)) return false;
-    return matchesFilters(id, nodeFieldValuesById, selectedFilters);
-  });
-};
-
-export const buildFieldOptionsByField = ({
-  groupByFields,
-  orderedIds,
-  labelSearchTextById,
-  nodeFieldValuesById,
-  normalizedQuery,
-  selectedFilters,
-}: {
-  groupByFields: string[];
-  orderedIds: string[];
-  labelSearchTextById: Record<string, string>;
-  nodeFieldValuesById: Map<string, Record<string, string>>;
-  normalizedQuery: string;
-  selectedFilters: Record<string, string>;
-}) => {
-  const entries = groupByFields.map((field) => {
-    const values = new Set<string>();
-    orderedIds.forEach((id) => {
-      if (!matchesQuery(id, labelSearchTextById, normalizedQuery)) return;
-      if (!matchesFilters(id, nodeFieldValuesById, selectedFilters, field)) return;
-      values.add(nodeFieldValuesById.get(id)?.[field] ?? UNKNOWN_GROUP);
-    });
-
-    const options: SelectOption[] = [
-      { value: ALL_FILTER, label: "All" },
-      ...orderGroupValues(Array.from(values)).map((value) => ({
-        value,
-        label: formatGroupValue(value),
-      })),
-    ];
-
-    return [field, options] as const;
-  });
-
-  return Object.fromEntries(entries) as Record<string, SelectOption[]>;
+  return orderedIds.filter((id) =>
+    matchesQuery(id, labelSearchTextById, normalizedQuery),
+  );
 };
 
 export const buildGroupedRows = ({

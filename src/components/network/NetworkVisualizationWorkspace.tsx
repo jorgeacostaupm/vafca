@@ -1,10 +1,12 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import type { LayoutItem } from "react-grid-layout";
 
 import NetworkLayout from "@/components/layout/NetworkLayout";
 import { useNetworkWorkspaceLayout } from "@/components/network/useNetworkWorkspaceLayout";
 import { NetworkViewComputationProvider } from "@/components/network/views/NetworkViewComputationProvider";
 import NetworkViewContainer from "@/components/network/views/NetworkViewContainer";
 import RankingResultPanelContainer from "@/components/rankings/RankingResultPanelContainer";
+import { NETWORK_VIEW_SQUARE_CONSTRAINT } from "@/config/ui";
 
 export default function NetworkVisualizationWorkspace() {
   const {
@@ -14,6 +16,15 @@ export default function NetworkVisualizationWorkspace() {
     updateLayout,
     isNetworkView,
   } = useNetworkWorkspaceLayout();
+  const layout = useMemo<LayoutItem[]>(
+    () =>
+      combinedLayout.map((item) =>
+        isNetworkView(item.i)
+          ? { ...item, constraints: [NETWORK_VIEW_SQUARE_CONSTRAINT] }
+          : item,
+      ),
+    [combinedLayout, isNetworkView],
+  );
   const renderWorkspaceView = useCallback(
     (id: string) =>
       isNetworkView(id) ? (
@@ -28,7 +39,7 @@ export default function NetworkVisualizationWorkspace() {
     <NetworkViewComputationProvider>
       <NetworkLayout
         panelIds={panelIds}
-        layout={combinedLayout}
+        layout={layout}
         renderPanel={renderWorkspaceView}
         setLayout={updateLayout}
       />

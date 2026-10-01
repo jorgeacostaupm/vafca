@@ -4,6 +4,7 @@ import type { MutableRefObject } from "react";
 import { applyCircularBrushBehavior } from "@/components/circular/circularBrush";
 import { renderCircularElements } from "@/components/circular/circularRenderStrategies";
 import { positionCircularTooltipForNode } from "@/components/circular/circularTooltipPosition";
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import { positionTooltipForPointer } from "@/components/nodelink/tooltipPosition";
 import {
   CIRCULAR_NODE_RADIUS,
@@ -65,7 +66,7 @@ type CircularSceneRenderArgs = {
   onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   onBrushDeselectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   getNodeColor: (node: CircularNode) => string;
-  valueLabel?: string;
+  valueLabel?: TooltipValueLabel;
   setLocalHoverActive: (active: boolean) => void;
   zoomTransformRef: MutableRefObject<d3.ZoomTransform>;
 };

@@ -2,14 +2,14 @@ import type { StatRangeValue } from "@/types/matrixView";
 import type { Catalogs } from "@/types/network";
 
 type PopulationCatalogsLike = {
-  populations?: Record<string, { label?: string } | undefined>;
+  sources?: Record<string, { label?: string } | undefined>;
 };
 
 type NetworkSummaryLike = {
-  populationIds: string[];
+  sourceId: string;
   measureId: string;
-  statId: string;
-  layerId: string;
+  statisticId: string;
+  dimensions: Record<string, string>;
 };
 
 export const toLabel = (value?: string) => value ?? "Unknown";
@@ -17,23 +17,32 @@ export const toLabel = (value?: string) => value ?? "Unknown";
 export const normalizePopulationKey = (ids: string[]) =>
   [...ids].sort().join("+");
 
-export const formatPopulationLabel = (
+export const formatSourceLabel = (
   id: string,
   catalogs?: PopulationCatalogsLike,
-) => catalogs?.populations?.[id]?.label ?? id;
+) => catalogs?.sources?.[id]?.label ?? id;
+
+export const formatPopulationLabel = formatSourceLabel;
 
 export const formatPopulationSetLabel = (
-  ids: string[],
+  ids: string[] | string,
   catalogs?: PopulationCatalogsLike,
-) => ids.map((id) => formatPopulationLabel(id, catalogs)).join(" vs ");
+) => (Array.isArray(ids) ? ids : [ids])
+  .map((id) => formatSourceLabel(id, catalogs))
+  .join(" vs ");
 
 export const isEnabled = (value: { enabled?: boolean } | undefined) =>
   value?.enabled !== false;
 
 export const hasOnlyEnabledPopulations = (
   ids: string[],
-  populations: Record<string, { enabled?: boolean }> | undefined,
-) => ids.every((id) => isEnabled(populations?.[id]));
+  sources: Record<string, { enabled?: boolean }> | undefined,
+) => ids.every((id) => isEnabled(sources?.[id]));
+
+export const hasEnabledSource = (
+  id: string,
+  sources: Record<string, { enabled?: boolean }> | undefined,
+) => isEnabled(sources?.[id]);
 
 export const areLabelListsEqual = (
   a: string[] | null | undefined,
@@ -138,11 +147,11 @@ export const getMatrixRange = (data: number[][]) => {
 export const getLegendRange = (
   data: number[][],
   measureId: string,
-  statId: string,
+  statisticId: string,
   catalogs?: Catalogs,
 ) => {
   if (!catalogs) return { min: undefined, max: undefined };
-  const statRange = catalogs.statistics[statId];
+  const statRange = catalogs.statistics[statisticId];
   const measureRange = catalogs.measures[measureId];
   const hasStatRange =
     Number.isFinite(statRange?.min) && Number.isFinite(statRange?.max);
@@ -173,12 +182,15 @@ export const buildNetworkSummaryLabel = (
   summary: NetworkSummaryLike,
   catalogs?: Catalogs,
 ) => {
-  const populationLabel = formatPopulationSetLabel(
-    summary.populationIds,
-    catalogs,
-  );
+  const sourceLabel = formatSourceLabel(summary.sourceId, catalogs);
   const measureLabel = toLabel(catalogs?.measures[summary.measureId]?.label);
-  const statLabel = toLabel(catalogs?.statistics[summary.statId]?.label);
-  const layerLabel = toLabel(catalogs?.layers[summary.layerId]?.label);
-  return `${populationLabel} · ${measureLabel} · ${statLabel} · ${layerLabel}`;
+  const statLabel = toLabel(catalogs?.statistics[summary.statisticId]?.label);
+  const aspectLabels = catalogs?.aspects.map((aspect) => {
+    const value = summary.dimensions[aspect.id];
+    if (!value) return null;
+    return catalogs.aspectCatalogs[aspect.id]?.[value]?.label ?? value;
+  }) ?? [];
+  return [sourceLabel, measureLabel, statLabel, ...aspectLabels]
+    .filter(Boolean)
+    .join(" · ");
 };

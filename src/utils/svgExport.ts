@@ -34,7 +34,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const XLINK_NS = "http://www.w3.org/1999/xlink";
 
 
-const sanitizeFileName = (value: string) => {
+export const sanitizeFileName = (value: string) => {
   const normalized = value.normalize("NFKD").replace(/[^\w.\- ]+/g, "");
   const trimmed = normalized.trim().replace(/\s+/g, "-");
   const collapsed = trimmed.replace(/-+/g, "-").replace(/^-|-$/g, "");
@@ -51,7 +51,7 @@ const setInlineStyles = (source: Element, target: Element) => {
   }
 };
 
-const cloneSvgWithStyles = (svg: SVGSVGElement) => {
+export const cloneSvgWithStyles = (svg: SVGSVGElement) => {
   const clone = svg.cloneNode(true) as SVGSVGElement;
   if (!clone.getAttribute("xmlns")) clone.setAttribute("xmlns", SVG_NS);
   if (!clone.getAttribute("xmlns:xlink")) clone.setAttribute("xmlns:xlink", XLINK_NS);
@@ -107,7 +107,7 @@ const getSvgSize = (svg: SVGSVGElement) => {
   };
 };
 
-const downloadBlob = (blob: Blob, filename: string) => {
+export const downloadBlob = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

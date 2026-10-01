@@ -18,13 +18,16 @@ import type {
   NetworkViewDescriptor,
   NetworkViewType,
   NodeLinkNetworkViewSettings,
+  TemporaryAggregatedNetwork,
 } from '@/types/networkVisualization'
 
 export type NetworkVisualizationState = {
+  selectedNodeIds: string[]
   controls: NetworkSelectorControlsState
   controlsByViewType: Partial<Record<NetworkViewType, NetworkSelectorControlsState>>
   viewsOrder: string[]
   viewsById: Record<string, NetworkViewDescriptor>
+  temporaryNetworksById: Record<string, TemporaryAggregatedNetwork>
   matrixSettingsByViewId: Record<string, MatrixNetworkViewSettings>
   nodeLinkSettingsByViewId: Record<string, NodeLinkNetworkViewSettings>
   nextViewSeq: number
@@ -44,10 +47,10 @@ export type SetNetworkViewStatusPayload = {
 export const initialNetworkControls: NetworkSelectorControlsState = {
   viewType: DEFAULT_NETWORK_VIEW_TYPE,
   matrixSelectorMode: DEFAULT_NETWORK_MATRIX_SELECTOR_MODE,
-  populationKey: '',
+  sourceId: '',
   measureId: '',
-  statId: '',
-  layerId: '',
+  statisticId: '',
+  aspectFilters: {},
   selectedCompoundId: '',
   syncZoom: DEFAULT_NETWORK_SYNC_ZOOM,
   hideIsolatedNodes: DEFAULT_NETWORK_HIDE_ISOLATED_NODES,
@@ -60,12 +63,14 @@ export const initialNetworkControls: NetworkSelectorControlsState = {
 }
 
 export const initialNetworkVisualizationState: NetworkVisualizationState = {
+  selectedNodeIds: [],
   controls: { ...initialNetworkControls },
   controlsByViewType: {
     [initialNetworkControls.viewType]: { ...initialNetworkControls },
   },
   viewsOrder: [],
   viewsById: {},
+  temporaryNetworksById: {},
   matrixSettingsByViewId: {},
   nodeLinkSettingsByViewId: {},
   nextViewSeq: DEFAULT_NETWORK_NEXT_VIEW_SEQ,

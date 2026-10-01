@@ -3,10 +3,11 @@ import type { NetworkDataStats } from "@/types/network";
 export type MaterializedNetworkView = {
   id: string;
   compoundId: string;
-  layerId: string;
+  sourceId: string;
   measureId: string;
-  statId: string;
-  populationIds: string[];
+  statisticId: string;
+  dimensions: Record<string, string>;
+  nodeIds?: string[];
   data: number[][];
   symmetric: boolean;
   dataStats?: NetworkDataStats;
@@ -14,10 +15,10 @@ export type MaterializedNetworkView = {
 
 export type DatasetNetworkSummary = {
   compoundId: string;
-  layerId: string;
+  sourceId: string;
   measureId: string;
-  statId: string;
-  populationIds: string[];
+  statisticId: string;
+  dimensions: Record<string, string>;
   size: number;
   symmetric: boolean;
 };

@@ -1,15 +1,19 @@
+export * from './annotationSelectors'
 export { downloadSelectedLinks } from './thunks/downloadSelectedLinks'
 export {
+  selectAppliedMatrixBackgroundColor,
   selectAppliedMatrixColorSettings,
   selectAtlasLinkIds,
   selectAtlasPanelState,
+  selectCircularVisualStyle,
+  selectDraftMatrixBackgroundColor,
   selectDraftMatrixColorSettings,
   selectHoveredCell,
   selectHoveredNodeId,
   selectNodeLinkVisualStyle,
   selectSelectedLinkIdsByRowId,
-  selectSelectedLinksById,
   selectSelectedLinks,
+  selectSelectedLinksById,
   selectSelectedLinksDownloadError,
   selectSelectedLinksDownloadStatus,
   selectUiRangeMode,
@@ -30,6 +34,8 @@ export {
   resetDraftMatrixColorSettings,
   setAtlasLinkIds,
   setAtlasPanelState,
+  setCircularInteractionColor,
+  setDraftMatrixBackgroundColor,
   setDraftMatrixColorDiscreteSteps,
   setDraftMatrixColorDiscretize,
   setDraftMatrixColorInvert,
@@ -38,7 +44,9 @@ export {
   setHoveredCell,
   setHoveredNode,
   setNodeLinkInteractionColor,
+  setNodeLinkLinkColor,
   setUiRangeMode,
   toggleAtlasLinkId,
 } from './visualizationUiSlice'
+export { toggleActiveAnnotation, createNewAnnotation, removeAnnotation, selectAnnotation, setAnnotationOverlapColor,toggleAnnotationNode, updateAnnotation } from './visualizationUiSlice'
 export type { VisualizationUiSliceState } from './visualizationUiTypes'

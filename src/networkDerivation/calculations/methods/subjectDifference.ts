@@ -19,14 +19,14 @@ export const subjectDifferenceDefinition: NetworkCalculationMethodDefinition = {
   description: "Subtracts the right subject network from the left subject network.",
   formulaText: "left subject - right subject",
   interpretation: "Positive values indicate higher connectivity in the left subject.",
-  requirements: ["Left subject value network", "Right subject value network"],
+  requirements: ["Left subject network", "Right subject network"],
   requiredInputs: [
-    { role: "leftSubjectValue", label: "Left subject", kind: "subject", statId: "value", sourceLevel: "subject", required: true },
-    { role: "rightSubjectValue", label: "Right subject", kind: "subject", statId: "value", sourceLevel: "subject", required: true },
+    { role: "leftSubjectValue", label: "Left statistic", kind: "subject", statisticId: "value", sourceLevel: "subject", required: true },
+    { role: "rightSubjectValue", label: "Right statistic", kind: "subject", statisticId: "value", sourceLevel: "subject", required: true },
   ],
   outputs: [
     {
-      statId: "difference",
+      statisticId: "difference",
       statLabel: "Difference",
       statCategory: "comparison",
       operator: "subject_difference",
@@ -36,7 +36,7 @@ export const subjectDifferenceDefinition: NetworkCalculationMethodDefinition = {
       scaleType: "diverging",
       center: 0,
       rangeMode: "observed_symmetric",
-      expectedRange: [-1, 1],
+      expectedRange: null,
       useDataRange: true,
     },
   ],
@@ -52,13 +52,11 @@ export const calculateSubjectDifference: NetworkCalculationMethod["calculate"] =
   existingIds,
 }) => {
   request.subjectIds?.forEach((subjectId) => {
-    if (subjectId === request.rightSubjectId) return;
-
-    request.layerIds.forEach((layerId) => {
+    request.dimensionPairs.forEach((dimensionPair) => {
       request.measureIds.forEach((measureId) => {
         const resolved = ensureReady(
           "subject_difference",
-          layerId,
+          dimensionPair,
           measureId,
           result.skipped,
           request,

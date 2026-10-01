@@ -1,31 +1,37 @@
-import {
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  ArrowUpOutlined,
-  VerticalAlignMiddleOutlined,
-} from "@ant-design/icons";
-import { Button, Space, Typography } from "antd";
+import { Button } from "antd";
 import { useMemo, useRef } from "react";
 import { shallowEqual } from "react-redux";
 
+import NetworkViewFrame from "@/components/layout/NetworkViewFrame";
+import NetworkSpatialControls from "@/components/network/views/NetworkSpatialControls";
 import { useAtlasDefinition } from "@/hooks/useAtlasDefinition";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   selectAtlasDisplayLabelsById,
-  selectAtlasEnabledById,
 } from "@/store/slices/atlasUi";
 import { selectDatasetData } from "@/store/slices/dataset";
+import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 import { getDatasetAtlasId } from "@/utils/datasetAccessors";
 
 import { useAtlasScene } from "./atlasPanelHooks";
+import { buildEffectiveNodeEnabledMap } from "./nodeVisibilityDraft";
 
 type AtlasPanelViewerProps = {
-  enableMeshPoints: boolean;
+  enableSpatial: boolean;
 };
 
-export function AtlasPanelViewer({ enableMeshPoints }: AtlasPanelViewerProps) {
+export function AtlasPanelViewer({ enableSpatial }: AtlasPanelViewerProps) {
+  const dispatch = useAppDispatch();
+  const showInactiveNodes = useAppSelector(state => state.visualizationUi.atlasPanel.showInactiveNodes);
   const dataset = useAppSelector((state) => selectDatasetData(state));
-  const enabledById = useAppSelector(selectAtlasEnabledById, shallowEqual);
+  const enabledById = useAppSelector(
+    (state) => buildEffectiveNodeEnabledMap({
+      order: state.atlasUi.order,
+      labelsById: state.atlasUi.labelsById,
+      draft: state.visualizationUi.atlasPanel.nodeVisibilityDraft,
+    }),
+    shallowEqual,
+  );
   const displayLabelsById = useAppSelector(
     selectAtlasDisplayLabelsById,
     shallowEqual,
@@ -36,8 +42,8 @@ export function AtlasPanelViewer({ enableMeshPoints }: AtlasPanelViewerProps) {
   const atlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset));
 
   const enable3d = useMemo(
-    () => enableMeshPoints && Boolean(atlasDefinition?.nodes?.length),
-    [atlasDefinition, enableMeshPoints],
+    () => enableSpatial && Boolean(atlasDefinition?.nodes?.length),
+    [atlasDefinition, enableSpatial],
   );
 
   const { applyCameraPose } = useAtlasScene({
@@ -50,46 +56,30 @@ export function AtlasPanelViewer({ enableMeshPoints }: AtlasPanelViewerProps) {
 
   return (
     <div className="atlas-panel__viewer">
-      <div className="atlas-panel__viewer-header">
-        <Space size={8}>
+      <NetworkViewFrame
+        title="ROIs"
+        actions={
           <Button
             size="small"
-            icon={<VerticalAlignMiddleOutlined />}
-            onClick={() => applyCameraPose(0, 1, 0)}
+            type={showInactiveNodes ? "primary" : "default"}
+            aria-pressed={Boolean(showInactiveNodes)}
+            onClick={() => dispatch(setAtlasPanelState({ showInactiveNodes: !showInactiveNodes }))}
           >
-            Front
+            Show inactive
           </Button>
-          <Button
-            size="small"
-            icon={<ArrowRightOutlined />}
-            onClick={() => applyCameraPose(1, 0, 0)}
-          >
-            Right
-          </Button>
-          <Button
-            size="small"
-            icon={<ArrowUpOutlined />}
-            onClick={() => applyCameraPose(0, 0, 1)}
-          >
-            Top
-          </Button>
-          <Button
-            size="small"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => applyCameraPose(-1, 0, 0)}
-          >
-            Left
-          </Button>
-        </Space>
-        <Typography.Text type="secondary">
-          Double-click an Node to hide it
-        </Typography.Text>
-      </div>
-
-      <div
-        className="atlas-panel__viewer-canvas"
-        ref={containerRef}
-      />
+        }
+        footer={
+          <NetworkSpatialControls
+            onCameraPose={applyCameraPose}
+          />
+        }
+      >
+        <div
+          className="atlas-panel__viewer-canvas"
+          ref={containerRef}
+          title="Hover over a point to inspect ROI information"
+        />
+      </NetworkViewFrame>
     </div>
   );
 }

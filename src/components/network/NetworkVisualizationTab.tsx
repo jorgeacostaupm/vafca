@@ -35,13 +35,19 @@ export default function NetworkVisualizationTab() {
   const activeTab = useAppSelector((state) => state.rankings.activeTab)
 
   return (
-    <div className="network-visualization-tab">
-      <Card className="network-control-card" variant="outlined">
+    <>
+      <Card variant="outlined" className="network-control-card">
         <Tabs
+          size="small"
           activeKey={activeTab}
+          renderTabBar={(props, DefaultTabBar) => (
+            <div className="network-control-card__header">
+              <DefaultTabBar {...props} />
+              <NetworkSelectorActions />
+            </div>
+          )}
           destroyOnHidden
           onChange={(key) => dispatch(setRankingActiveTab(key as 'views' | 'rankings'))}
-          tabBarExtraContent={<NetworkSelectorActions />}
           items={[
             { key: 'views', label: 'Networks', children: <ViewsControls /> },
             {
@@ -53,6 +59,6 @@ export default function NetworkVisualizationTab() {
         />
       </Card>
       <NetworkVisualizationWorkspace />
-    </div>
+    </>
   )
 }

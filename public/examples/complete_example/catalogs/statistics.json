@@ -1,0 +1,18 @@
+{
+  "mean": {
+    "label": "Mean",
+    "scaleType": "sequential",
+    "rangeMode": "inherit_measure"
+  },
+  "std": {
+    "label": "Standard deviation",
+    "scaleType": "sequential",
+    "rangeMode": "non_negative_observed"
+  },
+  "zscore": {
+    "label": "z-score",
+    "scaleType": "diverging",
+    "center": 0,
+    "rangeMode": "observed_symmetric"
+  }
+}

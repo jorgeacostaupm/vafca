@@ -1,67 +1,34 @@
-import type {
-  ComparisonSide,
-  Network,
-  NetworkDataset,
-  NetworkSource,
-} from "@/types/network";
+import type { Network, NetworkDataset, SourceKind } from "@/types/network";
 import { networkMatrixSize } from "@/utils/networkData";
 
-export const getNetworkPopulationIds = (network: Network): string[] => {
-  if (network.source.type === "population") return [network.source.populationId];
-  if (network.source.type === "subject") return [];
+const dimensionsKey = (dimensions: Record<string, string>) =>
+  Object.entries(dimensions)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}:${value}`)
+    .join("::");
 
-  return [network.source.left, network.source.right].flatMap((side) =>
-    side.type === "population" ? [side.populationId] : [],
-  );
-};
-
-const formatComparisonSide = (
-  side: ComparisonSide,
-  dataset: NetworkDataset,
-) => {
-  if (side.label) return side.label;
-  if (side.type === "subject") {
-    return dataset.catalogs.subjects[side.subjectId]?.label ?? side.subjectId;
-  }
-  return (
-    dataset.catalogs.populations[side.populationId]?.label ?? side.populationId
-  );
-};
+export const getNetworkSourceKind = (
+  network: Network,
+  dataset?: Pick<NetworkDataset, "catalogs"> | null,
+): SourceKind => dataset?.catalogs.sources[network.sourceId]?.kind ?? "population";
 
 export const formatNetworkSourceLabel = (
   network: Network,
   dataset: NetworkDataset,
-) => {
-  if (network.source.type === "subject") {
-    return (
-      dataset.catalogs.subjects[network.source.subjectId]?.label ??
-      network.source.subjectId
-    );
-  }
-
-  if (network.source.type === "population") {
-    return (
-      dataset.catalogs.populations[network.source.populationId]?.label ??
-      network.source.populationId
-    );
-  }
-
-  return `${formatComparisonSide(network.source.left, dataset)} vs ${formatComparisonSide(
-    network.source.right,
-    dataset,
-  )}`;
-};
+) => dataset.catalogs.sources[network.sourceId]?.label ?? network.sourceId;
 
 export const createNetworkCompoundId = (network: Network) =>
   [
-    network.context.layerId ?? "none",
+    network.sourceId,
     network.measureId,
     network.statisticId,
-    getNetworkPopulationIds(network).sort().join("+") || network.id,
+    dimensionsKey(network.dimensions),
   ].join("::");
 
-export const getNetworkSourceType = (network: Network): NetworkSource["type"] =>
-  network.source.type;
+export const getNetworkSourceType = (
+  network: Network,
+  dataset?: Pick<NetworkDataset, "catalogs"> | null,
+) => getNetworkSourceKind(network, dataset);
 
 export const formatNetworkLabel = (
   network: Network,
@@ -74,9 +41,12 @@ export const formatNetworkLabel = (
   const statistic =
     dataset.catalogs.statistics[network.statisticId]?.label ??
     network.statisticId;
-  const layerId = network.context.layerId ?? "none";
-  const layer = dataset.catalogs.layers[layerId]?.label ?? layerId;
-  return [source, measure, layer, statistic].filter(Boolean).join(" / ");
+  const aspects = dataset.catalogs.aspects.map((aspect) => {
+    const value = network.dimensions[aspect.id];
+    if (!value) return null;
+    return dataset.catalogs.aspectCatalogs[aspect.id]?.[value]?.label ?? value;
+  });
+  return [source, measure, statistic, ...aspects].filter(Boolean).join(" / ");
 };
 
 export const formatNetworkDataSize = (network: Network) => {

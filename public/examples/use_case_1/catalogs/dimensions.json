@@ -1,0 +1,23 @@
+{
+  "core": {
+    "source": {
+      "label": "Population"
+    },
+    "measure": {
+      "label": "Connectivity measure"
+    },
+    "statistic": {
+      "label": "Statistic"
+    }
+  },
+  "aspects": [
+    {
+      "id": "modality",
+      "label": "Modality"
+    },
+    {
+      "id": "frequency_band",
+      "label": "Frequency band"
+    }
+  ]
+}

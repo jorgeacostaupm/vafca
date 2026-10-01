@@ -1,8 +1,10 @@
 import * as d3 from "d3";
 
 import {
+  DEFAULT_MATRIX_BACKGROUND_COLOR,
   DEFAULT_MATRIX_COLOR_DISCRETE_STEPS,
 } from "@/config/ui";
+import { appColors } from "@/theme";
 import type { ScaleType } from "@/types/network";
 import type {
   MatrixColorScaleSettings,
@@ -41,96 +43,96 @@ export const MATRIX_COLOR_SCALE_DEFINITIONS: MatrixColorScaleDefinition[] = [
     label: "Yellow Green Blue",
     type: "sequential",
     interpolator: d3.interpolateYlGnBu,
-    defaultHighlightColor: "#d64545",
-    defaultSelectionColor: "#f0b429",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "viridis",
     label: "Viridis",
     type: "sequential",
     interpolator: d3.interpolateViridis,
-    defaultHighlightColor: "#f03b20",
-    defaultSelectionColor: "#f7c948",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "cividis",
     label: "Cividis",
     type: "sequential",
     interpolator: d3.interpolateCividis,
-    defaultHighlightColor: "#d64545",
-    defaultSelectionColor: "#00a3a3",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "turbo",
     label: "Turbo",
     type: "sequential",
     interpolator: d3.interpolateTurbo,
-    defaultHighlightColor: "#111827",
-    defaultSelectionColor: "#ffffff",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "magma",
     label: "Magma",
     type: "sequential",
     interpolator: d3.interpolateMagma,
-    defaultHighlightColor: "#2dd4bf",
-    defaultSelectionColor: "#facc15",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "inferno",
     label: "Inferno",
     type: "sequential",
     interpolator: d3.interpolateInferno,
-    defaultHighlightColor: "#38bdf8",
-    defaultSelectionColor: "#facc15",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "rdbu",
     label: "Red Blue",
     type: "diverging",
     interpolator: d3.interpolateRdBu,
-    defaultHighlightColor: "#facc15",
-    defaultSelectionColor: "#111827",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "piyg",
     label: "Pink Yellow Green",
     type: "diverging",
     interpolator: d3.interpolatePiYG,
-    defaultHighlightColor: "#2563eb",
-    defaultSelectionColor: "#111827",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "prgn",
     label: "Purple Green",
     type: "diverging",
     interpolator: d3.interpolatePRGn,
-    defaultHighlightColor: "#f59e0b",
-    defaultSelectionColor: "#111827",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "puor",
     label: "Purple Orange",
     type: "diverging",
     interpolator: d3.interpolatePuOr,
-    defaultHighlightColor: "#0891b2",
-    defaultSelectionColor: "#111827",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "brbg",
     label: "Brown Blue Green",
     type: "diverging",
     interpolator: d3.interpolateBrBG,
-    defaultHighlightColor: "#e11d48",
-    defaultSelectionColor: "#111827",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
   {
     id: "spectral",
     label: "Spectral",
     type: "diverging",
     interpolator: d3.interpolateSpectral,
-    defaultHighlightColor: "#111827",
-    defaultSelectionColor: "#ffffff",
+    defaultHighlightColor: appColors.visualHighlight,
+    defaultSelectionColor: appColors.visualSelection,
   },
 ];
 
@@ -194,9 +196,11 @@ export const resetMatrixScaleInteractionColors = (
 
 export const getMatrixVisualStyle = (
   settings: MatrixColorScaleSettings,
+  backgroundColor = DEFAULT_MATRIX_BACKGROUND_COLOR,
 ): MatrixVisualStyle => ({
   highlightColor: settings.highlightColor,
   selectionColor: settings.selectionColor,
+  backgroundColor,
 });
 
 const getValueT = (

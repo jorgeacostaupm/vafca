@@ -1,4 +1,4 @@
-import type { Network, Statistic } from "@/types/network";
+import type { Network, Source, Statistic } from "@/types/network";
 
 export type StatCatalogGroup = "matrix" | "comparison";
 
@@ -28,21 +28,25 @@ const MATRIX_STAT_CATEGORIES = new Set([
 export const classifyStatCatalogItem = (
   stat: Pick<Statistic, "id" | "category">,
   networks: Network[],
+  sources: Record<string, Source>,
 ): StatCatalogGroup => {
-  const usage = buildStatUsageById(networks)[stat.id];
+  const usage = buildStatUsageById(networks, sources)[stat.id];
   return classifyStatCatalogItemWithUsage(stat, usage);
 };
 
-export const buildStatUsageById = (networks: Network[]): StatUsageById =>
+export const buildStatUsageById = (
+  networks: Network[],
+  sources: Record<string, Source>,
+): StatUsageById =>
   networks.reduce<StatUsageById>((usageById, network) => {
-    const statId = network.statisticId;
-    const current = usageById[statId] ?? { comparison: false, matrix: false };
-    if (network.source.type === "comparison") {
+    const statisticId = network.statisticId;
+    const current = usageById[statisticId] ?? { comparison: false, matrix: false };
+    if (sources[network.sourceId]?.kind === "comparison") {
       current.comparison = true;
     } else {
       current.matrix = true;
     }
-    usageById[statId] = current;
+    usageById[statisticId] = current;
     return usageById;
   }, {});
 

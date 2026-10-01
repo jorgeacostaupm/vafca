@@ -5,7 +5,6 @@ import type { NetworkImportIssue } from "@/utils/import/types";
 
 export const ManifestImportSchema = z.object({
   atlasId: z.string().optional(),
-  directedNetworks: z.boolean().optional(),
   formatVersion: z.string().optional(),
   name: z.string().optional(),
 }).passthrough();

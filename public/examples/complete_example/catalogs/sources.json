@@ -1,0 +1,18 @@
+{
+  "study": {
+    "label": "Study",
+    "description": "some description",
+    "kind": "population"
+  },
+  "control": {
+    "label": "Control",
+    "description": "some description",
+    "kind": "population"
+  },
+  "study-vs-control": {
+    "label": "Study vs Control",
+    "kind": "comparison",
+    "left": "study",
+    "right": "control"
+  }
+}

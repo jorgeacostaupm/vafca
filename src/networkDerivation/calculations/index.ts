@@ -2,7 +2,7 @@ export {
   calculateDerivedNetworks,
   calculatePopulationCohensD,
   calculatePopulationDifference,
-  calculatePopulationReferenceZScore,
+  calculatePopulationOneSampleZScore,
   calculatePopulationTwoSampleZPValue,
   calculatePopulationTwoSampleZTest,
   calculatePopulationWelchPValue,
@@ -27,7 +27,7 @@ export {
   assertContextCompatible,
   findEquivalentDerivedNetwork,
   getAvailableNetworkCalculations,
-  resolveCalculationInputsForLayerMeasure,
+  resolveCalculationInputsForDimensions,
   validateNetworkCalculationRequest,
 } from "@/networkDerivation/calculations/resolution";
 export { normalCdf, studentTCdf } from "@/networkDerivation/calculations/statistics";

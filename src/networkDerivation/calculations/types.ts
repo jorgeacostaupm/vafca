@@ -1,18 +1,19 @@
 import type {
   Network,
   NetworkDataset,
-  NetworkSource,
   RangeMode,
   ScaleType,
+  SourceKind,
   ValueRange,
 } from "@/types/network";
 
 export const EPSILON = 1e-12;
 
 export type NetworkCalculationOperation =
+  | "correlation"
   | "subject_zscore_vs_population"
   | "subject_difference"
-  | "population_reference_zscore"
+  | "population_one_sample_z_test"
   | "population_difference"
   | "population_cohens_d"
   | "population_two_sample_z_test"
@@ -25,6 +26,7 @@ export type NetworkCalculationAssociatedOutputId =
   | "welch_p_value";
 
 export type NetworkCalculationScope =
+  | "network_vs_network"
   | "subject_vs_population"
   | "subject_vs_subject"
   | "population_vs_population";
@@ -35,19 +37,19 @@ export type NetworkCalculationCategory =
   | "effect_size"
   | "parametric_test";
 
-export type NetworkCalculationInputKind = NetworkSource["type"];
+export type NetworkCalculationInputKind = SourceKind;
 
 export type NetworkCalculationInputSpec = {
-  role: string;
+  role: CalculationInputRole;
   label: string;
-  kind?: NetworkCalculationInputKind;
-  statId?: string;
+  kind: NetworkCalculationInputKind;
+  statisticId: string;
   sourceLevel?: "subject" | "population" | "comparison";
   required: boolean;
 };
 
 export type NetworkCalculationOutputSpec = {
-  statId: string;
+  statisticId: string;
   statLabel: string;
   statCategory: "comparison" | "derived" | "aggregation";
   operator: string;
@@ -102,18 +104,25 @@ export type NetworkCalculationMethod = {
   calculate: (context: NetworkCalculationMethodContext) => void;
 };
 
+export type DimensionComparison = {
+  left: Record<string, string>;
+  right: Record<string, string>;
+};
+
 export type NetworkCalculationBatchRequest = {
   operations: NetworkCalculationOperation[];
+  correlationNetworkAId?: string;
+  correlationNetworkBId?: string;
   leftPopulationId?: string;
   rightPopulationId?: string;
   referencePopulationId?: string;
   rightSubjectId?: string;
   subjectIds?: string[];
-  layerIds: string[];
+  dimensionPairs: DimensionComparison[];
+  sampleSizes?: Record<string, number>;
+  inputStatistics?: Partial<Record<NetworkCalculationOperation, Partial<Record<CalculationInputRole, string>>>>;
+  absoluteDifference?: boolean;
   measureIds: string[];
-  conditionId?: string | null;
-  sessionId?: string | null;
-  taskId?: string | null;
   selectedAssociatedOutputs?: Partial<
     Record<NetworkCalculationOperation, NetworkCalculationAssociatedOutputId[]>
   >;
@@ -122,6 +131,8 @@ export type NetworkCalculationBatchRequest = {
 };
 
 export type CalculationInputRole =
+  | "leftValue"
+  | "rightValue"
   | "subjectValue"
   | "leftSubjectValue"
   | "rightSubjectValue"
@@ -141,7 +152,7 @@ export type ResolvedCalculationInputs = {
 
 export type NetworkCalculationSkipped = {
   operation: NetworkCalculationOperation;
-  layerId: string;
+  dimensionPair: DimensionComparison;
   measureId: string;
   subjectId?: string;
   leftPopulationId?: string;
@@ -153,9 +164,9 @@ export type NetworkCalculationSkipped = {
 
 export type NetworkCalculationPreviewRow = {
   operation: NetworkCalculationOperation;
-  layerId: string;
+  dimensionPair: DimensionComparison;
   measureId: string;
-  outputStatId: string;
+  outputStatisticId: string;
   outputLabel: string;
   status: "ready" | "skipped";
   reason?: string;

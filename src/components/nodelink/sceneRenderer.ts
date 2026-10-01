@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import type { MutableRefObject } from "react";
 
+import type { TooltipValueLabel } from "@/components/common/tooltipValueLabel";
 import { renderClassicElements } from "@/components/nodelink/renderStrategies";
 import {
   configureClassicBrush,
@@ -60,7 +61,7 @@ type ClassicSceneRenderArgs = {
   onBrushSelectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   onBrushDeselectLinks?: (payload: { links: NodeLinkBrushLink[] }) => void;
   getNodeColor: (node: ClassicNode) => string;
-  valueLabel: string;
+  valueLabel: TooltipValueLabel;
   resetLocalHoverActive: () => void;
   setLocalHoverActive: (active: boolean) => void;
   zoomTransformRef: MutableRefObject<d3.ZoomTransform>;

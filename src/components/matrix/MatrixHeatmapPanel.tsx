@@ -1,11 +1,15 @@
-import { type RefObject,useMemo } from "react";
+import { useMemo } from 'react';
+import { type RefObject } from "react";
 
-import { buildTooltipValueLabel } from "@/components/common/tooltipValueLabel";
+import { useTooltipValueLabel } from "@/components/common/useTooltipValueLabel";
 import ViewPanelTemplate from "@/components/layout/ViewPanelTemplate";
 import MatrixHeatmap from "@/components/matrix/Matrix";
 import { useMatrixHeatmapController } from "@/components/matrix/useMatrixController";
+import { useAnnotationStyle } from '@/hooks/useAnnotationStyle';
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { useMatrixColorEncoding } from "@/hooks/useMatrixColorEncoding";
+import { useAppDispatch } from '@/store/hooks';
+import { toggleAnnotationNode } from '@/store/slices/visualizationUi';
 import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type { ResolvedValueDomain } from "@/types/valueDomain";
 
@@ -25,6 +29,9 @@ type MatrixHeatmapPanelProps = {
     measure?: [number, number] | null;
     stat?: [number, number] | Array<[number, number]> | null;
   };
+  labelNames?: Record<string, string>;
+  labelTitles?: Record<string, string>;
+  labelColors?: Record<string, string>;
   brushEnabled?: boolean;
   brushMode?: MatrixBrushMode;
   showAllLabels?: boolean;
@@ -50,6 +57,9 @@ export default function MatrixHeatmapPanel({
   legendMax,
   valueDomain,
   valueFilters,
+  labelNames: labelNamesOverride,
+  labelTitles: labelTitlesOverride,
+  labelColors: labelColorsOverride,
   brushEnabled,
   brushMode,
   showAllLabels,
@@ -58,13 +68,25 @@ export default function MatrixHeatmapPanel({
   onLabelToggle,
   onBrushZoom,
 }: MatrixHeatmapPanelProps) {
-  const {
-    labelNames,
-    labelTitles,
-    nodeColors: labelColors,
-  } = useAtlasLabelPresentation();
-  const { scaleType, scaleSettings, visualStyle } =
+  const dispatch = useAppDispatch();
+  const atlasPresentation = useAtlasLabelPresentation();
+  const labelNames = labelNamesOverride ?? atlasPresentation.labelNames;
+  const labelTitles = labelTitlesOverride ?? atlasPresentation.labelTitles;
+  const labelColors = labelColorsOverride ?? atlasPresentation.nodeColors;
+  const { scaleType, scaleSettings, visualStyle: baseStyle } =
     useMatrixColorEncoding(valueDomain);
+  const annotationStyle = useAnnotationStyle(baseStyle, selectionVisible);
+  const visualStyle = useMemo(() => {
+    const rows = new Map((rowLabels ?? labels ?? []).map((id, index) => [id, index]));
+    const cols = new Map((colLabels ?? labels ?? []).map((id, index) => [id, index]));
+    const annotationCellColors: Record<string, string> = {};
+    for (const [key, color] of Object.entries(annotationStyle.annotationLinkColors ?? {})) {
+      const [rowId, colId] = key.split('::');
+      const row = rows.get(rowId), col = cols.get(colId);
+      if (row !== undefined && col !== undefined) annotationCellColors[`${row}::${col}`] = color;
+    }
+    return { ...annotationStyle, annotationCellColors };
+  }, [annotationStyle, rowLabels, colLabels, labels]);
   const {
     selectedCells,
     handleHover,
@@ -81,14 +103,10 @@ export default function MatrixHeatmapPanel({
     labelNames,
     compoundId,
     networkLabel,
-    symmetric,
     selectionVisible,
   });
 
-  const valueLabel = useMemo(
-    () => buildTooltipValueLabel(networkLabel),
-    [networkLabel],
-  );
+  const valueLabel = useTooltipValueLabel(compoundId, networkLabel);
 
   return (
     <ViewPanelTemplate>
@@ -124,7 +142,7 @@ export default function MatrixHeatmapPanel({
           brushEnabled={brushEnabled}
           brushMode={brushMode}
           showAllLabels={showAllLabels}
-          onLabelToggle={onLabelToggle}
+          onLabelToggle={onLabelToggle ?? (id => dispatch(toggleAnnotationNode({ id, label: labelNames?.[id] ?? id })))}
           onBrushZoom={onBrushZoom}
           onBrushSelectLinks={handleBrushSelectLinks}
           onBrushDeselectLinks={handleBrushDeselectLinks}

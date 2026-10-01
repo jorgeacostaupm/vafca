@@ -1,0 +1,1352 @@
+[
+  {
+    "index": 0,
+    "id": "aal90_000",
+    "label": "lPreCG",
+    "name": "Left Precentral gyrus",
+    "coords": {
+      "x": 0.20405671593070182,
+      "y": 0.046315407287225836,
+      "z": 0.15803253912784848
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 1,
+    "id": "aal90_001",
+    "label": "rPreCG",
+    "name": "Right Precentral gyrus",
+    "coords": {
+      "x": -0.19609873553198967,
+      "y": 0.03337336756473088,
+      "z": 0.16387970849696706
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 2,
+    "id": "aal90_002",
+    "label": "lSFG",
+    "name": "Left Superior Frontal gyrus",
+    "coords": {
+      "x": 0.10327051562957924,
+      "y": 0.24857184566575938,
+      "z": 0.11460138025517523
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 3,
+    "id": "aal90_003",
+    "label": "rSFG",
+    "name": "Right Superior Frontal gyrus",
+    "coords": {
+      "x": -0.09860973285605693,
+      "y": 0.23067383624718696,
+      "z": 0.12235279994604917
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 4,
+    "id": "aal90_004",
+    "label": "lSFo",
+    "name": "Left Superior Frontal gyrus, Orbital",
+    "coords": {
+      "x": 0.09352808688870393,
+      "y": 0.31071756977222925,
+      "z": -0.16376232813618943
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 5,
+    "id": "aal90_005",
+    "label": "rSFo",
+    "name": "Right Superior Frontal gyrus, Orbital",
+    "coords": {
+      "x": -0.08148712489410018,
+      "y": 0.3142118219993151,
+      "z": -0.1676418066548186
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 6,
+    "id": "aal90_006",
+    "label": "lMFG",
+    "name": "Left Middle Frontal gyrus",
+    "coords": {
+      "x": 0.1782005356610747,
+      "y": 0.23856857517061222,
+      "z": 0.08048452793191431
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 7,
+    "id": "aal90_007",
+    "label": "rMFG",
+    "name": "Right Middle Frontal gyrus",
+    "coords": {
+      "x": -0.17755369450890715,
+      "y": 0.23987647269120055,
+      "z": 0.07390192721135587
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 8,
+    "id": "aal90_008",
+    "label": "lMFGo",
+    "name": "Left Middle Frontal gyrus, Orbital",
+    "coords": {
+      "x": 0.16383122881567633,
+      "y": 0.326832013655364,
+      "z": -0.1451018218354968
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 9,
+    "id": "aal90_009",
+    "label": "rMFGo",
+    "name": "Right Middle Frontal gyrus, Orbital",
+    "coords": {
+      "x": -0.15506735326393878,
+      "y": 0.33749693843235784,
+      "z": -0.1508787490089744
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 10,
+    "id": "aal90_010",
+    "label": "lIFGop",
+    "name": "Left Inferior Frontal gyrus, Opercular",
+    "coords": {
+      "x": 0.2533843585349918,
+      "y": 0.1385792015947477,
+      "z": -0.0011616822739695487
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 11,
+    "id": "aal90_011",
+    "label": "rIFGor",
+    "name": "Right Inferior Frontal gyrus, Opercular",
+    "coords": {
+      "x": -0.2402299007556393,
+      "y": 0.14949996663335893,
+      "z": 0.01080988150472736
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 12,
+    "id": "aal90_012",
+    "label": "lIFGt",
+    "name": "Left Inferior Frontal gyrus, Triangular",
+    "coords": {
+      "x": 0.2388559287825476,
+      "y": 0.22445588752923493,
+      "z": -0.027255194068939805
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 13,
+    "id": "aal90_013",
+    "label": "rIFGt",
+    "name": "Right Inferior Frontal gyrus, Triangular",
+    "coords": {
+      "x": -0.24090128089068075,
+      "y": 0.2256320846468567,
+      "z": -0.02608291799441676
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 14,
+    "id": "aal90_014",
+    "label": "lIFGo",
+    "name": "Left Inferior Frontal gyrus, Orbital",
+    "coords": {
+      "x": 0.1906067365719528,
+      "y": 0.22858409265744287,
+      "z": -0.15746524739122833
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 15,
+    "id": "aal90_015",
+    "label": "rIFGo",
+    "name": "Right Inferior Frontal gyrus, Orbital",
+    "coords": {
+      "x": -0.195146292202705,
+      "y": 0.23609619215723976,
+      "z": -0.156461129297615
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 16,
+    "id": "aal90_016",
+    "label": "lRO",
+    "name": "Left Rolandic operculum",
+    "coords": {
+      "x": 0.24643585617030392,
+      "y": 0.032243766317116625,
+      "z": -0.026977470211144723
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 17,
+    "id": "aal90_017",
+    "label": "rRO",
+    "name": "Right Rolandic operculum",
+    "coords": {
+      "x": -0.2525027864542901,
+      "y": 0.04343660378268119,
+      "z": -0.02352025341508487
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 18,
+    "id": "aal90_018",
+    "label": "lMotor",
+    "name": "Left Supplementary Motor area",
+    "coords": {
+      "x": 0.03785920940455624,
+      "y": 0.09887290352054352,
+      "z": 0.21015198926484552
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 19,
+    "id": "aal90_019",
+    "label": "rMotor",
+    "name": "Right Supplementary Motor area",
+    "coords": {
+      "x": -0.031825994730095335,
+      "y": 0.0756565061149261,
+      "z": 0.21239492944974186
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 20,
+    "id": "aal90_020",
+    "label": "lOlfC",
+    "name": "Left Olfactory cortex",
+    "coords": {
+      "x": 0.05072698171143004,
+      "y": 0.1504439827673329,
+      "z": -0.15359796083163543
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 21,
+    "id": "aal90_021",
+    "label": "rOlfC",
+    "name": "Right Olfactory cortex",
+    "coords": {
+      "x": -0.041217284230240944,
+      "y": 0.15444435350386299,
+      "z": -0.15297215756915397
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 22,
+    "id": "aal90_022",
+    "label": "lSFGm",
+    "name": "Left Superior Frontal gyrus, Medial",
+    "coords": {
+      "x": 0.03527453709721955,
+      "y": 0.3205577146237129,
+      "z": 0.05801242877875419
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 23,
+    "id": "aal90_023",
+    "label": "rSFGm",
+    "name": "Right Superior Frontal gyrus, Medial",
+    "coords": {
+      "x": -0.03434796138670927,
+      "y": 0.3287654782821293,
+      "z": 0.05446509981905431
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 24,
+    "id": "aal90_024",
+    "label": "lSFGmo",
+    "name": "Left Superior Frontal gyrus, Medial Orbital",
+    "coords": {
+      "x": 0.036596095560029476,
+      "y": 0.343709480482413,
+      "z": -0.1344531168022297
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 25,
+    "id": "aal90_025",
+    "label": "rSFGmo",
+    "name": "Right Superior Frontal gyrus, Medial Orbital",
+    "coords": {
+      "x": -0.029765007607662198,
+      "y": 0.33315526447627825,
+      "z": -0.13275116510399892
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 26,
+    "id": "aal90_026",
+    "label": "lRectus",
+    "name": "Left Gyrus Rectus",
+    "coords": {
+      "x": 0.03661212590995464,
+      "y": 0.2596554180456702,
+      "z": -0.18800976498991728
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 27,
+    "id": "aal90_027",
+    "label": "rRectus",
+    "name": "Right Gyrus Rectus",
+    "coords": {
+      "x": -0.03060786967879054,
+      "y": 0.2533775877529517,
+      "z": -0.1873505974567545
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 28,
+    "id": "aal90_028",
+    "label": "lInsula",
+    "name": "Left Insula",
+    "coords": {
+      "x": 0.1864561451744478,
+      "y": 0.1083238459074222,
+      "z": -0.07930824839122355
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Insula and cigulate gyri"
+    }
+  },
+  {
+    "index": 29,
+    "id": "aal90_029",
+    "label": "rInsula",
+    "name": "Right Insula",
+    "coords": {
+      "x": -0.18420461635152297,
+      "y": 0.10622424911115881,
+      "z": -0.08610159279289425
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Insula and cigulate gyri"
+    }
+  },
+  {
+    "index": 30,
+    "id": "aal90_030",
+    "label": "lACC",
+    "name": "Left Cingulate gyrus, Anterior part",
+    "coords": {
+      "x": 0.031226981711429933,
+      "y": 0.2521011256244758,
+      "z": -0.027490817974492515
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Insula and cigulate gyri"
+    }
+  },
+  {
+    "index": 31,
+    "id": "aal90_031",
+    "label": "rACC",
+    "name": "Right Cingulate gyrus, Anterior part",
+    "coords": {
+      "x": -0.031180890119708714,
+      "y": 0.2597364155820434,
+      "z": -0.018006403873741778
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Insula and cigulate gyri"
+    }
+  },
+  {
+    "index": 32,
+    "id": "aal90_032",
+    "label": "lMCC",
+    "name": "Left Cingulate gyrus, Middle part",
+    "coords": {
+      "x": 0.03881822701944492,
+      "y": 0.0006176598115665803,
+      "z": 0.11090222316777644
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Insula and cigulate gyri"
+    }
+  },
+  {
+    "index": 33,
+    "id": "aal90_033",
+    "label": "rMCC",
+    "name": "Right Cingulate gyrus, Middle part",
+    "coords": {
+      "x": -0.028914918943520763,
+      "y": 0.030137533769213656,
+      "z": 0.10201853615299734
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Insula and cigulate gyri"
+    }
+  },
+  {
+    "index": 34,
+    "id": "aal90_034",
+    "label": "lPCC",
+    "name": "Left Cingulate gyrus, Posterior part",
+    "coords": {
+      "x": 0.03543147106656734,
+      "y": -0.13974137668962464,
+      "z": 0.026223699149851898
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Insula and cigulate gyri"
+    }
+  },
+  {
+    "index": 35,
+    "id": "aal90_035",
+    "label": "rPCC",
+    "name": "Right Cingulate gyrus, Posterior part",
+    "coords": {
+      "x": -0.02647504387492411,
+      "y": -0.134310281624991,
+      "z": 0.01218881955215992
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Insula and cigulate gyri"
+    }
+  },
+  {
+    "index": 36,
+    "id": "aal90_036",
+    "label": "lHip",
+    "name": "Left Hippocampus",
+    "coords": {
+      "x": 0.13568237717433587,
+      "y": -0.02869504237061904,
+      "z": -0.14708999026143246
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 37,
+    "id": "aal90_037",
+    "label": "rHip",
+    "name": "Right Hippocampus",
+    "coords": {
+      "x": -0.13531960542236518,
+      "y": -0.023835162505998233,
+      "z": -0.14805522449820102
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 38,
+    "id": "aal90_038",
+    "label": "lParahip",
+    "name": "Left Parahippocampus",
+    "coords": {
+      "x": 0.11686976581893828,
+      "y": -0.005339613493257023,
+      "z": -0.19976039144805327
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 39,
+    "id": "aal90_039",
+    "label": "rParahip",
+    "name": "Right Parahippocampus",
+    "coords": {
+      "x": -0.11633649632996237,
+      "y": -0.0003792125885477487,
+      "z": -0.19888847067514823
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 40,
+    "id": "aal90_040",
+    "label": "lAmyg",
+    "name": "Left Amygdala",
+    "coords": {
+      "x": 0.1269510076854562,
+      "y": 0.07139528146863164,
+      "z": -0.18244211667579135
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 41,
+    "id": "aal90_041",
+    "label": "rAmyg",
+    "name": "Right Amygdala",
+    "coords": {
+      "x": -0.1258767049245147,
+      "y": 0.078259650970098,
+      "z": -0.18420164746758
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 42,
+    "id": "aal90_042",
+    "label": "lCalc",
+    "name": "Left Calcarine fissure and surrounding cortex",
+    "coords": {
+      "x": 0.04681919352972679,
+      "y": -0.3179828488156108,
+      "z": -0.06465123174141686
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 43,
+    "id": "aal90_043",
+    "label": "rCalc",
+    "name": "Right Calcarine fissure and surrounding cortex",
+    "coords": {
+      "x": -0.06914361397445404,
+      "y": -0.2911235500491251,
+      "z": -0.05007266721069438
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 44,
+    "id": "aal90_044",
+    "label": "lCu",
+    "name": "Left Cuneus",
+    "coords": {
+      "x": 0.040689956809726355,
+      "y": -0.32600064370711057,
+      "z": 0.0390245817633842
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 45,
+    "id": "aal90_045",
+    "label": "rCu",
+    "name": "Right Cuneus",
+    "coords": {
+      "x": -0.05654248056786382,
+      "y": -0.3218268840063431,
+      "z": 0.04409325104637411
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 46,
+    "id": "aal90_046",
+    "label": "lLingual",
+    "name": "Left Lingual gyrus",
+    "coords": {
+      "x": 0.08369672259107577,
+      "y": -0.2632020281429978,
+      "z": -0.1202075755605821
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 47,
+    "id": "aal90_047",
+    "label": "rLingual",
+    "name": "Right Lingual gyrus",
+    "coords": {
+      "x": -0.07098140338173979,
+      "y": -0.25958614145626946,
+      "z": -0.11624765027262941
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 48,
+    "id": "aal90_048",
+    "label": "lSOccL",
+    "name": "Left Superior Occipital lobe",
+    "coords": {
+      "x": 0.09319032620003209,
+      "y": -0.3469301544424565,
+      "z": 0.0440985461752669
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 49,
+    "id": "aal90_049",
+    "label": "rSOccL",
+    "name": "Right Superior Occipital lobe",
+    "coords": {
+      "x": -0.11041044119828425,
+      "y": -0.32991070836602027,
+      "z": 0.056157574503517896
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 50,
+    "id": "aal90_050",
+    "label": "lMOccL",
+    "name": "Left Middle Occipital lobe",
+    "coords": {
+      "x": 0.17249118005132022,
+      "y": -0.3289844794432372,
+      "z": -0.016331468913767314
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 51,
+    "id": "aal90_051",
+    "label": "rMOccL",
+    "name": "Right Middle Occipital lobe",
+    "coords": {
+      "x": -0.17623315038716827,
+      "y": -0.32384408069446724,
+      "z": 0.00016902813745081144
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 52,
+    "id": "aal90_052",
+    "label": "lIOccL",
+    "name": "Left Inferior Occipital lobe",
+    "coords": {
+      "x": 0.19181788045137194,
+      "y": -0.31672016631419125,
+      "z": -0.13599298132654958
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 53,
+    "id": "aal90_053",
+    "label": "rIOccl",
+    "name": "Right Inferior Occipital lobe",
+    "coords": {
+      "x": -0.1799473285586837,
+      "y": -0.33483295642087996,
+      "z": -0.13513400012096102
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Occipital"
+    }
+  },
+  {
+    "index": 54,
+    "id": "aal90_054",
+    "label": "lFusiG",
+    "name": "Left Fusiform gyrus",
+    "coords": {
+      "x": 0.1663536050880557,
+      "y": -0.12590341983006906,
+      "z": -0.19819969243336708
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 55,
+    "id": "aal90_055",
+    "label": "rFusiG",
+    "name": "Right Fusiform gyrus",
+    "coords": {
+      "x": -0.15889071373847669,
+      "y": -0.11987029727351536,
+      "z": -0.19783817415286511
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 56,
+    "id": "aal90_056",
+    "label": "lPreG",
+    "name": "Left Postcentral gyrus",
+    "coords": {
+      "x": 0.22392764974842524,
+      "y": -0.037754629771206465,
+      "z": 0.14711478325880928
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 57,
+    "id": "aal90_057",
+    "label": "rPreG",
+    "name": "Right Postcentral gyrus",
+    "coords": {
+      "x": -0.19638571026570464,
+      "y": -0.0527409038213598,
+      "z": 0.16610055566625395
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 58,
+    "id": "aal90_058",
+    "label": "lSPG",
+    "name": "Left Superior Parietal gyrus",
+    "coords": {
+      "x": 0.1279721390964192,
+      "y": -0.2229161867241923,
+      "z": 0.19811632488265063
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 59,
+    "id": "aal90_059",
+    "label": "rSPG",
+    "name": "Right Superior Parietal gyrus",
+    "coords": {
+      "x": -0.11980686810212092,
+      "y": -0.22101966002551762,
+      "z": 0.21339946748262476
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 60,
+    "id": "aal90_060",
+    "label": "lIPG",
+    "name": "Left Inferior Parietal gyrus",
+    "coords": {
+      "x": 0.22493885922908977,
+      "y": -0.1539734817664983,
+      "z": 0.13694544508814993
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 61,
+    "id": "aal90_061",
+    "label": "rIPG",
+    "name": "Right Inferior Parietal gyrus",
+    "coords": {
+      "x": -0.22205169593062887,
+      "y": -0.1568179662501924,
+      "z": 0.1507897184036269
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 62,
+    "id": "aal90_062",
+    "label": "lSMG",
+    "name": "Left Supramarginal gyrus",
+    "coords": {
+      "x": 0.2901380372164392,
+      "y": -0.09355897446651588,
+      "z": 0.05542774435489783
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 63,
+    "id": "aal90_063",
+    "label": "rSMG",
+    "name": "Right Supramarginal gyrus",
+    "coords": {
+      "x": -0.2769065035975882,
+      "y": -0.08296559170075223,
+      "z": 0.0755043694621849
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 64,
+    "id": "aal90_064",
+    "label": "lAng",
+    "name": "Left Angular gyrus",
+    "coords": {
+      "x": 0.2315794661834783,
+      "y": -0.2292866529652194,
+      "z": 0.0812457853624947
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 65,
+    "id": "aal90_065",
+    "label": "rAng",
+    "name": "Right Angular gyrus",
+    "coords": {
+      "x": -0.21673599937141433,
+      "y": -0.2250703681785243,
+      "z": 0.09640595306268958
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 66,
+    "id": "aal90_066",
+    "label": "lPrecu",
+    "name": "Left Precuneus",
+    "coords": {
+      "x": 0.04735906787922908,
+      "y": -0.20550159546396102,
+      "z": 0.14303072397562122
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 67,
+    "id": "aal90_067",
+    "label": "rPrecu",
+    "name": "Right Precuneus",
+    "coords": {
+      "x": -0.03903855099476101,
+      "y": -0.20544712421144748,
+      "z": 0.12163459222021374
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Parietal"
+    }
+  },
+  {
+    "index": 68,
+    "id": "aal90_068",
+    "label": "lParaL",
+    "name": "Left Paracentral lobule",
+    "coords": {
+      "x": 0.04927953386646562,
+      "y": -0.052131708220700325,
+      "z": 0.2532924341699527
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 69,
+    "id": "aal90_069",
+    "label": "rParaL",
+    "name": "Right Paracentral lobule",
+    "coords": {
+      "x": -0.026228418151864514,
+      "y": -0.08359036446438253,
+      "z": 0.24378994074047655
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Frontal"
+    }
+  },
+  {
+    "index": 70,
+    "id": "aal90_070",
+    "label": "lCauda",
+    "name": "Left Caudate nucleus",
+    "coords": {
+      "x": 0.06824131197576062,
+      "y": 0.1297400178133679,
+      "z": -0.0498159590496337
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Subcortical"
+    }
+  },
+  {
+    "index": 71,
+    "id": "aal90_071",
+    "label": "rCauda",
+    "name": "Right Caudate nucleus",
+    "coords": {
+      "x": -0.0630692959545661,
+      "y": 0.1350058539946967,
+      "z": -0.04942492260225909
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Subcortical"
+    }
+  },
+  {
+    "index": 72,
+    "id": "aal90_072",
+    "label": "lPut",
+    "name": "Left Putamen",
+    "coords": {
+      "x": 0.1304461874313795,
+      "y": 0.0941255274367369,
+      "z": -0.08481755590455041
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Subcortical"
+    }
+  },
+  {
+    "index": 73,
+    "id": "aal90_073",
+    "label": "rPut",
+    "name": "Right Putamen",
+    "coords": {
+      "x": -0.12801925889007323,
+      "y": 0.09951541133876131,
+      "z": -0.08420134429028199
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Subcortical"
+    }
+  },
+  {
+    "index": 74,
+    "id": "aal90_074",
+    "label": "lPall",
+    "name": "Left Pallidum",
+    "coords": {
+      "x": 0.09971272037549625,
+      "y": 0.0743307453221843,
+      "z": -0.09539123240647687
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Subcortical"
+    }
+  },
+  {
+    "index": 75,
+    "id": "aal90_075",
+    "label": "rPall",
+    "name": "Right Pallidum",
+    "coords": {
+      "x": -0.0952015897171415,
+      "y": 0.0758368399101902,
+      "z": -0.09559796083163538
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Subcortical"
+    }
+  },
+  {
+    "index": 76,
+    "id": "aal90_076",
+    "label": "lThal",
+    "name": "Left Thalamus",
+    "coords": {
+      "x": 0.06539646223091092,
+      "y": -0.01309562762227728,
+      "z": -0.05713302576670028
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Subcortical"
+    }
+  },
+  {
+    "index": 77,
+    "id": "aal90_077",
+    "label": "rThal",
+    "name": "Right Thalamus",
+    "coords": {
+      "x": -0.0541138413727705,
+      "y": -0.012718505406744457,
+      "z": -0.05652700529710369
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Subcortical"
+    }
+  },
+  {
+    "index": 78,
+    "id": "aal90_078",
+    "label": "lHeschl",
+    "name": "Left Heschl's gyrus",
+    "coords": {
+      "x": 0.22113888647333485,
+      "y": -0.01905522358187329,
+      "z": -0.04679161162528615
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 79,
+    "id": "aal90_079",
+    "label": "rHeschl",
+    "name": "Right Heschl's gyrus",
+    "coords": {
+      "x": -0.21999203722144486,
+      "y": -0.00960033737036053,
+      "z": -0.044948505868927326
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 80,
+    "id": "aal90_080",
+    "label": "lSTG",
+    "name": "Left Superior Temporal gyrus",
+    "coords": {
+      "x": 0.2765832534884263,
+      "y": -0.028925355211760977,
+      "z": -0.06096642773059049
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 81,
+    "id": "aal90_081",
+    "label": "rSTG",
+    "name": "Right Superior Temporal gyrus",
+    "coords": {
+      "x": -0.27975713390232837,
+      "y": -0.0339299768451653,
+      "z": -0.06307610700892248
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 82,
+    "id": "aal90_082",
+    "label": "lTPsup",
+    "name": "Left Temporal pole, Superior Temporal gyrus",
+    "coords": {
+      "x": 0.21017598115556466,
+      "y": 0.15046107559668187,
+      "z": -0.19735226878049522
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 83,
+    "id": "aal90_083",
+    "label": "rTPsup",
+    "name": "Right Temporal pole, Superior Temporal gyrus",
+    "coords": {
+      "x": -0.2302805455147067,
+      "y": 0.14840954971159892,
+      "z": -0.18111856728049253
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 84,
+    "id": "aal90_084",
+    "label": "lMTG",
+    "name": "Left Middle temporal gyrus",
+    "coords": {
+      "x": 0.288749948121807,
+      "y": -0.09379853038523674,
+      "z": -0.10809330684539478
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 85,
+    "id": "aal90_085",
+    "label": "rMTG",
+    "name": "Right Middle temporal gyrus",
+    "coords": {
+      "x": -0.27639394788063837,
+      "y": -0.11170575154235811,
+      "z": -0.10404555179816347
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 86,
+    "id": "aal90_086",
+    "label": "lTPmid",
+    "name": "Left Temporal pole, Middle temporal gyrus",
+    "coords": {
+      "x": 0.19312740744463738,
+      "y": 0.14762586545418221,
+      "z": -0.2670038264891571
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 87,
+    "id": "aal90_087",
+    "label": "rTPmid",
+    "name": "Right Temporal pole, Middle temporal gyrus",
+    "coords": {
+      "x": -0.21079663725595424,
+      "y": 0.14735675807121978,
+      "z": -0.25775995385125205
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 88,
+    "id": "aal90_088",
+    "label": "lITG",
+    "name": "Left Inferior Temporal gyrus",
+    "coords": {
+      "x": 0.25958680313999755,
+      "y": -0.06533682080409536,
+      "z": -0.21276626440306565
+    },
+    "metadata": {
+      "hemisphere": "left",
+      "lobule": "Temporal"
+    }
+  },
+  {
+    "index": 89,
+    "id": "aal90_089",
+    "label": "rITG",
+    "name": "Right Inferior Temporal gyrus",
+    "coords": {
+      "x": -0.25750476454343446,
+      "y": -0.07957185120190252,
+      "z": -0.20882274897573821
+    },
+    "metadata": {
+      "hemisphere": "right",
+      "lobule": "Temporal"
+    }
+  }
+]

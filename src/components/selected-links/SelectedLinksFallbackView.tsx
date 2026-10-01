@@ -1,10 +1,7 @@
-import {
-  AppstoreOutlined,
-  Loading3QuartersOutlined,
-} from "@ant-design/icons";
-import { Card, Segmented, Typography } from "antd";
+import { AppstoreOutlined, Loading3QuartersOutlined, UpOutlined } from "@ant-design/icons";
+import { Select, Typography } from "antd";
 import type React from "react";
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo } from "react";
 
 import CircularNodeLinkPanel from "@/components/circular/CircularNodeLinkPanel";
 import MatrixHeatmapPanel from "@/components/matrix/MatrixHeatmapPanel";
@@ -13,26 +10,22 @@ import {
   buildSelectedLinksFallbackGraph,
   type SelectedLinksFallbackNodeMode,
 } from "@/components/selected-links/selectedLinksFallbackGraph";
+import SelectedLinksViewFrame from "@/components/selected-links/SelectedLinksViewFrame";
+import { SELECTED_LINKS_2D_VIEW_OPTIONS, SELECTED_LINKS_NODE_MODE_OPTIONS } from "@/config/ui";
 import type { ResolvedValueDomain } from "@/types/valueDomain";
 import type { SelectedLink } from "@/types/visualizationUi";
 
-type SelectedLinksFallbackViewType = "matrix" | "circular";
+export type SelectedLinksFallbackViewType = "matrix" | "circular";
 
 type SelectedLinksFallbackViewProps = {
   links: SelectedLink[];
   atlasOrder: string[];
   labelById: Record<string, string>;
+  viewType: SelectedLinksFallbackViewType;
+  nodeMode: SelectedLinksFallbackNodeMode;
+  onViewTypeChange: (value: SelectedLinksFallbackViewType) => void;
+  onNodeModeChange: (value: SelectedLinksFallbackNodeMode) => void;
 };
-
-const viewOptions = [
-  { value: "matrix", label: <AppstoreOutlined aria-label="Matrix" /> },
-  { value: "circular", label: <Loading3QuartersOutlined aria-label="Circular" /> },
-] satisfies Array<{ value: SelectedLinksFallbackViewType; label: React.ReactNode }>;
-
-const nodeModeOptions = [
-  { value: "connected", label: "Linked nodes" },
-  { value: "all", label: "All nodes" },
-] satisfies Array<{ value: SelectedLinksFallbackNodeMode; label: string }>;
 
 const adjacencyValueDomain: ResolvedValueDomain = {
   min: 0,
@@ -52,9 +45,11 @@ function SelectedLinksFallbackView({
   links,
   atlasOrder,
   labelById,
+  viewType,
+  nodeMode,
+  onViewTypeChange,
+  onNodeModeChange,
 }: SelectedLinksFallbackViewProps) {
-  const [viewType, setViewType] = useState<SelectedLinksFallbackViewType>("matrix");
-  const [nodeMode, setNodeMode] = useState<SelectedLinksFallbackNodeMode>("connected");
   const graph = useMemo(
     () =>
       buildSelectedLinksFallbackGraph({
@@ -71,8 +66,8 @@ function SelectedLinksFallbackView({
       <SelectedLinksFallbackFrame
         viewType={viewType}
         nodeMode={nodeMode}
-        onViewTypeChange={setViewType}
-        onNodeModeChange={setNodeMode}
+        onViewTypeChange={onViewTypeChange}
+        onNodeModeChange={onNodeModeChange}
         summary="0 links"
       >
         <div className="selected-links-view__empty">
@@ -88,8 +83,8 @@ function SelectedLinksFallbackView({
     <SelectedLinksFallbackFrame
       viewType={viewType}
       nodeMode={nodeMode}
-      onViewTypeChange={setViewType}
-      onNodeModeChange={setNodeMode}
+      onViewTypeChange={onViewTypeChange}
+      onNodeModeChange={onNodeModeChange}
       summary={`${graph.edgeCount} link${graph.edgeCount === 1 ? "" : "s"} · ${graph.labels.length} node${graph.labels.length === 1 ? "" : "s"}`}
     >
       {viewType === "matrix" ? (
@@ -146,35 +141,41 @@ function SelectedLinksFallbackFrame({
   children: React.ReactNode;
 }) {
   return (
-    <Card
-      className="panel-card selected-links-view-card"
-      size="small"
-      title={
-        <div className="panel-card-title">
-          <span className="selected-links-view-card__title">Selected links</span>
-          <Typography.Text type="secondary" className="selected-links-view-card__summary">
-            {summary}
-          </Typography.Text>
-        </div>
-      }
-      extra={
-        <div className="panel-card-extra-actions selected-links-view-card__actions">
-          <Segmented
+    <SelectedLinksViewFrame
+      summary={summary}
+      actions={
+        <>
+          <Select<SelectedLinksFallbackViewType>
+            aria-label="2D view type"
             size="small"
+            placement="topLeft"
+            suffixIcon={<UpOutlined />}
+            popupMatchSelectWidth={false}
             value={viewType}
-            options={viewOptions}
-            onChange={(value) => onViewTypeChange(value)}
+            options={SELECTED_LINKS_2D_VIEW_OPTIONS.map(({ value, label }) => ({
+              value,
+              label: (
+                <span aria-label={label} title={label}>
+                  {value === "matrix" ? <AppstoreOutlined /> : <Loading3QuartersOutlined />}
+                </span>
+              ),
+            }))}
+            onChange={onViewTypeChange}
           />
-          <Segmented
+          <Select<SelectedLinksFallbackNodeMode>
+            aria-label="Nodes to display"
             size="small"
+            placement="topLeft"
+            suffixIcon={<UpOutlined />}
+            popupMatchSelectWidth={false}
             value={nodeMode}
-            options={nodeModeOptions}
-            onChange={(value) => onNodeModeChange(value)}
+            options={SELECTED_LINKS_NODE_MODE_OPTIONS}
+            onChange={onNodeModeChange}
           />
-        </div>
+        </>
       }
     >
-      <div className="selected-links-view">{children}</div>
-    </Card>
+      {children}
+    </SelectedLinksViewFrame>
   );
 }
