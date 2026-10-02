@@ -22,6 +22,12 @@ try {
   const defaultColor = current().color;
   const net = dataset.networks[0];
   const [a, b] = net.nodeIds;
+  dispatch(actions.toggleAnnotationNode({ id: a, label: 'A' }));
+  dispatch(actions.setAtlasNodeIds([a, a, 'unknown']));
+  assert.deepEqual(current().atlasNodeIds, [a], 'Viewer node selection validates and deduplicates IDs');
+  dispatch(actions.toggleAnnotationNode({ id: a, label: 'A' }));
+  assert.deepEqual(current().atlasNodeIds, [], 'Removing a node clears its viewer selection');
+
   const link = { id: `${a}::${b}`, rowId: a, colId: b, rowLabel: 'A', colLabel: 'B', sources: [{ compoundId: createNetworkCompoundId(net), networkLabel: 'Network', value: NaN }] };
   dispatch(actions.addSelectedLink(link));
   dispatch(actions.toggleAnnotationNode({ id: a, label: 'A' }));
@@ -68,8 +74,14 @@ try {
   assert.equal(prepareWorkspace(inactiveSnapshot).visualizationUi.activeAnnotationId, null);
   dispatch(actions.toggleActiveAnnotation(secondId));
   dispatch(actions.selectAnnotation(secondId));
+  if (!current().nodes.some(node => node.id === a)) dispatch(actions.toggleAnnotationNode({ id: a, label: 'A', annotationId: secondId }));
+  dispatch(actions.setAtlasNodeIds([a]));
   const saved = snapshotWorkspace(state);
   const restored = prepareWorkspace(saved);
+  assert.deepEqual(selectors.selectCurrentAnnotation(restored).atlasNodeIds, [a], 'Viewer node selection survives workspace restoration');
+  const previousSession = structuredClone(saved);
+  for (const annotation of previousSession.session.visualizationUi.annotations) delete annotation.atlasNodeIds;
+  assert.deepEqual(selectors.selectCurrentAnnotation(prepareWorkspace(previousSession)).atlasNodeIds, [], 'Older sessions start with no viewer nodes selected');
   assert.deepEqual(snapshotWorkspace(restored).session.visualizationUi, saved.session.visualizationUi, 'Annotations round trip including hidden lists and metadata');
   assert.ok(Number.isNaN(selectors.selectSelectedLinks(restored)[0].sources[0].value));
   assert.equal(selectors.selectSelectedLinksById(restored)[link.id].id, link.id);

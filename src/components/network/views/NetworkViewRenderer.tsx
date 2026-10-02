@@ -114,7 +114,6 @@ function NetworkViewRenderer({
         brushMode={computed.brushMode}
         showAllLabels={Boolean(computed.zoomState.current)}
         selectedZoomLabels={computed.zoomLabelSelection}
-        selectionVisible={computed.selectionVisible}
         onLabelToggle={handleLabelToggle}
         onBrushZoom={handleMatrixBrushZoom}
       />
@@ -139,7 +138,6 @@ function NetworkViewRenderer({
     svgRef,
     valueFilters,
     selectedZoomLabels: computed.zoomLabelSelection,
-    selectionVisible: computed.selectionVisible,
     linkWidthRange: computed.linkWidthRange,
     valueDomain: computed.valueDomain,
     brushEnabled: computed.brushEnabled,

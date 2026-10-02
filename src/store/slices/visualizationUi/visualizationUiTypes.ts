@@ -32,6 +32,7 @@ export const initialAtlasPanelState: VisualizationUiSliceState['atlasPanel'] = {
 }
 
 export const initialVisualizationUiState: VisualizationUiSliceState = {
+  showGroupingLegend: true,
   spatialVisualStyle: { nodeColor: appColors.spatialNode, divergingNodeColor: appColors.spatialDivergingNode, positiveLinkColor: appColors.networkLinkPositive, negativeLinkColor: appColors.networkLinkNegative, neutralLinkColor: appColors.spatialNeutral },
   hoveredCell: null,
   hoveredNodeId: null,

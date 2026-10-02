@@ -6,8 +6,8 @@ import { ATLAS_PANEL_INACTIVE_NODE_OPACITY } from '@/config/ui';
 import { useAtlasLabelPresentation } from '@/hooks/useAtlasLabelPresentation';
 import { createSpatialScene } from '@/spatial/createSpatialScene';
 import { roiTooltip } from '@/spatial/roiTooltip';
-import { useSpatialSelection } from '@/spatial/useSpatialSelection';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { setAtlasPanelState } from '@/store/slices/visualizationUi';
 import { appColors } from '@/theme';
 import type { AtlasDefinition } from '@/types/atlas';
 import { useWorkspaceCamera } from '@/workspace/useWorkspaceCamera';
@@ -21,16 +21,17 @@ type Args = {
 };
 
 export function useAtlasScene({ atlasDefinition, enabledById, displayLabelsById, containerRef, enable3d }: Args) {
-  const selection = useSpatialSelection();
+  const dispatch = useAppDispatch();
   const spatialMode = useAppSelector(state => state.visualizationUi.atlasPanel.spatialMode === 'points' ? 'points' : 'geometry');
   const showInactive = useAppSelector(state => state.visualizationUi.atlasPanel.showInactiveNodes);
   const { nodeColors } = useAtlasLabelPresentation();
   const listHovered = useAppSelector(state => state.visualizationUi.atlasPanel.hoveredNodeId ?? null);
   const pointHovered = useRef<string | null>(null);
-  const latest = useRef({ listHovered, enabledById, displayLabelsById, showInactive, selection });
+  const latest = useRef({ listHovered, enabledById, displayLabelsById, showInactive, nodeColors });
+  const interactionRef = useRef<ReturnType<typeof bindSpatialInteraction> | null>(null);
   const scene = useRef<ReturnType<typeof createSpatialScene> | null>(null);
   const bindCamera = useWorkspaceCamera('atlas');
-  useEffect(() => { latest.current = { listHovered, enabledById, displayLabelsById, showInactive, selection }; });
+  useEffect(() => { latest.current = { listHovered, enabledById, displayLabelsById, showInactive, nodeColors }; });
   useEffect(() => {
     const container = containerRef.current;
     if (!enable3d || !container || !atlasDefinition) return;
@@ -41,18 +42,25 @@ export function useAtlasScene({ atlasDefinition, enabledById, displayLabelsById,
     const interaction = bindSpatialInteraction({ container, canvas: view.renderer.domElement, camera: view.camera,
       nodes: view.nodes, links: view.linksGroup, atlasMeshes: view.atlasView.meshes,
       labels: () => latest.current.displayLabelsById, select: () => {},
-      selectNode: id => latest.current.selection.selectNode(id),
-      getHighlightColor: (_link, id) => (id ? latest.current.selection.colors.nodes[id] : undefined) ?? latest.current.selection.color,
+      selectNode: id => {
+        const enabled = latest.current.enabledById;
+        const nodeVisibilityDraft = { ...enabled, [id]: enabled[id] === false };
+        latest.current.enabledById = nodeVisibilityDraft;
+        dispatch(setAtlasPanelState({ nodeVisibilityDraft }));
+      },
+      getHighlightColor: (_link, id) => (id ? latest.current.nodeColors[id] : undefined) ?? appColors.spatialNode,
       nodeTooltip: id => roiTooltip(byId.get(id), id),
       onHover: hover => {
         pointHovered.current = hover?.type === 'node' ? hover.nodeId : null;
         const data = latest.current;
-        view.atlasView.update(data.selection.color, pointHovered.current ?? data.listHovered,
-          data.showInactive ? {} : data.enabledById, undefined, data.selection.colors.nodes);
+        const hovered = pointHovered.current ?? data.listHovered;
+        view.atlasView.update((hovered ? data.nodeColors[hovered] : undefined) ?? appColors.spatialNode,
+          hovered, data.showInactive ? {} : data.enabledById);
       },
     });
-    return () => { interaction.dispose(); unbindCamera(); view.dispose(); scene.current = null; pointHovered.current = null; };
-  }, [atlasDefinition, bindCamera, containerRef, enable3d, spatialMode]);
+    interactionRef.current = interaction;
+    return () => { interactionRef.current = null; interaction.dispose(); unbindCamera(); view.dispose(); scene.current = null; pointHovered.current = null; };
+  }, [atlasDefinition, bindCamera, containerRef, dispatch, enable3d, spatialMode]);
   useEffect(() => {
     const view = scene.current;
     if (!view) return;
@@ -64,13 +72,18 @@ export function useAtlasScene({ atlasDefinition, enabledById, displayLabelsById,
       mesh.userData.displayVisible = mesh.visible;
       const material = mesh.material as THREE.MeshStandardMaterial;
       material.opacity = enabledById[id] === false ? ATLAS_PANEL_INACTIVE_NODE_OPACITY : mesh.userData.baseOpacity;
-      material.color.set(selection.colors.nodes[id] ?? nodeColors[id] ?? appColors.spatialNode);
+      material.color.set(nodeColors[id] ?? appColors.spatialNode);
       mesh.userData.displayOpacity = material.opacity;
       mesh.userData.displayColor = material.color.clone();
-      if (id === listHovered) material.color.set(selection.colors.nodes[id] ?? selection.color);
+      if (id === listHovered || id === pointHovered.current) {
+        material.color.set(nodeColors[id] ?? appColors.spatialNode);
+        material.opacity = 1;
+      }
     }
-    view.atlasView.update(selection.color, pointHovered.current ?? listHovered,
-      showInactive ? {} : enabledById, undefined, selection.colors.nodes);
-  }, [selection, enabledById, nodeColors, showInactive, listHovered, atlasDefinition, spatialMode, enable3d]);
+    interactionRef.current?.refresh();
+    const hovered = pointHovered.current ?? listHovered;
+    view.atlasView.update((hovered ? nodeColors[hovered] : undefined) ?? appColors.spatialNode,
+      hovered, showInactive ? {} : enabledById);
+  }, [enabledById, nodeColors, showInactive, listHovered, atlasDefinition, spatialMode, enable3d]);
   return { applyCameraPose: (x: number, y: number, z: number) => scene.current?.pose(x, y, z) };
 }

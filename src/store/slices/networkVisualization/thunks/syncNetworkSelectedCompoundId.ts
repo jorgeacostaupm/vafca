@@ -12,8 +12,9 @@ export const syncNetworkSelectedCompoundId = createAsyncThunk<
 >(
   'networkVisualization/syncNetworkSelectedCompoundId',
   async ({ matches }, { dispatch, getState }) => {
-    const nextSelected = matches.length === 1 ? matches[0].compoundId : ''
     const selected = getState().networkVisualization.controls.selectedCompoundId
+    const nextSelected = matches.some(match => match.compoundId === selected)
+      ? selected : matches.length === 1 ? matches[0].compoundId : ''
     if (nextSelected === selected) return
     dispatch(
       patchNetworkControls({

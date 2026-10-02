@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { setSharedHoverState } from '@/components/hover/sharedHover'
 import { SELECTED_LINKS_TABLE_DEFAULT_PAGE_SIZE, SELECTED_LINKS_TABLE_PAGE_SIZE_OPTIONS } from '@/config/ui'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { selectCurrentAnnotation, toggleAnnotationNode } from '@/store/slices/visualizationUi'
+import { selectCurrentAnnotation, setAtlasNodeIds, toggleAnnotationNode } from '@/store/slices/visualizationUi'
 
 export default function AnnotationNodesTable() {
   const dispatch = useAppDispatch()
@@ -15,6 +15,10 @@ export default function AnnotationNodesTable() {
     <Table
       className="selected-links-table annotations-nodes-table"
       rowKey="id"
+      rowSelection={{
+        selectedRowKeys: annotation.atlasNodeIds,
+        onChange: keys => dispatch(setAtlasNodeIds(keys.map(String))),
+      }}
       dataSource={annotation.nodes}
       locale={{ emptyText: 'No nodes annotated yet.' }}
       onRow={node => ({

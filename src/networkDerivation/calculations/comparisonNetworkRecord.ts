@@ -148,6 +148,7 @@ export const createComparisonNetwork = ({
     rightNetworkId: endpoints.right.network.id,
     parameters: {
       methodId: method.id,
+      sourceGrouping: 'endpoints',
       inputStatistics,
       inputStatisticsLabel: statisticsLabel,
       leftDimensions: baseNetwork.dimensions,
@@ -186,7 +187,7 @@ export const createComparisonNetwork = ({
   return createDerivedNetwork({
     id,
     label,
-    sourceId: `${comparisonSourceId(ids.left, ids.right)}-statistics-${statisticsKey}` + (rightDimensions ? `-context-${encodeURIComponent(dimensionKey(rightDimensions))}` : ""),
+    sourceId: comparisonSourceId(ids.left, ids.right) + (rightDimensions ? `-context-${encodeURIComponent(dimensionKey(rightDimensions))}` : ""),
     dimensions: baseNetwork.dimensions,
     measureId: baseNetwork.measureId,
     nodeSetId: baseNetwork.nodeSetId,

@@ -10,12 +10,20 @@ import { createServer } from 'vite';
 const fixture = `
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import { Provider } from 'react-redux';
 import { store } from '/src/store/store.ts';
 import * as actions from '/src/store/slices/visualizationUi/visualizationUiSlice.ts';
 import Matrix from '/src/components/matrix/MatrixHeatmapPanel.tsx';
 import NodeLink from '/src/components/nodelink/NodeLinkPanel.tsx';
 import Circular from '/src/components/circular/CircularNodeLinkPanel.tsx';
+import * as THREE from 'three';
+import { useLinksAtlasScene } from '/src/components/selected-links/useLinksAtlasScene.ts';
+import SelectedLinksAtlas from '/src/components/selected-links/SelectedLinksAtlas.tsx';
+import { setUploadedAtlas } from '/src/store/slices/atlasDefinition/atlasDefinitionSlice.ts';
+import { loadNetworkImportFromBytes } from '/src/utils/import/loadNetworkImport.ts';
+import { buildAtlasSourceFromNodeSet } from '/src/utils/atlas/nodeDerivedAtlas.ts';
+import { SPATIAL_SCENE, SPATIAL_ATLAS_CONTEXT_OPACITY, SPATIAL_ATLAS_HOVER_OPACITY } from '/src/config/ui.ts';
 const labels = Array.from({length: 24}, (_, i) => 'n' + i);
 const data = labels.map((_, i) => labels.map((_, j) => i === j ? NaN : (i + j + 1) / 48));
 const props = { data, labels, compoundId: 'test', networkLabel: 'Test', symmetric: true };
@@ -46,7 +54,91 @@ window.checkRendering = async () => {
   store.dispatch(actions.selectAnnotation('default'));
   store.dispatch(actions.updateAnnotation({id: 'default', active: false})); await settle(); assertReused();
   check(!document.querySelector('#view0 .heatmap-selected rect'), 'Hidden annotation still highlighted');
-  return 'Matrix, node-link and circular scenes are reused; live colors, visibility and target callbacks pass.';
+  const bytes = await fetch('/examples/use_case_1.zip').then(response => response.arrayBuffer());
+  const imported = await loadNetworkImportFromBytes('use_case_1.zip', bytes);
+  const atlasDefinition = buildAtlasSourceFromNodeSet(imported.dataset.nodeSet, 'use_case_1.zip').atlas;
+  const [activeId, otherId] = atlasDefinition.nodes.map(node => node.id);
+  store.dispatch(actions.createNewAnnotation());
+  store.dispatch(actions.toggleAnnotationNode({id: otherId, label: otherId}));
+  store.dispatch(actions.createNewAnnotation());
+  const host = document.body.appendChild(document.createElement('div'));
+  let spatialError;
+  const spatialRoot = createRoot(host, {onUncaughtError: error => { spatialError = error; }});
+  let spatialScene;
+  const originalAdd = THREE.Scene.prototype.add;
+  THREE.Scene.prototype.add = function (...objects) { spatialScene = this; return originalAdd.apply(this, objects); };
+  function SpatialProbe({ ids, isNetworkView = false, hideInactiveRois = false }) {
+    const { containerRef } = useLinksAtlasScene({ atlasDefinition, has3d: true, spatialMode: 'geometry',
+      isNetworkView, hideInactiveRois, highlightedNodeIds: new Set(ids), activeLinks: [] });
+    return React.createElement('div', {ref: containerRef, style: {width: 400, height: 300}});
+  }
+  const draw = async (ids, options = {}) => {
+    flushSync(() => spatialRoot.render(React.createElement(Provider, {store}, React.createElement(SpatialProbe, {ids, ...options}))));
+    await settle();
+    if (spatialError) throw spatialError;
+    check(spatialScene, '3D scene must be created');
+  };
+  const assertRoi = (id, pointVisible, surfaceVisible, pointOpacity, surfaceOpacity) => {
+    const meshes = [];
+    spatialScene.traverse(object => { if (object.isMesh && object.userData.vafcaRoiId === id) meshes.push(object); });
+    check(meshes.length >= 2, 'ROI must include a point and anatomical surface');
+    for (const mesh of meshes) {
+      const isPoint = mesh.userData.baseOpacity !== undefined;
+      check(mesh.visible === (isPoint ? pointVisible : surfaceVisible), 'Unexpected ROI visibility: ' + id + (isPoint ? ' point' : ' surface') + ', got ' + mesh.visible);
+      check(mesh.material.transparent, 'ROI material must support transparency');
+      const expected = isPoint ? pointOpacity : surfaceOpacity;
+      check(mesh.material.opacity === expected, 'Unexpected ROI opacity: ' + id + ' expected ' + expected + ', got ' + mesh.material.opacity);
+    }
+  };
+  try {
+    await draw([activeId]);
+    assertRoi(activeId, true, true, SPATIAL_SCENE.pointOpacity, SPATIAL_ATLAS_HOVER_OPACITY);
+    assertRoi(otherId, false, true, SPATIAL_SCENE.inactivePointOpacity, SPATIAL_ATLAS_CONTEXT_OPACITY);
+    await draw([activeId], {hideInactiveRois: true});
+    assertRoi(activeId, true, true, SPATIAL_SCENE.pointOpacity, SPATIAL_ATLAS_HOVER_OPACITY);
+    assertRoi(otherId, false, false, SPATIAL_SCENE.inactivePointOpacity, SPATIAL_ATLAS_CONTEXT_OPACITY);
+    await draw([]);
+    assertRoi(activeId, false, true, SPATIAL_SCENE.inactivePointOpacity, SPATIAL_ATLAS_CONTEXT_OPACITY);
+    assertRoi(otherId, false, true, SPATIAL_SCENE.inactivePointOpacity, SPATIAL_ATLAS_CONTEXT_OPACITY);
+    await draw([otherId]);
+    assertRoi(activeId, false, true, SPATIAL_SCENE.inactivePointOpacity, SPATIAL_ATLAS_CONTEXT_OPACITY);
+    assertRoi(otherId, true, true, SPATIAL_SCENE.pointOpacity, SPATIAL_ATLAS_HOVER_OPACITY);
+    await draw([otherId], {isNetworkView: true, hideInactiveRois: true});
+    assertRoi(activeId, false, false, SPATIAL_SCENE.inactivePointOpacity, SPATIAL_ATLAS_CONTEXT_OPACITY);
+    await draw([otherId], {isNetworkView: true});
+    assertRoi(activeId, true, true, SPATIAL_SCENE.inactivePointOpacity, SPATIAL_ATLAS_CONTEXT_OPACITY);
+    store.dispatch(setUploadedAtlas({atlas: atlasDefinition, fileName: 'use_case_1.zip'}));
+    store.dispatch(actions.setAtlasPanelState({spatialMode: 'geometry', is3dAvailable: true}));
+    host.style.cssText = 'width: 600px; height: 400px';
+    flushSync(() => spatialRoot.render(React.createElement(Provider, {store}, React.createElement(SelectedLinksAtlas, {
+      useAtlas3d: true, viewType: 'circular', nodeMode: 'connected', onViewTypeChange() {}, onNodeModeChange() {},
+    }))));
+    await settle();
+    check(host.textContent.includes('Selected Nodes & Links'), 'Annotation view title must be stable');
+    check(!host.querySelector('[aria-label="Filter 3D links"]'), 'Annotation 3D must not include focus filters');
+    check(host.querySelectorAll('[aria-label="3D view controls"] button').length === 5, 'Only camera and inactive ROI buttons belong in 3D controls');
+    const toggle = host.querySelector('button[aria-label="Hide inactive ROIs"]');
+    check(toggle && toggle.getAttribute('aria-pressed') === 'false', 'Inactive surfaces are shown initially');
+    flushSync(() => toggle.click()); await settle();
+    check(host.querySelector('button[aria-label="Hide inactive ROIs"]').getAttribute('aria-pressed') === 'true', 'Inactive toggle must turn on');
+    assertRoi(activeId, false, false, SPATIAL_SCENE.inactivePointOpacity, SPATIAL_ATLAS_CONTEXT_OPACITY);
+    flushSync(() => host.querySelector('button[aria-label="Hide inactive ROIs"]').click()); await settle();
+    check(host.querySelector('button[aria-label="Hide inactive ROIs"]').getAttribute('aria-pressed') === 'false', 'Inactive toggle must turn off');
+    assertRoi(activeId, false, true, SPATIAL_SCENE.inactivePointOpacity, SPATIAL_ATLAS_CONTEXT_OPACITY);
+    for (const label of ['2D', '3D']) {
+      const selector = host.querySelector('[aria-label="Spatial representation"]');
+      check(selector, 'Spatial selector must remain available in both views');
+      selector.dispatchEvent(new MouseEvent('mousedown', {bubbles: true})); await settle();
+      const option = [...document.querySelectorAll('.ant-select-item-option')].find(el => el.title === label);
+      check(option, 'Spatial selector must offer ' + label);
+      flushSync(() => option.click()); await settle();
+      check(Boolean(host.querySelector('.links-atlas__canvas')) === (label === '3D'), 'Spatial selector must switch to ' + label);
+      check(host.textContent.includes('Selected Nodes & Links'), 'Title must survive view changes');
+    }
+  } finally {
+    spatialRoot.unmount(); host.remove(); THREE.Scene.prototype.add = originalAdd;
+  }
+  return 'Annotation checks pass: 2D/3D switching, title, camera controls, inactive surface toggle, point visibility and scene reuse.';
 };
 `;
 const server = await createServer({ base: '/', server: { host: '127.0.0.1', port: 0 }, plugins: [{
@@ -86,7 +178,7 @@ try {
   assert.ok(disposed, 'Removed links release their geometry');
   console.log('3D reuses lines, geometry and materials and releases removed links.');
   await server.listen();
-  browser = spawn(process.env.CHROMIUM_BIN ?? 'chromium', ['--headless', '--no-sandbox', '--disable-dev-shm-usage', '--remote-debugging-port=0', '--user-data-dir=' + profile, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+  browser = spawn(process.env.CHROMIUM_BIN ?? 'chromium', ['--headless', '--no-sandbox', '--disable-dev-shm-usage', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--remote-debugging-port=0', '--user-data-dir=' + profile, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
   const endpoint = await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(Error('Chromium startup timeout')), 20000);
     browser.once('error', reject);

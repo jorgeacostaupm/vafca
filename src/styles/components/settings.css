@@ -1,0 +1,51 @@
+.app-settings-section {
+  display: grid;
+
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.app-settings-section--no-padding {
+  padding: 0;
+}
+
+.app-settings-section__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.app-settings-section__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.app-settings-section__title {
+  margin: 0;
+}
+
+.app-settings-section__title--custom-size {
+  font-size: var(--app-settings-section-title-font-size);
+}
+
+.app-settings-section__description {
+  display: block;
+}
+
+.app-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+@media (max-width: 720px) {
+  .app-settings-actions {
+    justify-content: flex-start;
+  }
+}

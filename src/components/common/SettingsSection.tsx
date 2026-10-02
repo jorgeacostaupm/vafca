@@ -20,19 +20,19 @@ export default function SettingsSection({
 }: SettingsSectionProps) {
   const hasHeader = title || description || actions
   const sectionClassName = padded
-    ? 'network-settings-section'
-    : 'network-settings-section network-settings-section--no-padding'
+    ? 'app-settings-section'
+    : 'app-settings-section app-settings-section--no-padding'
   const titleClassName = titleFontSize
-    ? 'network-settings-section__title network-settings-section__title--custom-size'
-    : 'network-settings-section__title'
+    ? 'app-settings-section__title app-settings-section__title--custom-size'
+    : 'app-settings-section__title'
   const titleStyle = titleFontSize
-    ? ({ '--network-settings-section-title-font-size': titleFontSize } as CSSProperties)
+    ? ({ '--app-settings-section-title-font-size': titleFontSize } as CSSProperties)
     : undefined
 
   return (
     <section className={sectionClassName}>
       {hasHeader ? (
-        <div className="network-settings-section__header">
+        <div className="app-settings-section__header">
           <div>
             {title ? (
               <Typography.Title level={5} className={titleClassName} style={titleStyle}>
@@ -40,12 +40,12 @@ export default function SettingsSection({
               </Typography.Title>
             ) : null}
             {description ? (
-              <Typography.Text type="secondary" className="network-settings-section__description">
+              <Typography.Text type="secondary" className="app-settings-section__description">
                 {description}
               </Typography.Text>
             ) : null}
           </div>
-          {actions ? <div className="network-settings-section__actions">{actions}</div> : null}
+          {actions ? <div className="app-settings-section__actions">{actions}</div> : null}
         </div>
       ) : null}
       {children}

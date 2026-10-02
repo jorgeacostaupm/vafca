@@ -1,5 +1,5 @@
 import { SwapOutlined } from '@ant-design/icons'
-import { Alert, Button, Form, InputNumber, Select, Switch } from 'antd'
+import { Alert, Button, Form, InputNumber, Select } from 'antd'
 
 import {
   isValidSampleSize,
@@ -56,7 +56,6 @@ export default function CalculationInputs({ request, onChange }: Props) {
   ) => (
     <Form.Item label={label}>
       <Select
-        style={{ width: 250 }}
         className="compute-networks__select"
         value={request[field]}
         options={options}
@@ -108,28 +107,18 @@ export default function CalculationInputs({ request, onChange }: Props) {
         {subjectDifference && sourceSelect('Control', 'rightSubjectId', subjects)}
       </div>
       <div className="compute-networks__control-row">
-        <Form.Item label="Connectivity measures">
+        <Form.Item label="Connectivity measure">
           <Select
-            mode="multiple"
             className="compute-networks__select"
-            value={request.measureIds}
+            value={request.measureIds[0]}
             options={Object.values(catalogs.measures).map(({ id, label }) => ({
               value: id,
               label,
             }))}
-            onChange={(measureIds) => update({ measureIds })}
+            onChange={(measureId: string) => update({ measureIds: [measureId] })}
           />
         </Form.Item>
       </div>
-      {request.operations.some((operation) => operation !== 'correlation') && (
-        <Form.Item label="Absolute value of the result">
-          <Switch
-            checked={request.absoluteDifference ?? false}
-            aria-label="Absolute value of the result"
-            onChange={(absoluteDifference) => update({ absoluteDifference })}
-          />
-        </Form.Item>
-      )}
       {missingCatalogSizes.length > 0 && (
         <>
           <Alert

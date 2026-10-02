@@ -8,7 +8,6 @@ import type {
 } from "@/types/networkVisualization";
 import { valuePassesRangeFilter } from "@/utils/matrixFiltering";
 
-
 export const buildLinkKey = (a: string, b: string) =>
   a <= b ? `${a}::${b}` : `${b}::${a}`;
 
@@ -160,24 +159,6 @@ export const intersectAllowedSets = (
     if (second.has(value)) next.add(value);
   });
   return next;
-};
-
-export const pickSharedSettings = (
-  source?: MatrixNetworkViewSettings | NodeLinkNetworkViewSettings,
-) => {
-  if (!source) return {};
-  return {
-    labels: source.labels,
-    measureRange: source.measureRange,
-    statRange: source.statRange,
-    brushEnabled: source.brushEnabled,
-    hideIsolatedNodes: source.hideIsolatedNodes,
-    zoomHistory: source.zoomHistory,
-    zoomIndex: source.zoomIndex,
-    percentLinkFilter: source.percentLinkFilter,
-    useAsNodeFilter: source.useAsNodeFilter,
-    useAsLinkFilter: source.useAsLinkFilter,
-  };
 };
 
 export const toMatrixStatFilter = (

@@ -1,9 +1,8 @@
-import { CheckOutlined, ReloadOutlined } from '@ant-design/icons'
-import { Button, Select, Space, Typography } from 'antd'
-import { useCallback, useState } from 'react'
+import { Select, Space, Typography } from 'antd'
 
 import { moveField } from '@/components/atlas/panelFieldUtils'
-import type { D3GroupingPaletteKey } from '@/config/groupingPalettes'
+import SettingsActions from '@/components/common/SettingsActions'
+import SettingsSection from '@/components/common/SettingsSection'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   selectAtlasColorFields,
@@ -14,108 +13,36 @@ import {
 import { humanizeFieldName } from '@/utils/atlas/atlasDefinition'
 
 import GroupingFieldList from './GroupingFieldList'
-import GroupingHierarchyPreviews from './GroupingHierarchyPreviews'
 import GroupingPaletteSelect from './GroupingPaletteSelect'
 import GroupingStatusNotice from './GroupingStatusNotice'
-import SettingsSection from './SettingsSection'
 import { useAtlasGroupingSettings } from './useAtlasGroupingSettings'
+import { useSettingsDraft } from './useSettingsDraft'
 
 const areFieldListsEqual = (first: string[], second: string[]) =>
   first.length === second.length && first.every((field, index) => field === second[index])
-type GroupingDraft = {
-  baseColorFields: string[]
-  baseColorPalette: D3GroupingPaletteKey
-  colorFields: string[]
-  colorPalette: D3GroupingPaletteKey
-}
 export default function GroupingSettingsTab() {
   const dispatch = useAppDispatch()
   const colorFields = useAppSelector(selectAtlasColorFields)
   const colorPalette = useAppSelector(selectAtlasColorPalette)
-  const [draft, setDraft] = useState<GroupingDraft>(() => ({
-    baseColorFields: colorFields,
-    baseColorPalette: colorPalette,
-    colorFields,
-    colorPalette,
-  }))
-
-  const appliedStateChanged =
-    !areFieldListsEqual(draft.baseColorFields, colorFields) ||
-    draft.baseColorPalette !== colorPalette
-  const effectiveColorFields = appliedStateChanged ? colorFields : draft.colorFields
-  const effectiveColorPalette = appliedStateChanged ? colorPalette : draft.colorPalette
+  const { value: draft, patch, reset, hasChanges: hasPendingChanges } = useSettingsDraft(
+    { colorFields, colorPalette },
+    (first, second) => areFieldListsEqual(first.colorFields, second.colorFields) && first.colorPalette === second.colorPalette,
+  )
+  const effectiveColorFields = draft.colorFields
+  const effectiveColorPalette = draft.colorPalette
 
   const { selectableColorFields, colorCategories, colorPreviewItems } = useAtlasGroupingSettings({
     previewColorFields: effectiveColorFields,
     previewColorPalette: effectiveColorPalette,
   })
 
-  const hasPendingChanges =
-    !areFieldListsEqual(effectiveColorFields, colorFields) || effectiveColorPalette !== colorPalette
   const hasGroupingFields = effectiveColorFields.length > 0
   const hasSelectableColorFields = selectableColorFields.length > 0
 
-  const handleMoveField = useCallback(
-    (field: string, direction: 'up' | 'down') => {
-      setDraft({
-        baseColorFields: colorFields,
-        baseColorPalette: colorPalette,
-        colorFields: moveField(effectiveColorFields, field, direction),
-        colorPalette: effectiveColorPalette,
-      })
-    },
-    [colorFields, colorPalette, effectiveColorFields, effectiveColorPalette],
-  )
-
-  const handleRemoveField = useCallback(
-    (field: string) => {
-      setDraft({
-        baseColorFields: colorFields,
-        baseColorPalette: colorPalette,
-        colorFields: effectiveColorFields.filter((value) => value !== field),
-        colorPalette: effectiveColorPalette,
-      })
-    },
-    [colorFields, colorPalette, effectiveColorFields, effectiveColorPalette],
-  )
-
-  const handleAddField = useCallback(
-    (field: string) => {
-      setDraft({
-        baseColorFields: colorFields,
-        baseColorPalette: colorPalette,
-        colorFields: [...effectiveColorFields, field],
-        colorPalette: effectiveColorPalette,
-      })
-    },
-    [colorFields, colorPalette, effectiveColorFields, effectiveColorPalette],
-  )
-
-  const handleApply = useCallback(() => {
+  const handleApply = () => {
     dispatch(setAtlasColorFields(effectiveColorFields))
     dispatch(setAtlasColorPalette(effectiveColorPalette))
-  }, [dispatch, effectiveColorFields, effectiveColorPalette])
-
-  const handleDiscard = useCallback(() => {
-    setDraft({
-      baseColorFields: colorFields,
-      baseColorPalette: colorPalette,
-      colorFields,
-      colorPalette,
-    })
-  }, [colorFields, colorPalette])
-
-  const handlePaletteChange = useCallback(
-    (value: D3GroupingPaletteKey) => {
-      setDraft({
-        baseColorFields: colorFields,
-        baseColorPalette: colorPalette,
-        colorFields: effectiveColorFields,
-        colorPalette: value,
-      })
-    },
-    [colorFields, colorPalette, effectiveColorFields],
-  )
+  }
 
   return (
     <SettingsSection
@@ -128,8 +55,8 @@ export default function GroupingSettingsTab() {
           {hasGroupingFields ? (
             <GroupingFieldList
               fields={effectiveColorFields}
-              onMoveField={handleMoveField}
-              onRemoveField={handleRemoveField}
+              onMoveField={(field, direction) => patch({ colorFields: moveField(effectiveColorFields, field, direction) })}
+              onRemoveField={field => patch({ colorFields: effectiveColorFields.filter(value => value !== field) })}
             />
           ) : null}
 
@@ -142,12 +69,12 @@ export default function GroupingSettingsTab() {
                 value: field,
                 label: humanizeFieldName(field),
               }))}
-              onChange={(value) => handleAddField(String(value))}
+              onChange={value => patch({ colorFields: [...effectiveColorFields, String(value)] })}
               value={null}
             />
           ) : null}
 
-          <GroupingPaletteSelect value={effectiveColorPalette} onChange={handlePaletteChange} />
+          <GroupingPaletteSelect value={effectiveColorPalette} onChange={colorPalette => patch({ colorPalette })} />
 
           {hasGroupingFields ? (
             <div className="atlas-panel__color-preview">
@@ -178,26 +105,7 @@ export default function GroupingSettingsTab() {
           ) : null}
         </Space>
 
-        <div className="network-settings-grouping__preview-column">
-          <GroupingHierarchyPreviews
-            previewColorFields={effectiveColorFields}
-            previewColorPalette={effectiveColorPalette}
-          />
-        </div>
-
-        <Space wrap className="network-settings-grouping__actions">
-          <Button
-            type="primary"
-            icon={<CheckOutlined />}
-            onClick={handleApply}
-            disabled={!hasPendingChanges}
-          >
-            Apply
-          </Button>
-          <Button icon={<ReloadOutlined />} onClick={handleDiscard} disabled={!hasPendingChanges}>
-            Reset
-          </Button>
-        </Space>
+        <SettingsActions hasChanges={hasPendingChanges} onApply={handleApply} onReset={reset} />
       </div>
     </SettingsSection>
   )

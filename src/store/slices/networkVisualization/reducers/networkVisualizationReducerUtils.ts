@@ -21,7 +21,6 @@ export const getSharedSettings = (
     hideIsolatedNodes: source.hideIsolatedNodes,
     zoomHistory: source.zoomHistory,
     zoomIndex: source.zoomIndex,
-    selectionVisible: source.selectionVisible,
     zoomLinkPercent: source.zoomLinkPercent,
     percentLinkFilter: source.percentLinkFilter,
     useAsNodeFilter: source.useAsNodeFilter,

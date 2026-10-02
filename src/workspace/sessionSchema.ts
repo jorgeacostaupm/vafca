@@ -86,7 +86,7 @@ const annotationColor = z.string().regex(/^#[0-9a-f]{6}$/i);
 const annotationSchema = z.object({
   id: z.string().min(1), name: z.string().trim().min(1), description: z.string(), color: annotationColor,
   active: z.boolean(), nodes: z.array(z.object({ id: z.string().min(1), label: z.string() })),
-  selectedLinks: savedLinks, atlasLinkIds: strings,
+  selectedLinks: savedLinks, atlasLinkIds: strings, atlasNodeIds: strings.default([]),
 });
 export const sessionSchema = z.object({
   workspaceUi: z.object({
@@ -122,6 +122,7 @@ export const sessionSchema = z.object({
     matrixHierarchyCategoryOrder: record(strings)
   }),
   visualizationUi: z.object({
+    showGroupingLegend: z.boolean().default(initialVisualizationUiState.showGroupingLegend),
     selectedLinks: savedLinks.optional(),
     atlasLinkIds: strings.optional(),
     annotations: z.array(annotationSchema).min(1).optional(),
@@ -144,6 +145,7 @@ export const sessionSchema = z.object({
       selectedFilters: stringMap,
       collapsedGroups: strings,
       nodeVisibilityDraft: record(z.boolean()).nullable(),
+      showInactiveNodes: z.boolean().default(initialVisualizationUiState.atlasPanel.showInactiveNodes),
       viewerHeight: z.number().positive(),
       is3dAvailable: z.boolean(),
       spatialMode: z.enum(['geometry', 'points', 'none'])

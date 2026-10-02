@@ -5,12 +5,27 @@ const server = await createServer({ server: { middlewareMode: true, hmr: false, 
 try {
   const { buildEffectiveNodeEnabledMap, countChangedNodes } = await server.ssrLoadModule('/src/components/atlas/nodeVisibilityDraft.ts');
   const { default: atlasReducer, setAtlasLabels, setLabelsEnabled, setLabelsEnabledMap } = await server.ssrLoadModule('/src/store/slices/atlasUi/atlasUiSlice.ts');
-  const { default: uiReducer, setAtlasPanelState } = await server.ssrLoadModule('/src/store/slices/visualizationUi/visualizationUiSlice.ts');
+  const { default: uiReducer, setAtlasPanelState, setShowGroupingLegend } = await server.ssrLoadModule('/src/store/slices/visualizationUi/visualizationUiSlice.ts');
+  const { selectGroupingLegendVisible } = await server.ssrLoadModule('/src/store/slices/visualizationUi/visualizationUiSelectors.ts');
   let atlas = atlasReducer(undefined, setAtlasLabels({
     order: ['a', 'b', 'c'],
     labelsById: Object.fromEntries(['a', 'b', 'c'].map(id => [id, { id, label: id, enabled: true }])),
   }));
   let ui = uiReducer(undefined, { type: 'init' });
+  for (const activeSection of ['vis', 'atlas', 'derive', 'links', 'catalogs', 'settings']) {
+    const state = { visualizationUi: ui, workspaceUi: { activeSection } };
+    assert.equal(selectGroupingLegendVisible(state), ['vis', 'atlas'].includes(activeSection));
+    assert.equal(selectGroupingLegendVisible({ ...state, visualizationUi: uiReducer(ui, setShowGroupingLegend(false)) }), false);
+  }
+  ui = uiReducer(uiReducer(ui, setShowGroupingLegend(false)), setShowGroupingLegend(true));
+  assert.equal(ui.showGroupingLegend, true);
+  const { combinedReducer } = await server.ssrLoadModule('/src/store/rootReducer.ts');
+  const { sessionSchema } = await server.ssrLoadModule('/src/workspace/sessionSchema.ts');
+  const state = combinedReducer(undefined, { type: 'init' });
+  const session = sessionSchema.parse({ ...state, visualizationUi: { ...state.visualizationUi, showGroupingLegend: false } });
+  assert.equal(session.visualizationUi.showGroupingLegend, false, 'Sessions preserve a hidden legend');
+  delete session.visualizationUi.showGroupingLegend;
+  assert.equal(sessionSchema.parse(session).visualizationUi.showGroupingLegend, true, 'Older sessions keep the legend enabled');
   const args = () => ({ order: atlas.order, labelsById: atlas.labelsById, draft: ui.atlasPanel.nodeVisibilityDraft });
 
   // A legend action applies only its category and preserves other pending edits.

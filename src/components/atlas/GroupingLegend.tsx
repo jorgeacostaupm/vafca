@@ -1,15 +1,17 @@
 import { useAtlasLabelPresentation } from '@/hooks/useAtlasLabelPresentation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectAtlasColorFields, setLabelsEnabled } from '@/store/slices/atlasUi'
+import { selectGroupingLegendVisible } from '@/store/slices/visualizationUi'
 
 export default function GroupingLegend() {
   const dispatch = useAppDispatch()
+  const visible = useAppSelector(selectGroupingLegendVisible)
   const fields = useAppSelector(selectAtlasColorFields)
   const labelsById = useAppSelector(state => state.atlasUi.labelsById)
   const draft = useAppSelector(state => state.visualizationUi.atlasPanel.nodeVisibilityDraft)
   const { groupingCategories } = useAtlasLabelPresentation()
 
-  if (fields.length === 0 || groupingCategories.length === 0) return null
+  if (!visible || fields.length === 0 || groupingCategories.length === 0) return null
 
   return (
     <aside className="grouping-legend" aria-label="Node color categories">

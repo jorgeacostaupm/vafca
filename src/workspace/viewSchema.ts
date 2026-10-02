@@ -15,7 +15,6 @@ const settings = z.object({
   hideIsolatedNodes: z.boolean().optional(),
   zoomHistory: z.array(zoom).optional(),
   zoomIndex: z.number().int().nonnegative().optional(),
-  selectionVisible: z.boolean().optional(),
   zoomLinkPercent: z.number().optional(),
   percentLinkFilter: z.object({
     mode: z.enum(['top', 'bottom', 'absoluteTop', 'absoluteBottom']),
@@ -59,6 +58,7 @@ export const viewsSchema = z.object({
     type: viewType,
     compoundId: z.string(),
     temporaryNetworkId: z.string().optional(),
+    sourceCompoundId: z.string().optional(),
     coordinationDisabled: z.boolean().optional(),
     label: z.string(),
     measureId: z.string(),

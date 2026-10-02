@@ -8,6 +8,7 @@
 @import "./components/data-management.css";
 @import "./components/inline-notice.css";
 @import "./components/panel-card.css";
+@import "./components/settings.css";
 @import "./components/upload-dropzone.css";
 
 @import "./features/matrix.css";

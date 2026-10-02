@@ -25,15 +25,6 @@ const MATRIX_STAT_CATEGORIES = new Set([
   "derived",
 ]);
 
-export const classifyStatCatalogItem = (
-  stat: Pick<Statistic, "id" | "category">,
-  networks: Network[],
-  sources: Record<string, Source>,
-): StatCatalogGroup => {
-  const usage = buildStatUsageById(networks, sources)[stat.id];
-  return classifyStatCatalogItemWithUsage(stat, usage);
-};
-
 export const buildStatUsageById = (
   networks: Network[],
   sources: Record<string, Source>,

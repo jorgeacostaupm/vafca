@@ -1,7 +1,3 @@
-export {
-  selectNetworkLayout,
-  selectNetworkLayoutState,
-} from "./networkLayoutSelectors";
 export { default } from "./networkLayoutSlice";
 export {
   addNetworkLayoutItem,

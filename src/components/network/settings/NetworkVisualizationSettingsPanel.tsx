@@ -1,11 +1,11 @@
 import { Card, Tabs } from 'antd'
 
 import AnnotationSettings from '@/components/annotations/AnnotationSettings'
+import SettingsSection from '@/components/common/SettingsSection'
 import DataManagementPanel from '@/components/management/DataManagementPanel'
 import { DEFAULT_NETWORK_SETTINGS_TAB } from '@/config/ui'
 
 import CircularSettingsTab from './CircularSettingsTab'
-import GroupingSettingsTab from './GroupingSettingsTab'
 import MatrixSettingsTab from './MatrixSettingsTab'
 import NetworkRankingsSettingsTab from './NetworkRankingsSettingsTab'
 import NetworkViewsSettingsTab from './NetworkViewsSettingsTab'
@@ -19,15 +19,20 @@ export default function NetworkVisualizationSettingsPanel() {
         defaultActiveKey={DEFAULT_NETWORK_SETTINGS_TAB}
         destroyOnHidden
         items={[
-          { key: 'annotations', label: 'Annotations', children: <AnnotationSettings /> },
+          {
+            key: 'general',
+            label: 'General',
+            children: (
+              <>
+                <NetworkViewsSettingsTab />
+                <SettingsSection title="Annotations">
+                  <AnnotationSettings />
+                </SettingsSection>
+              </>
+            ),
+          },
           { key: 'data', label: 'Manage data', children: <DataManagementPanel /> },
           { key: "spatial", label: "3D Brain", children: <SpatialSettingsTab /> },
-          {
-            key: 'networks',
-            label: 'Networks',
-            children: <NetworkViewsSettingsTab />,
-          },
-
           {
             key: 'matrices',
             label: 'Matrices',
@@ -42,11 +47,6 @@ export default function NetworkVisualizationSettingsPanel() {
             key: 'node-link',
             label: 'Node-Link',
             children: <NodeLinkSettingsTab />,
-          },
-          {
-            key: 'grouping',
-            label: 'Grouping',
-            children: <GroupingSettingsTab />,
           },
           {
             key: 'rankings',

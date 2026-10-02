@@ -15,8 +15,11 @@ export type NetworkComparisonDerivation = {
   formula: string;
   leftNetworkId?: string | null;
   rightNetworkId?: string | null;
+  inputs?: [ComparisonNetworkInput, ComparisonNetworkInput];
   parameters: Record<string, unknown>;
 };
+
+export type ComparisonNetworkInput = Pick<Network, 'id' | 'sourceId' | 'measureId' | 'statisticId' | 'dimensions'>;
 
 export type AggregationDerivation = {
   type: "aggregation";

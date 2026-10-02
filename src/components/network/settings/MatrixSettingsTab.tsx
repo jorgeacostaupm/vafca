@@ -1,7 +1,8 @@
-import { CheckOutlined, ReloadOutlined } from '@ant-design/icons'
-import { Button, Collapse, ColorPicker, Form, Space } from 'antd'
+import { Collapse, ColorPicker, Form } from 'antd'
 import { useMemo, useState } from 'react'
 
+import SettingsActions from '@/components/common/SettingsActions'
+import SettingsSection from '@/components/common/SettingsSection'
 import HierarchyCategoryOrderSection from '@/components/management/components/HierarchyCategoryOrderSection'
 import { DEFAULT_MATRIX_SETTINGS_PANEL } from '@/config/ui'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -18,7 +19,6 @@ import {
 import HierarchySettingsPreview from './hierarchy/HierarchySettingsPreview'
 import MatrixScaleSettingsSection from './MatrixScaleSettingsSection'
 import OrderingFieldsSelect from './OrderingFieldsSelect'
-import SettingsSection from './SettingsSection'
 import { useOrderingSettings } from './useOrderingSettings'
 
 export default function MatrixSettingsTab() {
@@ -50,89 +50,69 @@ export default function MatrixSettingsTab() {
   }
 
   return (
-    <Space direction="vertical" size={20} style={{ width: '100%' }}>
-      <SettingsSection
-        description="Use this menu to configure the color scales used by matrix network views."
-      >
-        <Collapse
-          accordion
-          activeKey={activePanel}
-          onChange={setActivePanel}
-          className="network-settings-accordion"
-          items={[
-            {
-              key: 'colors',
-              label: 'Color scale',
-              children: (
-                <>
-                  <Form layout="vertical" className="matrix-settings-global">
-                    <Form.Item label="Background">
-                      <ColorPicker
-                        value={draftBackgroundColor}
-                        showText
-                        onChange={(color) =>
-                          dispatch(setDraftMatrixBackgroundColor(color.toHexString()))
-                        }
-                      />
-                    </Form.Item>
-                  </Form>
-                  <div className="matrix-settings-grid">
-                    <MatrixScaleSettingsSection
-                      scaleType="sequential"
-                      title="Sequential"
-                      settings={draftSettings.sequential}
+    <SettingsSection
+      description="Use this menu to configure the color scales used by matrix network views."
+    >
+      <Collapse
+        accordion
+        activeKey={activePanel}
+        onChange={setActivePanel}
+        className="network-settings-accordion"
+        items={[
+          {
+            key: 'colors',
+            label: 'Color scale',
+            children: (
+              <>
+                <Form layout="vertical" className="matrix-settings-global">
+                  <Form.Item label="Background">
+                    <ColorPicker
+                      value={draftBackgroundColor}
+                      showText
+                      onChange={(color) =>
+                        dispatch(setDraftMatrixBackgroundColor(color.toHexString()))
+                      }
                     />
-                    <MatrixScaleSettingsSection
-                      scaleType="diverging"
-                      title="Diverging"
-                      settings={draftSettings.diverging}
-                    />
-                  </div>
-                </>
-              ),
-            },
-            {
-              key: 'order',
-              label: 'Matrix label order',
-              children: (
-                <div className="network-settings-order-layout">
-                  <div className="network-settings-order-editor">
-                    <OrderingFieldsSelect fields={ordering.fields} onChange={ordering.setFields} />
-                    <HierarchyCategoryOrderSection
-                      categoryOrderEditors={hierarchy.matrixCategoryOrderEditors}
-                      categoryOrder={ordering.categoryOrder}
-                      onUpdateCategoryOrder={ordering.setCategoryOrder}
-                      resolveParentField={(index) => ordering.fields[index] ?? ''}
-                    />
-                  </div>
-                  <div className="network-settings-order-preview">
-                    <HierarchySettingsPreview mode="matrix" hierarchy={hierarchy} />
-                  </div>
+                  </Form.Item>
+                </Form>
+                <div className="matrix-settings-grid">
+                  <MatrixScaleSettingsSection
+                    scaleType="sequential"
+                    title="Sequential"
+                    settings={draftSettings.sequential}
+                  />
+                  <MatrixScaleSettingsSection
+                    scaleType="diverging"
+                    title="Diverging"
+                    settings={draftSettings.diverging}
+                  />
                 </div>
-              ),
-            },
-          ]}
-        />
-        <div className="matrix-settings-actions">
-          <Space>
-            <Button
-              type="primary"
-              icon={<CheckOutlined />}
-              disabled={!hasPendingChanges}
-              onClick={handleApply}
-            >
-              Apply
-            </Button>
-            <Button
-              icon={<ReloadOutlined />}
-              disabled={!hasPendingChanges}
-              onClick={handleReset}
-            >
-              Reset
-            </Button>
-          </Space>
-        </div>
-      </SettingsSection>
-    </Space>
+              </>
+            ),
+          },
+          {
+            key: 'order',
+            label: 'Matrix label order',
+            children: (
+              <div className="network-settings-order-layout">
+                <div className="network-settings-order-editor">
+                  <OrderingFieldsSelect fields={ordering.fields} onChange={ordering.setFields} />
+                  <HierarchyCategoryOrderSection
+                    categoryOrderEditors={hierarchy.matrixCategoryOrderEditors}
+                    categoryOrder={ordering.categoryOrder}
+                    onUpdateCategoryOrder={ordering.setCategoryOrder}
+                    resolveParentField={(index) => ordering.fields[index] ?? ''}
+                  />
+                </div>
+                <div className="network-settings-order-preview">
+                  <HierarchySettingsPreview mode="matrix" hierarchy={hierarchy} />
+                </div>
+              </div>
+            ),
+          },
+        ]}
+      />
+      <SettingsActions hasChanges={hasPendingChanges} onApply={handleApply} onReset={handleReset} />
+    </SettingsSection>
   )
 }

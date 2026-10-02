@@ -1,4 +1,4 @@
-import { UpOutlined, ZoomInOutlined } from "@ant-design/icons";
+import { DownOutlined, ZoomInOutlined } from "@ant-design/icons";
 import { Button, Popover } from "antd";
 import { useMemo } from "react";
 
@@ -116,7 +116,7 @@ export default function NetworkZoomModesPopover({
     <Popover
       content={content}
       trigger={["click"]}
-      placement="topLeft"
+      placement="bottomLeft"
       destroyTooltipOnHide
     >
       <Button
@@ -127,7 +127,7 @@ export default function NetworkZoomModesPopover({
         icon={<ZoomInOutlined />}
         disabled={!canZoom}
       >
-        <UpOutlined />
+        <DownOutlined />
       </Button>
     </Popover>
   );

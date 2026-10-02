@@ -28,6 +28,10 @@ export type CatalogItem = {
   enabled?: boolean;
   order?: number;
   metadata?: Record<string, unknown>;
+  comparison?: {
+    values: [string | null, string | null];
+    operator?: 'pearson_contribution';
+  };
 };
 
 export type SourceKind = "population" | "subject" | "comparison";

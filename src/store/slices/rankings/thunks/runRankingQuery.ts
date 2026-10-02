@@ -1,28 +1,26 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
-import { getRankingQueryMissingFields } from '@/components/rankings/rankingOptions'
-import { selectDatasetContent } from '@/store/slices/dataset'
+import { yieldToBrowser } from '@/store/slices/dataset/utils/browserYield'
 import type { RankingResult } from '@/types/rankings'
 import type { AppDispatch, RootState } from '@/types/store'
-import { isAtlasLabelEnabled } from '@/utils/atlas/labels'
 import { computeRanking } from '@/utils/rankings/rankingCalculations'
+import { getRankingQueryMissingFields } from '@/utils/rankings/rankingQueryValidation'
+
+import { selectRankingInputs } from '../rankingInputSelectors'
 
 export const runRankingQuery = createAsyncThunk<
   RankingResult,
   void,
   { state: RootState; dispatch: AppDispatch; rejectValue: string }
->('rankings/runRankingQuery', async (_, { getState, rejectWithValue }) => {
+>('rankings/runRankingQuery', async (_, { getState, rejectWithValue, signal }) => {
   const state = getState()
-  const datasetContent = selectDatasetContent(state)
+  const inputs = selectRankingInputs(state)
+  const { datasetContent, activeNodeIds, edgeMask } = inputs
   if (!datasetContent) {
     return rejectWithValue('No dataset is loaded.')
   }
 
-  const activeNodes = new Set(
-    state.atlasUi.order.filter((id) =>
-      isAtlasLabelEnabled(state.atlasUi.labelsById[id]),
-    ),
-  )
+  const activeNodes = new Set(activeNodeIds)
   const query = state.rankings.currentQuery
   const missingFields = getRankingQueryMissingFields(query, datasetContent)
   if (missingFields.length > 0) {
@@ -30,7 +28,12 @@ export const runRankingQuery = createAsyncThunk<
       `Complete ranking fields before adding: ${missingFields.join(', ')}.`,
     )
   }
-  const activeFilterMask = state.networkFilters.activeEdgeMask?.values ?? null
+  await yieldToBrowser()
+  signal.throwIfAborted()
+  if (selectRankingInputs(getState()) !== inputs) {
+    return rejectWithValue('Ranking inputs changed during the calculation. Run it again.')
+  }
+  const activeFilterMask = edgeMask?.values ?? null
 
   const result = computeRanking({
     datasetContent,
@@ -44,4 +47,4 @@ export const runRankingQuery = createAsyncThunk<
     id: `ranking-${seq}`,
     createdAt: new Date().toISOString(),
   }
-})
+}, { condition: (_, { getState }) => getState().rankings.status !== 'loading' })

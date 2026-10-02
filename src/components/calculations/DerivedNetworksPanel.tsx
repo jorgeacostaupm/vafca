@@ -1,31 +1,18 @@
-import { PlayCircleOutlined } from '@ant-design/icons'
-import { Alert, Button, Card, Form, Table, Typography } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
+import { Alert, Card } from 'antd'
 import { useMemo, useState } from 'react'
 
-import { COMPARISON_PREVIEW_PAGE_SIZE, DERIVE_NETWORK_TABS } from '@/config/ui'
+import { DERIVE_NETWORK_TABS } from '@/config/ui'
 import { getAvailableNetworkCalculations, validateNetworkCalculationRequest } from '@/networkDerivation/calculations'
 import { networkDimensionContexts } from '@/networkDerivation/calculations/dimensions'
 import type { NetworkCalculationBatchRequest } from '@/networkDerivation/calculations/types'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { computeDerivedNetworks, selectDatasetContent, selectDerivedCalculationError, selectDerivedCalculationStatus } from '@/store/slices/dataset'
 
-import CalculationInputs from './CalculationInputs'
+import CalculationConfiguration from './CalculationConfiguration'
 import CalculationMethods from './CalculationMethods'
-import { calculationPreview, type CalculationPreviewRow } from './calculationPreview'
-import CalculationStatistics from './CalculationStatistics'
+import { calculationPreview } from './calculationPreview'
+import CalculationPreviewTable from './CalculationPreviewTable'
 import CorrelationCalculation from './CorrelationCalculation'
-
-const columns: ColumnsType<CalculationPreviewRow> = [
-  { title: 'Method', dataIndex: 'method' },
-  { title: 'Dimensions (left → right)', dataIndex: 'dimensions' },
-  { title: 'Measure', dataIndex: 'measure' },
-  { title: 'Left/Target', dataIndex: 'left' },
-  { title: 'Right/Control', dataIndex: 'right' },
-  { title: 'Input statistics', dataIndex: 'inputs' },
-  { title: 'Output stat', dataIndex: 'output' },
-  { title: 'Status', dataIndex: 'status' },
-]
 
 export default function DerivedNetworksPanel() {
   const dataset = useAppSelector(selectDatasetContent)
@@ -54,7 +41,7 @@ function DerivedNetworkCalculationForm() {
       subjectIds: subjects.slice(0, 1).map(({ id }) => id),
       rightSubjectId: subjects[1]?.id ?? subjects[0]?.id,
       dimensionPairs: [],
-      measureIds: Object.keys(dataset?.catalogs.measures ?? {}),
+      measureIds: Object.keys(dataset?.catalogs.measures ?? {}).slice(0, 1),
     }
   })
   const [excludedKeys, setExcludedKeys] = useState<string[]>([])
@@ -93,36 +80,12 @@ function DerivedNetworkCalculationForm() {
         setSummary(null)
         setWarnings([])
       }}>
-      {request.operations[0] === 'correlation' ? <CorrelationCalculation /> : <div className="compute-networks__tab">
-        <section className="compute-networks__section">
-          {!methods.length && <Alert type="warning" showIcon message="No comparison network calculations are available with the currently loaded data." />}
-          <Form layout="vertical" disabled={running}>
-            <CalculationInputs request={request} onChange={setRequest} />
-            {method && <CalculationStatistics method={method} request={request} onChange={setRequest} />}
-          </Form>
-        </section>
-        <section className="compute-networks__section">
-          <Typography.Title level={5}>Preview</Typography.Title>
-          <Typography.Text type="secondary">
-            {previewRows.filter((row) => row.status === 'ready').length} compatible comparisons.
-            {' '}{selectedRows.length} selected.
-          </Typography.Text>
-          {request.operations.length > 0 && !request.dimensionPairs.length &&
-            <Alert type="info" showIcon message="No network contexts are available." />}
-          {summary && <Alert type="info" showIcon message={summary} />}
-          {warnings.length > 0 && <Alert type="warning" showIcon message={warnings.join(' ')} />}
-          <Table size="small" columns={columns} dataSource={previewRows}
-            rowSelection={{
-              selectedRowKeys: selectedRows.map((row) => row.key),
-              onChange: (keys) => setExcludedKeys(previewRows.filter((row) => !keys.includes(row.key)).map((row) => row.key)),
-              getCheckboxProps: (row) => ({ disabled: running || row.status !== 'ready' }),
-            }}
-            pagination={{ pageSize: COMPARISON_PREVIEW_PAGE_SIZE }} />
-          <Button type="primary" icon={<PlayCircleOutlined />} loading={running}
-            disabled={!canCalculate || running} onClick={handleCalculate}>
-            {running ? 'Deriving...' : `Derive (${selectedRows.length})`}
-          </Button>
-        </section>
+      {request.operations[0] === 'correlation' ? <CorrelationCalculation /> : <div className="compute-networks__tab compute-networks__comparison">
+        <CalculationConfiguration method={method} request={request} onChange={setRequest} />
+        <CalculationPreviewTable request={request} onChange={setRequest}
+          rows={previewRows} selectedRows={selectedRows} summary={summary} warnings={warnings}
+          canCalculate={Boolean(canCalculate)} onCalculate={handleCalculate}
+          onSelectionChange={(keys) => setExcludedKeys(previewRows.filter((row) => !keys.includes(row.key)).map((row) => row.key))} />
       </div>
       }
       </CalculationMethods>

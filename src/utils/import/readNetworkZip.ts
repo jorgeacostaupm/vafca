@@ -1,4 +1,4 @@
-import { strFromU8, unzipSync } from "fflate";
+import { unzipSync } from "fflate";
 
 import type {
   NetworkImportIssue,
@@ -7,7 +7,6 @@ import type {
 } from "@/utils/import/types";
 
 const decoder = new TextDecoder("utf-8", { fatal: false });
-
 
 const isJsonFile = (path: string) => path.toLowerCase().endsWith(".json");
 
@@ -134,5 +133,3 @@ export const readNetworkZip = (
     warnings,
   };
 };
-
-export const readTextFromZipEntry = (entry: Uint8Array) => strFromU8(entry);

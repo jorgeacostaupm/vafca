@@ -4,6 +4,7 @@ import {
   DEFAULT_NETWORK_PANEL_LAYOUT,
   DEFAULT_RANKING_PANEL_LAYOUT,
 } from "@/config/ui";
+import { catalogItemUpdated } from '@/store/actions/catalogItemUpdated'
 import { runRankingQuery } from "@/store/slices/rankings/thunks";
 import type { NetworkLayoutItem } from "@/types/networkVisualization";
 
@@ -56,6 +57,11 @@ const networkLayoutSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder.addCase(catalogItemUpdated, (state, { payload }) => {
+      if (!payload.viewIds.length) return
+      const ids = new Set(payload.viewIds)
+      state.layout = state.layout.filter(entry => !ids.has(entry.i))
+    })
     builder.addCase(runRankingQuery.fulfilled, (state, action) => {
       state.layout = [
         {

@@ -68,7 +68,6 @@ function SelectedLinksFallbackView({
         nodeMode={nodeMode}
         onViewTypeChange={onViewTypeChange}
         onNodeModeChange={onNodeModeChange}
-        summary="0 links"
       >
         <div className="selected-links-view__empty">
           <Typography.Text type="secondary">
@@ -85,7 +84,6 @@ function SelectedLinksFallbackView({
       nodeMode={nodeMode}
       onViewTypeChange={onViewTypeChange}
       onNodeModeChange={onNodeModeChange}
-      summary={`${graph.edgeCount} link${graph.edgeCount === 1 ? "" : "s"} · ${graph.labels.length} node${graph.labels.length === 1 ? "" : "s"}`}
     >
       {viewType === "matrix" ? (
         <div className="selected-links-view__renderer">
@@ -130,23 +128,21 @@ function SelectedLinksFallbackFrame({
   nodeMode,
   onViewTypeChange,
   onNodeModeChange,
-  summary,
   children,
 }: {
   viewType: SelectedLinksFallbackViewType;
   nodeMode: SelectedLinksFallbackNodeMode;
   onViewTypeChange: (value: SelectedLinksFallbackViewType) => void;
   onNodeModeChange: (value: SelectedLinksFallbackNodeMode) => void;
-  summary: string;
   children: React.ReactNode;
 }) {
   return (
     <SelectedLinksViewFrame
-      summary={summary}
       actions={
         <>
           <Select<SelectedLinksFallbackViewType>
             aria-label="2D view type"
+            variant="borderless"
             size="small"
             placement="topLeft"
             suffixIcon={<UpOutlined />}

@@ -9,8 +9,6 @@ const isMatrixNetworkData = (
   data: Network["data"],
 ): data is MatrixNetworkData => data.format === "matrix";
 
-export const getNetworkKind = (network: Network) => network.sourceId;
-
 export const getNetworkNodeIds = (network: Network) => network.nodeIds;
 
 const getMatrixValue = (

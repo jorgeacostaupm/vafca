@@ -1,7 +1,7 @@
 import { Card } from 'antd'
 import type { CSSProperties, ReactNode } from 'react'
 
-import SettingsSection from '@/components/network/settings/SettingsSection'
+import SettingsSection from '@/components/common/SettingsSection'
 import { ATLAS_PANEL_LIST_WIDTH_PERCENT, DEFAULT_ATLAS_PANEL_VIEWER_HEIGHT } from '@/config/ui'
 
 type AtlasPanelLayoutProps = {

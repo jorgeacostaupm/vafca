@@ -1,4 +1,4 @@
-import { Alert, Modal, Typography } from 'antd'
+import { Alert, Collapse, Modal, Typography } from 'antd'
 import { useMemo, useState } from 'react'
 
 import OrderingFieldsSelect from '@/components/network/settings/OrderingFieldsSelect'
@@ -47,26 +47,26 @@ export default function AggregateNetworkModal({ request, onClose }: {
   }
 
   return (
-    <Modal open title="Aggregate network" okText="Create aggregated network"
+    <Modal open title="Aggregate network" okText="Create network"
       confirmLoading={pending} okButtonProps={{ disabled: fields.length === 0 || groups.length < 2 }}
       cancelButtonProps={{ disabled: pending }} closable={!pending} maskClosable={!pending}
       keyboard={!pending} onCancel={onClose} onOk={() => void handleCreate()}>
       <Typography.Paragraph>
-        Choose the metadata fields that define each aggregated node. This uses the visible
-        nodes and connections captured when you clicked Aggregate network.
+        Group visible nodes by metadata. Connections use the mean of visible links between groups.
       </Typography.Paragraph>
       <OrderingFieldsSelect purpose="Aggregation" fields={fields}
         onChange={next => { setFields(next); setError(null) }} />
-      <Typography.Paragraph type="secondary">
-        Each connection is the mean of the valid visible connections between its groups.
-        Self-connections are excluded. Missing metadata is grouped as Unknown.
-        Groups are ordered alphabetically by the selected fields, from first to last.
-      </Typography.Paragraph>
       <Typography.Paragraph>
-        {groups.length} aggregated nodes. At least two groups are required.
+        {groups.length} groups{groups.length < 2 ? ' — select fields that produce at least two groups.' : '.'}
       </Typography.Paragraph>
-      <AggregateGroupLabelsEditor groups={groups} labels={groupLabels} disabled={pending}
-        onChange={(id, label) => setGroupLabels(previous => ({ ...previous, [id]: label }))} />
+      {groups.length > 0 && (
+        <Collapse ghost items={[{
+          key: 'labels',
+          label: 'Customize group labels',
+          children: <AggregateGroupLabelsEditor groups={groups} labels={groupLabels} disabled={pending}
+            onChange={(id, label) => setGroupLabels(previous => ({ ...previous, [id]: label }))} />,
+        }]} />
+      )}
       {error && <Alert type="error" title={error} showIcon />}
     </Modal>
   )

@@ -1,8 +1,13 @@
 import { z } from 'zod';
+
+import { CatalogComparisonSchema } from '@/utils/import/schemas/catalogSchema';
 export const strings = z.array(z.string());
 export const stringMap = z.record(z.string(), z.string());
 export const record = <T extends z.ZodType>(schema: T) => z.record(z.string(), schema);
 const metadata = record(z.json());
+const comparisonInput = z.object({
+  id: z.string(), sourceId: z.string(), measureId: z.string(), statisticId: z.string(), dimensions: stringMap,
+});
 const nullableNumber = z.number().nullable();
 export const matrix = z.array(z.array(nullableNumber));
 const domain = z.object({
@@ -33,6 +38,7 @@ const catalog = z.object({
   enabled: z.boolean().optional(),
   order: z.number().optional(),
   metadata: metadata.optional(),
+  comparison: CatalogComparisonSchema.optional(),
   min: z.number().optional(),
   max: z.number().optional(),
   expectedRange: z.tuple([z.number(), z.number()]).nullable().optional(),
@@ -76,7 +82,8 @@ const network = z.object({
     formula: z.string(),
     parameters: metadata,
     leftNetworkId: z.string().nullable().optional(),
-    rightNetworkId: z.string().nullable().optional()
+    rightNetworkId: z.string().nullable().optional(),
+    inputs: z.tuple([comparisonInput, comparisonInput]).optional()
   }).passthrough(),
         z.object({
     type: z.literal('aggregation'),

@@ -33,7 +33,6 @@ export const DEFAULT_NETWORK_VIEW_TYPE: NetworkViewType = 'matrix'
 export const DEFAULT_NETWORK_MATRIX_SELECTOR_MODE: NetworkMatrixSelectorMode = 'fields'
 export const DEFAULT_NETWORK_SYNC_ZOOM = false
 export const DEFAULT_NETWORK_HIDE_ISOLATED_NODES = true
-export const DEFAULT_NETWORK_SELECTION_VISIBLE = true
 export const DEFAULT_NETWORK_PERCENT_ZOOM_INCLUDE_AUTOCONNECTIONS = false
 export const DEFAULT_NETWORK_PERCENT_ZOOM_PERCENT = 10
 export const MIN_NETWORK_PERCENT_ZOOM_PERCENT = 1
@@ -110,7 +109,8 @@ export const SELECTED_LINKS_TABLE_DEFAULT_PAGE_SIZE = 25
 export const SELECTED_LINKS_TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
 // Network settings modal defaults.
-export const DEFAULT_NETWORK_SETTINGS_TAB = 'networks'
+export const DEFAULT_NETWORK_SETTINGS_TAB = 'general'
+export const DEFAULT_LABELS_MODAL_WIDTH = 520
 export const DEFAULT_MATRIX_SETTINGS_PANEL = 'colors'
 export const DEFAULT_CIRCULAR_SETTINGS_PANEL = 'edges'
 export const DEFAULT_ATLAS_MANAGEMENT_MODAL_WIDTH = 760
@@ -121,17 +121,15 @@ export const MIN_GROUPING_COLOR_PREVIEW_ITEMS = 7
 export const CIRCULAR_HIERARCHY_PREVIEW_WIDTH = 390
 export const MATRIX_HIERARCHY_PREVIEW_WIDTH = 520
 export const MATRIX_HIERARCHY_PREVIEW_HEIGHT = 150
-export const GROUPING_HIERARCHY_PREVIEW_HEIGHT = 128
-export const GROUPING_MATRIX_HIERARCHY_PREVIEW_WIDTH = 452
-export const GROUPING_CIRCULAR_HIERARCHY_PREVIEW_WIDTH = 452
 
 // Data and calculation modal defaults.
-export const DEFAULT_DATA_MANAGEMENT_TAB = 'current'
 export const DEFAULT_DERIVED_MATRIX_CALCULATION_TAB = 'comparison'
 export const MAX_VISIBLE_IMPORT_ISSUES = 5
 
 // Circular view defaults.
 export const DEFAULT_CIRCULAR_LINK_TENSION = 0.85
+export const CIRCULAR_LINK_TENSION_STEP = 0.05
+export const CIRCULAR_LINK_TENSION_MARKS = { 0: '0', 0.5: '0.5', 1: '1' }
 export const DEFAULT_CIRCULAR_BUNDLING_ENABLED = true
 export const CIRCULAR_PREVIEW_FAKE_LINK_DENSITY = 0.02
 export const CIRCULAR_LAYOUT_EDGE_PADDING = 10
@@ -209,29 +207,46 @@ export const SPATIAL_HOVER_COLOR_FACTOR = 0.5
 export const SPATIAL_TOOLTIP_OFFSET = 12
 export const COMPARISON_PREVIEW_PAGE_SIZE = 6
 export const DERIVE_NETWORK_TABS = [
-  { key: 'difference', label: 'Difference', operations: ['population_difference', 'subject_difference'] },
+  {
+    key: 'difference',
+    label: 'Difference',
+    operations: ['population_difference', 'subject_difference'],
+  },
   { key: 'correlation', label: 'Correlation', operations: ['correlation'] },
   { key: 'zscore', label: 'One sample Z-score', operations: ['population_one_sample_z_test'] },
-  { key: 'two_sample_zscore', label: 'Two sample Z-score', operations: ['population_two_sample_z_test'] },
+  {
+    key: 'two_sample_zscore',
+    label: 'Two sample Z-score',
+    operations: ['population_two_sample_z_test'],
+  },
 ] as const
 
 export const CORRELATION_DISPLAY_PRECISION = 6
-export const INTERACTIVE_EXPORT_TOOLTIP_GAP = 12;
-export const INTERACTIVE_EXPORT_MUTED_OPACITY = 0.12;
+export const INTERACTIVE_EXPORT_TOOLTIP_GAP = 12
+export const INTERACTIVE_EXPORT_MUTED_OPACITY = 0.12
 
-export const SPATIAL_ATLAS_CONTEXT_OPACITY = 0.12;
-export const SPATIAL_ATLAS_HOVER_OPACITY = 0.40;
+export const SPATIAL_ATLAS_CONTEXT_OPACITY = 0.12
+export const SPATIAL_ATLAS_HOVER_OPACITY = 0.4
 export const SPATIAL_SCENE = {
-  fov: 50, near: 0.01, far: 100,
-  cameraDistance: 1, damping: 0.08, minDistance: 0.15, maxDistance: 1.2,
-  pointOpacity: 0.9, inactivePointOpacity: 0.3,
-  ambientIntensity: 0.7, directionalIntensity: 1.2,
-  geometryAmbientMultiplier: 1.5, geometryDirectionalMultiplier: 0.25,
+  fov: 50,
+  near: 0.01,
+  far: 100,
+  cameraDistance: 1,
+  damping: 0.08,
+  minDistance: 0.15,
+  maxDistance: 1.2,
+  pointOpacity: 0.9,
+  inactivePointOpacity: 0.3,
+  ambientIntensity: 0.7,
+  directionalIntensity: 1.2,
+  geometryAmbientMultiplier: 1.5,
+  geometryDirectionalMultiplier: 0.25,
   lightPosition: [0.6, 0.8, 0.5] as const,
-};
+}
 
 export const AGGREGATED_NODE_LABEL_MAX_CHARACTERS = 24
 
-export const RANGE_FILTER_DEBOUNCE_MS = 180;
-export const RANGE_FILTER_STEP = 0.001;
-export const RANGE_FILTER_PRECISION = 3;
+export const RANGE_FILTER_DEBOUNCE_MS = 180
+export const RANGE_FILTER_STEP = 0.001
+export const RANGE_FILTER_PRECISION = 3
+export const RANKING_RECOMPUTE_DEBOUNCE_MS = 80

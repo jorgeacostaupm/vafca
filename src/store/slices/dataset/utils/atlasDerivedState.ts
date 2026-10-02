@@ -1,4 +1,3 @@
-import type { InitialDataConfig } from '@/config/initialData'
 import type { AtlasDefinition } from '@/types/atlas'
 import type { NodeOrderEntry } from '@/types/nodeOrder'
 import type { RootState } from '@/types/store'
@@ -37,19 +36,3 @@ export const resolveAtlasDefinition = (state: RootState, atlasId?: string) => {
   if (!atlasId) return null
   return state.atlasDefinition.defaultById[atlasId] ?? null
 }
-
-export const buildAtlasOrderFromDefinition = (
-  atlasDefinition: AtlasDefinition,
-): NodeOrderEntry[] =>
-  atlasDefinition.nodes.map((node) => ({
-    id: String(node.id),
-    label: node.name ?? node.label ?? String(node.id),
-    name: node.name ?? node.label ?? String(node.id),
-    acronym: node.label ?? node.name ?? String(node.id),
-
-    metadata: node.metadata,
-  }))
-
-export const getInitialDataFileName = (
-  file: InitialDataConfig['initialDatasetFile'],
-) => file.path.split('/').pop() ?? file.label

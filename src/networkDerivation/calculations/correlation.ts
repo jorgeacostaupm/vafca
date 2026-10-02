@@ -13,7 +13,7 @@ export type CorrelationSummary = {
 }
 
 export function calculateCorrelation(left: Network, right: Network, method: CorrelationMethod = 'pearson') {
-  assertContextCompatible([left, right])
+  assertContextCompatible([left, right], { allowDifferentMeasures: true })
   if (method !== 'pearson') throw new Error('Unsupported correlation method.')
   // Explicit nulls remain missing even when an imported matrix declares a numeric fallback.
   const materialize = (network: Network) => materializeNetworkMatrix(network.data.format === 'matrix'

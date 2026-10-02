@@ -5,6 +5,7 @@ import { networksAdapter } from './utils/networksAdapter'
 export type DatasetSliceState = DatasetState
 
 export const initialDatasetState: DatasetSliceState = {
+  revision: 0,
   id: null,
   label: null,
   description: null,

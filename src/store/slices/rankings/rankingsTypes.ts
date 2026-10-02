@@ -26,6 +26,7 @@ export const defaultRankingQuery: RankingQuery =
   createDefaultRankingQueryForTarget(DEFAULT_RANKING_TARGET);
 
 export const initialRankingsState: RankingUiState = {
+  recomputeRequestId: null,
   activeTab: DEFAULT_NETWORK_VISUALIZATION_TAB,
   currentQuery: defaultRankingQuery,
   queriesByTarget: {

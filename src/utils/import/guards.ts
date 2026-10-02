@@ -4,14 +4,6 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
 export const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
 
-export const isScalarTagValue = (
-  value: unknown,
-): value is string | number | boolean | null =>
-  value === null ||
-  typeof value === "string" ||
-  typeof value === "number" ||
-  typeof value === "boolean";
-
 export const toSlug = (value: string, fallback: string) => {
   const slug = value
     .trim()

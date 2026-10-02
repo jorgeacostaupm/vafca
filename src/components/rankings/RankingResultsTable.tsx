@@ -1,19 +1,21 @@
 import { EyeOutlined, SwapOutlined } from '@ant-design/icons'
-import { Button, Table } from 'antd'
+import { Button, ConfigProvider, Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { type CSSProperties, type ReactNode, useCallback, useMemo, useState } from 'react'
 
 import ResizableContainer from '@/components/layout/ResizableContainer'
 import { getRankingMetricLabel } from '@/components/rankings/rankingOptions'
+import { useNodeRankingSelection } from '@/components/rankings/useNodeRankingSelection'
 import { useRankingRowInteractions } from '@/components/rankings/useRankingRowInteractions'
 import { useAtlasLabelPresentation } from '@/hooks/useAtlasLabelPresentation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectDatasetContent } from '@/store/slices/dataset'
 import { addNetworkViewAndFormat } from '@/store/slices/networkVisualization'
 import { addSelectedLink, removeSelectedLinks } from '@/store/slices/visualizationUi'
-import { selectActiveAnnotationLinks } from '@/store/slices/visualizationUi/annotationSelectors';
+import { selectActiveAnnotationLinks, selectAnnotationLinkColors } from '@/store/slices/visualizationUi/annotationSelectors';
 import type { LinkRankingRow, NetworkRankingRow, RankingResult, RankingRow } from '@/types/rankings'
 import { toDatasetNetworkSummary } from '@/utils/datasetAccessors'
+import { getReadableTextColor } from '@/utils/groupingColoring'
 import { buildNetworkSummaryLabel } from '@/utils/matrixViewUtils'
 import { getNetworkCompoundId } from '@/utils/rankings/rankingNetworkMetadata'
 import { getRankingDimensions, getRankingDimensionValue, getRankingExtremeLabel } from '@/utils/rankings/rankingPresentation'
@@ -60,8 +62,10 @@ export default function RankingResultsTable({ result }: Props) {
   const [draggedColumnKey, setDraggedColumnKey] = useState<string | null>(null)
   const datasetContent = useAppSelector((state) => selectDatasetContent(state))
   const selectedLinks = useAppSelector(selectActiveAnnotationLinks)
+  const annotationLinkColors = useAppSelector(selectAnnotationLinkColors)
   const { nodeColors } = useAtlasLabelPresentation()
   const { handleEnter, handleLeave, handleSelect } = useRankingRowInteractions()
+  const nodeSelection = useNodeRankingSelection(result.rows, getRankingRowKey)
   const scoreColumnTitle = getRankingMetricLabel(result.query)
 
   const selectedLinkIds = useMemo(
@@ -70,8 +74,8 @@ export default function RankingResultsTable({ result }: Props) {
   )
   const isLinkSelected = useCallback((row: LinkRankingRow) => {
     const { direct, reverse } = getLinkIds(row)
-    return selectedLinkIds.has(direct) || selectedLinkIds.has(reverse)
-  }, [selectedLinkIds])
+    return Boolean(annotationLinkColors[direct] ?? annotationLinkColors[reverse])
+  }, [annotationLinkColors])
   const renderRoi = useCallback((id: string, label: string) => {
     const color = nodeColors[id]
     return (
@@ -247,6 +251,7 @@ export default function RankingResultsTable({ result }: Props) {
       {
         key: 'node',
         title: 'Node',
+        align: 'left',
         dataIndex: 'label',
         ellipsis: true,
         sorter: (a, b) =>
@@ -378,6 +383,20 @@ export default function RankingResultsTable({ result }: Props) {
             rowKey={getRankingRowKey}
             rowSelection={result.query.target === 'links' ? {
               selectedRowKeys: rankedLinks.filter(isLinkSelected).map(getRankingRowKey),
+              renderCell: (_checked, row, _index, checkbox) => {
+                if (row.type !== 'link') return checkbox
+                const { direct, reverse } = getLinkIds(row)
+                const color = annotationLinkColors[direct] ?? annotationLinkColors[reverse]
+                return color ? (
+                  <ConfigProvider theme={{ token: {
+                    colorPrimary: color,
+                    colorPrimaryHover: color,
+                    colorTextLightSolid: getReadableTextColor(color),
+                  } }}>
+                    {checkbox}
+                  </ConfigProvider>
+                ) : checkbox
+              },
               onSelect: (row) => {
                 if (row.type === 'link') addLink(row)
               },
@@ -386,7 +405,7 @@ export default function RankingResultsTable({ result }: Props) {
                   if (row.type === 'link') addLink(row)
                 })
               },
-            } : undefined}
+            } : result.query.target === 'nodes' ? nodeSelection : undefined}
             columns={columns}
             className={[
               'ranking-result__table',

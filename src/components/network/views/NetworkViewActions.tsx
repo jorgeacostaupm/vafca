@@ -1,5 +1,5 @@
-import { FilterOutlined } from '@ant-design/icons'
-import { Button, Divider, Popover } from 'antd'
+import { FilterOutlined, GroupOutlined } from '@ant-design/icons'
+import { Button, Popover, Tooltip } from 'antd'
 import { useState } from 'react'
 
 import NetworkFilterRolePopover from '@/components/network/NetworkFilterRolePopover'
@@ -125,27 +125,23 @@ export default function NetworkViewActions({
         <AggregateNetworkModal request={aggregationRequest} onClose={() => setAggregationRequest(null)} />
       )}
       {isTemporaryNetwork && <EditAggregatedGroupLabels viewId={view.id} />}
+      {!isTemporaryNetwork && (
+        <Tooltip title={aggregationDisabledReason ?? 'Aggregate network'}>
+          <Button
+            size="small"
+            type="text"
+            aria-label="Aggregate network"
+            icon={<GroupOutlined />}
+            disabled={aggregationDisabledReason !== null}
+            onClick={handleAggregate}
+          />
+        </Tooltip>
+      )}
       {!isTemporaryNetwork ? (
         <Popover
           open={filterOpen}
           onOpenChange={setFilterOpen}
-          content={
-            <div className="network-view-filter-menu">
-              {filterContent}
-              <Divider />
-              <Button
-                className="network-view-filter-menu__aggregate"
-                size="small"
-                type="text"
-                aria-label="Aggregate network"
-                title={aggregationDisabledReason ?? 'Aggregate network'}
-                disabled={aggregationDisabledReason !== null}
-                onClick={handleAggregate}
-              >
-                Aggregate network
-              </Button>
-            </div>
-          }
+          content={filterContent}
           trigger="click"
           placement="rightTop"
           destroyTooltipOnHide

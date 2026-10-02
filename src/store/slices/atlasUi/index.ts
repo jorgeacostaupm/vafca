@@ -2,12 +2,10 @@ export {
   selectAtlasColorFields,
   selectAtlasColorPalette,
   selectAtlasDisplayLabelsById,
-  selectAtlasEnabledById,
   selectAtlasEnabledIds,
   selectAtlasLabelsById,
   selectAtlasLabelSearchTextById,
   selectAtlasOrder,
-  selectAtlasUiState,
 } from './atlasUiSelectors'
 export { default } from './atlasUiSlice'
 export {

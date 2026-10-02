@@ -1,9 +1,9 @@
 import { Space } from "antd";
 
+import SettingsSection from "@/components/common/SettingsSection";
 import LinkRankingModeSetting from "@/components/network/settings/LinkRankingModeSetting";
 import RankingAutoconnectionsSettings from "@/components/network/settings/RankingAutoconnectionsSettings";
 import RankingTopNSetting from "@/components/network/settings/RankingTopNSetting";
-import SettingsSection from "@/components/network/settings/SettingsSection";
 
 export default function NetworkRankingsSettingsTab() {
   return (

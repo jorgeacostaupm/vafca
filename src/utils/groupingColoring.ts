@@ -16,9 +16,6 @@ type NodeGroupingColorCategory = {
 const buildNodeGroupingValues = (node: AtlasNode, groupingFields: string[]) =>
   groupingFields.map((field) => normalizeNodeFieldValue(getNodeFieldValue(node, field)));
 
-export const buildNodeGroupingCategoryById = (atlas: AtlasDefinition | null, fields: string[]) =>
-  Object.fromEntries((atlas?.nodes ?? []).map(node => [String(node.id), JSON.stringify(buildNodeGroupingValues(node, fields))]));
-
 export const buildGroupingColorCategoryKey = (values: string[]) => JSON.stringify(values);
 
 export const buildNodeGroupingColorCategories = ({

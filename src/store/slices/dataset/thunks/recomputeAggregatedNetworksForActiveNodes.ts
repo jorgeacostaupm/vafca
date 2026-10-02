@@ -9,9 +9,10 @@ import {
   hashNodeSet,
 } from '@/networkDerivation/aggregation/nodeGroupAggregation'
 import type { Network } from '@/types/network'
-import type { RootState } from '@/types/store'
 
 import { selectDatasetContent } from '../datasetSelectors'
+import { yieldToBrowser } from '../utils/browserYield'
+import { assertCalculationCurrent, type DatasetCalculationConfig } from '../utils/calculationSnapshot'
 
 export type RecomputeAggregatedNetworksForActiveNodesResult = {
   networks: Network[]
@@ -21,11 +22,12 @@ export type RecomputeAggregatedNetworksForActiveNodesResult = {
 export const recomputeAggregatedNetworksForActiveNodes = createAsyncThunk<
   RecomputeAggregatedNetworksForActiveNodesResult,
   void,
-  { state: RootState; rejectValue: string }
+  DatasetCalculationConfig
 >(
   'dataset/recomputeAggregatedNetworksForActiveNodes',
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { getState, rejectWithValue, fulfillWithValue, signal }) => {
     const state = getState()
+    const datasetRevision = state.dataset.revision
     const datasetContent = selectDatasetContent(state)
     if (!datasetContent) return rejectWithValue('No dataset is loaded.')
 
@@ -41,14 +43,16 @@ export const recomputeAggregatedNetworksForActiveNodes = createAsyncThunk<
     const networks: Network[] = []
     const skippedNetworkIds: string[] = []
 
-    aggregatedNetworks.forEach((network) => {
+    for (const network of aggregatedNetworks) {
+      await yieldToBrowser()
+      assertCalculationCurrent(getState, datasetRevision, signal)
       const aggregation = network.derivation
-      if (aggregation?.type !== 'aggregation') return
+      if (aggregation?.type !== 'aggregation') continue
 
       const baseNetwork = datasetContent.networkIndex[aggregation.baseNetworkId]
       if (!baseNetwork || baseNetwork.derivation?.type === 'aggregation') {
         skippedNetworkIds.push(network.id)
-        return
+        continue
       }
 
       const orderMode =
@@ -67,7 +71,7 @@ export const recomputeAggregatedNetworksForActiveNodes = createAsyncThunk<
 
       if (groupResult.groups.length < 2) {
         skippedNetworkIds.push(network.id)
-        return
+        continue
       }
 
       const groupOrderHash = hashGroupOrder(
@@ -99,8 +103,8 @@ export const recomputeAggregatedNetworksForActiveNodes = createAsyncThunk<
         label: network.label,
         dimensions: { ...network.dimensions },
       })
-    })
+    }
 
-    return { networks, skippedNetworkIds }
+    return fulfillWithValue({ networks, skippedNetworkIds }, { datasetRevision })
   },
 )

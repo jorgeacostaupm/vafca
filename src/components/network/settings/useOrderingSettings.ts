@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { useManagementHierarchy } from '@/components/management/hooks/useManagementHierarchy'
 import type { CategoryOrderMap } from '@/components/management/types'
@@ -9,6 +9,8 @@ import { setCircularHierarchyCategoryOrder, setCircularHierarchyFields, setMatri
 import { selectDatasetData } from '@/store/slices/dataset'
 import { getDatasetAtlasId } from '@/utils/datasetAccessors'
 
+import { useSettingsDraft } from './useSettingsDraft'
+
 export const useOrderingSettings = (mode: 'matrix' | 'circular') => {
   const dispatch = useAppDispatch()
   const atlas = useAppSelector(state => state.atlasUi)
@@ -16,10 +18,11 @@ export const useOrderingSettings = (mode: 'matrix' | 'circular') => {
   const atlasDefinition = useAtlasDefinition(getDatasetAtlasId(dataset))
   const appliedFields = mode === 'matrix' ? atlas.matrixHierarchyFields : atlas.circularHierarchyFields
   const appliedOrder = mode === 'matrix' ? atlas.matrixHierarchyCategoryOrder : atlas.circularHierarchyCategoryOrder
-  const [draft, setDraft] = useState({ baseFields: appliedFields, baseOrder: appliedOrder, fields: appliedFields, order: appliedOrder })
-  const changed = draft.baseFields !== appliedFields || draft.baseOrder !== appliedOrder
-  const fields = changed ? appliedFields : draft.fields
-  const order = changed ? appliedOrder : draft.order
+  const draft = useSettingsDraft({ fields: appliedFields, order: appliedOrder },
+    (first, second) => first.fields.length === second.fields.length &&
+      first.fields.every((field, index) => field === second.fields[index]) &&
+      areCategoryOrdersEqual(first.order, second.order))
+  const { fields, order } = draft.value
   const hierarchy = useManagementHierarchy({
     atlas, atlasDefinition, syncCategoryOrder: false,
     ...(mode === 'matrix' ? { previewMatrixFields: fields, previewMatrixCategoryOrder: order }
@@ -28,14 +31,12 @@ export const useOrderingSettings = (mode: 'matrix' | 'circular') => {
   const editors = mode === 'matrix' ? hierarchy.matrixCategoryOrderEditors : hierarchy.circularCategoryOrderEditors
   const categoryOrder = useMemo(() => toCleanCategoryOrderMap(editors), [editors])
   const hasChanges = JSON.stringify(fields) !== JSON.stringify(appliedFields) || !areCategoryOrdersEqual(categoryOrder, appliedOrder)
-  const update = (nextFields: string[], nextOrder: CategoryOrderMap) => setDraft({
-    baseFields: appliedFields, baseOrder: appliedOrder, fields: nextFields, order: nextOrder,
-  })
+  const update = (fields: string[], order: CategoryOrderMap) => draft.set({ fields, order })
   return {
     hierarchy, fields, categoryOrder, hasChanges,
     setFields: (next: string[]) => update(next, {}),
     setCategoryOrder: (next: CategoryOrderMap) => update(fields, next),
-    reset: () => update(appliedFields, appliedOrder),
+    reset: draft.reset,
     apply: () => {
       if (!hasChanges) return
       dispatch(mode === 'matrix' ? setMatrixHierarchyFields(fields) : setCircularHierarchyFields(fields))

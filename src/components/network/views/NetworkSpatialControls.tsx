@@ -22,9 +22,9 @@ export default function NetworkSpatialControls({ children, hideInactiveRois, onT
           size="small"
           type={hideInactiveRois ? "primary" : "text"}
           icon={<EyeInvisibleOutlined />}
-          aria-label="Hide ROIs without visible links"
+          aria-label="Hide inactive ROIs"
           aria-pressed={hideInactiveRois}
-          title={hideInactiveRois ? "Show all ROIs" : "Hide ROIs without visible links"}
+          title={hideInactiveRois ? "Show inactive ROIs" : "Hide inactive ROIs"}
           onClick={onToggleInactiveRois}
         />
       )}

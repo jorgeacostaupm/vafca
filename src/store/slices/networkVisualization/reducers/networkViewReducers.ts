@@ -26,6 +26,7 @@ export const networkViewReducers = {
     action: PayloadAction<{
       viewId: string
       temporaryNetworkId: string
+      sourceCompoundId: string
       type: NetworkViewType
       label: string
       measureId: string
@@ -40,6 +41,7 @@ export const networkViewReducers = {
       type: action.payload.type,
       compoundId: action.payload.temporaryNetworkId,
       temporaryNetworkId: action.payload.temporaryNetworkId,
+      sourceCompoundId: action.payload.sourceCompoundId,
       coordinationDisabled: true,
       label: action.payload.label,
       measureId: action.payload.measureId,

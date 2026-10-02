@@ -1,4 +1,4 @@
-import { SelectOutlined,UpOutlined } from "@ant-design/icons";
+import { DownOutlined, SelectOutlined } from "@ant-design/icons";
 import { Button, Dropdown, type MenuProps } from "antd";
 
 import type { MatrixBrushMode } from "@/types/matrixHeatmap";
@@ -48,7 +48,7 @@ export default function NetworkBrushControls({
   };
 
   return (
-    <Button.Group>
+    <div className="network-brush-controls" role="group" aria-label="Brush controls">
       <Button
         size="small"
         type={enabled ? "default" : "text"}
@@ -62,7 +62,7 @@ export default function NetworkBrushControls({
         }
       />
       <Dropdown
-        placement="topLeft"
+        placement="bottomLeft"
         menu={{
           items: BRUSH_MENU_ITEMS,
           selectable: true,
@@ -76,9 +76,9 @@ export default function NetworkBrushControls({
           type={enabled ? "default" : "text"}
           aria-label={`${target} brush options`}
           title={`${target} brush options`}
-          icon={<UpOutlined />}
+          icon={<DownOutlined />}
         />
       </Dropdown>
-    </Button.Group>
+    </div>
   );
 }

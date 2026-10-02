@@ -39,7 +39,7 @@ try {
   close(calculateCorrelation(a, triangular).summary.r, 1);
   const edges = { ...a, data: { format: 'edge-list', edges: [{ sourceId: 'b', targetId: 'a', value: 1 }, { sourceId: 'a', targetId: 'c', value: 2 }, { sourceId: 'c', targetId: 'b', value: 3 }] } };
   close(calculateCorrelation(a, edges).summary.r, 1);
-  const state = { networks: [a, b], networkIndex: { a, b }, catalogs: { sources: { a: { label: 'A' }, b: { label: 'B' } }, statistics: {} } };
+  const state = { networks: [a, b], networkIndex: { a, b }, catalogs: { sources: { a: { label: 'A' }, b: { label: 'B' } }, measures: {}, statistics: {}, aspects: [], aspectCatalogs: {} } };
   const request = { operations: ['correlation'], correlationNetworkAId: 'a', correlationNetworkBId: 'b', dimensionPairs: [], measureIds: [] };
   const result = calculateDerivedNetworks(request, state);
   assert.equal(result.networks.length, 1);
@@ -47,7 +47,7 @@ try {
   close(derived.derivation.parameters.r, -1);
   const registration = { catalogs: structuredClone(state.catalogs), networks: { ids: [], entities: {} } };
   registerGeneratedNetworksInDataset(registration, [derived]);
-  assert.equal(registration.catalogs.statistics.pearson_contribution.scaleType, 'diverging');
+  assert.equal(registration.catalogs.statistics[derived.statisticId].scaleType, 'diverging');
   assert.equal(registration.catalogs.sources[derived.sourceId].kind, 'comparison');
   assert.equal(calculateDerivedNetworks(request, { ...state, networkIndex: { ...state.networkIndex, [derived.id]: derived } }).existing.length, 1);
   const constant = network('b', [1, 1, 1]);

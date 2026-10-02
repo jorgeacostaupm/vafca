@@ -7,7 +7,6 @@ export const selectAnnotations = (state: RootState) => state.visualizationUi.ann
 export const selectCurrentAnnotation = (state: RootState) => state.visualizationUi.annotations.find(item => item.id === state.visualizationUi.currentAnnotationId)!
 export const selectSelectedLinks = (state: RootState) => selectCurrentAnnotation(state).selectedLinks
 export const selectSelectedLinksById = (state: RootState) => selectCurrentAnnotation(state).selectedLinksById
-export const selectSelectedLinkIdsByRowId = (state: RootState) => selectCurrentAnnotation(state).selectedLinkIdsByRowId
 export const selectAtlasLinkIds = (state: RootState) => selectCurrentAnnotation(state).atlasLinkIds
 export const selectAnnotationColors = createSelector(
   [selectAnnotations, (state: RootState) => state.visualizationUi.annotationOverlapColor],

@@ -11,10 +11,10 @@ import {
   hashNodeSet,
 } from '@/networkDerivation/aggregation/nodeGroupAggregation'
 import type { Network } from '@/types/network'
-import type { RootState } from '@/types/store'
 
 import { selectDatasetContent } from '../datasetSelectors'
 import { yieldToBrowser } from '../utils/browserYield'
+import { assertCalculationCurrent, type DatasetCalculationConfig } from '../utils/calculationSnapshot'
 
 export type ComputeAggregatedNetworkRequest = {
   baseNetworkIds: string[]
@@ -30,11 +30,12 @@ export type ComputeAggregatedNetworkResult = {
 export const computeAggregatedNetworkFromVisualizationGroups = createAsyncThunk<
   ComputeAggregatedNetworkResult,
   ComputeAggregatedNetworkRequest,
-  { state: RootState; rejectValue: string }
+  DatasetCalculationConfig
 >(
   'dataset/computeAggregatedNetworkFromVisualizationGroups',
-  async ({ baseNetworkIds, orderMode }, { getState, rejectWithValue }) => {
+  async ({ baseNetworkIds, orderMode }, { getState, rejectWithValue, fulfillWithValue, signal }) => {
     const state = getState()
+    const datasetRevision = state.dataset.revision
     const datasetContent = selectDatasetContent(state)
     if (!datasetContent) return rejectWithValue('No dataset is loaded.')
 
@@ -73,6 +74,7 @@ export const computeAggregatedNetworkFromVisualizationGroups = createAsyncThunk<
     }
 
     await yieldToBrowser()
+    assertCalculationCurrent(getState, datasetRevision, signal)
     const groupResult = buildNodeGroupsFromMetadata({
       nodeSet: datasetContent.nodeSet,
       fields: grouping.fields,
@@ -89,7 +91,9 @@ export const computeAggregatedNetworkFromVisualizationGroups = createAsyncThunk<
     const networks: Network[] = []
     const existing: Network[] = []
 
-    baseNetworks.forEach((baseNetwork) => {
+    for (const baseNetwork of baseNetworks) {
+      await yieldToBrowser()
+      assertCalculationCurrent(getState, datasetRevision, signal)
       const equivalent = findEquivalentAggregatedNetwork(datasetContent.networks, {
         baseNetworkId: baseNetwork.id,
         fields: grouping.fields,
@@ -100,7 +104,7 @@ export const computeAggregatedNetworkFromVisualizationGroups = createAsyncThunk<
       })
       if (equivalent) {
         existing.push(equivalent)
-        return
+        continue
       }
 
       const computed = computeAggregatedNetworkData({
@@ -124,7 +128,7 @@ export const computeAggregatedNetworkFromVisualizationGroups = createAsyncThunk<
           missingTagPolicy: grouping.missingTagPolicy,
         }),
       )
-    })
+    }
 
     const warnings = [
       groupResult.missingTagNodeIds.length > 0
@@ -136,6 +140,6 @@ export const computeAggregatedNetworkFromVisualizationGroups = createAsyncThunk<
       'This operation summarizes node-to-node values; it does not recompute PLV from source time series.',
     ].filter((message): message is string => message !== null)
 
-    return { networks, existing, warnings }
+    return fulfillWithValue({ networks, existing, warnings }, { datasetRevision })
   },
 )

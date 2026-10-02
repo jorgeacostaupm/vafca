@@ -88,9 +88,11 @@ export type Annotation = {
   selectedLinksById: Record<string, SelectedLink>;
   selectedLinkIdsByRowId: Record<string, string[]>;
   atlasLinkIds: string[];
+  atlasNodeIds: string[];
 };
 
 export type VisualizationUiState = {
+  showGroupingLegend: boolean;
   spatialVisualStyle: SpatialVisualStyle;
   hoveredCell: HoveredCell;
   hoveredNodeId: string | null;

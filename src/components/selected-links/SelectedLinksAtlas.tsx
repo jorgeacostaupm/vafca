@@ -9,6 +9,7 @@ import { useAppSelector } from "@/store/hooks";
 import { selectAtlasDisplayLabelsById, selectAtlasOrder } from "@/store/slices/atlasUi";
 import { selectDatasetData } from "@/store/slices/dataset";
 import { selectAtlasLinkIds } from '@/store/slices/visualizationUi/annotationSelectors';
+import { selectCurrentAnnotation } from '@/store/slices/visualizationUi/annotationSelectors';
 import { selectSelectedLinks } from '@/store/slices/visualizationUi/annotationSelectors';
 import type { SelectedLink } from "@/types/visualizationUi";
 import { atlasSupports3d } from "@/utils/atlas/atlasDefinition";
@@ -49,6 +50,7 @@ export default function SelectedLinksAtlas({
   const dataset = useAppSelector((state) => selectDatasetData(state));
   const selectedLinks = useAppSelector(selectSelectedLinks);
   const atlasLinkIds = useAppSelector(selectAtlasLinkIds);
+  const atlasNodeIds = useAppSelector(state => selectCurrentAnnotation(state).atlasNodeIds);
   const atlas3dAvailable = useAppSelector(
     (state) => state.visualizationUi.atlasPanel.is3dAvailable,
   );
@@ -71,16 +73,16 @@ export default function SelectedLinksAtlas({
   }, [deferredAtlasLinkIds, selectedLinkById, networkLinks]);
   const fallbackLinks = deferredAtlasLinkIds.length > 0 ? sourceLinks : selectedLinks;
   const focus = useLinksAtlasFocus(atlasDefinition, sourceLinks);
-  const activeLinks = focus.links;
+  const activeLinks = isNetworkView ? focus.links : sourceLinks;
 
   const highlightedNodeIds = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<string>(isNetworkView ? [] : atlasNodeIds);
     activeLinks.forEach((link) => {
       set.add(link.rowId);
       set.add(link.colId);
     });
     return set;
-  }, [activeLinks]);
+  }, [activeLinks, atlasNodeIds, isNetworkView]);
 
   const hasLinkFocus = highlightedNodeIds.size > 0;
   const has3d = spatialMode !== "none" && useAtlas3d && (isNetworkView || atlas3dAvailable) && atlasSupports3d(atlasDefinition);
@@ -113,7 +115,7 @@ export default function SelectedLinksAtlas({
       onToggleInactiveRois={() => setHideInactiveRois(value => !value)}
       onCameraPose={applyCameraPose}
     >
-      <LinksAtlasFocusControls focus={focus} />
+      {isNetworkView && <LinksAtlasFocusControls focus={focus} />}
     </NetworkSpatialControls>;
 
   if (isNetworkView) return <>
@@ -121,7 +123,7 @@ export default function SelectedLinksAtlas({
     {controlsContainer && createPortal(controls, controlsContainer)}
   </>;
 
-  return <SelectedLinksViewFrame summary="3D links" spatialControl={<></>} actions={controls}>
+  return <SelectedLinksViewFrame actions={controls}>
     <div className="links-atlas__canvas" ref={containerRef} role="img" aria-label={statusLabel} />
   </SelectedLinksViewFrame>;
 }

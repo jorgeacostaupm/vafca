@@ -2,11 +2,7 @@ export {
   resolveNetworkFilterEdgeDomain,
   resolveNetworkFilterRuntime,
 } from "./networkFiltersRuntime";
-export {
-  selectActiveAggregatedNetworkEdgeMask,
-  selectActiveNetworkEdgeMask,
-  selectNetworkFiltersState,
-} from "./networkFiltersSelectors";
+export { selectActiveNetworkEdgeMask } from "./networkFiltersSelectors";
 export { default } from "./networkFiltersSlice";
 export {
   applyAggregatedNetworkEdgeFilter,

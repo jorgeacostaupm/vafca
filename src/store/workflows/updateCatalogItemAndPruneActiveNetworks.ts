@@ -1,16 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
+import { catalogItemUpdated } from '@/store/actions/catalogItemUpdated'
 import { selectDatasetNetworkSummaries } from '@/store/slices/dataset/datasetSelectors'
-import { updateCatalogItem } from '@/store/slices/dataset/datasetSlice'
 import {
   type CatalogNetworkPrunePayload,
   getInvalidCompoundIdsForCatalogItem,
   getInvalidNetworkIdsForCatalogItem,
 } from '@/store/slices/dataset/utils/catalogNetworkPruning'
-import { removeNetworkLayoutItems } from '@/store/slices/networkLayout'
-import { pruneNetworkSelectionForDisabledCatalogItem } from '@/store/slices/networkVisualization'
-import { pruneRankingQueriesForDisabledCatalogItem } from '@/store/slices/rankings'
-import { pruneSelectedLinksForDisabledCatalogItem } from '@/store/slices/visualizationUi'
 import type { UpdateCatalogPayload } from '@/types/datasetState'
 import type { RootState } from '@/types/store'
 
@@ -34,8 +30,11 @@ export const updateCatalogItemAndPruneActiveNetworks = createAsyncThunk<
 >(
   'dataset/updateCatalogItemAndPruneActiveNetworks',
   async (payload, { dispatch, getState }) => {
-    dispatch(updateCatalogItem(payload))
-    if (!shouldPruneActiveNetworks(payload)) return
+    if (!getState().dataset.catalogs) return
+    if (!shouldPruneActiveNetworks(payload)) {
+      dispatch(catalogItemUpdated({ update: payload, viewIds: [] }))
+      return
+    }
 
     const state = getState()
     const invalidCompoundIds = getInvalidCompoundIdsForCatalogItem(
@@ -64,11 +63,6 @@ export const updateCatalogItemAndPruneActiveNetworks = createAsyncThunk<
       )
     })
 
-    if (viewIds.length > 0) {
-      dispatch(removeNetworkLayoutItems({ viewIds }))
-    }
-    dispatch(pruneNetworkSelectionForDisabledCatalogItem(prunePayload))
-    dispatch(pruneRankingQueriesForDisabledCatalogItem(prunePayload))
-    dispatch(pruneSelectedLinksForDisabledCatalogItem(prunePayload))
+    dispatch(catalogItemUpdated({ update: payload, prune: prunePayload, viewIds }))
   },
 )

@@ -1,24 +1,13 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, isAnyOf } from '@reduxjs/toolkit'
 
-import {
-  type DatasetOperationsSliceState,
-  initialDatasetOperationsState,
-} from './datasetOperationsTypes'
+import { initialDatasetOperationsState } from './datasetOperationsTypes'
+import { clearDataset, setDataset } from './datasetSlice'
 import { computeAggregatedNetworkFromVisualizationGroups } from './thunks/computeAggregatedNetworks'
 import { computeDerivedNetworks } from './thunks/computeDerivedNetworks'
 import { downloadCurrentDataset } from './thunks/exportDataset'
 import { loadInitialDataset } from './thunks/loadInitialDataset'
+import { recomputeAggregatedNetworksForActiveNodes } from './thunks/recomputeAggregatedNetworksForActiveNodes'
 import { loadDatasetFromUploadedZip } from './thunks/uploadDataset'
-
-const setDerivedCalculationLoading = (state: DatasetOperationsSliceState) => {
-  state.derivedCalculationStatus = 'loading'
-  state.derivedCalculationError = null
-}
-
-const setDerivedCalculationReady = (state: DatasetOperationsSliceState) => {
-  state.derivedCalculationStatus = 'ready'
-  state.derivedCalculationError = null
-}
 
 const getRejectedMessage = (
   action: { payload?: unknown; error: { message?: string } },
@@ -43,6 +32,7 @@ const datasetOperationsSlice = createSlice({
         state.networkImportStatus = 'idle'
         state.networkImportError = null
         state.lastNetworkImport = null
+        state.derivedCalculationRequestIds = []
         state.derivedCalculationStatus = 'idle'
         state.derivedCalculationError = null
       })
@@ -91,31 +81,36 @@ const datasetOperationsSlice = createSlice({
           action.payload?.message ?? action.error.message ?? 'Failed to import networks.'
         state.lastNetworkImport = action.payload?.result ?? null
       })
-      .addCase(computeDerivedNetworks.pending, (state) => {
-        setDerivedCalculationLoading(state)
+      .addMatcher(isAnyOf(setDataset, clearDataset), state => {
+        state.derivedCalculationRequestIds = []
+        state.derivedCalculationStatus = 'idle'
+        state.derivedCalculationError = null
       })
-      .addCase(computeDerivedNetworks.fulfilled, (state) => {
-        setDerivedCalculationReady(state)
+      .addMatcher(isAnyOf(computeDerivedNetworks.pending,
+        computeAggregatedNetworkFromVisualizationGroups.pending,
+        recomputeAggregatedNetworksForActiveNodes.pending), (state, action) => {
+        if (!state.derivedCalculationRequestIds.length) state.derivedCalculationError = null
+        state.derivedCalculationRequestIds.push(action.meta.requestId)
+        state.derivedCalculationStatus = 'loading'
       })
-      .addCase(computeDerivedNetworks.rejected, (state, action) => {
-        state.derivedCalculationStatus = 'error'
-        state.derivedCalculationError = getRejectedMessage(
-          action,
-          'Failed to compute derived networks.',
-        )
+      .addMatcher(isAnyOf(computeDerivedNetworks.fulfilled,
+        computeAggregatedNetworkFromVisualizationGroups.fulfilled,
+        recomputeAggregatedNetworksForActiveNodes.fulfilled), (state, action) => {
+        if (!state.derivedCalculationRequestIds.includes(action.meta.requestId)) return
+        state.derivedCalculationRequestIds = state.derivedCalculationRequestIds.filter(id => id !== action.meta.requestId)
+        state.derivedCalculationStatus = state.derivedCalculationRequestIds.length
+          ? 'loading' : state.derivedCalculationError ? 'error' : 'ready'
       })
-      .addCase(computeAggregatedNetworkFromVisualizationGroups.pending, (state) => {
-        setDerivedCalculationLoading(state)
-      })
-      .addCase(computeAggregatedNetworkFromVisualizationGroups.fulfilled, (state) => {
-        setDerivedCalculationReady(state)
-      })
-      .addCase(computeAggregatedNetworkFromVisualizationGroups.rejected, (state, action) => {
-        state.derivedCalculationStatus = 'error'
-        state.derivedCalculationError = getRejectedMessage(
-          action,
-          'Failed to compute aggregated network.',
-        )
+      .addMatcher(isAnyOf(computeDerivedNetworks.rejected,
+        computeAggregatedNetworkFromVisualizationGroups.rejected,
+        recomputeAggregatedNetworksForActiveNodes.rejected), (state, action) => {
+        if (!state.derivedCalculationRequestIds.includes(action.meta.requestId)) return
+        state.derivedCalculationRequestIds = state.derivedCalculationRequestIds.filter(id => id !== action.meta.requestId)
+        if (!action.meta.aborted) {
+          state.derivedCalculationError = getRejectedMessage(action, 'Failed to compute networks.')
+        }
+        state.derivedCalculationStatus = state.derivedCalculationRequestIds.length
+          ? 'loading' : state.derivedCalculationError ? 'error' : 'idle'
       })
   },
 })

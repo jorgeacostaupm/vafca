@@ -15,6 +15,7 @@ try {
   const { calculationPreview } = await server.ssrLoadModule('/src/components/calculations/calculationPreview.ts');
   const { resolveValueDomain } = await server.ssrLoadModule('/src/utils/valueDomain.ts');
   const { registerGeneratedNetworksInDataset } = await server.ssrLoadModule('/src/store/slices/dataset/utils/registerGeneratedNetworks.ts');
+  const { createNetworkCompoundId } = await server.ssrLoadModule('/src/utils/networkMetadata.ts');
   const bytes = readFileSync('public/examples/use_case_1.zip');
   const { dataset, normalized } = await loadNetworkImportFromBytes('use_case_1.zip', bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
   assert.deepEqual(normalized.issues.errors, []);
@@ -48,6 +49,10 @@ try {
   const existing = { ...dataset, networkIndex: { ...dataset.networkIndex, [absolute.id]: absolute } };
   assert.equal(calculateDerivedNetworks({ ...request, absoluteDifference: true }, existing).existing.length, 1);
   assert.equal(calculateDerivedNetworks(request, existing).networks.length, 1);
+  const withAbsolute = { ...existing, networks: [...dataset.networks, absolute] };
+  assert.equal(calculationPreview({ ...request, absoluteDifference: true }, withAbsolute, getAvailableNetworkCalculations(dataset))[0].calculated, true);
+  assert.equal(calculationPreview(request, withAbsolute, getAvailableNetworkCalculations(dataset))[0].calculated, false);
+  assert.equal(calculationPreview({ ...request, rightPopulationId: 'rtle', absoluteDifference: true }, withAbsolute, getAvailableNetworkCalculations(dataset))[0].calculated, false);
   const cross = { ...request, rightPopulationId: 'controls', dimensionPairs: [{ left: dimensions, right: { ...dimensions, frequency_band: 'beta' } }] };
   const crossResult = calculateDerivedNetworks(cross, dataset);
   assert.equal(crossResult.networks.length, 1);
@@ -67,6 +72,9 @@ try {
     }
     const withN = calculateDerivedNetworks({ ...req, sampleSizes: { controls: 30, ltle: 20 } }, dataset);
     assert.equal(withN.networks.length, 1);
+    assert.equal(withN.networks[0].sourceId, signed.networks[0].sourceId);
+    assert.notEqual(withN.networks[0].id, signed.networks[0].id);
+    registerGeneratedNetworksInDataset(state, withN.networks);
     assert.equal(withN.networks[0].derivation.parameters.nLeft, 30);
     assert.equal(withN.networks[0].derivation.parameters.nRight, 20);
     assert.equal(dataset.catalogs.sources.controls.n, undefined);
@@ -91,6 +99,23 @@ try {
   assert.equal(calculateDerivedNetworks({ ...reference, sampleSizes: {} }, dataset).networks.length, 0);
   assert.equal(calculateDerivedNetworks(reference, dataset).networks.length, 1);
   const oneSample = calculateDerivedNetworks(reference, dataset).networks[0];
+  assert.equal(oneSample.sourceId, signed.networks[0].sourceId);
+  registerGeneratedNetworksInDataset(state, [signed.networks[0], oneSample]);
+  const comparisonSources = Object.values(state.catalogs.sources).filter((source) => source.kind === 'comparison');
+  assert.equal(comparisonSources.length, 1);
+  assert.equal(comparisonSources[0].label, `${dataset.catalogs.sources.controls.label} vs ${dataset.catalogs.sources.ltle.label}`);
+  const registeredNetworks = Object.values(state.networks.entities);
+  assert.equal(new Set(registeredNetworks.map(createNetworkCompoundId)).size, registeredNetworks.length);
+  const legacyComparison = structuredClone(signed.networks[0]);
+  delete legacyComparison.derivation.parameters.sourceGrouping;
+  assert.equal(createNetworkCompoundId(signed.networks[0]), `${createNetworkCompoundId(legacyComparison)}::${signed.networks[0].id}`);
+  for (const differentPair of [
+    { ...request, leftPopulationId: 'ltle', rightPopulationId: 'controls' },
+    { ...request, rightPopulationId: 'rtle' },
+    { ...request, dimensionPairs: cross.dimensionPairs },
+  ]) {
+    assert.notEqual(calculateDerivedNetworks(differentPair, dataset).networks[0].sourceId, signed.networks[0].sourceId);
+  }
   const sampleMean = dataset.networkIndex[oneSample.derivation.leftNetworkId].data.values[0][1];
   const nullMean = dataset.networkIndex[oneSample.derivation.rightNetworkId].data.values[0][1];
   const sigma = dataset.networkIndex[oneSample.derivation.parameters.referenceStdNetworkId].data.values[0][1];
@@ -179,8 +204,9 @@ try {
     leftValue: 'controls_deviation', rightValue: 'ltle_deviation',
   } } };
   const stdDifference = calculateDerivedNetworks(stdRequest, custom).networks[0];
-  assert.notEqual(stdDifference.sourceId, median.sourceId);
+  assert.equal(stdDifference.sourceId, median.sourceId);
   assert.notEqual(stdDifference.id, median.id);
+  assert.notEqual(createNetworkCompoundId(stdDifference), createNetworkCompoundId(median));
   const invalidStatistic = { ...request, inputStatistics: { population_difference: { leftValue: 'missing', rightValue: 'median' } } };
   assert.equal(calculateDerivedNetworks(invalidStatistic, custom).networks.length, 0);
   assert.match(calculateDerivedNetworks(invalidStatistic, custom).warnings.join(' '), /Select a statistic/);
@@ -225,6 +251,12 @@ try {
   const panelHtml = render(DerivedNetworksPanel, {});
   assert.match(panelHtml, /Derive networks/);
   assert.match(panelHtml, /Preview/);
+  assert.ok(panelHtml.indexOf('aria-label="Absolute value of the result"') < panelHtml.indexOf('<table'));
+  assert.match(panelHtml, /compute-networks__derive-action/);
+  assert.match(panelHtml, /compute-networks__comparison/);
+  assert.match(panelHtml, />Aspects</);
+  assert.doesNotMatch(panelHtml, /<th[^>]*>(Target|Control|Calculated)</);
+  assert.doesNotMatch(panelHtml, /Input statistics<|Output stat<|Dimensions \(left/);
   assert.match(panelHtml, /type="checkbox"/);
   assert.ok(panelHtml.lastIndexOf('Derive (') > panelHtml.lastIndexOf('</table>'));
   assert.doesNotMatch(panelHtml, /skipped:/);
@@ -232,7 +264,8 @@ try {
   const { default: CalculationInputs } = await server.ssrLoadModule('/src/components/calculations/CalculationInputs.tsx');
   for (const operation of ['population_difference', 'subject_difference', 'population_one_sample_z_test', 'population_two_sample_z_test']) {
     const html = render(CalculationInputs, { request: { ...reference, operations: [operation] }, onChange() {} });
-    assert.match(html, /aria-label="Absolute value of the result"/);
+    assert.doesNotMatch(html, /aria-label="Absolute value of the result"/);
+    assert.match(html, /Connectivity measure/);
   }
   let changedRequest;
   const tabs = CalculationMethods({ methods: getAvailableNetworkCalculations(dataset), request,

@@ -1,4 +1,5 @@
 import { absoluteCalculationOutput } from "@/networkDerivation/calculations/absoluteDifference";
+import { correlationCatalogEntries } from "@/networkDerivation/calculations/correlationCatalogs";
 import { getNetworkCalculationMethodDefinitions } from "@/networkDerivation/calculations/methods";
 import type { NetworkCalculationOutputSpec } from "@/networkDerivation/calculations/types";
 import type { DatasetState } from "@/types/datasetState";
@@ -79,7 +80,7 @@ const sourceFromComparisonNetwork = (
   if (!left || !right) return null;
   return {
     id: network.sourceId,
-    label: `${labelForSource(state, left)} vs ${typeof parameters.rightLabel === "string" ? parameters.rightLabel : labelForSource(state, right)}${typeof parameters.inputStatisticsLabel === "string" ? ` · ${parameters.inputStatisticsLabel}` : ""}`,
+    label: `${labelForSource(state, left)} vs ${typeof parameters.rightLabel === "string" ? parameters.rightLabel : labelForSource(state, right)}`,
     kind: "comparison",
     left,
     right,
@@ -105,6 +106,18 @@ export const registerGeneratedNetworksInDataset = (
   state: DatasetState,
   networks: Network[],
 ) => {
+  const { catalogs } = state;
+  if (catalogs) networks.forEach(({ derivation }) => {
+    if (derivation?.type !== 'comparison' || derivation.operator !== 'pearson_contribution' || !derivation.inputs) return;
+    const { source, measure, statistic, aspects } = correlationCatalogEntries(derivation.inputs, catalogs);
+    catalogs.sources[source.id] ??= source;
+    catalogs.measures[measure.id] ??= measure;
+    catalogs.statistics[statistic.id] ??= statistic;
+    Object.entries(aspects).forEach(([aspectId, item]) => {
+      catalogs.aspectCatalogs[aspectId] ??= {};
+      catalogs.aspectCatalogs[aspectId][item.id] ??= item;
+    });
+  });
   networksAdapter.upsertMany(state.networks, networks);
   registerGeneratedStatisticCatalogEntries(state, networks);
   registerGeneratedSourceCatalogEntries(state, networks);

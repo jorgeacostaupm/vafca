@@ -37,6 +37,8 @@ export const getDatasetNetworkStats = (
   buildNetworkStats((dataset?.content.networks ?? []).map(toDatasetNetworkSummary));
 
 export const toDatasetNetworkSummary = (network: Network): DatasetNetworkSummary => ({
+  ...(network.derivation?.type === 'comparison' && network.derivation.inputs
+    ? { comparisonInputs: network.derivation.inputs } : {}),
   compoundId: createNetworkCompoundId(network),
   sourceId: network.sourceId,
   measureId: network.measureId,

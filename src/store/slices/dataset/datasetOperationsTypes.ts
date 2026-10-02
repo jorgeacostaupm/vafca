@@ -11,5 +11,6 @@ export const initialDatasetOperationsState: DatasetOperationsSliceState = {
   networkImportError: null,
   lastNetworkImport: null,
   derivedCalculationStatus: 'idle',
+  derivedCalculationRequestIds: [],
   derivedCalculationError: null,
 }

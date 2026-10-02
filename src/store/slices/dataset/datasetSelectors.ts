@@ -4,7 +4,8 @@ import type { DatasetNetworkSummary } from '@/types/datasetNetworkView'
 import type { DatasetContent, DatasetMeta } from '@/types/datasetState'
 import type { Network } from '@/types/network'
 import type { RootState } from '@/types/store'
-import { toDatasetNetworkSummary } from '@/utils/datasetAccessors'
+import { toDatasetNetworkSummary, toMaterializedNetworkView } from '@/utils/datasetAccessors'
+import { createNetworkCompoundId } from '@/utils/networkMetadata'
 
 import { networksAdapter } from './utils/networksAdapter'
 
@@ -14,8 +15,22 @@ const networkSelectors = networksAdapter.getSelectors(
 )
 
 export const selectAllDatasetNetworks = networkSelectors.selectAll
-export const selectDatasetNetworkById = networkSelectors.selectById
 export const selectDatasetNetworkEntities = networkSelectors.selectEntities
+export const selectDatasetNodeSet = (state: RootState) => state.dataset.nodeSet
+
+export const selectNetworksByCompoundId = createSelector(
+  [selectAllDatasetNetworks],
+  networks => new Map(networks.map(network => [createNetworkCompoundId(network), network])),
+)
+
+export const selectDatasetNetworkByCompoundId = (state: RootState, compoundId?: string) =>
+  compoundId ? selectNetworksByCompoundId(state).get(compoundId) : undefined
+
+// Reselect's weak cache shares materialization between views and releases removed entities.
+export const selectMaterializedNetworkByCompoundId = createSelector(
+  [selectDatasetNetworkByCompoundId],
+  network => network ? toMaterializedNetworkView(network) : null,
+)
 
 export const selectDatasetContent = createSelector(
   [
@@ -64,8 +79,6 @@ export const selectDatasetError = (state: RootState) =>
   state.datasetOperations.error
 export const selectDatasetDownloadStatus = (state: RootState) =>
   state.datasetOperations.downloadStatus
-export const selectDatasetDownloadError = (state: RootState) =>
-  state.datasetOperations.downloadError
 export const selectDerivedCalculationStatus = (state: RootState) =>
   state.datasetOperations.derivedCalculationStatus
 export const selectDerivedCalculationError = (state: RootState) =>

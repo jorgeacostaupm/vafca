@@ -103,28 +103,42 @@ function NetworkViewContainer({ viewId, onRemove }: NetworkViewContainerProps) {
     <NetworkViewFrame
       title={model.view.label}
       className={model.className}
-      viewSelector={
-        <NetworkViewTypeSelector
-          view={model.view}
-          spatialVisible={spatialVisible}
-          spatialDisabledReason={spatialDisabledReason}
-          onSpatialVisibleChange={setSpatialVisible}
-        />
-      }
-      actions={
-        <NetworkViewActions
-          view={model.view}
-          computed={model.computed}
-          isMatrixView={model.isMatrixView}
-          renderData={model.renderData}
-          sourceNetworkId={model.networkView.id}
-          isAggregatedNetwork={model.isAggregatedNetwork}
-          isTemporaryNetwork={model.isTemporaryNetwork}
-        />
-      }
-      footer={spatialVisible ? (
+      toolbar={
         <>
-          {spatialAvailable && isAutomaticallyFiltered && (
+          <div className="network-view-toolbar" role="toolbar" aria-label="Network view controls">
+            {!spatialVisible && (
+              <div className="network-view-toolbar__group" role="group" aria-label="Export">
+                <NetworkViewDownloadButton
+                  svgRef={model.svgRef}
+                  fileName={`${viewTitle} ${model.view.label}`}
+                  networkId={model.view.compoundId}
+                  networkLabel={model.view.label}
+                  renderData={model.renderData}
+                />
+              </div>
+            )}
+            <NetworkViewTypeSelector
+              view={model.view}
+              spatialVisible={spatialVisible}
+              spatialDisabledReason={spatialDisabledReason}
+              onSpatialVisibleChange={setSpatialVisible}
+            />
+            {spatialVisible ? <div className="network-view-toolbar__spatial" ref={setSpatialControlsContainer} /> : (
+              <NetworkViewZoomControls computed={model.computed} isMatrixView={model.isMatrixView} spatialVisible={false} />
+            )}
+            <div className="network-view-toolbar__group" role="group" aria-label="Network actions">
+              <NetworkViewActions
+                view={model.view}
+                computed={model.computed}
+                isMatrixView={model.isMatrixView}
+                renderData={model.renderData}
+                sourceNetworkId={model.networkView.id}
+                isAggregatedNetwork={model.isAggregatedNetwork}
+                isTemporaryNetwork={model.isTemporaryNetwork}
+              />
+            </div>
+          </div>
+          {spatialVisible && spatialAvailable && isAutomaticallyFiltered && (
             <Alert
               type="warning"
               showIcon
@@ -132,23 +146,8 @@ function NetworkViewContainer({ viewId, onRemove }: NetworkViewContainerProps) {
               message={`Automatically filtered: keeping the ${NETWORK_LINKS_3D_LIMIT} strongest links by absolute value, plus all selected links.`}
             />
           )}
-          <div ref={setSpatialControlsContainer} />
         </>
-      ) : (
-        <NetworkViewZoomControls
-          computed={model.computed}
-          isMatrixView={model.isMatrixView}
-          spatialVisible={false}
-        >
-          <NetworkViewDownloadButton
-            svgRef={model.svgRef}
-            fileName={`${viewTitle} ${model.view.label}`}
-            networkId={model.view.compoundId}
-            networkLabel={model.view.label}
-            renderData={model.renderData}
-          />
-        </NetworkViewZoomControls>
-      )}
+      }
       onRemove={handleRemove}
     >
       {spatialVisible && model.view.status === 'ready' ? (

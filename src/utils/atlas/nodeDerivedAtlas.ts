@@ -5,16 +5,6 @@ import { normalizeNodeOrder } from "@/utils/nodeOrder";
 
 export const NODE_DERIVED_ATLAS_ID = "__node_derived_atlas__";
 
-export const buildNodeOrderItemsFromSize = (size: number): NodeOrderItem[] =>
-  Array.from({ length: Math.max(0, size) }, (_, index) => {
-    const id = String(index);
-    return {
-      id,
-      label: `Node ${index + 1}`,
-      name: `Node ${index + 1}`,
-    };
-  });
-
 const NODE_ORDER_LABEL_FIELDS = new Set(["id", "label", "name", "value", "acronym"]);
 
 const isNodeOrderObject = (

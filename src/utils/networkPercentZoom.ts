@@ -57,34 +57,6 @@ const collectPercentZoomLinks = ({
   return links;
 };
 
-export const hasPercentZoomLinks = ({
-  data,
-  rowLabels,
-  colLabels,
-  symmetric,
-  includeAutoconnections,
-}: Pick<
-  BuildPercentZoomSelectionArgs,
-  "data" | "rowLabels" | "colLabels" | "symmetric" | "includeAutoconnections"
->) => {
-  const skipSymmetricDuplicates =
-    symmetric && hasSameLabelOrder(rowLabels, colLabels);
-
-  for (let row = 0; row < data.length; row += 1) {
-    const rowValues = data[row] ?? [];
-    for (let col = 0; col < rowValues.length; col += 1) {
-      const rowId = rowLabels[row];
-      const colId = colLabels[col];
-      if (!rowId || !colId || !Number.isFinite(rowValues[col])) continue;
-      if (!includeAutoconnections && rowId === colId) continue;
-      if (skipSymmetricDuplicates && col < row) continue;
-      return true;
-    }
-  }
-
-  return false;
-};
-
 const getModeScore = (link: PercentZoomLink, mode: PercentZoomMode) => {
   if (mode === "top") return link.value;
   if (mode === "bottom") return -link.value;

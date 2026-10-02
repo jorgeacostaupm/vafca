@@ -1,20 +1,20 @@
 import { Form, Space, Switch } from 'antd'
 
+import SettingsSection from '@/components/common/SettingsSection'
 import NetworkSelectorModeSetting from '@/components/network/settings/NetworkSelectorModeSetting'
 import NetworkViewTypeSetting from '@/components/network/settings/NetworkViewTypeSetting'
-import SettingsSection from '@/components/network/settings/SettingsSection'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   patchNetworkControls,
   selectNetworkControls,
   setNetworkHideIsolatedNodes,
 } from '@/store/slices/networkVisualization'
-
-import AggregationSettings from './AggregationSettings'
+import { setShowGroupingLegend } from '@/store/slices/visualizationUi'
 
 export default function NetworkViewsSettingsTab() {
   const dispatch = useAppDispatch()
   const networkControls = useAppSelector(selectNetworkControls)
+  const showGroupingLegend = useAppSelector(state => state.visualizationUi.showGroupingLegend)
 
   return (
     <Space direction="vertical" size={20} style={{ width: '100%' }}>
@@ -24,9 +24,15 @@ export default function NetworkViewsSettingsTab() {
       >
         <NetworkViewTypeSetting />
         <NetworkSelectorModeSetting />
-        <AggregationSettings />
 
         <Form layout="vertical" className="network-settings-views__switches">
+          <Form.Item label="Floating node color legend">
+            <Switch
+              aria-label="Floating node color legend"
+              checked={showGroupingLegend}
+              onChange={value => dispatch(setShowGroupingLegend(value))}
+            />
+          </Form.Item>
           <Form.Item label="Coordinated zoom">
             <Switch
               checked={networkControls.syncZoom}

@@ -94,13 +94,13 @@ try {
   assert.match(html, /Showing 2 links/, "All visible links render with an empty global selection");
   assert.doesNotMatch(html, /selected-links-view-card/, "Network 3D has no inner card");
   const { default: NetworkSpatialControls } = await server.ssrLoadModule("/src/components/network/views/NetworkSpatialControls.tsx");
-  for (const mode of ["geometry", "points"]) {
+  for (const canToggle of [true, false]) {
     const controls = renderToStaticMarkup(createElement(NetworkSpatialControls, {
-      mode, hideInactiveRois: true, onModeChange() {}, onToggleInactiveRois() {}, onCameraPose() {},
+      hideInactiveRois: true, onToggleInactiveRois: canToggle ? () => {} : undefined, onCameraPose() {},
     }));
     for (const label of ["Front", "Right", "Top", "Left"]) assert.ok(controls.includes(label));
-    assert.equal(controls.includes('aria-label="Hide ROIs without visible links"'), mode === "geometry");
-    if (mode === "geometry") assert.match(controls, /aria-pressed="true"/);
+    assert.equal(controls.includes('aria-label="Hide inactive ROIs"'), canToggle);
+    if (canToggle) assert.match(controls, /aria-pressed="true"/);
   }
   assert.equal(store.getState().visualizationUi.atlasPanel.spatialMode, "none");
   console.log("Network 3D links checks passed.");

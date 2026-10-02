@@ -1,9 +1,16 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import * as THREE from 'three';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { createServer } from 'vite';
+
+const styles = await readFile(new URL('../src/styles/features/selected-links.css', import.meta.url), 'utf8');
+for (const selector of ['.links-atlas__canvas', '.network-links-3d__canvas']) {
+  const rule = styles.slice(styles.indexOf(`${selector} {`)).split('}')[0];
+  assert.match(rule, /position:\s*relative\s*;/, `${selector} anchors its tooltip like Node Management`);
+}
 
 const server = await createServer({ server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom' });
 const frames = [];

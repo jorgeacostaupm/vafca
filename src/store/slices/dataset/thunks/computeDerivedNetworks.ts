@@ -5,21 +5,25 @@ import {
   type NetworkCalculationBatchRequest,
   type NetworkCalculationResult,
 } from '@/networkDerivation/calculations'
-import type { RootState } from '@/types/store'
 
 import { selectDatasetContent } from '../datasetSelectors'
 import { yieldToBrowser } from '../utils/browserYield'
+import { assertCalculationCurrent, type DatasetCalculationConfig } from '../utils/calculationSnapshot'
 
 export const computeDerivedNetworks = createAsyncThunk<
   NetworkCalculationResult,
   NetworkCalculationBatchRequest | NetworkCalculationBatchRequest[],
-  { state: RootState; rejectValue: string }
->('dataset/computeDerivedNetworks', async (request, { getState, rejectWithValue }) => {
-  const datasetContent = selectDatasetContent(getState())
+  DatasetCalculationConfig
+>('dataset/computeDerivedNetworks', async (request, { getState, rejectWithValue, fulfillWithValue, signal }) => {
+  const state = getState()
+  const datasetRevision = state.dataset.revision
+  const datasetContent = selectDatasetContent(state)
   if (!datasetContent) return rejectWithValue('No dataset is loaded.')
-  await yieldToBrowser()
   const result: NetworkCalculationResult = { networks: [], warnings: [], skipped: [], existing: [] }
   for (const item of Array.isArray(request) ? request : [request]) {
+    // ponytail: yield between requests; one matrix still runs synchronously. Use a worker if it stalls the UI.
+    await yieldToBrowser()
+    assertCalculationCurrent(getState, datasetRevision, signal)
     const calculation = calculateDerivedNetworks(item, datasetContent)
     result.networks.push(...calculation.networks)
     result.warnings.push(...calculation.warnings)
@@ -27,5 +31,5 @@ export const computeDerivedNetworks = createAsyncThunk<
     result.existing.push(...calculation.existing)
   }
   result.warnings = [...new Set(result.warnings)]
-  return result
+  return fulfillWithValue(result, { datasetRevision })
 })

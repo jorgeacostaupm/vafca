@@ -23,12 +23,6 @@ const moveItem = (
   return next;
 };
 
-export const moveField = (
-  fields: string[],
-  field: string,
-  direction: MoveDirection,
-): string[] => moveItem(fields, field, direction);
-
 export const moveValue = (
   values: string[],
   value: string,

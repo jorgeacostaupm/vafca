@@ -7,7 +7,7 @@ import type {
   SourceKind,
 } from "@/types/network";
 import { isRecord, toLabel } from "@/utils/import/guards";
-import { parseCatalogsImportRecord } from "@/utils/import/schemas/catalogSchema";
+import { CatalogComparisonSchema, parseCatalogsImportRecord } from "@/utils/import/schemas/catalogSchema";
 import type {
   CatalogItemDraft,
   CatalogsDraft,
@@ -79,6 +79,7 @@ const readCatalogItem = (catalog: Record<string, unknown> | null, id: string): C
     enabled: entry?.enabled === false ? false : true,
     order: readOrder(entry),
     metadata: readMetadata(entry),
+    comparison: CatalogComparisonSchema.optional().parse(entry?.comparison),
   };
 };
 

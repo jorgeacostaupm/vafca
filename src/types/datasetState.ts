@@ -35,6 +35,7 @@ export type NetworkImportRejected = {
 };
 
 export type DatasetState = {
+  revision: number;
   id: string | null;
   label: string | null;
   description: string | null;
@@ -53,6 +54,7 @@ export type DatasetOperationsState = {
   networkImportError: string | null;
   lastNetworkImport: NetworkImportSummary | null;
   derivedCalculationStatus: "idle" | "loading" | "ready" | "error";
+  derivedCalculationRequestIds: string[];
   derivedCalculationError: string | null;
 };
 

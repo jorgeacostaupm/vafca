@@ -1,6 +1,6 @@
 import type { Network, NetworkDataset } from "@/types/network";
 import type { RankingNetworkKind, RankingQuery } from "@/types/rankings";
-import { createNetworkCompoundId, formatNetworkLabel, formatNetworkSourceLabel, getNetworkSourceKind } from "@/utils/networkMetadata";
+import { createNetworkCompoundId, formatNetworkLabel, getNetworkSourceKind } from "@/utils/networkMetadata";
 export { areRankingSourcesCompatible } from "@/utils/rankings/rankingSourceCompatibility";
 import { areRankingSourcesCompatible } from "@/utils/rankings/rankingSourceCompatibility";
 
@@ -15,6 +15,7 @@ export const getRankingNetworkKind = (
 ): RankingNetworkKind =>
   network.derivation?.type === "aggregation"
     ? "aggregation"
+    : network.derivation?.type === "comparison" ? "comparison"
     : getNetworkSourceKind(network, dataset);
 
 export const getNetworkAggregationGroupingKey = (network: Network) => {
@@ -29,16 +30,6 @@ export const getNetworkAggregationGroupingKey = (network: Network) => {
     parameters.groupOrderHash ?? "unordered",
   ].join("::");
 };
-
-export const getNetworkAggregationGroupingLabel = (network: Network) => {
-  if (network.derivation?.type !== "aggregation") return undefined;
-  return network.derivation.fields.join(" / ");
-};
-
-export const getNetworkSourceLabel = (
-  network: Network,
-  dataset: NetworkDataset,
-) => formatNetworkSourceLabel(network, dataset);
 
 export const getNetworkCompoundId = createNetworkCompoundId;
 

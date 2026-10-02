@@ -1,14 +1,21 @@
 import { CORRELATION_DISPLAY_PRECISION } from '@/config/ui'
 import type { NetworkDataset } from '@/types/network'
 import { getNetworkValue } from '@/utils/networkData'
+import { createNetworkCompoundId } from '@/utils/networkMetadata'
 
 import { buildTooltipValueLabel, type TooltipValueLabel } from './tooltipValueLabel'
 
 export function networkTooltipValue(dataset: NetworkDataset | null | undefined, networkId: string, networkLabel: string): TooltipValueLabel {
-  const network = dataset?.networkIndex[networkId]
+  // ponytail: compound IDs require an O(n) lookup per tooltip; index them if hover profiling warrants it.
+  const network = dataset?.networkIndex[networkId] ?? dataset?.networks.find(
+    candidate => createNetworkCompoundId(candidate) === networkId,
+  )
   const derivation = network?.derivation
   if (derivation?.type !== 'comparison' || derivation.operator !== 'pearson_contribution') {
-    return buildTooltipValueLabel(networkLabel)
+    return network && dataset ? [
+      dataset.catalogs.measures[network.measureId]?.label ?? network.measureId,
+      dataset.catalogs.statistics[network.statisticId]?.label ?? network.statisticId,
+    ].join(' · ') : buildTooltipValueLabel(networkLabel)
   }
   const left = dataset?.networkIndex[derivation.leftNetworkId ?? '']
   const right = dataset?.networkIndex[derivation.rightNetworkId ?? '']

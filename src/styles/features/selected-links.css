@@ -191,6 +191,7 @@
 }
 
 .links-atlas__canvas {
+  position: relative;
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -260,7 +261,7 @@
   background: var(--color-surface);
 }
 
-.links-panel__control-card .network-settings-section__header {
+.links-panel__control-card .app-settings-section__header {
   flex-wrap: wrap;
 }
 
@@ -271,6 +272,7 @@
 }
 
 .network-links-3d__canvas {
+  position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;

@@ -88,12 +88,12 @@ const sameNodeOrder = (left: Network, right: Network) =>
   left.nodeIds.length === right.nodeIds.length &&
   left.nodeIds.every((nodeId, index) => nodeId === right.nodeIds[index]);
 
-export const assertContextCompatible = (networks: Network[]) => {
+export const assertContextCompatible = (networks: Network[], { allowDifferentMeasures = false } = {}) => {
   if (networks.length <= 1) return;
   const [first] = networks;
   const incompatible = networks.find(
     (network) =>
-      network.measureId !== first.measureId ||
+      (!allowDifferentMeasures && network.measureId !== first.measureId) ||
       !sameNodeOrder(first, network),
   );
   if (incompatible) {
@@ -109,7 +109,7 @@ export const validateNetworkCalculationRequest = (
   if (request.operations.length === 1 && request.operations[0] === "correlation") {
     const networks = [request.correlationNetworkAId, request.correlationNetworkBId].map((id) => state.networkIndex[id ?? ""]);
     if (networks.some((network) => !network)) errors.push("Select Network A and Network B.");
-    else { try { assertContextCompatible(networks); } catch (error) { errors.push((error as Error).message); } }
+    else { try { assertContextCompatible(networks, { allowDifferentMeasures: true }); } catch (error) { errors.push((error as Error).message); } }
     return { valid: !errors.length, errors };
   }
   if (!request.operations.length) errors.push("Select at least one calculation method.");

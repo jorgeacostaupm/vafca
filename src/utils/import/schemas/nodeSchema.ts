@@ -10,7 +10,6 @@ const NodeCoordinatesSchema = z.object({
   space: z.string().optional(),
 });
 
-
 export const NodeImportSchema = z.object({
   atlasId: z.union([z.string(), z.number()]).optional(),
   coords: NodeCoordinatesSchema.nullable().optional(),
@@ -32,21 +31,6 @@ export const parseNodeImportRecord = (
   errors: NetworkImportIssue[],
 ): NodeImportRecord | null => {
   const result = NodeImportSchema.safeParse(payload);
-
-  if (!result.success) {
-    addZodIssues(result.error.issues, source, errors);
-    return null;
-  }
-
-  return result.data;
-};
-
-export const parseNodeImportList = (
-  payload: unknown,
-  source: string,
-  errors: NetworkImportIssue[],
-): NodeImportRecord[] | null => {
-  const result = NodeImportListSchema.safeParse(payload);
 
   if (!result.success) {
     addZodIssues(result.error.issues, source, errors);

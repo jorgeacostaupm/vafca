@@ -2,7 +2,6 @@ export {
   selectNetworkControls,
   selectNetworkViewsById,
   selectNetworkViewsOrder,
-  selectNetworkVisualizationState,
 } from './networkVisualizationSelectors'
 export { default } from './networkVisualizationSlice'
 export {

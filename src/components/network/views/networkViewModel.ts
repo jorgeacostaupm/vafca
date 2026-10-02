@@ -13,7 +13,6 @@ import {
   DEFAULT_LINK_WIDTH_RANGE,
   DEFAULT_MATRIX_BRUSH_MODE,
   DEFAULT_NETWORK_PERCENT_ZOOM_PERCENT,
-  DEFAULT_NETWORK_SELECTION_VISIBLE,
 } from "@/config/ui";
 import type { AtlasDefinition } from "@/types/atlas";
 import {
@@ -178,8 +177,6 @@ export const resolveComputedNetworkView = ({
     circularNegativeLinkColor:
       nodeLinkSettings?.circularNegativeLinkColor ??
       DEFAULT_CIRCULAR_NEGATIVE_LINK_COLOR,
-    selectionVisible:
-      settings?.selectionVisible ?? DEFAULT_NETWORK_SELECTION_VISIBLE,
     zoomLinkPercent:
       settings?.zoomLinkPercent ?? DEFAULT_NETWORK_PERCENT_ZOOM_PERCENT,
     percentLinkFilter: settings?.percentLinkFilter ?? null,

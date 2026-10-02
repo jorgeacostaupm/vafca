@@ -1,9 +1,10 @@
-import { Button, Checkbox, List } from "antd";
+import { Checkbox, List } from "antd";
 import { memo, useCallback, useEffect } from "react";
 import { shallowEqual } from "react-redux";
 
+import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { selectActiveAnnotation, setAtlasPanelState, toggleAnnotationNode } from "@/store/slices/visualizationUi";
+import { setAtlasPanelState } from "@/store/slices/visualizationUi";
 import {
   getAtlasDisplayLabel,
   isAtlasLabelEnabled,
@@ -20,7 +21,8 @@ export const AtlasNodeListItem = memo(function AtlasNodeListItem({
   id,
 }: AtlasNodeListItemProps) {
   const dispatch = useAppDispatch();
-  const annotated = useAppSelector(state => selectActiveAnnotation(state)?.nodes.some(node => node.id === id) ?? false);
+  const { nodeColors } = useAtlasLabelPresentation();
+  const hasColoring = useAppSelector(state => state.atlasUi.colorFields.length > 0);
   const { draft, labelsById, order } = useAppSelector(
     (state) => ({
       draft: state.visualizationUi.atlasPanel.nodeVisibilityDraft,
@@ -62,9 +64,8 @@ export const AtlasNodeListItem = memo(function AtlasNodeListItem({
         checked={enabled}
         onChange={(event) => handleChange(event.target.checked)}
       >
-        <span className="atlas-panel__node-label">{displayLabel}</span>
+        <span className="atlas-panel__node-label" style={{ color: hasColoring ? nodeColors[id] : undefined }}>{displayLabel}</span>
       </Checkbox>
-      <Button aria-label={`Annotate ${displayLabel}`} aria-pressed={annotated} onClick={() => dispatch(toggleAnnotationNode({ id, label: displayLabel }))}>Annotate</Button>
       <RoiMetadataActions id={id} />
     </List.Item>
   );

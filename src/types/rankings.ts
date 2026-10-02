@@ -104,6 +104,7 @@ export type RankingResult = {
 };
 
 export type RankingUiState = {
+  recomputeRequestId: string | null;
   activeTab: "views" | "rankings";
   currentQuery: RankingQuery;
   queriesByTarget: Partial<Record<RankingTarget, RankingQuery>>;

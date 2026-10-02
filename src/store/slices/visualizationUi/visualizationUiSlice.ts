@@ -4,6 +4,7 @@ import {
   cloneMatrixColorSettings,
   resetMatrixScaleInteractionColors,
 } from '@/config/matrixColorScales'
+import { catalogItemUpdated } from '@/store/actions/catalogItemUpdated'
 import { setLabelsEnabled } from '@/store/slices/atlasUi/atlasUiSlice'
 import type { ScaleType, UiRangeMode } from '@/types/network'
 import type {
@@ -21,6 +22,9 @@ const visualizationUiSlice = createSlice({
   initialState: initialVisualizationUiState,
   reducers: {
     ...annotationReducers,
+    setShowGroupingLegend(state, action: PayloadAction<boolean>) {
+      state.showGroupingLegend = action.payload
+    },
     setSpatialVisualStyle(state, action: PayloadAction<SpatialVisualStyle>) {
       state.spatialVisualStyle = action.payload
     },
@@ -170,6 +174,13 @@ const visualizationUiSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(catalogItemUpdated, (state, { payload }) => {
+        if (payload.prune) {
+          annotationReducers.pruneSelectedLinksForDisabledCatalogItem(state, {
+            type: catalogItemUpdated.type, payload: payload.prune,
+          })
+        }
+      })
       .addCase(setLabelsEnabled, (state, { payload }) => {
         const draft = state.atlasPanel.nodeVisibilityDraft
         if (!draft) return
@@ -194,7 +205,8 @@ const visualizationUiSlice = createSlice({
 })
 
 export const {
-  toggleActiveAnnotation, createNewAnnotation, selectAnnotation, updateAnnotation, removeAnnotation, toggleAnnotationNode, setAnnotationOverlapColor,
+  setShowGroupingLegend,
+  setAtlasNodeIds, toggleActiveAnnotation, createNewAnnotation, selectAnnotation, updateAnnotation, removeAnnotation, toggleAnnotationNode, setAnnotationOverlapColor,
   setSpatialVisualStyle,
   setHoveredCell,
   clearHoveredCell,

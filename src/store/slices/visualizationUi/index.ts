@@ -4,20 +4,14 @@ export {
   selectAppliedMatrixBackgroundColor,
   selectAppliedMatrixColorSettings,
   selectAtlasLinkIds,
-  selectAtlasPanelState,
   selectCircularVisualStyle,
   selectDraftMatrixBackgroundColor,
   selectDraftMatrixColorSettings,
-  selectHoveredCell,
-  selectHoveredNodeId,
+  selectGroupingLegendVisible,
   selectNodeLinkVisualStyle,
-  selectSelectedLinkIdsByRowId,
   selectSelectedLinks,
   selectSelectedLinksById,
-  selectSelectedLinksDownloadError,
-  selectSelectedLinksDownloadStatus,
   selectUiRangeMode,
-  selectVisualizationUiState,
 } from './visualizationUiSelectors'
 export { default } from './visualizationUiSlice'
 export {
@@ -45,8 +39,18 @@ export {
   setHoveredNode,
   setNodeLinkInteractionColor,
   setNodeLinkLinkColor,
+  setShowGroupingLegend,
   setUiRangeMode,
   toggleAtlasLinkId,
 } from './visualizationUiSlice'
-export { toggleActiveAnnotation, createNewAnnotation, removeAnnotation, selectAnnotation, setAnnotationOverlapColor,toggleAnnotationNode, updateAnnotation } from './visualizationUiSlice'
+export {
+  createNewAnnotation,
+  removeAnnotation,
+  selectAnnotation,
+  setAnnotationOverlapColor,
+  setAtlasNodeIds,
+  toggleActiveAnnotation,
+  toggleAnnotationNode,
+  updateAnnotation,
+} from './visualizationUiSlice'
 export type { VisualizationUiSliceState } from './visualizationUiTypes'

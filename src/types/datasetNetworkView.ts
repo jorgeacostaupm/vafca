@@ -1,4 +1,4 @@
-import type { NetworkDataStats } from "@/types/network";
+import type { ComparisonNetworkInput, NetworkDataStats } from "@/types/network";
 
 export type MaterializedNetworkView = {
   id: string;
@@ -14,6 +14,7 @@ export type MaterializedNetworkView = {
 };
 
 export type DatasetNetworkSummary = {
+  comparisonInputs?: [ComparisonNetworkInput, ComparisonNetworkInput];
   compoundId: string;
   sourceId: string;
   measureId: string;

@@ -33,6 +33,7 @@ try {
   state.visualizationUi.annotations[0].atlasLinkIds = [`${a}::${b}`];
   state.visualizationUi.atlasPanel.spatialMode = 'points';
   state.visualizationUi.atlasPanel.is3dAvailable = true;
+  state.visualizationUi.atlasPanel.showInactiveNodes = true;
   state.workspaceUi.activeSection = 'derive';
   state.workspaceUi.selectedNetworkIds = [compoundId];
   state.workspaceUi.cameras.links = { position: [0.2, 0.8, 0.3], target: [0, 0, 0], zoom: 1 };
@@ -54,11 +55,16 @@ try {
   state.networkVisualization.temporaryNetworksById['temporary-network'] = { id: 'temporary-network', sourceViewId: 'saved-view', sourceNetworkLabel: 'Source', label: 'Groups', measureId: net.measureId, statisticId: net.statisticId, data: [[NaN, 0.5], [0.5, NaN]], rowLabels: ['g1', 'g2'], colLabels: ['g1', 'g2'], symmetric: true, groups: [{ id: 'g1', label: 'Left', criteria: { hemisphere: 'left' }, nodeIds: [a] }, { id: 'g2', label: 'Right', criteria: { hemisphere: 'right' }, nodeIds: [b] }], labelNames: { g1: 'Left', g2: 'Right' }, labelTitles: {}, labelAcronyms: {}, nodeColors: {}, createdAt: '2026-01-01' };
   const payload = snapshotWorkspace(state);
   const prepared = prepareWorkspace(payload);
+  assert.equal(prepared.visualizationUi.atlasPanel.showInactiveNodes, true);
+  const legacy = structuredClone(payload);
+  delete legacy.session.visualizationUi.atlasPanel.showInactiveNodes;
+  assert.equal(prepareWorkspace(legacy).visualizationUi.atlasPanel.showInactiveNodes, false);
   const archive = await encodeWorkspace(snapshotWorkspace(prepared));
   const asDataset = await loadNetworkImportFromBytes('workspace.zip', Uint8Array.from(archive).buffer);
   assert.deepEqual(asDataset.normalized.issues.errors, []);
   assert.deepEqual(asDataset.dataset.networks.map(network => network.id), dataset.networks.map(network => network.id));
   const restored = prepareWorkspace(await decodeWorkspace(archive));
+  assert.equal(restored.visualizationUi.atlasPanel.showInactiveNodes, true);
   assert.ok(isDeepStrictEqual(JSON.parse(JSON.stringify(snapshotWorkspace(restored))), JSON.parse(JSON.stringify(snapshotWorkspace(prepared)))), 'Persisted workspace content differs after round trip');
   assert.deepEqual(restored.visualizationUi.annotations[0].selectedLinksById[`${a}::${b}`], state.visualizationUi.annotations[0].selectedLinks[0]);
   assert.equal(restored.workspaceUi.activeSection, 'derive');

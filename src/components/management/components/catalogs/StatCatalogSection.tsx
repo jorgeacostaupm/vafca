@@ -1,10 +1,12 @@
 import { CheckOutlined } from '@ant-design/icons'
-import { Button, Card, Input, InputNumber, Space, Switch, Typography } from 'antd'
+import { Button, InputNumber, Typography } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useCatalogItemUpdater } from '@/components/management/components/catalogs/useCatalogItemUpdater'
 import { isEnabled, normalizeNumber } from '@/components/management/utils/catalogValues'
 import type { Statistic } from '@/types/network'
+
+import CatalogItemEditor from './CatalogItemEditor'
 
 type StatDraft = {
   id: string
@@ -101,63 +103,13 @@ function StatCatalogSection({ stats, emptyMessage }: StatCatalogSectionProps) {
           const draft = drafts[stat.id] ?? toDraft(stat)
 
           return (
-            <Card key={stat.id} size="small" className="catalog-management-card">
-              <Space direction="vertical" size={8} className="catalog-management-card__body">
-                <Space wrap size={8} align="start">
-                  <Input
-                    size="small"
-                    placeholder="Statistic label"
-                    value={draft.label}
-                    className="catalog-management-label-input"
-                    onChange={(event) =>
-                      updateDraft(stat.id, {
-                        label: event.target.value,
-                      })
-                    }
-                  />
-                  <Switch
-                    checked={draft.enabled}
-                    onChange={(checked) =>
-                      updateDraft(stat.id, {
-                        enabled: checked,
-                      })
-                    }
-                  />
-                  <InputNumber
-                    size="small"
-                    placeholder="Min"
-                    value={draft.min ?? null}
-                    onChange={(value) =>
-                      updateDraft(stat.id, {
-                        min: normalizeNumber(value),
-                      })
-                    }
-                  />
-                  <InputNumber
-                    size="small"
-                    placeholder="Max"
-                    value={draft.max ?? null}
-                    onChange={(value) =>
-                      updateDraft(stat.id, {
-                        max: normalizeNumber(value),
-                      })
-                    }
-                  />
-                </Space>
-
-                <Input.TextArea
-                  size="small"
-                  placeholder="Description"
-                  value={draft.description}
-                  onChange={(event) =>
-                    updateDraft(stat.id, {
-                      description: event.target.value,
-                    })
-                  }
-                  className="catalog-management-description"
-                />
-              </Space>
-            </Card>
+            <CatalogItemEditor key={stat.id} item={draft} label="Statistic label"
+              onChange={changes => updateDraft(stat.id, changes)} >
+              <InputNumber size="small" placeholder="Min" aria-label="Statistic minimum"
+                value={draft.min ?? null} onChange={value => updateDraft(stat.id, { min: normalizeNumber(value) })} />
+              <InputNumber size="small" placeholder="Max" aria-label="Statistic maximum"
+                value={draft.max ?? null} onChange={value => updateDraft(stat.id, { max: normalizeNumber(value) })} />
+            </CatalogItemEditor>
           )
         })}
       </div>

@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 type NetworkViewFrameProps = {
   title: string;
   onRemove?: () => void;
-  viewSelector?: ReactNode;
+  toolbar?: ReactNode;
   actions?: ReactNode;
   footer?: ReactNode;
   className?: string;
@@ -19,7 +19,7 @@ function getNetworkViewFrameClassName(className?: string) {
 export default function NetworkViewFrame({
   title,
   onRemove,
-  viewSelector,
+  toolbar,
   actions,
   footer,
   className,
@@ -36,7 +36,6 @@ export default function NetworkViewFrame({
       }
       extra={
         <Space className="panel-card-extra-actions" size={4} wrap>
-          {viewSelector}
           {actions}
           {onRemove && <Button
             size="small"
@@ -49,10 +48,11 @@ export default function NetworkViewFrame({
       }
       style={{ height: "100%" }}
     >
-      {footer ? (
+      {toolbar || footer ? (
         <div className="network-view-frame__body">
+          {toolbar && <div className="network-view-frame__toolbar">{toolbar}</div>}
           <div className="network-view-frame__content">{children}</div>
-          <div className="network-view-frame__footer">{footer}</div>
+          {footer && <div className="network-view-frame__footer">{footer}</div>}
         </div>
       ) : children}
     </Card>

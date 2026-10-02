@@ -3,43 +3,6 @@
   background: var(--color-surface);
 }
 
-.network-settings-section {
-  display: grid;
-
-  width: 100%;
-  padding: var(--space-4);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-}
-
-.network-settings-section--no-padding {
-  padding: 0;
-}
-
-.network-settings-section__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.network-settings-section__actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.network-settings-section__title {
-  margin: 0;
-}
-
-.network-settings-section__title--custom-size {
-  font-size: var(--network-settings-section-title-font-size);
-}
-
-.network-settings-section__description {
-  display: block;
-}
-
 .network-settings-views__switches,
 .network-settings-rankings__switches {
   display: flex;
@@ -55,8 +18,7 @@
 
 .network-settings-grouping {
   display: grid;
-  grid-template-columns: minmax(0, 300px) minmax(0, 468px);
-  justify-content: space-between;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
   align-items: start;
 }
@@ -141,37 +103,6 @@
 
 .network-settings-grouping__status {
   display: block;
-}
-
-.network-settings-grouping__previews {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-end;
-  gap: var(--space-3);
-  min-width: 0;
-}
-
-.network-settings-grouping__preview-column {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--space-3);
-  min-width: 0;
-}
-
-.network-settings-grouping__actions {
-  display: flex;
-  grid-column: 1 / -1;
-  justify-content: flex-end;
-  width: 100%;
-}
-
-.matrix-settings-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
 }
 
 .network-settings-accordion {
@@ -341,13 +272,6 @@
   min-width: 0;
 }
 
-.circular-settings-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-}
-
 .node-link-settings-form {
   display: flex;
   flex-wrap: wrap;
@@ -469,23 +393,10 @@
     justify-content: stretch;
   }
 
-  .network-settings-grouping__previews {
-    align-items: flex-start;
-    justify-content: flex-start;
-  }
-
-  .network-settings-grouping__preview-column {
-    align-items: flex-start;
-  }
-
   .matrix-settings-grid,
   .matrix-settings-toggle-grid,
   .matrix-settings-color-grid {
     grid-template-columns: 1fr;
-  }
-
-  .matrix-settings-actions {
-    justify-content: flex-start;
   }
 
   .network-settings-order-layout,
@@ -507,10 +418,6 @@
 
   .circular-settings-edges__group-label {
     padding-top: 0;
-  }
-
-  .circular-settings-actions {
-    justify-content: flex-start;
   }
 
   .edge-filter-rule__controls {

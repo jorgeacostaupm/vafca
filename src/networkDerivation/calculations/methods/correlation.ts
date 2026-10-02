@@ -1,4 +1,7 @@
+import { buildNetworkSummaryLabel } from '@/utils/matrixViewUtils'
+
 import { calculateCorrelation } from '../correlation'
+import { correlationCatalogEntries, correlationInput } from '../correlationCatalogs'
 import { maybePush } from '../methodRuntime'
 import { createDerivedNetwork } from '../records'
 import type { NetworkCalculationMethod } from '../types'
@@ -33,14 +36,18 @@ export const correlation: NetworkCalculationMethod = {
         return
       }
       const { data, summary } = calculateCorrelation(left, right)
-      const id = `correlation:${encodeURIComponent(left.id)}:${encodeURIComponent(right.id)}:pearson`
+      const inputs: [ReturnType<typeof correlationInput>, ReturnType<typeof correlationInput>] = [correlationInput(left), correlationInput(right)]
+      const entries = correlationCatalogEntries(inputs, state.catalogs)
+      const id = `correlation:${encodeURIComponent(JSON.stringify([left.id, right.id].sort()))}:pearson`
       maybePush(createDerivedNetwork({
-        id, label: `${left.label ?? left.id} vs ${right.label ?? right.id} · Pearson contribution`,
-        sourceId: id, dimensions: left.dimensions, measureId: left.measureId,
-        nodeSetId: left.nodeSetId, nodeIds: left.nodeIds, statisticId: 'pearson_contribution',
+        id, label: buildNetworkSummaryLabel({ ...inputs[0], comparisonInputs: inputs }, state.catalogs),
+        sourceId: entries.source.id, dimensions: Object.fromEntries(Object.entries(entries.aspects).map(([key, item]) => [key, item.id])),
+        measureId: entries.measure.id,
+        nodeSetId: left.nodeSetId, nodeIds: left.nodeIds, statisticId: entries.statistic.id,
         derivation: { type: 'comparison', operator: 'pearson_contribution', comparisonType: 'network_vs_network',
           formula: '(x_i - mean_x) / S_x * (y_i - mean_y) / S_y', leftNetworkId: left.id, rightNetworkId: right.id,
-          parameters: { ...summary, left: left.sourceId, right: right.sourceId } },
+          inputs,
+          parameters: { ...summary, sourceGrouping: 'endpoints', left: left.sourceId, right: right.sourceId } },
         valueDomain: { min: null, max: null, center: 0, units: null },
         dependencies: [left.id, right.id], provenanceParameters: { ...summary }, data,
       }), state, result)

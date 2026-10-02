@@ -30,7 +30,7 @@ export default function OrderingFieldsSelect({ fields, onChange, purpose = 'Orde
       <Typography.Paragraph type="secondary">
         {purpose === 'Ordering'
           ? 'Fields are applied from first to last. No fields keeps the original node order. Colors follow Grouping. Aggregated nodes with different values are placed under Mixed.'
-          : 'These fields determine which nodes are merged. Aggregated labels always use a neutral color, independent of Coloring.'}
+          : 'Nodes with matching values are merged. Missing values form an Unknown group.'}
       </Typography.Paragraph>
     </div>
   )

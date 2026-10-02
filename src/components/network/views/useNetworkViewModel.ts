@@ -1,4 +1,3 @@
-import { createSelector } from "@reduxjs/toolkit";
 import { useMemo, useRef } from "react";
 
 import { resolveAllowedSet } from "@/components/network/networkFormatting";
@@ -17,19 +16,17 @@ import {
 import { useNetworkViewSourceFilters } from "@/components/network/views/useNetworkViewSourceFilters";
 import { useAtlasLabelPresentation } from "@/hooks/useAtlasLabelPresentation";
 import { useAppSelector } from "@/store/hooks";
-import { selectDatasetData } from "@/store/slices/dataset";
+import { selectMaterializedNetworkByCompoundId } from "@/store/slices/dataset/datasetSelectors";
+import { selectNetworkViewWithCurrentLabel } from "@/store/slices/networkVisualization/networkVisualizationSelectors";
 import { selectSharedMatrixDomains } from "@/store/slices/networkVisualization/sharedMatrixDomainSelectors";
 import type { MaterializedNetworkView } from "@/types/datasetNetworkView";
 import { buildAggregatedNodeColors, shortenAggregatedNodeLabels } from "@/utils/aggregatedNodePresentation";
-import {
-  getMaterializedNetworkByCompoundId,
-} from "@/utils/datasetAccessors";
 
 export const useNetworkViewModel = (viewId: string) => {
   const { nodeColors } = useAtlasLabelPresentation();
   const svgRef = useRef<SVGSVGElement>(null);
   const view = useAppSelector(
-    (state) => state.networkVisualization.viewsById[viewId],
+    (state) => selectNetworkViewWithCurrentLabel(state, viewId),
   );
   const matrixSettings = useAppSelector(
     (state) => state.networkVisualization.matrixSettingsByViewId[viewId],
@@ -48,16 +45,9 @@ export const useNetworkViewModel = (viewId: string) => {
       ? state.networkVisualization.temporaryNetworksById[view.temporaryNetworkId] ?? null
       : null,
   );
-  const selectNetworkView = useMemo(
-    () =>
-      createSelector([selectDatasetData], (dataset) =>
-        compoundId && !temporaryNetwork
-          ? getMaterializedNetworkByCompoundId(dataset, compoundId) ?? null
-          : null,
-      ),
-    [compoundId, temporaryNetwork],
+  const datasetNetworkView = useAppSelector(state =>
+    temporaryNetwork ? null : selectMaterializedNetworkByCompoundId(state, compoundId),
   );
-  const datasetNetworkView = useAppSelector(selectNetworkView);
   const networkView = useMemo<MaterializedNetworkView | null>(() => {
     if (!temporaryNetwork) return datasetNetworkView;
     return {

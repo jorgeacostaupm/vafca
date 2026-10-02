@@ -45,13 +45,13 @@
   width: 100%;
 }
 
-.atlas-panel__control-card .network-settings-section {
+.atlas-panel__control-card .app-settings-section {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
-.atlas-panel__control-card .network-settings-section__header {
+.atlas-panel__control-card .app-settings-section__header {
   flex-wrap: wrap;
 }
 

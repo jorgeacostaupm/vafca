@@ -5,6 +5,7 @@ import { useState } from 'react'
 import AnnotationSelector from '@/components/annotations/AnnotationSelector'
 import ToggleButton from '@/components/common/ToggleButton'
 import NetworkEdgeFilterModal from '@/components/network/edge-filter/NetworkEdgeFilterModal'
+import LabelsButton from '@/components/network/settings/LabelsButton'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { patchNetworkControls, selectNetworkControls } from '@/store/slices/networkVisualization'
 import { selectUiRangeMode, setUiRangeMode } from '@/store/slices/visualizationUi'
@@ -36,6 +37,7 @@ export default function NetworkSelectorActions() {
   return (
     <div className="network-action-toolbar" aria-label="Network tools">
       <FilterAction />
+      <LabelsButton />
       <Tooltip title="Share color scales between active matrices with the same connectivity measure and statistic">
         <ToggleButton
           className="network-global-scale"

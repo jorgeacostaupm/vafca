@@ -1,5 +1,5 @@
 import { CheckOutlined } from "@ant-design/icons";
-import { Button, Card, Input, InputNumber, Space, Switch, Typography } from "antd";
+import { Button, InputNumber, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
 
 import { useCatalogItemUpdater } from "@/components/management/components/catalogs/useCatalogItemUpdater";
@@ -11,6 +11,8 @@ import { useAppSelector } from "@/store/hooks";
 import { selectDatasetContent } from "@/store/slices/dataset";
 import type { Measure } from "@/types/network";
 
+import CatalogItemEditor from './CatalogItemEditor'
+
 type MeasureDraft = {
   id: string;
   label: string;
@@ -21,6 +23,7 @@ type MeasureDraft = {
 };
 
 type EditableMeasure = Measure & { enabled?: boolean };
+const EMPTY_MEASURES: Record<string, EditableMeasure> = {};
 
 const toDraft = (measure: EditableMeasure): MeasureDraft => ({
   id: measure.id,
@@ -57,8 +60,8 @@ const hasInvalidRange = (draft: MeasureDraft) =>
 function MeasureCatalogSection() {
   const updateItem = useCatalogItemUpdater();
   const measures = useAppSelector(
-    (state) => selectDatasetContent(state)?.catalogs.measures ?? {},
-  );
+    (state) => selectDatasetContent(state)?.catalogs.measures,
+  ) ?? EMPTY_MEASURES;
   const [drafts, setDrafts] = useState<Record<string, MeasureDraft>>(() =>
     toDrafts(measures),
   );
@@ -109,63 +112,13 @@ function MeasureCatalogSection() {
           const draft = drafts[measure.id] ?? toDraft(measure);
 
           return (
-            <Card key={measure.id} size="small" className="catalog-management-card">
-              <Space direction="vertical" size={8} className="catalog-management-card__body">
-                <Space wrap size={12} align="start">
-                  <Input
-                    size="small"
-                    placeholder="Measure label"
-                    value={draft.label}
-                    className="catalog-management-label-input"
-                    onChange={(event) =>
-                      updateDraft(measure.id, {
-                        label: event.target.value,
-                      })
-                    }
-                  />
-                  <Switch
-                    checked={draft.enabled}
-                    onChange={(checked) =>
-                      updateDraft(measure.id, {
-                        enabled: checked,
-                      })
-                    }
-                  />
-                  <InputNumber
-                    size="small"
-                    placeholder="Min"
-                    value={draft.min ?? null}
-                    onChange={(value) =>
-                      updateDraft(measure.id, {
-                        min: normalizeNumber(value),
-                      })
-                    }
-                  />
-                  <InputNumber
-                    size="small"
-                    placeholder="Max"
-                    value={draft.max ?? null}
-                    onChange={(value) =>
-                      updateDraft(measure.id, {
-                        max: normalizeNumber(value),
-                      })
-                    }
-                  />
-                </Space>
-
-                <Input.TextArea
-                  size="small"
-                  placeholder="Description"
-                  value={draft.description}
-                  onChange={(event) =>
-                    updateDraft(measure.id, {
-                      description: event.target.value,
-                    })
-                  }
-                  className="catalog-management-description"
-                />
-              </Space>
-            </Card>
+            <CatalogItemEditor key={measure.id} item={draft} label="Measure label"
+              onChange={changes => updateDraft(measure.id, changes)} >
+              <InputNumber size="small" placeholder="Min" aria-label="Measure minimum"
+                value={draft.min ?? null} onChange={value => updateDraft(measure.id, { min: normalizeNumber(value) })} />
+              <InputNumber size="small" placeholder="Max" aria-label="Measure maximum"
+                value={draft.max ?? null} onChange={value => updateDraft(measure.id, { max: normalizeNumber(value) })} />
+            </CatalogItemEditor>
           );
         })}
       </div>

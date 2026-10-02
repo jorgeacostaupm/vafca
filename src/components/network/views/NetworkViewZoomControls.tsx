@@ -1,12 +1,11 @@
-import { EyeInvisibleOutlined, EyeOutlined, FullscreenOutlined, LeftOutlined, ReloadOutlined, RightOutlined } from "@ant-design/icons";
+import { FullscreenOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { Button } from "antd";
-import type { ReactNode } from "react";
 
 import { useNetworkZoomTargets } from "@/components/network/useNetworkZoomTargets";
 import NetworkBrushControls from "@/components/network/views/NetworkBrushControls";
 import NetworkZoomModesPopover from "@/components/network/views/NetworkZoomModesPopover";
 import { useAppDispatch } from "@/store/hooks";
-import { patchNetworkMatrixSettings, patchNetworkNodeLinkSettings, resetNetworkZoomLabelSelection, stepNetworkZoomHistory } from "@/store/slices/networkVisualization";
+import { patchNetworkMatrixSettings, patchNetworkNodeLinkSettings, stepNetworkZoomHistory } from "@/store/slices/networkVisualization";
 import type { MatrixBrushMode } from "@/types/matrixHeatmap";
 import type { ComputedView, SharedNetworkViewSettings } from "@/types/networkVisualization";
 
@@ -16,10 +15,9 @@ type NetworkViewZoomControlsProps = {
   computed: ComputedView;
   isMatrixView: boolean;
   spatialVisible: boolean;
-  children?: ReactNode;
 };
 
-export default function NetworkViewZoomControls({ computed, isMatrixView, spatialVisible, children }: NetworkViewZoomControlsProps) {
+export default function NetworkViewZoomControls({ computed, isMatrixView, spatialVisible }: NetworkViewZoomControlsProps) {
   const { view } = computed;
   const dispatch = useAppDispatch();
   const zoomTargetsByType = useNetworkZoomTargets();
@@ -71,36 +69,7 @@ export default function NetworkViewZoomControls({ computed, isMatrixView, spatia
           }
         />
       ) : null}
-      {!spatialVisible && <Button
-        size="small"
-        type={computed.selectionVisible ? "default" : "text"}
-        aria-label={
-          computed.selectionVisible ? "Hide selection" : "Show selection"
-        }
-        title={computed.selectionVisible ? "Hide selection" : "Show selection"}
-        icon={
-          computed.selectionVisible ? <EyeOutlined /> : <EyeInvisibleOutlined />
-        }
-        onClick={() =>
-          patchSharedSettings({
-            selectionVisible: !computed.selectionVisible,
-          })
-        }
-      />}
       <NetworkZoomModesPopover computed={computed} view={view} />
-      <Button
-        size="small"
-        type="text"
-        aria-label="Clear node selection"
-        title="Clear node selection"
-        icon={<ReloadOutlined />}
-        disabled={computed.zoomLabelSelection.length === 0}
-        onClick={() =>
-          dispatch(
-            resetNetworkZoomLabelSelection(),
-          )
-        }
-      />
       <Button
         size="small"
         type="text"
@@ -133,7 +102,6 @@ export default function NetworkViewZoomControls({ computed, isMatrixView, spatia
           )
         }
       />
-      {children}
     </div>
   );
 }

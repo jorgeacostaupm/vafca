@@ -1,5 +1,4 @@
 import type { Network, NetworkDataset, SourceKind } from "@/types/network";
-import { networkMatrixSize } from "@/utils/networkData";
 
 const dimensionsKey = (dimensions: Record<string, string>) =>
   Object.entries(dimensions)
@@ -23,12 +22,11 @@ export const createNetworkCompoundId = (network: Network) =>
     network.measureId,
     network.statisticId,
     dimensionsKey(network.dimensions),
+    // Shared comparison sources can contain multiple results with the same statistic.
+    // Keep legacy compound IDs unchanged so saved workspace references still resolve.
+    ...(network.derivation?.type === "comparison" && network.derivation.parameters?.sourceGrouping === "endpoints"
+      ? [network.id] : []),
   ].join("::");
-
-export const getNetworkSourceType = (
-  network: Network,
-  dataset?: Pick<NetworkDataset, "catalogs"> | null,
-) => getNetworkSourceKind(network, dataset);
 
 export const formatNetworkLabel = (
   network: Network,
@@ -47,12 +45,4 @@ export const formatNetworkLabel = (
     return dataset.catalogs.aspectCatalogs[aspect.id]?.[value]?.label ?? value;
   });
   return [source, measure, statistic, ...aspects].filter(Boolean).join(" / ");
-};
-
-export const formatNetworkDataSize = (network: Network) => {
-  if (network.data.format === "matrix") {
-    const size = networkMatrixSize(network.data);
-    return `${size} x ${size}`;
-  }
-  return `${network.nodeIds.length} nodes / ${network.data.edges.length} edges`;
 };

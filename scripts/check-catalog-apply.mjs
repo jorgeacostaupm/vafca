@@ -17,11 +17,15 @@ for (const section of ['Source', 'Aspect']) {
   const slots = [];
   const updates = [];
   let cursor = 0;
+  let stateWrites = 0;
   const modules = {
     react: { useState(initial) {
       const index = cursor++;
       if (!(index in slots)) slots[index] = initial;
-      return [slots[index], value => { slots[index] = typeof value === 'function' ? value(slots[index]) : value; }];
+      return [slots[index], value => {
+        stateWrites++;
+        slots[index] = typeof value === 'function' ? value(slots[index]) : value;
+      }];
     } },
     antd: { Button: 'Button', Card: 'Card', Input: Object.assign('Input', { TextArea: 'TextArea' }), Space: 'Space', Switch: 'Switch', Tabs: 'Tabs', Typography: { Text: 'Text', Title: 'Title' } },
     '@ant-design/icons': { CheckOutlined: 'CheckOutlined' },
@@ -32,13 +36,19 @@ for (const section of ['Source', 'Aspect']) {
       useCatalogItemUpdater: () => (...args) => updates.push(args),
     },
   };
-  const code = ts.transpileModule(readFileSync(
-    `src/components/management/components/catalogs/${section}CatalogSection.tsx`, 'utf8',
-  ), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-  const exports = {};
-  new Function('require', 'exports', code)(name => modules[name] ?? require(name), exports);
+  const load = file => {
+    const code = ts.transpileModule(readFileSync(file, 'utf8'), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
+    }).outputText;
+    const exports = {};
+    new Function('require', 'exports', code)(name => modules[name] ?? require(name), exports);
+    return exports;
+  };
+  modules['./CatalogItemEditor'] = load('src/components/management/components/catalogs/CatalogItemEditor.tsx');
+  const exports = load(`src/components/management/components/catalogs/${section}CatalogSection.tsx`);
   const render = () => { cursor = 0; return exports.default(); };
-  const descendants = node => !node || typeof node !== 'object' ? [] : [
+  const descendants = node => !node || typeof node !== 'object' ? [] : typeof node.type === 'function'
+    ? descendants(node.type(node.props)) : [
     node, ...[node.props?.children, ...(node.props?.items ?? []).map(item => item.children)]
       .flat(Infinity).flatMap(descendants),
   ];
@@ -58,6 +68,21 @@ for (const section of ['Source', 'Aspect']) {
     assert.equal(controls('Button')[1].props.disabled, false, 'other aspect drafts survive Apply');
     controls('Button')[1].props.onClick();
     assert.equal(updates[1][3], 'second', 'same item IDs in different aspects stay independent');
+  }
+  const updateCount = updates.length;
+  controls(modules.antd.Input)[0].props.onChange({ target: { value: 'Renamed' } });
+  controls('TextArea')[0].props.onChange({ target: { value: 'Updated description' } });
+  assert.equal(updates.length, updateCount);
+  assert.equal(controls(modules.antd.Input)[0].props.value, 'Renamed');
+  assert.equal(controls('TextArea')[0].props.value, 'Updated description');
+  controls('Button')[0].props.onClick();
+  assert.deepEqual(updates.at(-1)[2], { label: 'Renamed', description: 'Updated description' });
+  if (section === 'Source') {
+    delete catalogs.sources;
+    render();
+    const writesBefore = stateWrites;
+    render(); render();
+    assert.equal(stateWrites, writesBefore, 'Empty catalog renders must settle');
   }
 }
 console.log('Catalog Apply checks passed.');

@@ -64,7 +64,7 @@ export function useLinksAtlasScene({ atlasDefinition, has3d, spatialMode, isNetw
       camera: view.camera, nodes: view.nodes, links: view.linksGroup, atlasMeshes: view.atlasView.meshes,
       labels: () => latest.current.labels,
       nodeTooltip: id => roiTooltip(byId.get(id), id),
-      selectNode: id => latest.current.selection.selectNode(id),
+      selectNode: isNetworkView ? id => latest.current.selection.selectNode(id) : undefined,
       getHighlightColor: (link, nodeId) => {
         const { colors, color } = latest.current.selection;
         return (link ? colors.links[`${link.rowId}::${link.colId}`] : nodeId ? colors.nodes[nodeId] : undefined) ?? color;
@@ -72,12 +72,13 @@ export function useLinksAtlasScene({ atlasDefinition, has3d, spatialMode, isNetw
       linkTooltip: link => `<div>${escapeHtml(link.rowLabel)} ↔ ${escapeHtml(link.colLabel)}</div>` +
         link.sources.map(source => formatTooltipValue(networkTooltipValue(latest.current.dataset, source.compoundId, source.networkLabel), source.value, link.rowId, link.colId)).join(''),
       select: link => {
+        if (!isNetworkView) return;
         const id = findSelectedLinkId(latest.current.selected, link.rowId, link.colId);
         dispatch(id !== undefined ? removeSelectedLink(id) : addSelectedLink(link));
       },
     });
     interactionRef.current = interaction;
-    const unsubscribe = subscribeSharedHover(hover => view.atlasView.update(latest.current.selection.color, hover?.type === 'node' ? hover.nodeId : null, undefined, latest.current.selection.incident, latest.current.selection.colors.nodes));
+    const unsubscribe = subscribeSharedHover(hover => isNetworkView && view.atlasView.update(latest.current.selection.color, hover?.type === 'node' ? hover.nodeId : null, undefined, latest.current.selection.incident, latest.current.selection.colors.nodes));
     return () => { unsubscribe(); interaction.dispose(); unbindCamera?.(); view.dispose(); scene.current = null; interactionRef.current = null; };
   }, [atlasDefinition, has3d, spatialMode, bindCamera, isNetworkView, dispatch]);
 
@@ -85,26 +86,31 @@ export function useLinksAtlasScene({ atlasDefinition, has3d, spatialMode, isNetw
     const view = scene.current;
     if (!view) return;
     const enabled = Object.fromEntries((atlasDefinition?.nodes ?? []).map(node =>
-      [node.id, highlightedNodeIds.has(node.id) || selection.selected.has(node.id) || selection.incident.has(node.id)]));
+      [node.id, highlightedNodeIds.has(node.id) || (isNetworkView && (selection.selected.has(node.id) || selection.incident.has(node.id)))]));
     for (const mesh of view.pointMeshes) {
       const id = mesh.userData.nodeId as string;
       const active = highlightedNodeIds.has(id);
       // Three.js scene objects are imperative, not React state.
       // eslint-disable-next-line react-hooks/immutability
-      mesh.visible = !hideInactiveRois || active || selection.selected.has(id) || selection.incident.has(id);
+      mesh.visible = isNetworkView
+        ? !hideInactiveRois || active || selection.selected.has(id) || selection.incident.has(id)
+        : active;
       mesh.userData.displayVisible = mesh.visible;
       enabled[id] = mesh.visible;
       const material = mesh.material as THREE.MeshStandardMaterial;
       const defaultColor = diverging ? visualStyle.divergingNodeColor : visualStyle.nodeColor;
       material.color.set(selection.selected.has(id) ? selection.colors.nodes[id] : hasGrouping ? nodeColors[id] ?? defaultColor : defaultColor);
-      material.opacity = highlightedNodeIds.size && !active && !selection.selected.has(id) ? SPATIAL_SCENE.inactivePointOpacity : mesh.userData.baseOpacity;
+      const dimmed = !active && (!isNetworkView || (highlightedNodeIds.size > 0 && !selection.selected.has(id)));
+      material.opacity = dimmed ? SPATIAL_SCENE.inactivePointOpacity : mesh.userData.baseOpacity;
       mesh.userData.displayOpacity = material.opacity;
       mesh.userData.displayColor = material.color.clone();
       mesh.userData.displayEmissive = material.emissive.clone();
     }
     const hover = getSharedHoverState();
+    const surfaceColors = isNetworkView ? selection.colors.nodes
+      : Object.fromEntries(Object.entries(selection.colors.nodes).filter(([id]) => highlightedNodeIds.has(id)));
     view.atlasView.update(selection.color, hover?.type === 'node' ? hover.nodeId : null,
-      hideInactiveRois ? enabled : {}, selection.incident, selection.colors.nodes);
+      hideInactiveRois ? enabled : {}, isNetworkView ? selection.incident : highlightedNodeIds, surfaceColors);
     interactionRef.current?.refresh();
   }, [highlightedNodeIds, spatialMode, has3d, atlasDefinition, isNetworkView, hideInactiveRois, visualStyle, diverging, hasGrouping, nodeColors, selection]);
 

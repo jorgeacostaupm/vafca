@@ -75,6 +75,8 @@ export const validateWorkspace = (raw: {
             throw new Error('Annotation references an unknown node.');
         if (annotation.atlasLinkIds.some(id => !links.some(link => link.id === id)))
             throw new Error('Unknown annotation atlas link selection.');
+        if (annotation.atlasNodeIds.some(id => !annotation.nodes.some(node => node.id === id)))
+            throw new Error('Unknown annotation atlas node selection.');
     }
     const views = session.networkVisualization;
     unique(views.viewsOrder, 'view');

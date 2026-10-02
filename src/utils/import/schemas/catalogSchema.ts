@@ -4,6 +4,10 @@ import { addZodIssues } from "@/utils/import/schemas/importSchemaIssues";
 import type { NetworkImportIssue } from "@/utils/import/types";
 
 export const CatalogsImportSchema = z.record(z.string(), z.unknown());
+export const CatalogComparisonSchema = z.object({
+  values: z.tuple([z.string().nullable(), z.string().nullable()]),
+  operator: z.literal('pearson_contribution').optional(),
+});
 
 export type CatalogsImportRecord = z.infer<typeof CatalogsImportSchema>;
 

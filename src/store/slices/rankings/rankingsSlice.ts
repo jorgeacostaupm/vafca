@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
+import { catalogItemUpdated } from '@/store/actions/catalogItemUpdated';
 import type { CatalogNetworkPrunePayload } from "@/store/slices/dataset/utils/catalogNetworkPruning";
 import {
   createDefaultRankingQueryForTarget,
@@ -9,6 +10,7 @@ import {
   recomputeRankingsForActiveFilters,
   runRankingQuery,
 } from "@/store/slices/rankings/thunks";
+import type { RankingUiState } from '@/types/rankings';
 import type {
   RankingHighlightItem,
   RankingQuery,
@@ -74,6 +76,18 @@ const pruneRankingQueryForCatalogItem = (
   return next;
 };
 
+const pruneRankingQueries = (
+  state: RankingUiState,
+  action: PayloadAction<CatalogNetworkPrunePayload>,
+) => {
+  state.currentQuery = pruneRankingQueryForCatalogItem(state.currentQuery, action.payload);
+  state.queriesByTarget[state.currentQuery.target] = state.currentQuery;
+  Object.entries(state.queriesByTarget).forEach(([target, query]) => {
+    if (!query) return;
+    state.queriesByTarget[target as RankingTarget] = pruneRankingQueryForCatalogItem(query, action.payload);
+  });
+};
+
 const rankingsSlice = createSlice({
   name: "rankings",
   initialState: initialRankingsState,
@@ -118,24 +132,15 @@ const rankingsSlice = createSlice({
         (id) => id !== action.payload.resultId,
       );
     },
-    pruneRankingQueriesForDisabledCatalogItem(
-      state,
-      action: PayloadAction<CatalogNetworkPrunePayload>,
-    ) {
-      state.currentQuery = pruneRankingQueryForCatalogItem(
-        state.currentQuery,
-        action.payload,
-      );
-      state.queriesByTarget[state.currentQuery.target] = state.currentQuery;
-      Object.entries(state.queriesByTarget).forEach(([target, query]) => {
-        if (!query) return;
-        state.queriesByTarget[target as RankingTarget] =
-          pruneRankingQueryForCatalogItem(query, action.payload);
-      });
-    },
+    pruneRankingQueriesForDisabledCatalogItem: pruneRankingQueries,
   },
   extraReducers: (builder) => {
     builder
+      .addCase(catalogItemUpdated, (state, { payload }) => {
+        if (payload.prune) pruneRankingQueries(state, {
+          type: catalogItemUpdated.type, payload: payload.prune,
+        });
+      })
       .addCase(runRankingQuery.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -152,7 +157,15 @@ const rankingsSlice = createSlice({
         state.error =
           action.payload ?? action.error.message ?? "Failed to run ranking.";
       })
+      .addCase(recomputeRankingsForActiveFilters.pending, (state, action) => {
+        state.recomputeRequestId = action.meta.requestId;
+      })
+      .addCase(recomputeRankingsForActiveFilters.rejected, (state, action) => {
+        if (state.recomputeRequestId === action.meta.requestId) state.recomputeRequestId = null;
+      })
       .addCase(recomputeRankingsForActiveFilters.fulfilled, (state, action) => {
+        if (state.recomputeRequestId !== action.meta.requestId) return;
+        state.recomputeRequestId = null;
         action.payload.forEach((result) => {
           if (state.resultsById[result.id]) {
             state.resultsById[result.id] = result;

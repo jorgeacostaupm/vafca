@@ -14,6 +14,7 @@ import type { AppDispatch, RootState } from '@/types/store'
 import { buildAggregatedGroupLabels, buildAggregatedNodeColors } from '@/utils/aggregatedNodePresentation'
 import { computeNetworkMatrixDataStats } from '@/utils/networkDataStats'
 
+import { selectNetworkViewWithCurrentLabel } from '../networkVisualizationSelectors'
 import {
   addTemporaryAggregatedNetworkView,
   setNetworkViewStatus,
@@ -53,7 +54,7 @@ export const aggregateNetworkView = createAsyncThunk<
     const datasetContent = selectDatasetContent(state)
     if (!datasetContent) return rejectWithValue('No dataset is loaded.')
 
-    const sourceView = state.networkVisualization.viewsById[sourceViewId]
+    const sourceView = selectNetworkViewWithCurrentLabel(state, sourceViewId)
     if (!sourceView) return rejectWithValue('Source view not found.')
     if (sourceView.temporaryNetworkId) {
       return rejectWithValue('Aggregated networks cannot be aggregated again.')
@@ -104,6 +105,7 @@ export const aggregateNetworkView = createAsyncThunk<
       addTemporaryAggregatedNetworkView({
         viewId,
         temporaryNetworkId,
+        sourceCompoundId: sourceView.compoundId,
         type: sourceView.type,
         label,
         measureId: sourceView.measureId,

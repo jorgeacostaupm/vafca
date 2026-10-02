@@ -8,16 +8,6 @@ import {
   filterIds,
 } from "./panelDataUtils";
 
-export const toggleSetValue = (values: Set<string>, value: string) => {
-  const next = new Set(values);
-  if (next.has(value)) {
-    next.delete(value);
-  } else {
-    next.add(value);
-  }
-  return next;
-};
-
 export const useAtlasPanelData = ({
   orderedIds,
   labelSearchTextById,

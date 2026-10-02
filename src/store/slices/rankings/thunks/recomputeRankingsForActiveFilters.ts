@@ -1,10 +1,11 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
-import { selectDatasetContent } from '@/store/slices/dataset'
+import { yieldToBrowser } from '@/store/slices/dataset/utils/browserYield'
 import type { RankingResult } from '@/types/rankings'
 import type { AppDispatch, RootState } from '@/types/store'
-import { isAtlasLabelEnabled } from '@/utils/atlas/labels'
 import { computeRanking } from '@/utils/rankings/rankingCalculations'
+
+import { selectRankingInputs } from '../rankingInputSelectors'
 
 export const recomputeRankingsForActiveFilters = createAsyncThunk<
   RankingResult[],
@@ -12,9 +13,10 @@ export const recomputeRankingsForActiveFilters = createAsyncThunk<
   { state: RootState; dispatch: AppDispatch; rejectValue: string }
 >(
   'rankings/recomputeRankingsForActiveFilters',
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { getState, rejectWithValue, signal }) => {
     const state = getState()
-    const datasetContent = selectDatasetContent(state)
+    const inputs = selectRankingInputs(state)
+    const { datasetContent, activeNodeIds, edgeMask } = inputs
     if (!datasetContent) {
       return rejectWithValue('No dataset is loaded.')
     }
@@ -25,25 +27,28 @@ export const recomputeRankingsForActiveFilters = createAsyncThunk<
 
     if (existingResults.length === 0) return []
 
-    const activeNodes = new Set(
-      state.atlasUi.order.filter((id) =>
-        isAtlasLabelEnabled(state.atlasUi.labelsById[id]),
-      ),
-    )
-    const activeFilterMask = state.networkFilters.activeEdgeMask?.values ?? null
-
-    return existingResults.map((existing) => {
+    const activeNodes = new Set(activeNodeIds)
+    const activeFilterMask = edgeMask?.values ?? null
+    const results: RankingResult[] = []
+    for (const existing of existingResults) {
+      // ponytail: yield between rankings; move individual calculations to a worker if they stall the UI.
+      await yieldToBrowser()
+      signal.throwIfAborted()
+      if (selectRankingInputs(getState()) !== inputs) {
+        return rejectWithValue('Ranking inputs changed during the calculation.')
+      }
       const result = computeRanking({
         datasetContent,
         query: existing.query,
         activeNodes,
         activeFilterMask,
       })
-      return {
+      results.push({
         ...result,
         id: existing.id,
         createdAt: existing.createdAt,
-      }
-    })
+      })
+    }
+    return results
   },
 )

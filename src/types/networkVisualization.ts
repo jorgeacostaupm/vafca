@@ -45,7 +45,6 @@ export type SharedNetworkViewSettings = {
   hideIsolatedNodes?: boolean;
   zoomHistory?: ZoomSelection[];
   zoomIndex?: number;
-  selectionVisible?: boolean;
   zoomLinkPercent?: number;
   percentLinkFilter?: NetworkPercentLinkFilter | null;
   useAsNodeFilter?: boolean;
@@ -73,6 +72,7 @@ export type NetworkViewDescriptor = {
   type: NetworkViewType;
   compoundId: string;
   temporaryNetworkId?: string;
+  sourceCompoundId?: string;
   coordinationDisabled?: boolean;
   label: string;
   measureId: string;
@@ -178,7 +178,6 @@ export type ComputedView = {
   circularBundlingEnabled: boolean;
   circularPositiveLinkColor: string;
   circularNegativeLinkColor: string;
-  selectionVisible: boolean;
   zoomLinkPercent: number;
   percentLinkFilter: NetworkPercentLinkFilter | null;
   useAsNodeFilter: boolean;
@@ -193,7 +192,3 @@ export type ComputedView = {
     | MatrixNetworkViewSettings["statRange"]
     | NodeLinkNetworkViewSettings["statRange"];
 };
-
-export const isNodeLinkViewType = (
-  type: NetworkViewType,
-): type is "circular" | "classic" => type !== "matrix";

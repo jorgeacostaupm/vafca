@@ -92,6 +92,7 @@ export const annotationReducers = {
       if (!item) return
       if (item.nodes.some(node => node.id === action.payload.id)) item.nodes = item.nodes.filter(node => node.id !== action.payload.id)
       else item.nodes.push({ id: action.payload.id, label: action.payload.label })
+      item.atlasNodeIds = item.atlasNodeIds.filter(id => item.nodes.some(node => node.id === id))
     },
     setAnnotationOverlapColor(state: VisualizationUiState, action: PayloadAction<string>) {
       if (validColor(action.payload)) state.annotationOverlapColor = action.payload
@@ -159,6 +160,11 @@ export const annotationReducers = {
       const selectedLinkIds = new Set(state.selectedLinks.map((link) => link.id))
       state.atlasLinkIds = state.atlasLinkIds.filter((id) => selectedLinkIds.has(id))
       }
+    },
+    setAtlasNodeIds(ui: VisualizationUiState, action: PayloadAction<string[]>) {
+      const state = currentAnnotation(ui)
+      const nodeIds = new Set(state.nodes.map(node => node.id))
+      state.atlasNodeIds = [...new Set(action.payload)].filter(id => nodeIds.has(id))
     },
     setAtlasLinkIds(ui: VisualizationUiState, action: PayloadAction<string[]>) {
       const state = currentAnnotation(ui)

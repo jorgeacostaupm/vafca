@@ -1,21 +1,18 @@
-import { useMemo } from 'react'
+import { shallowEqual } from 'react-redux'
 
 import { useAppSelector } from '@/store/hooks'
-import { selectDatasetData } from '@/store/slices/dataset'
-import { getMaterializedNetworkByCompoundId } from '@/utils/datasetAccessors'
+import { selectMaterializedNetworkByCompoundId } from '@/store/slices/dataset/datasetSelectors'
 
 export const useSelectedLinkNetworkLookup = (selectedNetworkIds: string[]) => {
-  const dataset = useAppSelector(selectDatasetData)
-
-  const networkLookup = useMemo(
-    () =>
+  const networkLookup = useAppSelector(
+    state =>
       Object.fromEntries(
         selectedNetworkIds.map((compoundId) => [
           compoundId,
-          getMaterializedNetworkByCompoundId(dataset, compoundId) ?? null,
+          selectMaterializedNetworkByCompoundId(state, compoundId),
         ]),
       ),
-    [dataset, selectedNetworkIds],
+    shallowEqual,
   )
 
   return {
