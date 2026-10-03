@@ -14,14 +14,11 @@ import { setShowGroupingLegend } from '@/store/slices/visualizationUi'
 export default function NetworkViewsSettingsTab() {
   const dispatch = useAppDispatch()
   const networkControls = useAppSelector(selectNetworkControls)
-  const showGroupingLegend = useAppSelector(state => state.visualizationUi.showGroupingLegend)
+  const showGroupingLegend = useAppSelector((state) => state.visualizationUi.showGroupingLegend)
 
   return (
     <Space direction="vertical" size={20} style={{ width: '100%' }}>
-      <SettingsSection
-        title="Networks"
-        description="Use this menu to configure how networks are displayed, filtered, and synchronized."
-      >
+      <SettingsSection>
         <NetworkViewTypeSetting />
         <NetworkSelectorModeSetting />
 
@@ -30,7 +27,7 @@ export default function NetworkViewsSettingsTab() {
             <Switch
               aria-label="Floating node color legend"
               checked={showGroupingLegend}
-              onChange={value => dispatch(setShowGroupingLegend(value))}
+              onChange={(value) => dispatch(setShowGroupingLegend(value))}
             />
           </Form.Item>
           <Form.Item label="Coordinated zoom">

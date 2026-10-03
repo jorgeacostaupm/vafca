@@ -62,21 +62,12 @@ function CircularHierarchyPreview({
   };
 
   return (
-    <div
-      style={{
-        width: displayWidth,
-        maxWidth: "100%",
-        border: "1px solid var(--color-border)",
-        background: "var(--color-surface-2)",
-        borderRadius: 8,
-        padding: 8,
-      }}
-    >
+    <div className="circular-hierarchy-preview" style={{ width: displayWidth }}>
       <svg
         width="100%"
-        height={displayWidth}
         viewBox={`0 0 ${PREVIEW_SIZE} ${PREVIEW_SIZE}`}
-        style={{ display: "block" }}
+        role="img"
+        aria-label="Connectogram node ordering preview"
       >
         <g transform={`translate(${PREVIEW_SIZE / 2}, ${PREVIEW_SIZE / 2})`}>
           <circle

@@ -6,7 +6,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { Button, Space, Typography } from "antd";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Fragment } from "react";
 
 import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
@@ -17,6 +17,7 @@ type GroupingFieldListProps = {
   fillAvailableHeight?: boolean;
   maxHeight?: number | string;
   maxWidth?: number | string;
+  children?: ReactNode;
   onMoveField: (field: string, direction: "up" | "down") => void;
   onRemoveField: (field: string) => void;
 };
@@ -27,6 +28,7 @@ export default function GroupingFieldList({
   fillAvailableHeight = false,
   maxHeight,
   maxWidth,
+  children,
   onMoveField,
   onRemoveField,
 }: GroupingFieldListProps) {
@@ -86,13 +88,14 @@ export default function GroupingFieldList({
               />
             </Space>
           </div>
-          {index < fields.length - 1 ? (
+          {index < fields.length - 1 || children ? (
             <span className="grouping-field-list__separator" aria-hidden="true">
               {separatorIcon}
             </span>
           ) : null}
         </Fragment>
       ))}
+      {children}
     </div>
   );
 }

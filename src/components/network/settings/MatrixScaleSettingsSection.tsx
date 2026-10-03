@@ -23,7 +23,6 @@ type MatrixScaleSettingsSectionProps = {
 const normalizeSliderValue = (value: number | [number, number]) =>
   Array.isArray(value) ? value[0] : value
 
-
 export default function MatrixScaleSettingsSection({
   scaleType,
   title,
@@ -38,7 +37,7 @@ export default function MatrixScaleSettingsSection({
         <Typography.Text strong>{title}</Typography.Text>
       </div>
 
-      <Form layout="vertical" className="matrix-settings-scale__form">
+      <Form layout="vertical">
         <Form.Item>
           <Select
             value={settings.scaleId}
@@ -50,28 +49,25 @@ export default function MatrixScaleSettingsSection({
           />
         </Form.Item>
 
-        <MatrixColorScalePreview scaleType={scaleType} settings={settings} />
+        <Form.Item>
+          <MatrixColorScalePreview scaleType={scaleType} settings={settings} />
+        </Form.Item>
 
-        <div className="matrix-settings-color-grid">
-        </div>
+        <Form.Item label="Invert">
+          <Switch
+            checked={settings.invert}
+            onChange={(invert) => dispatch(setDraftMatrixColorInvert({ scaleType, invert }))}
+          />
+        </Form.Item>
 
-        <div className="matrix-settings-toggle-grid">
-          <Form.Item label="Invert">
-            <Switch
-              checked={settings.invert}
-              onChange={(invert) => dispatch(setDraftMatrixColorInvert({ scaleType, invert }))}
-            />
-          </Form.Item>
-
-          <Form.Item label="Discretize">
-            <Switch
-              checked={settings.discretize}
-              onChange={(discretize) =>
-                dispatch(setDraftMatrixColorDiscretize({ scaleType, discretize }))
-              }
-            />
-          </Form.Item>
-        </div>
+        <Form.Item label="Discretize">
+          <Switch
+            checked={settings.discretize}
+            onChange={(discretize) =>
+              dispatch(setDraftMatrixColorDiscretize({ scaleType, discretize }))
+            }
+          />
+        </Form.Item>
 
         <Form.Item
           label={

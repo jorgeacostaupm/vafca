@@ -1,19 +1,16 @@
-import { ArrowDownOutlined, ArrowUpOutlined, SwapOutlined } from "@ant-design/icons";
-import { Button, Space, Typography } from "antd";
+import { ArrowDownOutlined, ArrowUpOutlined, SwapOutlined } from '@ant-design/icons'
+import { Button, Space, Typography } from 'antd'
 
-import type {
-  CategoryOrderEditor,
-  CategoryOrderMap,
-} from "@/components/management/types";
-import { moveValue, reverseValues } from "@/components/management/utils/hierarchyOrder";
-import { humanizeFieldName } from "@/utils/atlas/atlasDefinition";
+import type { CategoryOrderEditor, CategoryOrderMap } from '@/components/management/types'
+import { moveValue, reverseValues } from '@/components/management/utils/hierarchyOrder'
+import { humanizeFieldName } from '@/utils/atlas/atlasDefinition'
 
 type HierarchyCategoryOrderSectionProps = {
-  categoryOrderEditors: CategoryOrderEditor[];
-  categoryOrder: CategoryOrderMap;
-  onUpdateCategoryOrder: (next: CategoryOrderMap) => void;
-  resolveParentField: (index: number) => string;
-};
+  categoryOrderEditors: CategoryOrderEditor[]
+  categoryOrder: CategoryOrderMap
+  onUpdateCategoryOrder: (next: CategoryOrderMap) => void
+  resolveParentField: (index: number) => string
+}
 
 export default function HierarchyCategoryOrderSection({
   categoryOrderEditors,
@@ -22,25 +19,21 @@ export default function HierarchyCategoryOrderSection({
   resolveParentField,
 }: HierarchyCategoryOrderSectionProps) {
   if (categoryOrderEditors.length === 0) {
-    return (
-      <Typography.Text type="secondary">
-        Select hierarchy fields to configure category order per branch.
-      </Typography.Text>
-    );
+    return null
   }
 
   return (
-    <Space direction="vertical" size={8} style={{ width: "100%" }}>
+    <Space direction="vertical" size={8} style={{ width: '100%' }}>
       {categoryOrderEditors.map((editor) => {
         const parentDescription =
           editor.parentValues.length === 0
-            ? "Root level"
+            ? 'Root level'
             : editor.parentValues
                 .map((value, index) => {
-                  const parentField = resolveParentField(index);
-                  return `${humanizeFieldName(parentField)}: ${value}`;
+                  const parentField = resolveParentField(index)
+                  return `${humanizeFieldName(parentField)}: ${value}`
                 })
-                .join(" · ");
+                .join(' · ')
 
         return (
           <div key={editor.key} className="hierarchy-category-order">
@@ -63,11 +56,7 @@ export default function HierarchyCategoryOrderSection({
               Invert branch order
             </Button>
 
-            <Space
-              direction="vertical"
-              size={6}
-              className="hierarchy-category-order__values"
-            >
+            <Space direction="vertical" size={6} className="hierarchy-category-order__values">
               {editor.values.map((value, index) => (
                 <div key={value} className="atlas-panel__field-row">
                   <Typography.Text>{value}</Typography.Text>
@@ -78,7 +67,7 @@ export default function HierarchyCategoryOrderSection({
                       onClick={() =>
                         onUpdateCategoryOrder({
                           ...categoryOrder,
-                          [editor.key]: moveValue(editor.values, value, "up"),
+                          [editor.key]: moveValue(editor.values, value, 'up'),
                         })
                       }
                       disabled={index === 0}
@@ -90,7 +79,7 @@ export default function HierarchyCategoryOrderSection({
                       onClick={() =>
                         onUpdateCategoryOrder({
                           ...categoryOrder,
-                          [editor.key]: moveValue(editor.values, value, "down"),
+                          [editor.key]: moveValue(editor.values, value, 'down'),
                         })
                       }
                       disabled={index === editor.values.length - 1}
@@ -101,8 +90,8 @@ export default function HierarchyCategoryOrderSection({
               ))}
             </Space>
           </div>
-        );
+        )
       })}
     </Space>
-  );
+  )
 }

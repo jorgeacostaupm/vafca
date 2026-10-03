@@ -3,7 +3,6 @@ import MatrixHierarchyPreview from "@/components/management/components/MatrixHie
 
 import {
   CIRCULAR_PREVIEW_WIDTH,
-  MATRIX_PREVIEW_HEIGHT,
   MATRIX_PREVIEW_WIDTH,
 } from "./hierarchySettingsConfig";
 import type {
@@ -46,7 +45,6 @@ export default function HierarchySettingsPreview({
       matrixPreviewIds={hierarchy.matrixPreviewIds}
       nodeColors={hierarchy.previewNodeColors}
       displayWidth={MATRIX_PREVIEW_WIDTH}
-      displayHeight={MATRIX_PREVIEW_HEIGHT}
     />
   );
 }

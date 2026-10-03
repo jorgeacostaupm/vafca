@@ -153,9 +153,9 @@ Catalog keys must match the corresponding values used by the matrices. For examp
 
 Nodes are represented by ROIs. Their information is split into two top-level files. This section is part of the required input specification, not a separate atlas-upload format.
 
-| File                   | Required | Purpose                                                                                    |
-| ---------------------- | -------- | ------------------------------------------------------------------------------------------ |
-| `rois.json`            | Yes      | Defines the identity, matrix position, labels, metadata, and optional center of every ROI. |
+| File                    | Required | Purpose                                                                                    |
+| ----------------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `rois.json`             | Yes      | Defines the identity, matrix position, labels, metadata, and optional center of every ROI. |
 | `spatial/manifest.json` | No       | Adds an optional 3D shape to ROIs defined in `rois.json`.                                  |
 
 ### `rois.json`
@@ -202,7 +202,7 @@ Supported fields:
 | Field      | Required | Meaning                                                                                                 |
 | ---------- | -------- | ------------------------------------------------------------------------------------------------------- |
 | `index`    | Yes      | Zero-based row and column occupied by the ROI in every matrix.                                          |
-| `id`       | Yes      | Unique, stable text identifier. The spatial manifest declares which ROI field identifies model objects.                      |
+| `id`       | Yes      | Unique, stable text identifier. The spatial manifest declares which ROI field identifies model objects. |
 | `label`    | No       | Short display label. If omitted, VAFCA derives one from the index.                                      |
 | `name`     | No       | Longer descriptive name. It defaults to `label`.                                                        |
 | `atlasId`  | No       | Original string or numeric identifier used by an external atlas.                                        |

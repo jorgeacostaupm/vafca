@@ -1,5 +1,5 @@
 import { CheckOutlined } from '@ant-design/icons'
-import { Button, Select, Typography } from 'antd'
+import { Button, Select } from 'antd'
 import { useCallback, useMemo, useState } from 'react'
 
 import GroupingFieldList from '@/components/network/settings/GroupingFieldList'
@@ -18,14 +18,13 @@ export default function AtlasPanelGroupingControls() {
     () => getCommonNodeFields(atlasDefinition),
     [atlasDefinition],
   )
-  const [draftGroupByFields, setDraftGroupByFields] = useState<string[]>(
-    atlasPanel.groupByFields,
-  )
+  const [draftGroupByFields, setDraftGroupByFields] = useState<string[]>(atlasPanel.groupByFields)
 
   const selectableGroupFields = useMemo(
     () =>
-      availableGroupFields.filter((field) =>
-        !normalizeUniqueFieldList(draftGroupByFields, availableGroupFields).includes(field),
+      availableGroupFields.filter(
+        (field) =>
+          !normalizeUniqueFieldList(draftGroupByFields, availableGroupFields).includes(field),
       ),
     [draftGroupByFields, availableGroupFields],
   )
@@ -66,10 +65,6 @@ export default function AtlasPanelGroupingControls() {
 
   return (
     <div className="atlas-panel__grouping-controls">
-      <div className="atlas-panel__grouping-header">
-        <Typography.Text strong>Grouping</Typography.Text>
-      </div>
-
       {normalizedDraftGroupByFields.length > 0 ? (
         <GroupingFieldList
           fields={normalizedDraftGroupByFields}
@@ -91,15 +86,15 @@ export default function AtlasPanelGroupingControls() {
           value={null}
           disabled={selectableGroupFields.length === 0}
         />
-        <Button
-          type="primary"
-          icon={<CheckOutlined />}
-          onClick={handleApplyGroupFields}
-          disabled={!hasPendingGroupFieldChanges}
-        >
-          Apply
-        </Button>
       </div>
+      <Button
+        type="primary"
+        icon={<CheckOutlined />}
+        onClick={handleApplyGroupFields}
+        disabled={!hasPendingGroupFieldChanges}
+      >
+        Apply
+      </Button>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { TagsOutlined } from '@ant-design/icons'
 import { Button, Modal } from 'antd'
 import { useState } from 'react'
 
@@ -11,6 +12,7 @@ export default function LabelsButton() {
   return (
     <>
       <Button
+        icon={<TagsOutlined />}
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
       >

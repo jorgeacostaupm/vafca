@@ -15,7 +15,7 @@ type CameraPose = {
     zoom: number;
 };
 type WorkspaceUi = {
-    activeSection: 'vis' | 'derive' | 'atlas' | 'links' | 'catalogs' | 'settings';
+    activeSection: 'vis' | 'derive' | 'atlas' | 'links' | 'catalogs' | 'data' | 'settings';
     selectedNetworkIds: string[];
     dismissedNetworkIds: string[];
     linksViewEnabled: boolean;

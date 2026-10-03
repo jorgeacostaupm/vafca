@@ -12,13 +12,16 @@ import {
 
 import AggregateGroupLabelsEditor from './AggregateGroupLabelsEditor'
 
-export default function AggregateNetworkModal({ request, onClose }: {
+export default function AggregateNetworkModal({
+  request,
+  onClose,
+}: {
   request: Omit<AggregateNetworkViewRequest, 'fields'>
   onClose: () => void
 }) {
   const dispatch = useAppDispatch()
   const dataset = useAppSelector(selectDatasetContent)
-  const defaultFields = useAppSelector(state => state.atlasUi.aggregationFields)
+  const defaultFields = useAppSelector((state) => state.atlasUi.aggregationFields)
   const [fields, setFields] = useState(defaultFields)
   const [groupLabels, setGroupLabels] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
@@ -47,25 +50,53 @@ export default function AggregateNetworkModal({ request, onClose }: {
   }
 
   return (
-    <Modal open title="Aggregate network" okText="Create network"
-      confirmLoading={pending} okButtonProps={{ disabled: fields.length === 0 || groups.length < 2 }}
-      cancelButtonProps={{ disabled: pending }} closable={!pending} maskClosable={!pending}
-      keyboard={!pending} onCancel={onClose} onOk={() => void handleCreate()}>
+    <Modal
+      open
+      title="Aggregate network"
+      okText="Create network"
+      confirmLoading={pending}
+      okButtonProps={{ disabled: fields.length === 0 || groups.length < 2 }}
+      cancelButtonProps={{ disabled: pending }}
+      closable={!pending}
+      maskClosable={!pending}
+      keyboard={!pending}
+      onCancel={onClose}
+      onOk={() => void handleCreate()}
+    >
       <Typography.Paragraph>
         Group visible nodes by metadata. Connections use the mean of visible links between groups.
       </Typography.Paragraph>
-      <OrderingFieldsSelect purpose="Aggregation" fields={fields}
-        onChange={next => { setFields(next); setError(null) }} />
+      <OrderingFieldsSelect
+        fields={fields}
+        onChange={(next) => {
+          setFields(next)
+          setError(null)
+        }}
+      />
       <Typography.Paragraph>
-        {groups.length} groups{groups.length < 2 ? ' — select fields that produce at least two groups.' : '.'}
+        {groups.length} groups
+        {groups.length < 2 ? ' — select fields that produce at least two groups.' : '.'}
       </Typography.Paragraph>
       {groups.length > 0 && (
-        <Collapse ghost items={[{
-          key: 'labels',
-          label: 'Customize group labels',
-          children: <AggregateGroupLabelsEditor groups={groups} labels={groupLabels} disabled={pending}
-            onChange={(id, label) => setGroupLabels(previous => ({ ...previous, [id]: label }))} />,
-        }]} />
+        <Collapse
+          ghost
+          items={[
+            {
+              key: 'labels',
+              label: 'Customize group labels',
+              children: (
+                <AggregateGroupLabelsEditor
+                  groups={groups}
+                  labels={groupLabels}
+                  disabled={pending}
+                  onChange={(id, label) =>
+                    setGroupLabels((previous) => ({ ...previous, [id]: label }))
+                  }
+                />
+              ),
+            },
+          ]}
+        />
       )}
       {error && <Alert type="error" title={error} showIcon />}
     </Modal>

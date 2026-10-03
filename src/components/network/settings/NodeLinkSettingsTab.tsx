@@ -57,10 +57,11 @@ export default function NodeLinkSettingsTab() {
   }
 
   return (
-    <SettingsSection description="Use this menu to configure classic node-link interaction colors.">
-      <Form layout="vertical" className="node-link-settings-form">
-        <Form.Item label="Positive" className="node-link-settings-form__color-item">
+    <SettingsSection>
+      <Form layout="vertical">
+        <Form.Item label="Positive edges">
           <ColorPicker
+            showText
             value={draft.positiveLinkColor}
             onChange={(color) =>
               patchDraft({
@@ -69,8 +70,9 @@ export default function NodeLinkSettingsTab() {
             }
           />
         </Form.Item>
-        <Form.Item label="Negative" className="node-link-settings-form__color-item">
+        <Form.Item label="Negative edges">
           <ColorPicker
+            showText
             value={draft.negativeLinkColor}
             onChange={(color) =>
               patchDraft({

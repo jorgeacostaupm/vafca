@@ -2,7 +2,6 @@ import { Card, Tabs } from 'antd'
 
 import AnnotationSettings from '@/components/annotations/AnnotationSettings'
 import SettingsSection from '@/components/common/SettingsSection'
-import DataManagementPanel from '@/components/management/DataManagementPanel'
 import { DEFAULT_NETWORK_SETTINGS_TAB } from '@/config/ui'
 
 import CircularSettingsTab from './CircularSettingsTab'
@@ -25,14 +24,13 @@ export default function NetworkVisualizationSettingsPanel() {
             children: (
               <>
                 <NetworkViewsSettingsTab />
-                <SettingsSection title="Annotations">
+                <SettingsSection>
                   <AnnotationSettings />
                 </SettingsSection>
               </>
             ),
           },
-          { key: 'data', label: 'Manage data', children: <DataManagementPanel /> },
-          { key: "spatial", label: "3D Brain", children: <SpatialSettingsTab /> },
+          { key: 'spatial', label: '3D Brain', children: <SpatialSettingsTab /> },
           {
             key: 'matrices',
             label: 'Matrices',

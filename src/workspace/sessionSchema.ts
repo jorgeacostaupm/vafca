@@ -90,7 +90,7 @@ const annotationSchema = z.object({
 });
 export const sessionSchema = z.object({
   workspaceUi: z.object({
-    activeSection: z.enum(['vis', 'derive', 'atlas', 'links', 'catalogs', 'settings']),
+    activeSection: z.enum(['vis', 'derive', 'atlas', 'links', 'catalogs', 'data', 'settings']),
     selectedNetworkIds: strings,
     dismissedNetworkIds: strings,
     linksViewEnabled: z.boolean(),

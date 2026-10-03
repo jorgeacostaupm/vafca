@@ -12,6 +12,7 @@ export const DEFAULT_UI_RANGE_MODE: UiRangeMode = 'view_observed'
 // Root app navigation.
 export const DEFAULT_APP_SECTION = 'vis'
 export const APP_NAV_RAIL_WIDTH = 64
+export const DATA_FORMAT_GUIDE_WIDTH = 960
 export const GROUPING_LEGEND_HEIGHT = 44
 export const GROUPING_LEGEND_INACTIVE_OPACITY = 0.45
 export const GROUPING_LEGEND_Z_INDEX = 100
@@ -111,8 +112,6 @@ export const SELECTED_LINKS_TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 // Network settings modal defaults.
 export const DEFAULT_NETWORK_SETTINGS_TAB = 'general'
 export const DEFAULT_LABELS_MODAL_WIDTH = 520
-export const DEFAULT_MATRIX_SETTINGS_PANEL = 'colors'
-export const DEFAULT_CIRCULAR_SETTINGS_PANEL = 'edges'
 export const DEFAULT_ATLAS_MANAGEMENT_MODAL_WIDTH = 760
 export const DEFAULT_ATLAS_SETTINGS_MODAL_WIDTH = 720
 export const DEFAULT_ATLAS_MODAL_TOP = 48
@@ -120,7 +119,8 @@ export const NETWORK_FILTER_POPOVER_WIDTH = 280
 export const MIN_GROUPING_COLOR_PREVIEW_ITEMS = 7
 export const CIRCULAR_HIERARCHY_PREVIEW_WIDTH = 390
 export const MATRIX_HIERARCHY_PREVIEW_WIDTH = 520
-export const MATRIX_HIERARCHY_PREVIEW_HEIGHT = 150
+export const MATRIX_HIERARCHY_PREVIEW_BLOCK_GAP = 1.5
+export const MATRIX_HIERARCHY_PREVIEW_BLOCK_THICKNESS = 14
 
 // Data and calculation modal defaults.
 export const DEFAULT_DERIVED_MATRIX_CALCULATION_TAB = 'comparison'

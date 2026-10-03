@@ -1,8 +1,8 @@
 import {
-  BarChartOutlined,
   CalculatorOutlined,
-  DeploymentUnitOutlined,
-  LinkOutlined,
+  DatabaseOutlined,
+  EditOutlined,
+  EyeOutlined,
   ReadOutlined,
   SettingOutlined,
 } from '@ant-design/icons'
@@ -14,7 +14,9 @@ import AnnotationsPanel from '@/components/annotations/AnnotationsPanel'
 import AtlasPanel from '@/components/atlas'
 import GroupingLegend from '@/components/atlas/GroupingLegend'
 import DerivedNetworksPanel from '@/components/calculations/DerivedNetworksPanel'
+import BrainIcon from '@/components/common/BrainIcon'
 import CatalogPanel from '@/components/management/CatalogPanel'
+import DataManagementPanel from '@/components/management/DataManagementPanel'
 import NetworkVisualizationTab from '@/components/network/NetworkVisualizationTab'
 import NetworkVisualizationSettingsPanel from '@/components/network/settings/NetworkVisualizationSettingsPanel'
 import UserNotificationHost from '@/components/notifications/UserNotificationHost'
@@ -24,14 +26,14 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { initializeDatasetAndDerivedState } from '@/store/slices/dataset'
 import { patchWorkspaceUi } from '@/workspace/workspaceUiSlice'
 
-type AppSectionKey = 'vis' | 'derive' | 'atlas' | 'links' | 'catalogs' | 'settings' | 'settings'
+type AppSectionKey = 'vis' | 'derive' | 'atlas' | 'links' | 'catalogs' | 'data' | 'settings'
 
 const appSections = [
   {
     key: 'vis',
     label: 'Networks',
     title: 'Rankings & Networks',
-    icon: <BarChartOutlined />,
+    icon: <EyeOutlined />,
     children: <NetworkVisualizationTab />,
   },
   {
@@ -45,14 +47,14 @@ const appSections = [
     key: 'atlas',
     label: 'Atlas',
     title: 'Atlas',
-    icon: <DeploymentUnitOutlined />,
+    icon: <BrainIcon />,
     children: <AtlasPanel />,
   },
   {
     key: 'links',
     label: 'Annotations',
     title: 'Annotations',
-    icon: <LinkOutlined />,
+    icon: <EditOutlined />,
     children: <AnnotationsPanel />,
   },
   {
@@ -61,6 +63,13 @@ const appSections = [
     title: 'Catalogs',
     icon: <ReadOutlined />,
     children: <CatalogPanel />,
+  },
+  {
+    key: 'data',
+    label: 'Manage data',
+    title: 'Manage data',
+    icon: <DatabaseOutlined />,
+    children: <DataManagementPanel />,
   },
   {
     key: 'settings',

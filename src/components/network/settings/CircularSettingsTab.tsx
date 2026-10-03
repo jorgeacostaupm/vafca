@@ -1,6 +1,5 @@
-import { Collapse, ColorPicker, Form, Slider, Space, Switch, Typography } from 'antd'
+import { ColorPicker, Form, Slider, Space, Switch, Typography } from 'antd'
 import type { Color } from 'antd/es/color-picker'
-import { useState } from 'react'
 
 import SettingsActions from '@/components/common/SettingsActions'
 import SettingsSection from '@/components/common/SettingsSection'
@@ -10,9 +9,9 @@ import {
   DEFAULT_CIRCULAR_POSITIVE_LINK_COLOR,
 } from '@/config/matrixColorScales'
 import {
+  CIRCULAR_HIERARCHY_PREVIEW_WIDTH,
   CIRCULAR_LINK_TENSION_MARKS,
   CIRCULAR_LINK_TENSION_STEP,
-  DEFAULT_CIRCULAR_SETTINGS_PANEL,
 } from '@/config/ui'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
@@ -39,7 +38,6 @@ export default function CircularSettingsTab() {
   const dispatch = useAppDispatch()
   const controls = useAppSelector(selectNetworkControls)
   const circularVisualStyle = useAppSelector(selectCircularVisualStyle)
-  const [activePanel, setActivePanel] = useState<string | string[]>(DEFAULT_CIRCULAR_SETTINGS_PANEL)
   const ordering = useOrderingSettings('circular')
   const { hierarchy } = ordering
   const appliedSettings = {
@@ -51,7 +49,12 @@ export default function CircularSettingsTab() {
     selectionColor: circularVisualStyle.selectionColor,
   }
 
-  const { value: effectiveSettings, patch: patchDraft, reset, hasChanges: hasEdgeChanges } = useSettingsDraft(appliedSettings)
+  const {
+    value: effectiveSettings,
+    patch: patchDraft,
+    reset,
+    hasChanges: hasEdgeChanges,
+  } = useSettingsDraft(appliedSettings)
   const hasPendingChanges = hasEdgeChanges || ordering.hasChanges
 
   const handleReset = () => {
@@ -86,102 +89,91 @@ export default function CircularSettingsTab() {
   }
 
   return (
-    <SettingsSection description="Use this menu to configure connectogram edge layout and node order.">
-      <div className="circular-settings-layout">
-        <Collapse
-          accordion
-          activeKey={activePanel}
-          onChange={setActivePanel}
-          className="network-settings-accordion"
-          items={[
-            {
-              key: 'edges',
-              label: 'Edges',
-              children: (
-                <Form layout="vertical" className="circular-settings-edges__form">
-                  <div className="circular-settings-edges__colors">
-                    <Form.Item label="Positive" className="circular-settings-edges__color-item">
-                      <ColorPicker
-                        value={effectiveSettings.positiveLinkColor}
-                        onChange={(color) =>
-                          patchDraft({
-                            positiveLinkColor: toHexColor(
-                              color,
-                              effectiveSettings.positiveLinkColor,
-                            ),
-                          })
-                        }
-                      />
-                    </Form.Item>
-                    <Form.Item label="Negative" className="circular-settings-edges__color-item">
-                      <ColorPicker
-                        value={effectiveSettings.negativeLinkColor}
-                        onChange={(color) =>
-                          patchDraft({
-                            negativeLinkColor: toHexColor(
-                              color,
-                              effectiveSettings.negativeLinkColor,
-                            ),
-                          })
-                        }
-                      />
-                    </Form.Item>
-                  </div>
-                  <Form.Item label="Edge bundling">
-                    <Switch
-                      checked={effectiveSettings.bundlingEnabled}
-                      onChange={(value) => patchDraft({ bundlingEnabled: value })}
-                    />
-                  </Form.Item>
-                  <Form.Item
-                    label={
-                      <Space>
-                        <Typography.Text>Link tension</Typography.Text>
-                        <Typography.Text type="secondary">
-                          {effectiveSettings.linkTension.toFixed(2)}
-                        </Typography.Text>
-                      </Space>
-                    }
-                  >
-                    <Slider
-                      min={0}
-                      max={1}
-                      step={CIRCULAR_LINK_TENSION_STEP}
-                      marks={CIRCULAR_LINK_TENSION_MARKS}
-                      value={effectiveSettings.linkTension}
-                      onChange={(value) => patchDraft({ linkTension: normalizeTension(value) })}
-                    />
-                  </Form.Item>
-                </Form>
-              ),
-            },
-            {
-              key: 'order',
-              label: 'Connectogram node order',
-              children: (
-                <div className="network-settings-order-editor">
-                  <OrderingFieldsSelect fields={ordering.fields} onChange={ordering.setFields} />
-                  <HierarchyCategoryOrderSection
-                    categoryOrderEditors={hierarchy.circularCategoryOrderEditors}
-                    categoryOrder={ordering.categoryOrder}
-                    onUpdateCategoryOrder={ordering.setCategoryOrder}
-                    resolveParentField={(index) => ordering.fields[index] ?? ''}
-                  />
-                </div>
-              ),
-            },
-          ]}
-        />
-        <div className="circular-settings-edges__preview-panel">
-          <HierarchySettingsPreview
-            mode="circular"
-            hierarchy={hierarchy}
-            circularLinkTension={effectiveSettings.linkTension}
-            circularBundlingEnabled={effectiveSettings.bundlingEnabled}
-            circularLinkColor={effectiveSettings.positiveLinkColor}
+    <SettingsSection>
+      <Form layout="vertical">
+        <Form.Item label="Positive edges">
+          <ColorPicker
+            showText
+            value={effectiveSettings.positiveLinkColor}
+            onChange={(color) =>
+              patchDraft({
+                positiveLinkColor: toHexColor(color, effectiveSettings.positiveLinkColor),
+              })
+            }
           />
+        </Form.Item>
+        <Form.Item label="Negative edges">
+          <ColorPicker
+            showText
+            value={effectiveSettings.negativeLinkColor}
+            onChange={(color) =>
+              patchDraft({
+                negativeLinkColor: toHexColor(color, effectiveSettings.negativeLinkColor),
+              })
+            }
+          />
+        </Form.Item>
+
+        <Form.Item label="Edge bundling">
+          <Switch
+            checked={effectiveSettings.bundlingEnabled}
+            onChange={(value) => patchDraft({ bundlingEnabled: value })}
+          />
+        </Form.Item>
+      </Form>
+      <SettingsSection>
+        <div className="network-settings-order-layout circular-settings-order-layout">
+          <div className="network-settings-order-editor">
+            <Typography.Paragraph>Ordering of visible nodes</Typography.Paragraph>
+            <OrderingFieldsSelect
+              fields={ordering.fields}
+              onChange={ordering.setFields}
+              orientation="horizontal"
+            />
+            <HierarchyCategoryOrderSection
+              categoryOrderEditors={hierarchy.circularCategoryOrderEditors}
+              categoryOrder={ordering.categoryOrder}
+              onUpdateCategoryOrder={ordering.setCategoryOrder}
+              resolveParentField={(index) => ordering.fields[index] ?? ''}
+            />
+          </div>
+          <div className="network-settings-order-preview">
+            <div
+              className="circular-settings-edges__preview-panel"
+              style={{ width: CIRCULAR_HIERARCHY_PREVIEW_WIDTH }}
+            >
+              <Form layout="vertical" className="circular-settings-edges__tension">
+                <Form.Item
+                  label={
+                    <Space>
+                      <Typography.Text>Link tension</Typography.Text>
+                      <Typography.Text type="secondary">
+                        {effectiveSettings.linkTension.toFixed(2)}
+                      </Typography.Text>
+                    </Space>
+                  }
+                >
+                  <Slider
+                    min={0}
+                    max={1}
+                    step={CIRCULAR_LINK_TENSION_STEP}
+                    marks={CIRCULAR_LINK_TENSION_MARKS}
+                    value={effectiveSettings.linkTension}
+                    onChange={(value) => patchDraft({ linkTension: normalizeTension(value) })}
+                  />
+                </Form.Item>
+              </Form>
+              <HierarchySettingsPreview
+                mode="circular"
+                hierarchy={hierarchy}
+                circularLinkTension={effectiveSettings.linkTension}
+                circularBundlingEnabled={effectiveSettings.bundlingEnabled}
+                circularLinkColor={effectiveSettings.positiveLinkColor}
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      </SettingsSection>
       <SettingsActions hasChanges={hasPendingChanges} onApply={handleApply} onReset={handleReset} />
     </SettingsSection>
   )

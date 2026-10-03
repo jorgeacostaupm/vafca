@@ -1,9 +1,10 @@
 import { DownloadOutlined, UploadOutlined } from '@ant-design/icons'
-import { Button, Modal } from 'antd'
+import { Button, Card, Modal } from 'antd'
 import { useState } from 'react'
 
 import DataSummarySection from '@/components/management/components/DataSummarySection'
 import NetworkUploader from '@/components/management/components/NetworkUploader'
+import DataFormatGuide from '@/components/management/DataFormatGuide'
 import WorkspaceControls from '@/components/management/WorkspaceControls'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
@@ -21,7 +22,9 @@ export default function DataManagementPanel() {
   const downloadStatus = useAppSelector(selectDatasetDownloadStatus)
 
   return (
-    <div className="data-management-panel">
+    <Card title="Manage data" classNames={{ body: 'data-management-panel' }}>
+      <DataSummarySection />
+      <DataFormatGuide />
       <div className="data-management-actions">
         <Button icon={<UploadOutlined />} onClick={() => setImportOpen(true)}>
           Import data
@@ -36,10 +39,9 @@ export default function DataManagementPanel() {
           Export data
         </Button>
       </div>
-      <DataSummarySection />
       <Modal title="Import data" open={importOpen} footer={null} onCancel={() => setImportOpen(false)}>
         <NetworkUploader />
       </Modal>
-    </div>
+    </Card>
   )
 }

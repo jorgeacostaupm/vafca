@@ -5,6 +5,7 @@
   padding: var(--space-4);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
+  gap: var(--space-8);
 }
 
 .app-settings-section--no-padding {
@@ -16,6 +17,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 
 .app-settings-section__actions {
